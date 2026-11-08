@@ -1,4 +1,4 @@
-﻿// M4-T1 咨询首消息与唯一通知出箱的真实 PostgreSQL 验收。
+// M4-T1 咨询首消息与唯一通知出箱的真实 PostgreSQL 验收。
 //
 // 载体安全：只认专属变量 B9_M4T1_TEST_DATABASE_URL，必须 loopback；**绝不回退通用 DATABASE_URL**
 // （通用变量是业务库）。CHAT_REQUIRE_DATABASE=true 时缺专属 URL 直接失败，不静默 skip。
@@ -12,9 +12,20 @@ import { randomBytes, randomUUID } from 'node:crypto';
 import { PrismaClient } from '@prisma/client';
 import { ConversationReceivedDTOSchema } from '../src/lib/contracts/chat';
 import { CHAT_RETENTION_MS } from '../src/lib/chat/rules';
-import { ChatIdempotencyConflict, createConversationService } from '../src/lib/server/chat/conversation-service';
+import {
+  ChatIdempotencyConflict,
+  ChatSessionNoLongerValid,
+  ChatTransactionBudgetExceeded,
+  createConversationService,
+} from '../src/lib/server/chat/conversation-service';
 import { createChatRepo, isDatabaseUnavailable } from '../src/lib/server/chat/repo';
-import { CHAT_VISITOR_COOKIE, hashChatToken, type ValidatedSession } from '../src/lib/server/chat/visitor-session';
+import {
+  CHAT_VISITOR_COOKIE,
+  createVisitorSessionRepo,
+  createVisitorSessionService,
+  hashChatToken,
+  type ValidatedSession,
+} from '../src/lib/server/chat/visitor-session';
 import { CHAT_VISITOR_POLICY } from '../src/lib/server/config';
 
 const DEDICATED = process.env.B9_M4T1_TEST_DATABASE_URL?.trim();
@@ -68,6 +79,9 @@ describe('M4-T1 原子保存咨询首消息与唯一通知出箱', { concurrency
   let createdByUs = false;
   let route: typeof import('../src/app/api/chat/conversations/route');
   let ipSeq = 0;
+  /** 测试侧计量：事务耗时（含回滚）与逐条 SQL 前的 arm 审计。 */
+  let txDurations: number[] = [];
+  let armAudit: { method: string; sql: string }[] = [];
 
   function db(): PrismaClient {
     if (!conn) throw new Error('no database');
@@ -101,6 +115,34 @@ describe('M4-T1 原子保存咨询首消息与唯一通知出箱', { concurrency
     // 路由通过组合点拿全局 prisma，必须在导入路由之前把连接指向本次独占 schema。
     process.env.DATABASE_URL = url;
     process.env.EDGE_AUTH_SECRET = EDGE_SECRET;
+    // 测试侧计量：包装全局 prisma 的 $transaction，记录事务耗时（含回滚）与每条 SQL 前的 SET LOCAL。
+    // 只替换测试进程内的客户端方法，不新增生产测试钩子，也不改 composition。
+    const dbModule = await import('../src/lib/server/db');
+    const client = dbModule.prisma as unknown as { $transaction: (...args: unknown[]) => Promise<unknown> };
+    const originalTx = client.$transaction.bind(client);
+    client.$transaction = async (arg: unknown, options?: unknown) => {
+      if (typeof arg !== 'function') return originalTx(arg, options);
+      const started = performance.now();
+      try {
+        return await originalTx(async (tx: unknown) => {
+          const wrapped = new Proxy(tx as object, {
+            get(target, prop, receiver) {
+              const value = Reflect.get(target, prop, receiver);
+              if (prop === '$queryRaw' || prop === '$executeRaw' || prop === '$executeRawUnsafe') {
+                return (...args: unknown[]) => {
+                  armAudit.push({ method: String(prop), sql: sqlOf(args[0]) });
+                  return (value as (...inner: unknown[]) => unknown).apply(target, args);
+                };
+              }
+              return typeof value === 'function' ? (value as (...inner: unknown[]) => unknown).bind(target) : value;
+            },
+          });
+          return await (arg as (inner: unknown) => Promise<unknown>)(wrapped);
+        }, options);
+      } finally {
+        txDurations.push(performance.now() - started);
+      }
+    };
     route = await import('../src/app/api/chat/conversations/route');
   });
 
@@ -151,7 +193,42 @@ describe('M4-T1 原子保存咨询首消息与唯一通知出箱', { concurrency
     conversations: await db().chatConversation.count(),
     messages: await db().chatMessage.count(),
     notifications: await db().chatNotification.count(),
+    readCursors: await db().chatReadCursor.count(),
   });
+
+  /** 从 Prisma 的模板串 / Prisma.Sql / 普通字符串里取出 SQL 文本，供 arm 审计用。 */
+  function sqlOf(arg: unknown): string {
+    if (typeof arg === 'string') return arg;
+    if (Array.isArray(arg)) return arg.join('?');
+    const shaped = arg as { sql?: unknown } | null;
+    return shaped && typeof shaped.sql === 'string' ? shaped.sql : String(arg);
+  }
+
+  function beginTxAudit() {
+    txDurations = [];
+    armAudit = [];
+  }
+
+  function dataStatementCount(): number {
+    return armAudit.filter((entry) => !/^\s*SET LOCAL /.test(entry.sql)).length;
+  }
+
+  /** 每条数据语句前面必须紧挨着 statement_timeout 与 lock_timeout 两次 SET LOCAL（arm）。 */
+  function assertArmedPrefix(): void {
+    const dataIndexes = armAudit
+      .map((entry, index) => (/^\s*SET LOCAL (statement_timeout|lock_timeout) = \d+\s*$/.test(entry.sql) ? -1 : index))
+      .filter((index) => index >= 0);
+    assert.ok(dataIndexes.length > 0, '至少应记录到一条数据语句');
+    for (const index of dataIndexes) {
+      const timeout = armAudit[index - 2];
+      const lock = armAudit[index - 1];
+      const label = armAudit[index].sql.replace(/\s+/g, ' ').slice(0, 80);
+      assert.ok(timeout && /SET LOCAL statement_timeout/.test(timeout.sql), `数据语句前缺少 statement_timeout arm：${label}`);
+      assert.ok(lock && /SET LOCAL lock_timeout/.test(lock.sql), `数据语句前缺少 lock_timeout arm：${label}`);
+    }
+  }
+
+  const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
   /** 每个用例一枚新的可信边缘 IP，避免限流桶互相污染。 */
   function nextIp(): string {
@@ -230,7 +307,7 @@ describe('M4-T1 原子保存咨询首消息与唯一通知出箱', { concurrency
     const notification = await db().chatNotification.findUniqueOrThrow({ where: { messageId: received.message.id } });
     assert.equal(notification.status, 'QUEUED');
     assert.equal(notification.stableMessageId, `${received.message.id}@chat.packjoyu`);
-    assert.deepEqual(await counts(), { conversations: 1, messages: 1, notifications: 1 });
+    assert.deepEqual(await counts(), { conversations: 1, messages: 1, notifications: 1, readCursors: 0 });
   });
 
   test('同 UUID 同载荷重复提交：返回原 id/seq/receivedAt，不新增消息或通知', async () => {
@@ -244,7 +321,7 @@ describe('M4-T1 原子保存咨询首消息与唯一通知出箱', { concurrency
     assert.equal(replay.duplicate, true);
     assert.equal(replay.conversationId, first.conversationId);
     assert.deepEqual(replay.message, first.message);
-    assert.deepEqual(await counts(), { conversations: 1, messages: 1, notifications: 1 });
+    assert.deepEqual(await counts(), { conversations: 1, messages: 1, notifications: 1, readCursors: 0 });
   });
 
   test('同 UUID 异载荷：抛 409 冲突，不写任何行', async () => {
@@ -261,7 +338,7 @@ describe('M4-T1 原子保存咨询首消息与唯一通知出箱', { concurrency
       }),
       (error: unknown) => error instanceof ChatIdempotencyConflict && error.field === 'clientConversationId',
     );
-    assert.deepEqual(await counts(), { conversations: 1, messages: 1, notifications: 1 });
+    assert.deepEqual(await counts(), { conversations: 1, messages: 1, notifications: 1, readCursors: 0 });
   });
 
   test('并发同名提交：只落一条消息、一条通知（同一 client 的并发发起，不主张已证明事务重叠）', async () => {
@@ -277,7 +354,7 @@ describe('M4-T1 原子保存咨询首消息与唯一通知出箱', { concurrency
     assert.equal(a.conversationId, b.conversationId);
     assert.equal(a.message.id, b.message.id);
     assert.deepEqual([a.duplicate, b.duplicate].sort(), [false, true]);
-    assert.deepEqual(await counts(), { conversations: 1, messages: 1, notifications: 1 });
+    assert.deepEqual(await counts(), { conversations: 1, messages: 1, notifications: 1, readCursors: 0 });
   });
 
   test('访客身份隔离：不同访客会话用同一 clientConversationId 各自建自己的会话', async () => {
@@ -290,7 +367,7 @@ describe('M4-T1 原子保存咨询首消息与唯一通知出箱', { concurrency
     const b = await service.createFirstMessage({ session: sessionOf(second), payload: input });
 
     assert.notEqual(a.conversationId, b.conversationId);
-    assert.deepEqual(await counts(), { conversations: 2, messages: 2, notifications: 2 });
+    assert.deepEqual(await counts(), { conversations: 2, messages: 2, notifications: 2, readCursors: 0 });
   });
 
   test('预存同名 schema 负例：拒绝认领，预存对象原样保留', async () => {
@@ -311,99 +388,206 @@ describe('M4-T1 原子保存咨询首消息与唯一通知出箱', { concurrency
 
   // ---------- 真实 SQL 故障 ----------
 
-  async function createTrigger(name: string, body: string) {
+  type TriggerTable = 'ChatConversation' | 'ChatMessage' | 'ChatNotification';
+  async function createTrigger(name: string, body: string, table: TriggerTable) {
     const client = admin as PrismaClient;
     await client.$executeRawUnsafe(
       `CREATE OR REPLACE FUNCTION "${schema}"."${name}"() RETURNS trigger AS $fn$ BEGIN ${body} END; $fn$ LANGUAGE plpgsql`,
     );
     await client.$executeRawUnsafe(
-      `CREATE TRIGGER "${name}" BEFORE INSERT ON "${schema}"."ChatNotification" FOR EACH ROW EXECUTE FUNCTION "${schema}"."${name}"()`,
+      `CREATE TRIGGER "${name}" BEFORE INSERT ON "${schema}"."${table}" FOR EACH ROW EXECUTE FUNCTION "${schema}"."${name}"()`,
     );
   }
 
-  async function dropTrigger(name: string) {
+  async function dropTrigger(name: string, table: TriggerTable) {
     const client = admin as PrismaClient;
-    await client.$executeRawUnsafe(`DROP TRIGGER IF EXISTS "${name}" ON "${schema}"."ChatNotification"`);
+    await client.$executeRawUnsafe(`DROP TRIGGER IF EXISTS "${name}" ON "${schema}"."${table}"`);
     await client.$executeRawUnsafe(`DROP FUNCTION IF EXISTS "${schema}"."${name}"()`);
   }
 
-  test('真实 SQL 数据层故障：HTTP 500，四表零增量，既有行与预置会话保留，移除后同键可成功', async () => {
+  // 插入尝试探针：序列的 nextval 不随事务回滚，能数清"守卫前"与"已尝试写入"。
+  const ATTEMPT_TABLES = ['ChatConversation', 'ChatMessage'] as const;
+  async function installAttemptProbe() {
+    const client = admin as PrismaClient;
+    await client.$executeRawUnsafe(`CREATE SEQUENCE "${schema}"."m4t1_attempt_seq"`);
+    for (const table of ATTEMPT_TABLES) {
+      const fn = `m4t1_attempt_${table}`;
+      await client.$executeRawUnsafe(
+        `CREATE OR REPLACE FUNCTION "${schema}"."${fn}"() RETURNS trigger AS $fn$ BEGIN PERFORM nextval('"${schema}"."m4t1_attempt_seq"'); RETURN NEW; END; $fn$ LANGUAGE plpgsql`,
+      );
+      await client.$executeRawUnsafe(
+        `CREATE TRIGGER "${fn}" BEFORE INSERT ON "${schema}"."${table}" FOR EACH ROW EXECUTE FUNCTION "${schema}"."${fn}"()`,
+      );
+    }
+  }
+
+  async function attemptCount(): Promise<number> {
+    const rows = await db().$queryRawUnsafe<{ last_value: bigint; is_called: boolean }[]>(
+      `SELECT last_value, is_called FROM "${schema}"."m4t1_attempt_seq"`,
+    );
+    return rows[0]?.is_called ? Number(rows[0].last_value) : 0;
+  }
+
+  async function removeAttemptProbe() {
+    const client = admin as PrismaClient;
+    for (const table of ATTEMPT_TABLES) {
+      const fn = `m4t1_attempt_${table}`;
+      await client.$executeRawUnsafe(`DROP TRIGGER IF EXISTS "${fn}" ON "${schema}"."${table}"`);
+      await client.$executeRawUnsafe(`DROP FUNCTION IF EXISTS "${schema}"."${fn}"()`);
+    }
+    await client.$executeRawUnsafe(`DROP SEQUENCE IF EXISTS "${schema}"."m4t1_attempt_seq"`);
+  }
+
+  test('真实 SQL 数据层故障：HTTP 500，四表零增量，既有行与预置会话保留，失败不续期、同键恢复后严格续期', async () => {
     await reset();
     const baseline = await seedVisitor();
     const keeper = await seedVisitor();
     const baseInput = payload();
     const service = createConversationService({ db: db(), clock: () => NOW });
     const kept = await service.createFirstMessage({ session: sessionOf(keeper), payload: baseInput });
-    assert.deepEqual(await counts(), { conversations: 1, messages: 1, notifications: 1 });
+    assert.deepEqual(await counts(), { conversations: 1, messages: 1, notifications: 1, readCursors: 0 });
 
-    await createTrigger('m4t1_fail_notification', `RAISE EXCEPTION 'synthetic notification failure';`);
+    await createTrigger('m4t1_fail_notification', `RAISE EXCEPTION 'synthetic notification failure';`, 'ChatNotification');
     // K2：失败后必须用同一个 payload（同一对 UUID）重试，不能改名绕开。
     const pending = payload();
+    const activityBefore = await lastActivity(baseline.id);
     try {
+      beginTxAudit();
+      const started = performance.now();
       const response = await post(pending, { cookie: `${CHAT_VISITOR_COOKIE}=${baseline.token}` });
+      const httpMs = performance.now() - started;
       const body = await expectStatus(response, 500, '触发器故障不是数据库不可用');
       assert.equal(body?.error, 'internal_error');
-      assert.deepEqual(await counts(), { conversations: 1, messages: 1, notifications: 1 }, '失败请求不得留下任何行');
+      assert.equal(txDurations.length, 1, '应只有一笔事务');
+      assert.ok(txDurations[0] <= 5_000, `失败事务也应受预算约束，实际 ${txDurations[0].toFixed(1)}ms`);
+      assert.ok(httpMs >= txDurations[0] - 200, `HTTP 不应短于事务：http=${httpMs.toFixed(1)} tx=${txDurations[0].toFixed(1)}`);
+      assertArmedPrefix();
+      assert.deepEqual(await counts(), { conversations: 1, messages: 1, notifications: 1, readCursors: 0 }, '失败请求不得留下任何行');
+      assert.equal(await lastActivity(baseline.id), activityBefore, '500 不得续期');
       const still = await db().chatConversation.findUniqueOrThrow({ where: { id: kept.conversationId } });
       assert.equal(still.id, kept.conversationId, '既有咨询必须保留');
     } finally {
-      await dropTrigger('m4t1_fail_notification');
+      await dropTrigger('m4t1_fail_notification', 'ChatNotification');
     }
 
     const ok = await post(pending, { cookie: `${CHAT_VISITOR_COOKIE}=${baseline.token}` });
     await expectStatus(ok, 200, '移除触发器后用同一 payload 与 UUID 可成功');
-    assert.deepEqual(await counts(), { conversations: 2, messages: 2, notifications: 2 });
+    assert.deepEqual(await counts(), { conversations: 2, messages: 2, notifications: 2, readCursors: 0 });
+    assert.ok((await lastActivity(baseline.id)) > activityBefore, '成功响应必须严格推进闲置期限');
   });
 
-  test('慢 SQL 越过事务预算：5s 内被截断为 503，整笔回滚，移除后重试成功', async () => {
+  test('慢 SQL 越过事务预算：事务在 5s 内被截断为 503，整笔回滚，失败不续期、同键恢复后严格续期', async () => {
     await reset();
     const visitor = await seedVisitor();
-    await createTrigger('m4t1_slow_notification', `PERFORM pg_sleep(7); RETURN NEW;`);
+    const cookie = `${CHAT_VISITOR_COOKIE}=${visitor.token}`;
+    const activityBefore = await lastActivity(visitor.id);
+    await createTrigger('m4t1_slow_notification', `PERFORM pg_sleep(7); RETURN NEW;`, 'ChatNotification');
     const input = payload();
     try {
-      const started = Date.now();
-      const response = await post(input, { cookie: `${CHAT_VISITOR_COOKIE}=${visitor.token}` });
-      const elapsed = Date.now() - started;
+      beginTxAudit();
+      const started = performance.now();
+      const response = await post(input, { cookie });
+      const httpMs = performance.now() - started;
       const body = await expectStatus(response, 503, '语句超时应映射 service_unavailable');
       assert.equal(body?.error, 'service_unavailable');
-      // 首个语句拿到的剩余预算是 5000−0−800=4200ms，不是固定 4500ms。
-      assert.ok(elapsed >= 3_800, `应真正跑到预算附近再被截断，实际 ${elapsed}ms`);
-      assert.ok(elapsed <= 5_000, `事务必须受 5s 预算约束，实际 ${elapsed}ms`);
-      assert.deepEqual(await counts(), { conversations: 0, messages: 0, notifications: 0 }, '慢语句失败后整笔回滚');
+      assert.equal(txDurations.length, 1, '应只有一笔事务');
+      const txMs = txDurations[0];
+      // 首个语句拿到的剩余预算是 5000−0−800 量级；截断必须发生在 5s 契约内，而不是客户端兜底。
+      assert.ok(txMs >= 3_500 && txMs <= 4_800, `事务应被剩余预算截断在 5s 内，实际 ${txMs.toFixed(1)}ms`);
+      assert.ok(httpMs >= txMs - 200, `HTTP 不应短于事务：http=${httpMs.toFixed(1)} tx=${txMs.toFixed(1)}`);
+      console.log(`[B2 single-7s] tx=${txMs.toFixed(1)}ms http=${httpMs.toFixed(1)}ms`);
+      assertArmedPrefix();
+      assert.deepEqual(await counts(), { conversations: 0, messages: 0, notifications: 0, readCursors: 0 }, '慢语句失败后整笔回滚');
+      assert.equal(await lastActivity(visitor.id), activityBefore, '503 不得续期');
     } finally {
-      await dropTrigger('m4t1_slow_notification');
+      await dropTrigger('m4t1_slow_notification', 'ChatNotification');
     }
 
     // K2：原 payload 与原 UUID 重试。
-    const retry = await post(input, { cookie: `${CHAT_VISITOR_COOKIE}=${visitor.token}` });
+    const retry = await post(input, { cookie });
     await expectStatus(retry, 200, '移除慢触发器后用同一 payload 与 UUID 重试成功');
-    assert.deepEqual(await counts(), { conversations: 1, messages: 1, notifications: 1 });
+    assert.deepEqual(await counts(), { conversations: 1, messages: 1, notifications: 1, readCursors: 0 });
+    assert.ok((await lastActivity(visitor.id)) > activityBefore, '成功响应必须严格推进闲置期限');
   });
 
-  test('B2：两条各 3.5s 的语句累计也不得越过 5s 事务预算', async () => {
+  test('B2：两条不同语句各 3.5s 可单独成功，组合后第二条按剩余预算被取消', async () => {
     await reset();
     const visitor = await seedVisitor();
-    // 第一条慢语句落在会话插入，第二条落在消息插入：单条都 <4.2s，累计会超过 5s。
-    await createTrigger('m4t1_slow_conversation', `PERFORM pg_sleep(3.5); RETURN NEW;`);
-    await createTrigger('m4t1_slow_message', `PERFORM pg_sleep(3.5); RETURN NEW;`);
-    const input = payload();
+    const cookie = `${CHAT_VISITOR_COOKIE}=${visitor.token}`;
+
+    // 1) 只有会话插入慢 3.5s：单条可单独成功。
+    await createTrigger('m4t1_slow_conv_only', `PERFORM pg_sleep(3.5); RETURN NEW;`, 'ChatConversation');
     try {
-      const started = Date.now();
-      const response = await post(input, { cookie: `${CHAT_VISITOR_COOKIE}=${visitor.token}` });
-      const elapsed = Date.now() - started;
-      const body = await expectStatus(response, 503, '累计超预算应 503');
-      assert.equal(body?.error, 'service_unavailable');
-      assert.ok(elapsed <= 5_000, `事务总耗时必须 ≤5000ms，实际 ${elapsed}ms`);
-      assert.ok(elapsed >= 3_000, `必须先真的执行第一条慢语句，实际 ${elapsed}ms`);
-      assert.deepEqual(await counts(), { conversations: 0, messages: 0, notifications: 0 });
+      beginTxAudit();
+      const started = performance.now();
+      await expectStatus(await post(payload(), { cookie }), 200, '单条会话慢语句可单独成功');
+      const httpMs = performance.now() - started;
+      assert.equal(txDurations.length, 1);
+      assert.ok(txDurations[0] >= 3_400 && txDurations[0] <= 4_900, `单条会话慢语句的事务应约 3.5s，实际 ${txDurations[0].toFixed(1)}ms`);
+      assert.ok(httpMs >= txDurations[0] - 200);
+      assertArmedPrefix();
+      assert.equal(dataStatementCount(), 7);
+      assert.deepEqual(await counts(), { conversations: 1, messages: 1, notifications: 1, readCursors: 0 });
+      console.log(`[B2 conv-only] tx=${txDurations[0].toFixed(1)}ms http=${httpMs.toFixed(1)}ms`);
     } finally {
-      await dropTrigger('m4t1_slow_conversation');
-      await dropTrigger('m4t1_slow_message');
+      await dropTrigger('m4t1_slow_conv_only', 'ChatConversation');
     }
 
-    const retry = await post(input, { cookie: `${CHAT_VISITOR_COOKIE}=${visitor.token}` });
+    // 2) 只有消息插入慢 3.5s：单条可单独成功。
+    await createTrigger('m4t1_slow_msg_only', `PERFORM pg_sleep(3.5); RETURN NEW;`, 'ChatMessage');
+    try {
+      beginTxAudit();
+      const started = performance.now();
+      await expectStatus(await post(payload(), { cookie }), 200, '单条消息慢语句可单独成功');
+      const httpMs = performance.now() - started;
+      assert.equal(txDurations.length, 1);
+      assert.ok(txDurations[0] >= 3_400 && txDurations[0] <= 4_900, `单条消息慢语句的事务应约 3.5s，实际 ${txDurations[0].toFixed(1)}ms`);
+      assert.ok(httpMs >= txDurations[0] - 200);
+      assertArmedPrefix();
+      assert.equal(dataStatementCount(), 7);
+      assert.deepEqual(await counts(), { conversations: 2, messages: 2, notifications: 2, readCursors: 0 });
+      console.log(`[B2 msg-only] tx=${txDurations[0].toFixed(1)}ms http=${httpMs.toFixed(1)}ms`);
+    } finally {
+      await dropTrigger('m4t1_slow_msg_only', 'ChatMessage');
+    }
+
+    // 3) 两条不同语句各 3.5s：累计会超过 5s，第二条必须按剩余预算取消。
+    await createTrigger('m4t1_slow_conv_both', `PERFORM pg_sleep(3.5); RETURN NEW;`, 'ChatConversation');
+    await createTrigger('m4t1_slow_msg_both', `PERFORM pg_sleep(3.5); RETURN NEW;`, 'ChatMessage');
+    const input = payload();
+    const before = await counts();
+    const activityBefore = await lastActivity(visitor.id);
+    try {
+      beginTxAudit();
+      const started = performance.now();
+      const response = await post(input, { cookie });
+      const httpMs = performance.now() - started;
+      const body = await expectStatus(response, 503, '跨两条语句累计超预算应 503');
+      assert.equal(body?.error, 'service_unavailable');
+      assert.equal(txDurations.length, 1, '应只有一笔事务');
+      const txMs = txDurations[0];
+      assert.ok(txMs >= 3_400, `首条 3.5s 语句应真实执行，实际 ${txMs.toFixed(1)}ms`);
+      assert.ok(txMs <= 4_800, `事务须在 5s 前由剩余预算取消（不是 5s 客户端兜底），实际 ${txMs.toFixed(1)}ms`);
+      assert.ok(httpMs >= txMs - 200, `HTTP 不应短于事务：http=${httpMs.toFixed(1)} tx=${txMs.toFixed(1)}`);
+      assertArmedPrefix();
+      assert.ok(dataStatementCount() >= 5, `被取消前至少应有 5 条数据语句，实际 ${dataStatementCount()}`);
+      assert.deepEqual(await counts(), before, '失败后四表零增量');
+      assert.equal(await lastActivity(visitor.id), activityBefore, '503 不得续期');
+      console.log(`[B2 both] tx=${txMs.toFixed(1)}ms http=${httpMs.toFixed(1)}ms dataStatements=${dataStatementCount()}`);
+    } finally {
+      await dropTrigger('m4t1_slow_conv_both', 'ChatConversation');
+      await dropTrigger('m4t1_slow_msg_both', 'ChatMessage');
+    }
+
+    const retry = await post(input, { cookie });
     await expectStatus(retry, 200, '两条慢触发器移除后同一 payload 恢复成功');
-    assert.deepEqual(await counts(), { conversations: 1, messages: 1, notifications: 1 });
+    assert.deepEqual(await counts(), {
+      conversations: before.conversations + 1,
+      messages: before.messages + 1,
+      notifications: before.notifications + 1,
+      readCursors: 0,
+    });
+    assert.ok((await lastActivity(visitor.id)) > activityBefore, '成功响应必须严格推进闲置期限');
   });
 
   // ---------- 真实 HTTP 边界 ----------
@@ -418,7 +602,7 @@ describe('M4-T1 原子保存咨询首消息与唯一通知出箱', { concurrency
     const body = await expectStatus(unpublished, 400, '未发布产品必须拒绝');
     assert.equal(body?.error, 'invalid');
     assert.ok((body?.fieldErrors as Record<string, string> | undefined)?.productSlug);
-    assert.deepEqual(await counts(), { conversations: 1, messages: 1, notifications: 1 });
+    assert.deepEqual(await counts(), { conversations: 1, messages: 1, notifications: 1, readCursors: 0 });
   });
 
   test('16,384 字节仍在限体内（400 字段错误而非 413），16,385 与流式超限都 413', async () => {
@@ -489,7 +673,7 @@ describe('M4-T1 原子保存咨询首消息与唯一通知出箱', { concurrency
     const secondBody = ConversationReceivedDTOSchema.parse(await second.json());
     assert.equal(secondBody.duplicate, true);
     assert.equal(secondBody.message.id, firstBody.message.id);
-    assert.deepEqual(await counts(), { conversations: 1, messages: 1, notifications: 1 });
+    assert.deepEqual(await counts(), { conversations: 1, messages: 1, notifications: 1, readCursors: 0 });
     // 拒绝分析仍可聊天：请求只带必要 cookie，不创建任何分析身份或事件。
     assert.equal(await db().analyticsEvent.count(), 0);
   });
@@ -499,7 +683,7 @@ describe('M4-T1 原子保存咨询首消息与唯一通知出箱', { concurrency
     assert.equal((await post(payload())).status, 401);
     assert.equal((await post(payload(), { cookie: `${CHAT_VISITOR_COOKIE}=not-a-token` })).status, 401);
     assert.equal((await post(payload(), { cookie: `${CHAT_VISITOR_COOKIE}=a; ${CHAT_VISITOR_COOKIE}=b` })).status, 401);
-    assert.deepEqual(await counts(), { conversations: 0, messages: 0, notifications: 0 });
+    assert.deepEqual(await counts(), { conversations: 0, messages: 0, notifications: 0, readCursors: 0 });
   });
 
   test('非 JSON、未知字段与错源都被拒绝', async () => {
@@ -509,7 +693,7 @@ describe('M4-T1 原子保存咨询首消息与唯一通知出箱', { concurrency
     assert.equal((await post('{', { cookie })).status, 400);
     assert.equal((await post({ ...payload(), identity: 'someone-else' }, { cookie })).status, 400);
     assert.equal((await post(payload(), { cookie, origin: 'https://evil.example' })).status, 403);
-    assert.deepEqual(await counts(), { conversations: 0, messages: 0, notifications: 0 });
+    assert.deepEqual(await counts(), { conversations: 0, messages: 0, notifications: 0, readCursors: 0 });
   });
 
   // ---------- 10 节:121 新会话两桶（与写桶是两个配额） ----------
@@ -553,7 +737,7 @@ describe('M4-T1 原子保存咨询首消息与唯一通知出箱', { concurrency
     return row.lastActivityAt.getTime();
   }
 
-  test('C3：400/409 失败请求不推进闲置期限，200 新建与重放都推进', async () => {
+  test('C3：400/409 失败请求不推进闲置期限，200 新建与重放都严格推进', async () => {
     await reset();
     const visitor = await seedVisitor();
     const cookie = `${CHAT_VISITOR_COOKIE}=${visitor.token}`;
@@ -562,16 +746,17 @@ describe('M4-T1 原子保存咨询首消息与唯一通知出箱', { concurrency
     assert.equal((await post(payload({ productSlug: 'not-a-real-product' }), { cookie })).status, 400);
     assert.equal(await lastActivity(visitor.id), seeded, '400 不得 touch');
 
+    await sleep(5);
     const input = payload();
     assert.equal((await post(input, { cookie })).status, 200);
     const afterCreate = await lastActivity(visitor.id);
-    assert.ok(afterCreate >= seeded);
+    assert.ok(afterCreate > seeded, `200 新建必须严格推进闲置期限（seeded=${seeded}, after=${afterCreate}）`);
     assert.equal((await post({ ...input, bodyText: 'different content' }, { cookie })).status, 409);
     assert.equal(await lastActivity(visitor.id), afterCreate, '409 不得 touch');
 
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await sleep(10);
     assert.equal((await post(input, { cookie })).status, 200);
-    assert.ok((await lastActivity(visitor.id)) > afterCreate, '幂等重放 200 也要 touch');
+    assert.ok((await lastActivity(visitor.id)) > afterCreate, '幂等重放 200 也要严格 touch');
   });
 
   test('C3：过期与撤销会话 401，不 touch 也不写库', async () => {
@@ -581,7 +766,7 @@ describe('M4-T1 原子保存咨询首消息与唯一通知出箱', { concurrency
     const revokedAt = await lastActivity(visitor.id);
     assert.equal((await post(payload(), { cookie: `${CHAT_VISITOR_COOKIE}=${visitor.token}` })).status, 401);
     assert.equal(await lastActivity(visitor.id), revokedAt);
-    assert.deepEqual(await counts(), { conversations: 0, messages: 0, notifications: 0 });
+    assert.deepEqual(await counts(), { conversations: 0, messages: 0, notifications: 0, readCursors: 0 });
 
     const expired = await seedVisitor();
     await db().chatVisitorSession.update({
@@ -597,13 +782,179 @@ describe('M4-T1 原子保存咨询首消息与唯一通知出箱', { concurrency
     await reset();
     const visitor = await seedVisitor();
     const before = await lastActivity(visitor.id);
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await sleep(10);
     // 动态导入：composition 会加载 db.ts，必须在 before 设好 DATABASE_URL 之后。
     const { createChatServices } = await import('../src/lib/server/composition');
     const services = createChatServices({ db: db() as never, clock: () => new Date() });
     const outcome = await services.visitorSessions.establish(visitor.token);
     assert.equal(outcome.kind, 'reused');
-    assert.ok((await lastActivity(visitor.id)) > before, 'bootstrap 必须推进闲置期限');
+    assert.ok((await lastActivity(visitor.id)) > before, 'bootstrap 必须严格推进闲置期限');
+  });
+
+  test('C3：resolve 后撤销 → 事务内首守卫拒绝，零插入尝试、零行、不续期', async () => {
+    await reset();
+    const visitor = await seedVisitor();
+    const sessions = createVisitorSessionService({ repo: createVisitorSessionRepo(db() as never) });
+    const resolved = await sessions.resolve(visitor.token);
+    if (resolved.kind !== 'valid') assert.fail('resolve 应返回有效会话');
+    const activityBefore = await lastActivity(visitor.id);
+    await db().chatVisitorSession.update({ where: { id: visitor.id }, data: { revokedAt: new Date() } });
+    await installAttemptProbe();
+    try {
+      const service = createConversationService({ db: db(), clock: () => new Date() });
+      await assert.rejects(
+        () => service.createFirstMessage({ session: resolved.session, payload: payload() }),
+        (error: unknown) => error instanceof ChatSessionNoLongerValid,
+      );
+      assert.equal(await attemptCount(), 0, '守卫在 readExisting 前，不得尝试任何插入');
+      assert.deepEqual(await counts(), { conversations: 0, messages: 0, notifications: 0, readCursors: 0 });
+      assert.equal(await lastActivity(visitor.id), activityBefore, '失败不得续期');
+    } finally {
+      await removeAttemptProbe();
+    }
+  });
+
+  test('C3：慢写期间撤销 → 最终 touch 零行，401 整笔回滚、插入已尝试、既有行保留', async () => {
+    await reset();
+    const visitor = await seedVisitor();
+    const keeper = await seedVisitor();
+    const keeperService = createConversationService({ db: db(), clock: () => new Date() });
+    const kept = await keeperService.createFirstMessage({ session: sessionOf(keeper), payload: payload() });
+    assert.deepEqual(await counts(), { conversations: 1, messages: 1, notifications: 1, readCursors: 0 });
+    const cookie = `${CHAT_VISITOR_COOKIE}=${visitor.token}`;
+    const activityBefore = await lastActivity(visitor.id);
+    await installAttemptProbe();
+    await createTrigger('m4t1_slow_notify_revoke', `PERFORM pg_sleep(1.5); RETURN NEW;`, 'ChatNotification');
+    try {
+      const pending = post(payload(), { cookie });
+      await sleep(500);
+      await db().chatVisitorSession.update({ where: { id: visitor.id }, data: { revokedAt: new Date() } });
+      const response = await pending;
+      const body = await expectStatus(response, 401, '事务内撤销应 401');
+      assert.equal(body?.error, 'unauthorized');
+      assert.match(response.headers.get('set-cookie') ?? '', /pj_chat=;/, '应清除访客 cookie');
+      assert.equal(await attemptCount(), 2, '守卫已过：会话与消息插入各尝试 1 次（共 2 次 nextval）');
+      assert.deepEqual(await counts(), { conversations: 1, messages: 1, notifications: 1, readCursors: 0 }, '四表差量 0');
+      const still = await db().chatConversation.findUniqueOrThrow({ where: { id: kept.conversationId } });
+      assert.equal(still.id, kept.conversationId, '既有咨询必须保留');
+      assert.equal(await lastActivity(visitor.id), activityBefore, '失败不得续期');
+    } finally {
+      await dropTrigger('m4t1_slow_notify_revoke', 'ChatNotification');
+      await removeAttemptProbe();
+    }
+  });
+
+  test('C3：慢写期间自然过期 → 最终 touch 零行，401 整笔回滚、插入已尝试', async () => {
+    await reset();
+    const visitor = await seedVisitor();
+    const cookie = `${CHAT_VISITOR_COOKIE}=${visitor.token}`;
+    const activityBefore = await lastActivity(visitor.id);
+    await installAttemptProbe();
+    await createTrigger('m4t1_slow_notify_expire', `PERFORM pg_sleep(1.5); RETURN NEW;`, 'ChatNotification');
+    try {
+      const pending = post(payload(), { cookie });
+      await sleep(500);
+      await db().chatVisitorSession.update({
+        where: { id: visitor.id },
+        data: { absoluteExpiresAt: new Date(Date.now() - 1_000) },
+      });
+      const response = await pending;
+      await expectStatus(response, 401, '事务内自然过期应 401');
+      assert.equal(await attemptCount(), 2, '守卫已过：会话与消息插入各尝试 1 次（共 2 次 nextval）');
+      assert.deepEqual(await counts(), { conversations: 0, messages: 0, notifications: 0, readCursors: 0 }, '四表差量 0');
+      assert.equal(await lastActivity(visitor.id), activityBefore, '失败不得续期');
+    } finally {
+      await dropTrigger('m4t1_slow_notify_expire', 'ChatNotification');
+      await removeAttemptProbe();
+    }
+  });
+
+  test('C3：撤销后同键重放也过守卫（401 而非 duplicate）', async () => {
+    await reset();
+    const visitor = await seedVisitor();
+    const service = createConversationService({ db: db(), clock: () => new Date() });
+    const input = payload();
+    await service.createFirstMessage({ session: sessionOf(visitor), payload: input });
+    const sessions = createVisitorSessionService({ repo: createVisitorSessionRepo(db() as never) });
+    const resolved = await sessions.resolve(visitor.token);
+    if (resolved.kind !== 'valid') assert.fail('resolve 应返回有效会话');
+    await db().chatVisitorSession.update({ where: { id: visitor.id }, data: { revokedAt: new Date() } });
+    await assert.rejects(
+      () => service.createFirstMessage({ session: resolved.session, payload: input }),
+      (error: unknown) => error instanceof ChatSessionNoLongerValid,
+    );
+    assert.deepEqual(await counts(), { conversations: 1, messages: 1, notifications: 1, readCursors: 0 }, '重放不得新增或返回 duplicate');
+  });
+
+  test('resolve 段数据库不可用 → HTTP 503；未知数据错误仍 500', async () => {
+    await reset();
+    const visitor = await seedVisitor();
+    const cookie = `${CHAT_VISITOR_COOKIE}=${visitor.token}`;
+    const dbModule = await import('../src/lib/server/db');
+    const client = dbModule.prisma as unknown as { chatVisitorSession: { findUnique: (...args: unknown[]) => unknown } };
+    const delegate = client.chatVisitorSession;
+    const original = delegate.findUnique.bind(delegate);
+    try {
+      delegate.findUnique = async () => {
+        throw Object.assign(new Error('simulated pool timeout'), { code: 'P2024', name: 'PrismaClientKnownRequestError' });
+      };
+      const response = await post(payload(), { cookie });
+      const body = await expectStatus(response, 503, 'resolve 段池超时应 503');
+      assert.equal(body?.error, 'service_unavailable');
+      assert.deepEqual(await counts(), { conversations: 0, messages: 0, notifications: 0, readCursors: 0 });
+    } finally {
+      delegate.findUnique = original;
+    }
+    try {
+      delegate.findUnique = async () => {
+        throw Object.assign(new Error('simulated data error'), { code: 'P2010', name: 'PrismaClientKnownRequestError' });
+      };
+      const response = await post(payload(), { cookie });
+      const body = await expectStatus(response, 500, '未知数据错误仍 500');
+      assert.equal(body?.error, 'internal_error');
+    } finally {
+      delegate.findUnique = original;
+    }
+  });
+
+  test('arm 覆盖：每条数据语句前都按剩余预算重设语句/锁上限，事务受 5s 约束', async () => {
+    await reset();
+    const visitor = await seedVisitor();
+    const cookie = `${CHAT_VISITOR_COOKIE}=${visitor.token}`;
+    beginTxAudit();
+    await expectStatus(await post(payload(), { cookie }), 200, '普通创建成功');
+    assert.equal(txDurations.length, 1, '应只有一笔事务');
+    assert.ok(txDurations[0] <= 5_000, `事务超 5s：${txDurations[0].toFixed(1)}ms`);
+    assertArmedPrefix();
+    assert.equal(dataStatementCount(), 7, '新会话应有 7 条数据语句（守卫/查找/插入会话/seq/消息/通知/touch）');
+    console.log(`[ARM] dataStatements=${dataStatementCount()} tx=${txDurations[0].toFixed(1)}ms`);
+  });
+
+  test('剩余预算主动耗尽：剩余 <50ms 时抛 ChatTransactionBudgetExceeded 且不写库（假 DB 单元）', async () => {
+    let writes = 0;
+    const fakeTx = {
+      $executeRawUnsafe: async (sql: string) => {
+        if (!String(sql).startsWith('SET LOCAL')) writes += 1;
+      },
+      $executeRaw: async () => {
+        writes += 1;
+      },
+      $queryRaw: async () => {
+        // 守卫查询吃掉 4.2s；下一次 arm 的剩余预算必然 < 50ms。
+        const until = performance.now() + 4_200;
+        while (performance.now() < until) { /* busy wait */ }
+        return [{ id: 'fake-session' }];
+      },
+    };
+    const fakeDb = { $transaction: async (fn: (tx: unknown) => Promise<unknown>) => fn(fakeTx) };
+    const service = createConversationService({ db: fakeDb as never, clock: () => new Date() });
+    const started = performance.now();
+    await assert.rejects(
+      () => service.createFirstMessage({ session: sessionOf({ id: 'fake-session', token: 'fake-token' }), payload: payload() }),
+      (error: unknown) => error instanceof ChatTransactionBudgetExceeded,
+    );
+    console.log(`[BUDGET] exhausted_after=${(performance.now() - started).toFixed(1)}ms writes=${writes}`);
+    assert.equal(writes, 0, '预算耗尽不得尝试写入');
   });
 
   test('K5：精确 16,384 字节的合法载荷返回 200', async () => {
