@@ -2,6 +2,7 @@ import { Prisma, type PrismaClient } from '@prisma/client';
 import { siteDayUtcBounds, type SiteDayBounds } from '../../analytics/day-boundaries';
 import { aggregateSiteDay, type RollupSourceEvent } from '../../analytics/rollup-plan';
 import { planSnapshot, type CoverageState, type SnapshotPlan } from '../../analytics/aggregate-plan';
+import { ANALYTICS_SETTINGS_KEY, INITIAL_TIMEZONE_REVISION, StoredTimezoneRevisionSchema } from '../jobs/types';
 import {
   loadEventsAtSnapshot,
   readLockedGeneration,
@@ -30,7 +31,7 @@ function utc(date: Date): Prisma.Sql {
 
 /** 并发/版本冲突：让整组事务回滚，不写任何半成品。 */
 export class AggregateVersionConflict extends Error {
-  constructor(reason: 'stale_generation' | 'stale_timezone_revision' | 'watermark_regression') {
+  constructor(reason: 'stale_generation' | 'stale_timezone_revision' | 'watermark_regression' | 'write_conflict') {
     super(reason);
     this.name = 'AggregateVersionConflict';
   }
@@ -97,6 +98,97 @@ type DayArgs = {
   /** 只统计 occurredAt ≤ 该时刻的事实；调度作业传业务时钟，未到时间的未来事件不提前计入。 */
   notAfter?: Date;
 };
+
+/**
+ * 与 registry.isBudgetTimeoutError 同一判定（P2028 事务超时、57014 语句超时、55P03 锁等待超时）。
+ * 本文件不能反向 import registry：registry 已 import 这里，会成环。
+ */
+function isBudgetFailure(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  if ((error as { code?: unknown }).code === 'P2028') return true;
+  const pgCode = (error as { meta?: { code?: unknown } }).meta?.code;
+  return pgCode === '57014' || pgCode === '55P03';
+}
+
+/**
+ * 并发写冲突：Prisma 把 PostgreSQL 的 40001（序列化失败）与 40P01（死锁）映射成 P2034；
+ * 原始 SQL 错误也可能直接带 PostgreSQL 的 SQLSTATE。
+ */
+function isWriteConflict(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  if ((error as { code?: unknown }).code === 'P2034') return true;
+  const pgCode = (error as { meta?: { code?: unknown } }).meta?.code;
+  return pgCode === '40001' || pgCode === '40P01';
+}
+
+/** 守卫失败统一成版本冲突：调用方必须终止事务，且不得继续后续批次或删除；预算错误原样保留。 */
+function asVersionConflict(error: unknown): unknown {
+  if (error instanceof AggregateVersionConflict) return error;
+  if (isBudgetFailure(error)) return error;
+  return isWriteConflict(error) ? new AggregateVersionConflict('write_conflict') : error;
+}
+
+function asJson(value: unknown): unknown {
+  if (typeof value !== 'string') return value;
+  try { return JSON.parse(value) as unknown; } catch { return value; }
+}
+
+function requireCurrentRevision(value: unknown, expectedRevision: number): void {
+  const parsed = StoredTimezoneRevisionSchema.safeParse(asJson(value));
+  // 旧代次与损坏值都视为冲突：不能拿读不出/对不上的设置继续写。
+  if (!parsed.success || parsed.data.timezoneRevision !== expectedRevision) {
+    throw new AggregateVersionConflict('stale_timezone_revision');
+  }
+}
+
+/**
+ * D4：写事务内的时区代次守卫。每个会删除或聚合写入的事务在写入前原子复核当前 revision。
+ *
+ * 锁序保持 JobState → SiteSetting（调用方已先锁租约行）。这里**不是**「LOCK TABLE + 普通 SELECT」：
+ * - 先拿表级 SHARE ROW EXCLUSIVE：缺行时行锁锁不住任何元组，表级锁与并发插入/更新冲突，
+ *   核对与写出才能串行；
+ * - 已有行 `SELECT ... FOR UPDATE`：RepeatableRead 旧快照里该行被并发更新后，PostgreSQL 抛
+ *   40001 序列化失败（不会刷新快照返回新值）；本函数把它归一为 AggregateVersionConflict，
+ *   事务必须回滚，不能继续下一批；
+ * - 缺行沿用已有的并发安全初始化：`INSERT ... ON CONFLICT DO UPDATE SET value = 现值 RETURNING`，
+ *   让并发插入的另一方读到已提交值并比较，而不是各写初始值。
+ *
+ * 锁等待/语句超时（55P03/57014）属于预算错误，原样抛出，不能归一成冲突或普通失败。
+ */
+export async function assertCurrentTimezoneRevision(
+  tx: Prisma.TransactionClient,
+  expectedRevision: number,
+  now: Date,
+): Promise<void> {
+  try {
+    await tx.$executeRaw`LOCK TABLE "SiteSetting" IN SHARE ROW EXCLUSIVE MODE`;
+    const rows = await tx.$queryRaw<{ value: unknown }[]>`
+      SELECT "value" FROM "SiteSetting" WHERE "key" = ${ANALYTICS_SETTINGS_KEY} FOR UPDATE
+    `;
+    if (rows.length > 0) {
+      requireCurrentRevision(rows[0]?.value, expectedRevision);
+      return;
+    }
+    const initial = {
+      version: 0,
+      timezone: 'UTC',
+      timezoneRevision: INITIAL_TIMEZONE_REVISION,
+      changedAt: now.toISOString(),
+      updatedBy: null,
+    };
+    // RR 旧快照看不到已插入的行；唯一冲突的写会让 PostgreSQL 拒绝整笔旧事务（40001），
+    // 由下面的 catch 统一归一为版本冲突。
+    const initialized = await tx.$queryRaw<{ value: unknown }[]>`
+      INSERT INTO "SiteSetting" ("key", "value")
+      VALUES (${ANALYTICS_SETTINGS_KEY}, ${JSON.stringify(initial)}::jsonb)
+      ON CONFLICT ("key") DO UPDATE SET "value" = "SiteSetting"."value"
+      RETURNING "value"
+    `;
+    requireCurrentRevision(initialized[0]?.value, expectedRevision);
+  } catch (error) {
+    throw asVersionConflict(error);
+  }
+}
 
 /**
  * 在一个**已开启**的 RepeatableRead 事务 `tx` 上处理一天的全部写入。
@@ -187,6 +279,12 @@ export async function aggregateOneDayInSnapshot(deps: {
   deadlineAt?: Date;
   /** 只统计 occurredAt <= 该时刻的事实；生产传业务 now。 */
   occurredNotAfter?: Date;
+  /**
+   * 写前时区代次守卫（D4）。保留清理的单日 preflight 传 true；
+   * 共享聚合作业不传：它在同一事务结束前的 commit 钩子里已用租约结算的 FOR UPDATE
+   * 核对 revision 并让整笔回滚，属等价原子守卫。
+   */
+  assertTimezoneRevision?: boolean;
 }): Promise<AggregateDayResult> {
   const { db, generation } = deps;
   const deadlineMs = deps.deadlineAt?.getTime();
@@ -205,25 +303,33 @@ export async function aggregateOneDayInSnapshot(deps: {
   }
   if (deadlineReached()) throw new AggregateDeadlineExceeded();
 
-  return runInRepeatableReadSnapshot(db, async (tx) => {
-    if (deadlineReached()) throw new AggregateDeadlineExceeded();
-    const lockedGeneration = await readLockedGeneration(tx);
-    if (lockedGeneration !== null && lockedGeneration > generation) {
-      throw new AggregateVersionConflict('stale_generation');
-    }
-    if (deadlineReached()) throw new AggregateDeadlineExceeded();
-    const day = await writeOneDayInTx(tx, {
-      siteDate: deps.siteDate,
-      siteTimezone: deps.siteTimezone,
-      cutoff: deps.cutoff,
-      timezoneRevision: deps.timezoneRevision,
-      now: deps.now,
-      ...(deps.occurredNotAfter ? { notAfter: deps.occurredNotAfter } : {}),
-    });
-    // 写入完成但已到期：抛出让整笔回滚，不把半成品当成功提交。
-    if (deadlineReached()) throw new AggregateDeadlineExceeded();
-    return day;
-  }, txOptions);
+  try {
+    return await runInRepeatableReadSnapshot(db, async (tx) => {
+      if (deadlineReached()) throw new AggregateDeadlineExceeded();
+      const lockedGeneration = await readLockedGeneration(tx);
+      if (lockedGeneration !== null && lockedGeneration > generation) {
+        throw new AggregateVersionConflict('stale_generation');
+      }
+      if (deps.assertTimezoneRevision) {
+        await assertCurrentTimezoneRevision(tx, deps.timezoneRevision, deps.now);
+      }
+      if (deadlineReached()) throw new AggregateDeadlineExceeded();
+      const day = await writeOneDayInTx(tx, {
+        siteDate: deps.siteDate,
+        siteTimezone: deps.siteTimezone,
+        cutoff: deps.cutoff,
+        timezoneRevision: deps.timezoneRevision,
+        now: deps.now,
+        ...(deps.occurredNotAfter ? { notAfter: deps.occurredNotAfter } : {}),
+      });
+      // 写入完成但已到期：抛出让整笔回滚，不把半成品当成功提交。
+      if (deadlineReached()) throw new AggregateDeadlineExceeded();
+      return day;
+    }, txOptions);
+  } catch (error) {
+    // 旧快照下的并发写冲突（40001/P2034）必须当版本冲突上抛：调用方不能把它降级成普通失败后继续删除。
+    throw asVersionConflict(error);
+  }
 }
 
 /**
@@ -249,6 +355,12 @@ export async function runAggregateOnce(deps: {
   maxBatchDays?: number;
   /** 与整组聚合同一事务的提交钩子；抛错则整组回滚（用于原子完成作业租约）。 */
   commit?: AggregateCommitHook;
+  /**
+   * 写前时区代次守卫（D4）。保留清理的删后近期聚合传 true；
+   * 共享聚合作业不传：它的 commit 钩子在同一个事务里调用租约结算（FOR UPDATE）核对 revision，
+   * 不符即整组回滚，属等价原子守卫。
+   */
+  assertTimezoneRevision?: boolean;
 }): Promise<AggregateRunResult> {
   const deadlineMs = deps.deadlineAt?.getTime();
   const deadlineReached = () => deadlineMs !== undefined && Date.now() >= deadlineMs;
@@ -280,39 +392,47 @@ export async function runAggregateOnce(deps: {
   let days: AggregateDayResult[] = [];
   // 整组事务：任一天失败或版本冲突都会把异常抛到这里，Prisma 整笔回滚，一天都不写。
   // 不 catch 成「部分成功」——09 节 `:71` 禁止留下部分天新、部分天旧的半成品。
-  days = await runInRepeatableReadSnapshot(deps.db, async (tx) => {
-    // 整组只做一次行锁与代次校验。
-    const lockedGeneration = await readLockedGeneration(tx);
-    if (lockedGeneration !== null && lockedGeneration > deps.generation) {
-      throw new AggregateVersionConflict('stale_generation');
-    }
-    const written: AggregateDayResult[] = [];
-    for (const siteDate of plan.siteDates) {
-      if (deadlineReached()) throw new AggregateDeadlineExceeded();
-      written.push(await writeOneDayInTx(tx, {
-        siteDate,
-        siteTimezone: deps.siteTimezone,
-        cutoff: plan.cutoff,
-        timezoneRevision: deps.timezoneRevision,
-        now: deps.now,
-        ...(deps.occurredNotAfter ? { notAfter: deps.occurredNotAfter } : {}),
-      }));
-    }
-    if (deps.commit) {
-      let dataThrough: string | null = null;
-      let sourceThrough: string | null = null;
-      for (const day of written) {
-        const end = siteDayUtcBounds(day.siteDate, deps.siteTimezone).endUtc;
-        if (dataThrough === null || end > dataThrough) dataThrough = end;
-        if (day.sourceMaxReceivedAt && (sourceThrough === null || day.sourceMaxReceivedAt > sourceThrough)) {
-          sourceThrough = day.sourceMaxReceivedAt;
-        }
+  try {
+    days = await runInRepeatableReadSnapshot(deps.db, async (tx) => {
+      // 整组只做一次行锁与代次校验。
+      const lockedGeneration = await readLockedGeneration(tx);
+      if (lockedGeneration !== null && lockedGeneration > deps.generation) {
+        throw new AggregateVersionConflict('stale_generation');
       }
-      if (deadlineReached()) throw new AggregateDeadlineExceeded();
-      await deps.commit(tx, { writtenDays: written.length, dataThrough, sourceThrough });
-    }
-    return written;
-  }, txOptions);
+      if (deps.assertTimezoneRevision) {
+        await assertCurrentTimezoneRevision(tx, deps.timezoneRevision, deps.now);
+      }
+      const written: AggregateDayResult[] = [];
+      for (const siteDate of plan.siteDates) {
+        if (deadlineReached()) throw new AggregateDeadlineExceeded();
+        written.push(await writeOneDayInTx(tx, {
+          siteDate,
+          siteTimezone: deps.siteTimezone,
+          cutoff: plan.cutoff,
+          timezoneRevision: deps.timezoneRevision,
+          now: deps.now,
+          ...(deps.occurredNotAfter ? { notAfter: deps.occurredNotAfter } : {}),
+        }));
+      }
+      if (deps.commit) {
+        let dataThrough: string | null = null;
+        let sourceThrough: string | null = null;
+        for (const day of written) {
+          const end = siteDayUtcBounds(day.siteDate, deps.siteTimezone).endUtc;
+          if (dataThrough === null || end > dataThrough) dataThrough = end;
+          if (day.sourceMaxReceivedAt && (sourceThrough === null || day.sourceMaxReceivedAt > sourceThrough)) {
+            sourceThrough = day.sourceMaxReceivedAt;
+          }
+        }
+        if (deadlineReached()) throw new AggregateDeadlineExceeded();
+        await deps.commit(tx, { writtenDays: written.length, dataThrough, sourceThrough });
+      }
+      return written;
+    }, txOptions);
+  } catch (error) {
+    // 旧快照下的并发写冲突（40001/P2034）必须当版本冲突上抛，不能降级成普通失败。
+    throw asVersionConflict(error);
+  }
 
   for (const siteDate of plan.skippedDates) {
     // 超范围：不写库、不用残片替换旧完整值、不填 0（09 节 `:72`）。
