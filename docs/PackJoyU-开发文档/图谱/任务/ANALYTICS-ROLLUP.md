@@ -18,7 +18,7 @@ origin: issue-ledger-20261024
 - 审查：由 PR 上 bot 审查替代
 - 登记状态：已落地
 
-没有单独的 GitHub issue。本轮按单独 cron 入口接入，没有收进 jobs/registry.ts。
+没有单独的 GitHub issue。本轮（#477 阶段）按单独 cron 入口接入，没有收进 jobs/registry.ts；该接入已由 M5-T8 完成（固定 registry + `POST /api/admin/cron/operations`）。2026-11-08 更新：**收口分支**已把旧 `/api/admin/cron/analytics-rollup` 改为鉴权后统一 410 `route_retired`、零 DB/聚合/邮件/审计（D1 `3410fe95`）；**main `78966e99` 尚未包含该修复，main 仍保留旧写入实现；未核验生产部署版本**。
 
 ## 输入 / 产出
 
@@ -53,13 +53,13 @@ origin: issue-ledger-20261024
 - `src/lib/server/analytics/rollup.ts:348` — isSiteDateRolledUp
 - `src/lib/server/analytics/rollup.ts:359` — rolledUpDatesBefore
 - `src/lib/server/analytics/rollup.ts:375` — latestContiguousRolledUpDate：只看当前时区代次
-- `src/app/api/admin/cron/analytics-rollup/route.ts:16` — Bearer CRON_SECRET；忙则 409；失败告警并审计
+- `src/app/api/admin/cron/analytics-rollup/route.ts:21` — **收口分支已退役（main 未包含）**：保留 Bearer 鉴权（`:27-28` 缺/错凭据 401），鉴权后 GET/POST（`:33-34`）统一 **410** `route_retired`、指向 `POST /api/admin/cron/operations`、`Cache-Control: no-store`；零数据库/聚合/邮件/审计副作用
 - `src/lib/server/cron-alert.ts:48` — alertAnalyticsRollupIssue：只含任务名、错误码和已完成天数
 - `.github/workflows/ci.yml:102` — 数据库测试接入既有 PostgreSQL 17 串行步骤，skipped 与 fail 门禁不变
 - `tests/analytics-rollup.test.ts:33` — 跨日边界、秋令时、冒烟排除、迟到重算、天数上限、表不含个人标识
 - `tests/analytics-rollup.http.db.test.ts:39` — 真实 PostgreSQL：跨日、冒烟、重跑、迟到、7 天上限、时区切换、租约互斥
-- `deploy/cron.nbshiyan` — 每 5 分钟在容器内请求 /api/admin/cron/analytics-rollup；409 跳过；失败不重试
-- `src/app/api/admin/cron/analytics-rollup/route.ts` — 失败只告警一次；审计抛错只记日志
+- `deploy/cron.nbshiyan:11` — 生产每 5 分钟请求 `POST /api/admin/cron/operations`（jobKey `analytics-aggregate`，M5-T8 已合入 main）；旧 rollup 行已删
+- `src/app/api/admin/cron/analytics-rollup/route.ts` — **历史实现**：旧版失败只告警一次、审计抛错只记日志；**收口分支**鉴权后直接 410、不进入告警/审计链（main `78966e99` 仍为旧写入实现）
 <!-- code:end -->
 
 ## 实施沉淀
@@ -70,5 +70,6 @@ origin: issue-ledger-20261024
 - uniqueBrowsers 按 kind、locale、productSlug 分组，各组不能相加当作当日独立访客。统计页做的时候要单独算。
 - loadEvents 把一整天的原始行读进内存。量变大后再改成 SQL 分组聚合。
 - latestContiguousRolledUpDate 只是删除上限。RETENTION-CLEANUP 仍须逐日用 isSiteDateRolledUp 和当前时区代次过滤。
-- 设计里的统一入口是 jobs/registry.ts 和 /api/admin/cron/operations。本轮按单独路由接到 cron。收进 registry 另立任务。
+- 设计里的统一入口是 jobs/registry.ts 和 /api/admin/cron/operations；本轮（#477 阶段）按单独路由接到 cron，“收进 registry 另立任务”是**当时**的结论——该接入已由 M5-T8 完成（固定 registry + `POST /api/admin/cron/operations`），不再另立任务。
+- 2026-11-08 收口分支状态：旧入口 410 退役修复在 `e7e2b7ee`，已推 #542 但**未合入 main**。本轮 #542 Linux CI `42473786975`（测试对象 merge `ec43bf0`，tree 与 `e7e2b7ee` 相同）通过，其中 D1 默认入口 `ok 920`（绿测 5/5）；Hosted Windows v7 `42474589037` 是同一 `e7e2b7ee` 的 production 构建与产物保全，不执行 D1 用例。
 <!-- notes:end -->

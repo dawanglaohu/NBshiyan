@@ -1,56 +1,33 @@
 import { NextResponse } from 'next/server';
-import { alertAnalyticsRollupIssue } from '@/lib/server/cron-alert';
-import { audit } from '@/lib/server/admin/audit';
-import { prisma } from '@/lib/server/db';
-import { errorSummary, sendAdminAlert } from '@/lib/server/mail';
-import { runAnalyticsRollup } from '@/lib/server/analytics/rollup';
 import { secretMatches } from '@/lib/server/uploads';
 
 export const runtime = 'nodejs';
 
 /**
- * 统计按天汇总（Authorization: Bearer $CRON_SECRET）。
- * 只汇总已经结束的站点本地日，一次最多 7 天。deploy/cron.nbshiyan 每 5 分钟调用一次。
- * 另一个实例持有 analytics-aggregate 租约时返回 409。不删除原始事件。
+ * 已退役：统计按天汇总的旧写入入口。
+ *
+ * 新调度链是 `POST /api/admin/cron/operations`（jobKey `analytics-aggregate`，
+ * 见 deploy/cron.nbshiyan）。本路由保留 Bearer 鉴权，让旧调用方得到明确答复，
+ * 但**不再执行任何聚合、数据库、邮件或审计操作**：鉴权通过后直接返回 410 Gone
+ * 并指向新入口。这样即使有人手工调用或旧配置仍在，也不会写入日聚合或水位。
  */
-async function reportRollupFailure(input: { errorCode: string; days: number }) {
-  await alertAnalyticsRollupIssue(input, sendAdminAlert);
-  try {
-    await audit({ action: 'cron.analytics_rollup.alert', meta: { errorCode: input.errorCode, days: input.days } });
-  } catch (error) {
-    console.error('[cron] analytics rollup alert audit failed', errorSummary(error));
-  }
+const RETIRED_BODY = {
+  error: 'route_retired',
+  replacement: 'POST /api/admin/cron/operations',
+  jobKey: 'analytics-aggregate',
+} as const;
+
+function retired(): NextResponse {
+  return NextResponse.json(RETIRED_BODY, { status: 410, headers: { 'Cache-Control': 'no-store' } });
 }
 
-async function handle(req: Request) {
+async function handle(req: Request): Promise<NextResponse> {
   const auth = req.headers.get('authorization');
   const token = auth?.startsWith('Bearer ') ? auth.slice(7) : null;
   if (!secretMatches(token, process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401, headers: { 'Cache-Control': 'no-store' } });
   }
-  let result: Awaited<ReturnType<typeof runAnalyticsRollup>>;
-  try {
-    result = await runAnalyticsRollup({ db: prisma });
-  } catch (error) {
-    console.error('[cron] analytics rollup failed', errorSummary(error));
-    await reportRollupFailure({ errorCode: 'internal_error', days: 0 });
-    return NextResponse.json({ error: 'rollup_failed', days: 0 }, { status: 500, headers: { 'Cache-Control': 'no-store' } });
-  }
-  if (result.status === 'busy') {
-    return NextResponse.json({ error: 'job_busy' }, { status: 409, headers: { 'Cache-Control': 'no-store' } });
-  }
-  if (result.status === 'failed') {
-    await reportRollupFailure({ errorCode: result.errorCode, days: result.days });
-    return NextResponse.json(
-      { error: 'rollup_failed', days: result.days },
-      { status: 500, headers: { 'Cache-Control': 'no-store' } },
-    );
-  }
-  console.info('[cron] analytics rollup', { days: result.days, eventCount: result.eventCount });
-  return NextResponse.json(
-    { days: result.days, eventCount: result.eventCount, status: 'succeeded' },
-    { headers: { 'Cache-Control': 'no-store' } },
-  );
+  return retired();
 }
 
 export const GET = handle;

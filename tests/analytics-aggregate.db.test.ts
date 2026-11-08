@@ -655,4 +655,224 @@ describe('M5-T3 consistent-snapshot daily aggregate', { concurrency: false, skip
     assert.ok(writing, '有事件日必须有 watermark');
     assert.equal(writing.sourceMaxReceivedAt, '2026-03-01T09:00:00.123');
   });
+
+  // ---- D2：revision-aware watermark 守卫 ----
+  // D2b=A：守卫拒绝（affected=0）必须让整轮回滚，不吞掉。
+  // D2c=C：只有较新 revision 才允许在既有完整覆盖与同一快照内重定基准（NULL 或更小水位）。
+  type D2WatermarkRow = {
+    timezoneRevision: number;
+    eventCount: number;
+    sourceMax: Date | null;
+    completedAt: Date;
+  };
+
+  const d2At = (iso: string) => new Date(iso);
+
+  const d2WatermarkRow = async (siteDate: string) => {
+    const rows = await requireDb().$queryRaw<D2WatermarkRow[]>`
+      SELECT "timezoneRevision", "eventCount", "sourceMaxReceivedAt" AS "sourceMax", "completedAt"
+      FROM "AnalyticsRollupDay" WHERE "siteDate" = ${siteDate}
+    `;
+    return rows[0] ?? null;
+  };
+
+  const d2RollupRows = (siteDate: string) => requireDb().$queryRaw<Record<string, unknown>[]>`
+    SELECT "siteDate", "kind"::text AS "kind", "locale", "productSlug", "count", "uniqueBrowsers", "createdAt", "updatedAt"
+    FROM "AnalyticsDailyRollup" WHERE "siteDate" = ${siteDate}
+    ORDER BY "kind"::text, "locale", "productSlug"
+  `;
+
+  const d2Args = (
+    siteDate: string,
+    timezoneRevision: number,
+    sourceMaxReceivedAt: Date | null,
+    eventCount = 7,
+  ) => ({
+    siteDate,
+    timezoneRevision,
+    completedAt: d2At('2026-03-01T10:00:00.000Z'),
+    eventCount,
+    sourceMaxReceivedAt,
+    now: d2At('2026-03-01T10:00:00.000Z'),
+  });
+
+  const d2Guard = (args: ReturnType<typeof d2Args>) =>
+    requireDb().$transaction((tx) => upsertWatermarkGuarded(tx, args));
+
+  test('D2：同 revision 下旧 NULL 可写，新 NULL 与更小水位被拒，相等/更大允许', async () => {
+    await reset();
+    const earlier = d2At('2026-03-01T08:00:00.000Z');
+    const later = d2At('2026-03-01T09:00:00.000Z');
+
+    // 无旧行：初次插入，NULL 也允许
+    assert.equal(await d2Guard(d2Args('2026-02-01', 1, null)), 1, '初次插入 NULL watermark 必须成功');
+    assert.equal((await d2WatermarkRow('2026-02-01'))!.sourceMax, null);
+
+    // 同 revision：旧 NULL 的水位行，写 NULL 或非 NULL 都允许
+    assert.equal(await d2Guard(d2Args('2026-02-02', 1, null)), 1);
+    assert.equal(await d2Guard(d2Args('2026-02-02', 1, null)), 1, '旧 NULL → 新 NULL 允许');
+    assert.equal(await d2Guard(d2Args('2026-02-02', 1, later)), 1, '旧 NULL → 非 NULL 允许');
+
+    // 同 revision：非 NULL → NULL 必须拒绝（空日不能把真实水位改写成 NULL）
+    assert.equal(
+      await d2Guard(d2Args('2026-02-02', 1, null)),
+      0,
+      '同 revision 非 NULL → NULL 必须被数据库守卫拒绝',
+    );
+    assert.equal(
+      (await d2WatermarkRow('2026-02-02'))!.sourceMax!.getTime(),
+      later.getTime(),
+      '被拒后旧水位必须保持不变',
+    );
+
+    // 同 revision：更小拒绝，相等/更大允许
+    assert.equal(await d2Guard(d2Args('2026-02-03', 1, later)), 1);
+    assert.equal(await d2Guard(d2Args('2026-02-03', 1, earlier)), 0, '同 revision 更小水位必须被拒');
+    assert.equal((await d2WatermarkRow('2026-02-03'))!.sourceMax!.getTime(), later.getTime());
+    assert.equal(await d2Guard(d2Args('2026-02-03', 1, later)), 1, '同 revision 相等水位允许');
+    assert.equal(
+      await d2Guard(d2Args('2026-02-03', 1, d2At('2026-03-01T09:30:00.000Z'))),
+      1,
+      '同 revision 更大水位允许',
+    );
+  });
+
+  test('D2：更低 revision 即使水位更大也被拒绝，行保持原 revision 与水位', async () => {
+    await reset();
+    const kept = d2At('2026-03-01T09:00:00.000Z');
+    assert.equal(await d2Guard(d2Args('2026-02-10', 2, kept)), 1);
+    assert.equal(
+      await d2Guard(d2Args('2026-02-10', 1, d2At('2026-03-01T09:30:00.000Z'))),
+      0,
+      '低 revision 覆盖必须被数据库拒绝，哪怕水位更大',
+    );
+    const row = (await d2WatermarkRow('2026-02-10'))!;
+    assert.equal(row.timezoneRevision, 2);
+    assert.equal(row.sourceMax!.getTime(), kept.getTime());
+  });
+
+  test('D2：较新 revision 允许 NULL / 更小 / 相等 / 更大水位重定基准（D2c=C）', async () => {
+    await reset();
+    const kept = d2At('2026-03-01T09:00:00.000Z');
+    const cases: Array<{ siteDate: string; next: Date | null; label: string }> = [
+      { siteDate: '2026-02-20', next: null, label: '较新 revision 空日（NULL）' },
+      { siteDate: '2026-02-21', next: d2At('2026-03-01T08:00:00.000Z'), label: '较新 revision 更小水位' },
+      { siteDate: '2026-02-22', next: kept, label: '较新 revision 相等水位' },
+      { siteDate: '2026-02-23', next: d2At('2026-03-01T09:30:00.000Z'), label: '较新 revision 更大水位' },
+    ];
+    for (const item of cases) {
+      assert.equal(await d2Guard(d2Args(item.siteDate, 1, kept)), 1, `${item.siteDate} 基线写入`);
+      assert.equal(await d2Guard(d2Args(item.siteDate, 2, item.next)), 1, `${item.label} 必须允许重定基准`);
+      const row = (await d2WatermarkRow(item.siteDate))!;
+      assert.equal(row.timezoneRevision, 2, `${item.label} 必须把 revision 一起更新`);
+      assert.equal(
+        row.sourceMax === null ? null : row.sourceMax.getTime(),
+        item.next === null ? null : item.next.getTime(),
+        `${item.label} 水位必须按本次结果重定`,
+      );
+    }
+  });
+
+  test('D2b=A：同 revision 出现 NULL 冲突时整轮回滚，两天的日聚合与水位都保持上一轮', async () => {
+    await reset();
+    await seedLease(1);
+    const conn = requireDb();
+    const now = d2At('2026-03-01T10:00:00.000Z');
+    const day2 = siteLocalDate(now, TZ);
+    const day1 = '2026-02-28';
+    const b1 = siteDayUtcBounds(day1, TZ);
+    const b2 = siteDayUtcBounds(day2, TZ);
+    await insertEvent({
+      occurredAt: new Date(b1.startUtc),
+      receivedAt: new Date(now.getTime() - 60_000),
+      browserHash: 'd2b-keep-day1',
+    });
+    await insertEvent({
+      occurredAt: new Date(b2.startUtc),
+      receivedAt: new Date(now.getTime() - 60_000),
+      browserHash: 'd2b-empty-day2',
+    });
+
+    const baseline = await runAggregateOnce({
+      db: conn, now, siteTimezone: TZ, currentDate: day2, timezoneRevision: 1, generation: 1,
+    });
+    assert.ok(baseline.days.some((day) => day.siteDate === day1 && day.written), '前提：day1 在基线轮已写入');
+    assert.ok(baseline.days.some((day) => day.siteDate === day2 && day.written), '前提：day2 在基线轮已写入');
+    assert.notEqual((await d2WatermarkRow(day2))!.sourceMax, null, '前提：day2 基线水位非 NULL');
+
+    // 让 day2 变成空日（删掉它的事件），revision 不变：新 NULL 想覆盖旧非 NULL，守卫必须拒绝。
+    await conn.$executeRaw`DELETE FROM "AnalyticsEvent" WHERE "browserHash" = ${'d2b-empty-day2'}`;
+
+    const snapshot = async () => ({
+      day1Rows: await d2RollupRows(day1),
+      day2Rows: await d2RollupRows(day2),
+      day1Watermark: await d2WatermarkRow(day1),
+      day2Watermark: await d2WatermarkRow(day2),
+    });
+    const before = await snapshot();
+
+    await assert.rejects(
+      () => runAggregateOnce({
+        db: conn, now, siteTimezone: TZ, currentDate: day2, timezoneRevision: 1, generation: 1,
+      }),
+      (err: unknown) => err instanceof AggregateVersionConflict,
+      '同 revision 非 NULL → NULL 必须让整轮失败，不能吞掉 affected=0',
+    );
+    assert.deepEqual(await snapshot(), before, '整轮回滚后两天的日聚合与水位必须逐字段保持基线值');
+  });
+
+  test('D2c=C：较新 revision 在同一轮里允许更小水位与空日重定基准，事务正常提交', async () => {
+    await reset();
+    await seedLease(1);
+    const conn = requireDb();
+    const now = d2At('2026-03-01T10:00:00.000Z');
+    const day2 = siteLocalDate(now, TZ);
+    const day1 = '2026-02-28';
+    const b1 = siteDayUtcBounds(day1, TZ);
+    const b2 = siteDayUtcBounds(day2, TZ);
+    const received = new Date(now.getTime() - 30 * 60_000);
+    await insertEvent({
+      occurredAt: new Date(b1.startUtc),
+      receivedAt: new Date(now.getTime() - 60_000),
+      browserHash: 'd2c-day1',
+    });
+    await insertEvent({ occurredAt: new Date(b2.startUtc), receivedAt: received, browserHash: 'd2c-day2' });
+
+    await runAggregateOnce({
+      db: conn, now, siteTimezone: TZ, currentDate: day2, timezoneRevision: 1, generation: 1,
+    });
+    assert.equal(
+      (await d2WatermarkRow(day2))!.sourceMax!.getTime(),
+      received.getTime(),
+      '前提：day2 基线水位来自该事件',
+    );
+
+    // 模拟「库里水位比本次快照更新」：时区变更后同一日的水位可能落在更晚时刻。
+    const later = new Date(received.getTime() + 20 * 60_000);
+    await conn.$executeRaw`
+      UPDATE "AnalyticsRollupDay" SET "sourceMaxReceivedAt" = ${utc(later)} WHERE "siteDate" = ${day2}
+    `;
+
+    // 较新 revision：更小水位必须允许重定基准（旧守卫会返回 0 并让整轮失败）。
+    const rebased = await runAggregateOnce({
+      db: conn, now, siteTimezone: TZ, currentDate: day2, timezoneRevision: 2, generation: 1,
+    });
+    assert.equal(rebased.status, 'ok');
+    const afterRebase = (await d2WatermarkRow(day2))!;
+    assert.equal(afterRebase.timezoneRevision, 2, '重定基准必须把 revision 一起更新');
+    assert.equal(afterRebase.sourceMax!.getTime(), received.getTime(), '较新 revision 必须允许把水位重定为更小值');
+    assert.equal((await d2WatermarkRow(day1))!.timezoneRevision, 2, '同一轮其它日也必须更新到新 revision');
+
+    // 再由「有事件」变成「空日」：仍是较新 revision，NULL 必须允许。
+    await conn.$executeRaw`DELETE FROM "AnalyticsEvent" WHERE "browserHash" = ${'d2c-day2'}`;
+    const emptied = await runAggregateOnce({
+      db: conn, now, siteTimezone: TZ, currentDate: day2, timezoneRevision: 3, generation: 1,
+    });
+    assert.equal(emptied.status, 'ok');
+    const afterEmpty = (await d2WatermarkRow(day2))!;
+    assert.equal(afterEmpty.timezoneRevision, 3);
+    assert.equal(afterEmpty.eventCount, 0);
+    assert.equal(afterEmpty.sourceMax, null, '较新 revision 下空日必须允许把水位重定为 NULL');
+    assert.equal((await d2RollupRows(day2)).length, 0, '空日的日聚合必须与水位在同一轮里被清空');
+  });
 });

@@ -102,13 +102,17 @@ export async function readLockedGeneration(
 }
 
 /**
- * 带 WHERE 守卫的 watermark upsert。返回受影响行数；0 表示数据库拒绝了这次提交
- * （旧 timezoneRevision 或旧 watermark 试图覆盖新结果），调用方必须让整个事务回滚。
+ * 带 WHERE 守卫的 watermark upsert。返回受影响行数；0 表示数据库拒绝了这次提交，
+ * 调用方必须让整个事务回滚（`writeOneDayInTx` 里 `affected !== 1` 抛错），不能吞成部分成功。
  *
- * 两个守卫条件：
- * - 已存 timezoneRevision 不得高于本次（旧时区代次不得覆盖，E-83）；
- * - 已存 sourceMaxReceivedAt 不得新于本次（watermark 只能单调前进，E-80）。
- *   任一为 NULL 时用 conservative 规则：本次有值即可推进，本次为 NULL 则不覆盖已有值。
+ * 守卫按 timezoneRevision 分流：
+ * - **较新 revision**（stored < incoming）：允许重定基准，NULL 与更小的 `sourceMaxReceivedAt`
+ *   都接受。时区代次前进后同一站点日的边界整体移动，旧水位不再可比，只能以新快照为准（E-83）。
+ * - **同 revision**：watermark 只能单调前进——已存 NULL 时可写任意值；已存非 NULL 时，
+ *   本次为 NULL 或更小都拒绝，相等/更大才接受（E-80）。空日不得把真实水位改写成 NULL。
+ * - **更低 revision**：两个分支都不成立，直接拒绝（旧时区代次不得覆盖新结果）。
+ *
+ * 初次插入（无冲突行）不经过 WHERE，NULL 也允许。
  */
 export async function upsertWatermarkGuarded(
   tx: Prisma.TransactionClient,
@@ -140,12 +144,19 @@ export async function upsertWatermarkGuarded(
       "eventCount" = EXCLUDED."eventCount",
       "sourceMaxReceivedAt" = EXCLUDED."sourceMaxReceivedAt",
       "updatedAt" = EXCLUDED."updatedAt"
-    WHERE "AnalyticsRollupDay"."timezoneRevision" <= EXCLUDED."timezoneRevision"
-      AND (
-        "AnalyticsRollupDay"."sourceMaxReceivedAt" IS NULL
-        OR EXCLUDED."sourceMaxReceivedAt" IS NULL
-        OR "AnalyticsRollupDay"."sourceMaxReceivedAt" <= EXCLUDED."sourceMaxReceivedAt"
+    WHERE (
+      "AnalyticsRollupDay"."timezoneRevision" < EXCLUDED."timezoneRevision"
+      OR (
+        "AnalyticsRollupDay"."timezoneRevision" = EXCLUDED."timezoneRevision"
+        AND (
+          "AnalyticsRollupDay"."sourceMaxReceivedAt" IS NULL
+          OR (
+            EXCLUDED."sourceMaxReceivedAt" IS NOT NULL
+            AND "AnalyticsRollupDay"."sourceMaxReceivedAt" <= EXCLUDED."sourceMaxReceivedAt"
+          )
+        )
       )
+    )
   `;
 }
 
