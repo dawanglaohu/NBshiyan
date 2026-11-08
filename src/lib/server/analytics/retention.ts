@@ -19,6 +19,7 @@ import {
   AggregateBatchExceeded,
   AggregateDeadlineExceeded,
   AggregateVersionConflict,
+  aggregateOneDayInSnapshot,
   runAggregateOnce,
 } from './aggregate';
 import {
@@ -397,17 +398,33 @@ export async function runAnalyticsRetention(deps: {
       completeRawCoverageStartUtc: coveragePlan.completeRawCoverageStartUtc,
       rollupExpiryThrough: rollupThrough,
     });
-    if (report.history.recomputedDays.length > 0) {
-      // 现有 aggregateOneDayInSnapshot 是单日验证助手：事务 timeout 固定 15s、等连接 5s，
-      // 没有预算参数，调用前检查约束不了调用中的耗时。按原单不绕过预算、也不复制聚合实现：
-      // 这些日先记显式缺口并照常按 30 天删除；精确支持路径见
-      // backend-m5t11-r1-b2-b3-20261108.md（aggregate.ts 增加可选 deadline 透传）。
-      console.info('[cron] analytics retention preflight needs bounded aggregate', {
-        days: report.history.recomputedDays.length,
-      });
-      report.history.gapDays = [...report.history.gapDays, ...report.history.recomputedDays].sort();
-      report.history.recomputedDays = [];
-      report.history.coverage = 'unavailable';
+    // 可整日重算的到期日：删除前先整日聚合，事务预算取本轮剩余预算。
+    // 预算耗尽 → 删除前停手；代次冲突 → 交给外层按 FAILED 处理；其它失败 → 显式缺口。
+    for (const siteDate of [...report.history.recomputedDays]) {
+      if (budgetExhausted(budget)) throw new RetentionRunTimeout();
+      try {
+        await aggregateOneDayInSnapshot({
+          db: deps.db,
+          siteDate,
+          siteTimezone: timezone,
+          cutoff: now,
+          timezoneRevision: claim.timezoneRevision,
+          generation: claim.generation,
+          now,
+          deadlineAt: budget.deadlineAt,
+          occurredNotAfter: now,
+        });
+      } catch (error) {
+        if (error instanceof AggregateDeadlineExceeded || isBudgetTimeoutError(error) || budgetExhausted(budget)) {
+          throw new RetentionRunTimeout();
+        }
+        if (error instanceof AggregateVersionConflict) throw error;
+        // 尝试已发生但失败：显式缺口，随后仍按 30 天删除，不无限延长原始保留。
+        console.error('[cron] analytics retention preflight aggregate failed', errorName(error));
+        report.history.recomputedDays = report.history.recomputedDays.filter((day) => day !== siteDate);
+        report.history.gapDays = [...report.history.gapDays, siteDate].sort();
+        report.history.coverage = 'unavailable';
+      }
     }
     if (report.history.gapDays.length > 0 || report.history.preservedDays.length > 0) {
       console.info('[cron] analytics retention history coverage', {

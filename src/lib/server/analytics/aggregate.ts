@@ -166,8 +166,14 @@ async function writeOneDayInTx(
 }
 
 /**
- * 单独处理一天（保留给单日验证／测试用）。仍是一条 RepeatableRead 事务，
- * 但生产整组路径请用 `runAggregateOnce`，它把多天放进同一事务。
+ * 有预算的单日聚合：保留清理在删除前对「仍可整日重算」的到期日做一次 preflight，
+ * 生产整组多日仍走 `runAggregateOnce`。
+ *
+ * 传入 `deadlineAt` 时按整轮剩余预算派生 `maxWaitMs/timeoutMs` 并交给
+ * `runInRepeatableReadSnapshot`（等连接 + 执行不超过剩余预算），开事务前、
+ * 写入前、写入后各查一次截止；到期即抛，Prisma 整笔回滚。
+ * 不传时保持既有单日验证默认（15s/5s）。`occurredNotAfter` 与调度作业同一口径：
+ * 只统计 `occurredAt <= 该时刻` 的事实，未来事件不提前计入。
  */
 export async function aggregateOneDayInSnapshot(deps: {
   db: AggregateDb;
@@ -177,21 +183,47 @@ export async function aggregateOneDayInSnapshot(deps: {
   timezoneRevision: number;
   generation: number;
   now: Date;
+  /** 可选；生产 retention 必须传，按它派生事务预算。 */
+  deadlineAt?: Date;
+  /** 只统计 occurredAt <= 该时刻的事实；生产传业务 now。 */
+  occurredNotAfter?: Date;
 }): Promise<AggregateDayResult> {
   const { db, generation } = deps;
+  const deadlineMs = deps.deadlineAt?.getTime();
+  const deadlineReached = () => deadlineMs !== undefined && Date.now() >= deadlineMs;
+
+  const txOptions: { maxWaitMs?: number; timeoutMs?: number } = {};
+  if (deadlineMs !== undefined) {
+    const remaining = deadlineMs - Date.now();
+    const maxWaitMs = Math.min(AGGREGATE_TX_MAX_WAIT_MS, Math.floor(remaining / 2));
+    const timeoutMs = Math.floor(remaining - maxWaitMs);
+    if (remaining < AGGREGATE_MIN_TX_MS || maxWaitMs < 1 || timeoutMs < AGGREGATE_MIN_TX_MS) {
+      throw new AggregateDeadlineExceeded();
+    }
+    txOptions.maxWaitMs = maxWaitMs;
+    txOptions.timeoutMs = timeoutMs;
+  }
+  if (deadlineReached()) throw new AggregateDeadlineExceeded();
+
   return runInRepeatableReadSnapshot(db, async (tx) => {
+    if (deadlineReached()) throw new AggregateDeadlineExceeded();
     const lockedGeneration = await readLockedGeneration(tx);
     if (lockedGeneration !== null && lockedGeneration > generation) {
       throw new AggregateVersionConflict('stale_generation');
     }
-    return writeOneDayInTx(tx, {
+    if (deadlineReached()) throw new AggregateDeadlineExceeded();
+    const day = await writeOneDayInTx(tx, {
       siteDate: deps.siteDate,
       siteTimezone: deps.siteTimezone,
       cutoff: deps.cutoff,
       timezoneRevision: deps.timezoneRevision,
       now: deps.now,
+      ...(deps.occurredNotAfter ? { notAfter: deps.occurredNotAfter } : {}),
     });
-  });
+    // 写入完成但已到期：抛出让整笔回滚，不把半成品当成功提交。
+    if (deadlineReached()) throw new AggregateDeadlineExceeded();
+    return day;
+  }, txOptions);
 }
 
 /**

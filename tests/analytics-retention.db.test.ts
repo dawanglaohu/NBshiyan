@@ -23,6 +23,11 @@ import {
   shiftCalendarMonths,
 } from '../src/lib/server/analytics/retention-plan';
 import { createJobLeaseRepo } from '../src/lib/server/jobs/lease-repo';
+import {
+  AggregateDeadlineExceeded,
+  AggregateVersionConflict,
+  aggregateOneDayInSnapshot,
+} from '../src/lib/server/analytics/aggregate';
 import { ANALYTICS_ROLLUP_JOB_KEY } from '../src/lib/server/analytics/rollup';
 import { siteLocalDate } from '../src/lib/analytics/day-boundaries';
 
@@ -60,6 +65,143 @@ test('历史受影响日分类：可重算 / 保留旧聚合 / 缺口 / 已过�
   assert.equal(worstCoverage('complete', 'partial'), 'partial');
   assert.equal(worstCoverage('partial', 'unavailable'), 'unavailable');
   assert.equal(worstCoverage('unavailable', 'complete'), 'unavailable');
+});
+
+test('单日聚合预算：剩余不足时不开事务，直接抛 deadline', async () => {
+  let opened = false;
+  const db = {
+    $transaction: async () => {
+      opened = true;
+      throw new Error('should not open');
+    },
+  } as unknown as Parameters<typeof aggregateOneDayInSnapshot>[0]['db'];
+  await assert.rejects(
+    () => aggregateOneDayInSnapshot({
+      db,
+      siteDate: '2027-02-14',
+      siteTimezone: TZ,
+      cutoff: NOW,
+      timezoneRevision: 1,
+      generation: 1,
+      now: NOW,
+      deadlineAt: new Date(Date.now() + 100),
+      occurredNotAfter: NOW,
+    }),
+    (error: unknown) => error instanceof AggregateDeadlineExceeded,
+  );
+  assert.equal(opened, false);
+});
+
+test('单日聚合预算：充足时按剩余预算切分 maxWait/timeout，并走 RepeatableRead', async () => {
+  let options: { isolationLevel?: string; maxWait?: number; timeout?: number } | undefined;
+  const db = {
+    $transaction: async (_fn: unknown, opts: { isolationLevel?: string; maxWait?: number; timeout?: number }) => {
+      options = opts;
+      throw new Error('stop-before-work');
+    },
+  } as unknown as Parameters<typeof aggregateOneDayInSnapshot>[0]['db'];
+  await assert.rejects(() => aggregateOneDayInSnapshot({
+    db,
+    siteDate: '2027-02-14',
+    siteTimezone: TZ,
+    cutoff: NOW,
+    timezoneRevision: 1,
+    generation: 1,
+    now: NOW,
+    deadlineAt: new Date(Date.now() + 10_000),
+    occurredNotAfter: NOW,
+  }));
+  assert.ok(options);
+  assert.equal(options?.isolationLevel, Prisma.TransactionIsolationLevel.RepeatableRead);
+  assert.ok(Number(options?.maxWait) + Number(options?.timeout) <= 10_000, 'maxWait+timeout 不得超过剩余预算');
+  assert.ok(Number(options?.timeout) < 15_000, '不得退回默认 15s，应按剩余预算派生');
+});
+
+test('单日聚合：写入后到期即抛错回滚，occurredNotAfter 与旧代次按既有语义处理', async () => {
+  const txFor = (overrides: { generation?: number; onUpsert?: () => void } = {}) => {
+    const seen: string[] = [];
+    let executes = 0;
+    const tx = {
+      $executeRawUnsafe: async () => 0,
+      $queryRaw: async (...args: unknown[]) => {
+        // tagged template 的字符串数组只有外层，嵌套的 Prisma.Sql 片段作为参数值出现；
+        // 两者都收集，才能断言 occurredNotAfter 进入了事件查询。
+        const parts: string[] = [];
+        for (const arg of args) {
+          if (Array.isArray(arg)) parts.push(...arg.map(String));
+          else if (arg && typeof arg === 'object' && 'text' in arg) parts.push(String((arg as { text?: string }).text ?? ''));
+        }
+        const text = parts.join(' ');
+        seen.push(text);
+        if (text.includes('FROM "JobState"')) {
+          return overrides.generation === undefined ? [] : [{ generation: overrides.generation }];
+        }
+        return [];
+      },
+      $executeRaw: async () => {
+        executes += 1;
+        // 第 1 次是删除当日聚合，第 2 次是 watermark upsert；在最后一次写入后让时钟过期。
+        if (executes === 2) overrides.onUpsert?.();
+        return 1;
+      },
+    };
+    return { tx, seen };
+  };
+
+  // A. 写入完成后到期：抛 AggregateDeadlineExceeded，事务不提交（回调抛错即回滚）。
+  const realNow = Date.now;
+  const base = realNow();
+  let fakeNow = base;
+  Date.now = () => fakeNow;
+  try {
+    const { tx, seen } = txFor({ onUpsert: () => { fakeNow = base + 10_000; } });
+    const db = {
+      $transaction: async (fn: (client: unknown) => Promise<unknown>) => fn(tx),
+    } as unknown as Parameters<typeof aggregateOneDayInSnapshot>[0]['db'];
+    await assert.rejects(
+      () => aggregateOneDayInSnapshot({
+        db,
+        siteDate: '2027-02-14',
+        siteTimezone: TZ,
+        cutoff: NOW,
+        timezoneRevision: 1,
+        generation: 1,
+        now: NOW,
+        deadlineAt: new Date(base + 5_000),
+        occurredNotAfter: NOW,
+      }),
+      (error: unknown) => error instanceof AggregateDeadlineExceeded,
+    );
+    assert.ok(seen.some((text) => text.includes('"occurredAt" <=')), 'occurredNotAfter 必须进入事件查询');
+  } finally {
+    Date.now = realNow;
+  }
+
+  // B. 库里代次高于本次领取：抛版本冲突，不进入任何写入。
+  const { tx: staleTx } = txFor({ generation: 9 });
+  let wrote = false;
+  staleTx.$executeRaw = async () => {
+    wrote = true;
+    return 1;
+  };
+  const staleDb = {
+    $transaction: async (fn: (client: unknown) => Promise<unknown>) => fn(staleTx),
+  } as unknown as Parameters<typeof aggregateOneDayInSnapshot>[0]['db'];
+  await assert.rejects(
+    () => aggregateOneDayInSnapshot({
+      db: staleDb,
+      siteDate: '2027-02-14',
+      siteTimezone: TZ,
+      cutoff: NOW,
+      timezoneRevision: 1,
+      generation: 1,
+      now: NOW,
+      deadlineAt: new Date(Date.now() + 10_000),
+      occurredNotAfter: NOW,
+    }),
+    (error: unknown) => error instanceof AggregateVersionConflict,
+  );
+  assert.equal(wrote, false);
 });
 
 test('registry 注册 analytics-retention，且 operations 把 dryRun 原样交给作业', async () => {
@@ -539,7 +681,7 @@ describe('analytics retention job', { concurrency: false, skip, timeout: 180_000
     assert.equal(await count(db, Prisma.sql`SELECT COUNT(*)::int AS "count" FROM "AnalyticsEvent" WHERE "eventId" = 'ev-late'`), 0);
   });
 
-  test('可整日重算的到期日：现有接口无预算参数，先记 gap、不无界调用聚合助手', async () => {
+  test('可整日重算的到期日：删除前用剩余预算做单日聚合，成功后才删且不记 gap', async () => {
     assert.ok(db);
     // cutoff 落在本地 23:58，事件 receivedAt 在 cutoff，occurredAt 到次日 00:03：
     // 归属日 = 2027-02-14，其日界正好等于完整原始覆盖起点（可整日重算）。
@@ -559,11 +701,19 @@ describe('analytics retention job', { concurrency: false, skip, timeout: 180_000
     const run = await runAnalyticsRetention({ db, context: context(edgeNow, false), clock: () => edgeNow, deleteAuthorized: true });
     assert.equal(run.kind, 'completed');
     if (run.kind !== 'completed') return;
+    assert.equal(run.status, 'SUCCEEDED');
     assert.deepEqual(run.report.history.affectedDays, ['2027-02-14']);
-    // 可整日重算，但单日聚合助手没有预算参数：按原单不调用、记显式缺口，删除照常。
-    assert.deepEqual(run.report.history.recomputedDays, []);
-    assert.deepEqual(run.report.history.gapDays, ['2027-02-14']);
-    assert.equal(run.report.coverage, 'unavailable');
+    // 删除前先整日聚合：该日进入 recomputed，不是 gap；近期也 complete。
+    assert.deepEqual(run.report.history.recomputedDays, ['2027-02-14']);
+    assert.deepEqual(run.report.history.gapDays, []);
+    assert.equal(run.report.history.coverage, 'complete');
+    assert.equal(run.report.coverage, 'complete');
+    // 聚合在删除前完成：raw 行被删，但该日的完整聚合仍在。
+    const kept = await db.$queryRaw<{ eventCount: number }[]>`
+      SELECT "eventCount" FROM "AnalyticsRollupDay" WHERE "siteDate" = '2027-02-14'
+    `;
+    assert.equal(kept.length, 1);
+    assert.equal(Number(kept[0].eventCount), 1);
     assert.equal(await count(db, Prisma.sql`SELECT COUNT(*)::int AS "count" FROM "AnalyticsEvent" WHERE "eventId" = 'ev-edge'`), 0);
   });
 
