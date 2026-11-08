@@ -1173,15 +1173,17 @@
     "verdict": "pass"
   },
   "M5-T8": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "8467dc2200c68f7e350a85ad34dbbb113d9da50dcb9fa07e68398ce353cf5ef0",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "a7d796aff6f54f66f36bf275547c8aa5d1cd87f94dadddad9466b8e0c5f72eea",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M5-T8《注册聚合作业并接通真实5分钟cron》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "契约源 _run/task-contracts.json 的 tasks[\"M5-T8\"].supportPaths 由 3 条（aggregate.ts、aggregate-repo.ts、tests/cron-analytics-rollup.test.ts）扩为 4 条，仅新增 .github/workflows/ci.yml；outputPaths 7 条未变；不改验收语义、不拆任务。",
+      "ci.yml 语义：本任务保留 M5T8_REQUIRE_DATABASE（e2e job）与 jobs-runtime/rollup 三处测试登记；A3 收集计数 209/206/2/1（名称、断言、去重、回显）；同时保留 main 的 M5-T5 PG17 接线（M5T5_TEST_DATABASE_URL/M5T5_REQUIRE_DATABASE）与 retention-plan 三处登记；全文无 #538 的 210/207、无 #540 的 212/209、无 M3-T23 内容。",
+      "合并来源：merge commit 双亲 c1916c87 + 8c4dd176（main 8c4dd176，本地=远端）；5 个派生冲突（build-manifest/build-state/dispatch/review/docs-data）取 main 侧后由 maintain_docs build 重建，未手拼；ci.yml 唯一冲突区合并保留双方 env；task-contracts 相对 main 只变 M5-T8 supportPaths，task-reviews 保留 M5-T5 与 M5-T8 两笔。",
+      "P3 更正：两笔技术复审为 rework1 62567187… 与 rework2 D2BD28CE…，旧证据把 rework2 误写为 rework1 的混写已在证据源更正；dispatch.json 的 R7-T21418022 共享路径提示一行随契约哈希/路径集传播更新，补丁 affected 集合未列该提示，属生成器行为，不手改集合刷绿。",
+      "状态保留：M5-T5 done、M5-T8 todo、progress 94 键/done 91、contracts 144 保持；未 landed、未 push、未合并；本笔只补契约支持路径，不改产品/测试行为与 CI 实现。",
+      "边界：本契约只登记 CI 路径，不代表真实 B4 */5 或正式 Linux/PG17 CI 已完成；B4 仍由固定执行器 9d5cc4b5 独立验收，后续新头 CI 不得把设施用例的明确 skip 记成真调度通过。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-11-07T22:10:17.461610+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },

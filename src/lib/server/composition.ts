@@ -16,6 +16,7 @@ import { analyticsConsentSecret } from './config';
 import { CHAT_VISITOR_POLICY } from './config';
 import { createVisitorSessionRepo, type VisitorSessionStore } from './chat/visitor-session-repo';
 import { createVisitorSessionService, type VisitorSessionService } from './chat/visitor-session';
+import { createAnalyticsAggregateJob, createJobRegistry, type JobRegistry } from './jobs/registry';
 
 export type HttpServices = {
   config: ServerConfig;
@@ -165,5 +166,25 @@ export function createChatServices(deps: {
       clock,
       policy: CHAT_VISITOR_POLICY,
     }),
+  };
+}
+
+export type JobServices = {
+  jobs: JobRegistry;
+};
+
+/**
+ * 固定作业的生产组合点。只注册已经实现并接线的作业；尚未交付的模块不在这里
+ * 注册空实现，也不导入未来服务。registry 本身只认固定 key 与已注册的实现。
+ */
+export function createJobServices(deps: {
+  db?: PrismaClient;
+  clock?: () => Date;
+} = {}): JobServices {
+  const db = deps.db ?? (prisma as PrismaClient);
+  return {
+    jobs: createJobRegistry([
+      createAnalyticsAggregateJob({ db, clock: deps.clock }),
+    ]),
   };
 }

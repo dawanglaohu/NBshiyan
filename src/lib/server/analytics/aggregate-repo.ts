@@ -33,15 +33,22 @@ function utc(date: Date): Prisma.Sql {
 }
 
 /**
- * 在 RepeatableRead 快照内读取一天的事件，并按 `receivedAt ≤ cutoff` 过滤。
+ * 在 RepeatableRead 快照内读取一天的事件，按 `receivedAt ≤ cutoff` 过滤。
  *
- * 返回的事件仍交给 `aggregateSiteDay` 做去重与计数，本函数不改聚合语义。
+ * 可选的 `notAfter` 再按 `occurredAt ≤ notAfter` 截断：调度作业传本轮业务时钟，
+ * 保证客户端时钟最多领先 5 分钟准入的未来事件，到其 occurredAt 前不提前计入
+ * （E-60）。不传时保持既有快照语义——只由 receivedAt 截断（M5-T3 的 R7 会话
+ * 一致性用例依赖这一点，日末事件仍属当日快照）。
  */
 export async function loadEventsAtSnapshot(
   db: Query,
   bounds: SiteDayBounds,
   cutoff: Date,
+  options: { notAfter?: Date } = {},
 ): Promise<RollupSourceEvent[]> {
+  const occurredUpper = options.notAfter
+    ? Prisma.sql`AND "occurredAt" <= ${utc(options.notAfter)}`
+    : Prisma.empty;
   const rows = await db.$queryRaw<{
     kind: string;
     locale: string;
@@ -63,6 +70,7 @@ export async function loadEventsAtSnapshot(
     WHERE "occurredAt" >= ${utc(new Date(bounds.startUtc))}
       AND "occurredAt" < ${utc(new Date(bounds.endUtc))}
       AND "receivedAt" <= ${utc(cutoff)}
+      ${occurredUpper}
   `;
   return rows.map((row) => ({
     kind: row.kind,
@@ -146,14 +154,24 @@ export async function upsertWatermarkGuarded(
  *
  * `db.$transaction` 的第二参数携带 `isolationLevel`，Prisma 会把它下发给
  * `BEGIN ISOLATION LEVEL REPEATABLE READ`，使事务内全部读取共享同一快照。
+ * 调用方给出 `timeoutMs` 时按它截断（不再有最小值下限，避免反向扩大预算），
+ * 事务内先设 statement_timeout / lock_timeout：单句 SQL 与行锁等待都不得越过预算。
  */
 export async function runInRepeatableReadSnapshot<T>(
   db: Pick<PrismaClient, '$transaction'>,
   fn: (tx: Prisma.TransactionClient) => Promise<T>,
+  options: { timeoutMs?: number; maxWaitMs?: number } = {},
 ): Promise<T> {
-  return db.$transaction(fn, {
+  const timeout = options.timeoutMs === undefined
+    ? 15_000
+    : Math.max(1, Math.min(options.timeoutMs, 60_000));
+  return db.$transaction(async (tx) => {
+    await tx.$executeRawUnsafe(`SET LOCAL statement_timeout = ${timeout}`);
+    await tx.$executeRawUnsafe(`SET LOCAL lock_timeout = ${timeout}`);
+    return fn(tx);
+  }, {
     isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead,
-    maxWait: 5_000,
-    timeout: 15_000,
+    maxWait: options.maxWaitMs ?? 5_000,
+    timeout,
   });
 }

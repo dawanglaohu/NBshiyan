@@ -18,7 +18,8 @@ function utc(date: Date): Prisma.Sql {
  * M5-T3 「以一致快照重算并原子替换日聚合」服务层。
  *
  * 09 节 `:71` 的三条硬要求：
- *   - 每轮先定 cutoff，只统计 `receivedAt ≤ cutoff` 的事实；
+ *   - 每轮先定 cutoff，只统计 `receivedAt ≤ cutoff` 的事实；调度作业再传
+ *     `occurredNotAfter = now`，让准入的未来事件到其 occurredAt 前不计入（E-60）；
  *   - **整组目标日 + 各自 watermark 在一条 RepeatableRead 事务里替换**，
  *     任一目标日失败整组回滚，进程中断保留上一轮完整结果；
  *   - 用数据库行锁与带 WHERE 守卫的 upsert 做 generation/版本互斥，而非内存判断。
@@ -34,6 +35,34 @@ export class AggregateVersionConflict extends Error {
     this.name = 'AggregateVersionConflict';
   }
 }
+
+/** 本轮预算已用完：整组事务不得再提交，调用方不得宣称成功。 */
+export class AggregateDeadlineExceeded extends Error {
+  constructor() {
+    super('deadline_exceeded');
+    this.name = 'AggregateDeadlineExceeded';
+  }
+}
+
+/** 计划规模超过防御上限：在开启事务前拒绝，不产生任何写入。 */
+export class AggregateBatchExceeded extends Error {
+  constructor(limit: number) {
+    super(`batch_exceeded:${limit}`);
+    this.name = 'AggregateBatchExceeded';
+  }
+}
+
+/** 事务等待连接的上限；与执行时间合计不得超过本轮剩余预算。 */
+const AGGREGATE_TX_MAX_WAIT_MS = 2_000;
+
+/** 剩余预算低于此值就不再开启聚合事务。 */
+const AGGREGATE_MIN_TX_MS = 250;
+
+/** 事务内提交前的回调：与聚合整组写入同事务，任一失败整组回滚。 */
+export type AggregateCommitHook = (
+  tx: Prisma.TransactionClient,
+  summary: { writtenDays: number; dataThrough: string | null; sourceThrough: string | null },
+) => Promise<void>;
 
 export type AggregateDb = Pick<PrismaClient, '$transaction'> & {
   $queryRaw: PrismaClient['$queryRaw'];
@@ -65,6 +94,8 @@ type DayArgs = {
   cutoff: Date;
   timezoneRevision: number;
   now: Date;
+  /** 只统计 occurredAt ≤ 该时刻的事实；调度作业传业务时钟，未到时间的未来事件不提前计入。 */
+  notAfter?: Date;
 };
 
 /**
@@ -90,7 +121,9 @@ async function writeOneDayInTx(
     throw new AggregateVersionConflict('stale_timezone_revision');
   }
 
-  const events: RollupSourceEvent[] = await loadEventsAtSnapshot(tx, bounds, cutoff);
+  const events: RollupSourceEvent[] = await loadEventsAtSnapshot(tx, bounds, cutoff, {
+    ...(args.notAfter ? { notAfter: args.notAfter } : {}),
+  });
   const aggregated = aggregateSiteDay(events, bounds);
 
   await tx.$executeRaw`DELETE FROM "AnalyticsDailyRollup" WHERE "siteDate" = ${bounds.localDate}`;
@@ -176,12 +209,41 @@ export async function runAggregateOnce(deps: {
   currentDate: string;
   timezoneRevision: number;
   generation: number;
+  /** 整轮预算的截止时刻；到期后不再开始新一天、也不提交，事务整笔回滚。 */
+  deadlineAt?: Date;
+  /** 只统计 occurredAt ≤ 该时刻的事实；调度作业传业务 now，保证未来事件到时间前不计入。 */
+  occurredNotAfter?: Date;
+  /** 防御性上限，单位是站点自然日（不是事件数）；超出即拒绝且不写库。 */
+  maxBatchDays?: number;
+  /** 与整组聚合同一事务的提交钩子；抛错则整组回滚（用于原子完成作业租约）。 */
+  commit?: AggregateCommitHook;
 }): Promise<AggregateRunResult> {
+  const deadlineMs = deps.deadlineAt?.getTime();
+  const deadlineReached = () => deadlineMs !== undefined && Date.now() >= deadlineMs;
+  if (deadlineReached()) throw new AggregateDeadlineExceeded();
+
   const plan: SnapshotPlan = planSnapshot({
     now: deps.now,
     siteTimezone: deps.siteTimezone,
     currentDate: deps.currentDate,
   });
+  if (deps.maxBatchDays !== undefined && plan.siteDates.length > deps.maxBatchDays) {
+    throw new AggregateBatchExceeded(deps.maxBatchDays);
+  }
+
+  // 事务预算：maxWait（等连接）与 timeout（执行）之和不超过剩余预算。
+  // 剩余不足时直接不开启事务，不用最小 timeout 反向扩大预算。
+  const txOptions: { maxWaitMs?: number; timeoutMs?: number } = {};
+  if (deadlineMs !== undefined) {
+    const remaining = deadlineMs - Date.now();
+    const maxWaitMs = Math.min(AGGREGATE_TX_MAX_WAIT_MS, Math.floor(remaining / 2));
+    const timeoutMs = Math.floor(remaining - maxWaitMs);
+    if (remaining < AGGREGATE_MIN_TX_MS || maxWaitMs < 1 || timeoutMs < AGGREGATE_MIN_TX_MS) {
+      throw new AggregateDeadlineExceeded();
+    }
+    txOptions.maxWaitMs = maxWaitMs;
+    txOptions.timeoutMs = timeoutMs;
+  }
 
   let days: AggregateDayResult[] = [];
   // 整组事务：任一天失败或版本冲突都会把异常抛到这里，Prisma 整笔回滚，一天都不写。
@@ -194,16 +256,31 @@ export async function runAggregateOnce(deps: {
     }
     const written: AggregateDayResult[] = [];
     for (const siteDate of plan.siteDates) {
+      if (deadlineReached()) throw new AggregateDeadlineExceeded();
       written.push(await writeOneDayInTx(tx, {
         siteDate,
         siteTimezone: deps.siteTimezone,
         cutoff: plan.cutoff,
         timezoneRevision: deps.timezoneRevision,
         now: deps.now,
+        ...(deps.occurredNotAfter ? { notAfter: deps.occurredNotAfter } : {}),
       }));
     }
+    if (deps.commit) {
+      let dataThrough: string | null = null;
+      let sourceThrough: string | null = null;
+      for (const day of written) {
+        const end = siteDayUtcBounds(day.siteDate, deps.siteTimezone).endUtc;
+        if (dataThrough === null || end > dataThrough) dataThrough = end;
+        if (day.sourceMaxReceivedAt && (sourceThrough === null || day.sourceMaxReceivedAt > sourceThrough)) {
+          sourceThrough = day.sourceMaxReceivedAt;
+        }
+      }
+      if (deadlineReached()) throw new AggregateDeadlineExceeded();
+      await deps.commit(tx, { writtenDays: written.length, dataThrough, sourceThrough });
+    }
     return written;
-  });
+  }, txOptions);
 
   for (const siteDate of plan.skippedDates) {
     // 超范围：不写库、不用残片替换旧完整值、不填 0（09 节 `:72`）。

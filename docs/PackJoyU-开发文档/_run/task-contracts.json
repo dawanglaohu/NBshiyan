@@ -2701,7 +2701,12 @@
         "jobs",
         "migrations"
       ],
-      "supportPaths": [],
+      "supportPaths": [
+        "src/lib/server/analytics/aggregate.ts",
+        "src/lib/server/analytics/aggregate-repo.ts",
+        "tests/cron-analytics-rollup.test.ts",
+        ".github/workflows/ci.yml"
+      ],
       "outputPaths": [
         "src/lib/server/jobs/registry.ts",
         "src/lib/server/composition.ts",
