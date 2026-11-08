@@ -43,85 +43,113 @@ jobs:
       - uses: browser-actions/setup-chrome@v1
         id: chrome
         with: { chrome-version: stable, install-dependencies: true }
+      # 启动原非production服务，并把监听进程绑定到本次 setsid 会话；绑定不上就失败，不认领外来进程。
+      - name: 启动原非production服务并确认监听归属
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          port=3000
+          if ss -H -ltn "sport = :$port" 2>/dev/null | grep -q .; then
+            echo "port $port already in use before start; refusing to start" >&2
+            exit 1
+          fi
+          rm -f /tmp/ci-next.session /tmp/ci-next.listener /tmp/ci-next.pgid /tmp/ci-next.launch
+          # setsid 里面再写 $$：不管 setsid 是否 fork，记录的都是新会话首进程（随后 exec pnpm）。
+          setsid bash -c 'echo $$ > /tmp/ci-next.session; exec pnpm start' > /tmp/next.log 2>&1 &
+          echo "$!" > /tmp/ci-next.launch
+          for _ in $(seq 1 100); do
+            [[ -s /tmp/ci-next.session ]] && break
+            sleep 0.1
+          done
+          session="$(cat /tmp/ci-next.session 2>/dev/null || true)"
+          [[ "$session" =~ ^[0-9]+$ ]] || { echo "could not record the launch session" >&2; exit 1; }
+          npx --yes wait-on@8 --timeout 120000 http://localhost:3000/en http://localhost:3000/en/products
+          listener="$(ss -H -ltnp "sport = :$port" 2>/dev/null | grep -oP 'pid=\K[0-9]+' | head -n 1)"
+          [[ -n "$listener" ]] || { echo "no listener on port $port after wait-on" >&2; exit 1; }
+          listener_sid="$(ps -o sid= -p "$listener" 2>/dev/null | tr -d ' ')"
+          listener_pgid="$(ps -o pgid= -p "$listener" 2>/dev/null | tr -d ' ')"
+          if [[ "$listener_sid" != "$session" ]]; then
+            echo "listener pid=$listener sid=${listener_sid:-gone} pgid=${listener_pgid:-gone} is not in the launch session $session" >&2
+            echo "launch pid=$(cat /tmp/ci-next.launch 2>/dev/null || echo unknown)" >&2
+            tail -n 40 /tmp/next.log >&2 || true
+            exit 1
+          fi
+          echo "$listener" > /tmp/ci-next.listener
+          echo "$listener_pgid" > /tmp/ci-next.pgid
+          echo "listener pid $listener sid $listener_sid pgid $listener_pgid (launch session)"
+
       - name: Lighthouse 性能门槛
         env:
           CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
         run: |
-          setsid pnpm start > /tmp/next.log 2>&1 &
-          echo $! > /tmp/ci-next.pid
-          npx --yes wait-on@8 --timeout 120000 http://localhost:3000/en http://localhost:3000/en/products
-          # 记录本次启动的真实监听进程与它所在的进程组，作为之后终止的唯一依据
-          listener="$(ss -H -ltnp "sport = :3000" | grep -oP 'pid=\K[0-9]+' | head -n 1)"
-          test -n "$listener"
-          echo "$listener" > /tmp/ci-next.listener
-          ps -o pgid= -p "$listener" | tr -d ' ' > /tmp/ci-next.pgrp
-          test -s /tmp/ci-next.pgrp
-          echo "listener pid $listener pgid $(cat /tmp/ci-next.pgrp)"
           npx --yes @lhci/cli@0.15.x autorun
 
-      # 本 job 自己启动的 Next 服务：正常/失败都停掉并确认端口释放，再做第二次生产构建。
-      # 只处理本 job 记录的会话/监听进程或本工作区内的 next 进程，不做全局 pkill。
-      - name: 清理本 job 的 Next 服务（正常或失败都执行）
+      # 清理本次启动的服务：每个成功分支都要求「端口释放 + 本次会话无存活成员」；只终止已证明属于本次会话的进程。
+      - name: 清理本次启动的服务（正常或失败都执行，端口与会话都须清空）
         if: always()
         shell: bash
         run: |
           set -Eeuo pipefail
-          pidfile=/tmp/ci-next.pid
-          pgrpfile=/tmp/ci-next.pgrp
           port=3000
-          session="$(cat "$pidfile" 2>/dev/null || true)"
-          pgid="$(cat "$pgrpfile" 2>/dev/null || true)"
+          session="$(cat /tmp/ci-next.session 2>/dev/null || true)"
           listening() { ss -H -ltn "sport = :$port" 2>/dev/null | grep -q .; }
-          listener_pids() { ss -H -ltnp "sport = :$port" 2>/dev/null | grep -oP 'pid=\K[0-9]+' | sort -u; }
-          pgid_of() { ps -o pgid= -p "$1" 2>/dev/null | tr -d ' '; }
-          # 1) 启动时记录的会话：整组 TERM（覆盖 pnpm → next 子进程）
+          session_members() {
+            [[ "$session" =~ ^[0-9]+$ ]] || return 0
+            pgrep -s "$session" 2>/dev/null || true
+          }
+          settled() { ! listening && [[ -z "$(session_members)" ]]; }
+          # 1) 按记录的会话整组 TERM（覆盖 pnpm → next 的子进程）
           if [[ "$session" =~ ^[0-9]+$ ]] && kill -0 "$session" 2>/dev/null; then
             echo "stopping session $session"
             kill -TERM -- "-$session" 2>/dev/null || kill -TERM "$session" 2>/dev/null || true
           fi
-          # 2) 等端口释放
-          for _ in $(seq 1 30); do
-            if ! listening; then echo "port $port free"; exit 0; fi
+          for _ in $(seq 1 20); do
+            if settled; then echo "port $port free and launch session $session empty"; exit 0; fi
             sleep 1
           done
-          # 3) 兜底：只终止进程组等于启动时从真实监听进程读到的 pgid 的进程。
-          #    命令行含 next、工作目录相同都不作为单独依据；无法证明属于本次启动的一律拒绝，不误杀。
-          [[ "$pgid" =~ ^[0-9]+$ ]] || { echo "no recorded pgid; refusing fallback kill" >&2; exit 1; }
+          # 2) 仍未清空：只处理属于本会话的成员/监听；外来进程一律拒绝，不清完不成功
           verified=()
           while read -r p; do
             [[ -n "$p" ]] || continue
-            g="$(pgid_of "$p")"
-            if [[ "$g" == "$pgid" ]]; then
+            [[ -d "/proc/$p" ]] || continue
+            sid="$(ps -o sid= -p "$p" 2>/dev/null | tr -d ' ')"
+            if [[ "$sid" == "$session" ]]; then
               verified+=("$p")
             else
-              echo "refusing to kill pid=$p pgid=$g (recorded pgid=$pgid)" >&2
+              echo "refusing to kill pid=$p sid=${sid:-gone} (launch session=${session:-none})" >&2
               exit 1
             fi
-          done < <(listener_pids)
+          done < <( { ss -H -ltnp "sport = :$port" 2>/dev/null | grep -oP 'pid=\K[0-9]+' || true; session_members; } | sort -u )
           for p in "${verified[@]}"; do
-            echo "stopping verified leftover $p (pgid $pgid)"
+            echo "stopping launch-session member $p"
             kill -TERM "$p" 2>/dev/null || true
           done
           for _ in $(seq 1 10); do
-            if ! listening; then echo "port $port free after fallback"; exit 0; fi
+            if settled; then echo "port $port free and launch session empty after TERM"; exit 0; fi
             sleep 1
           done
           for p in "${verified[@]}"; do
             kill -0 "$p" 2>/dev/null && { echo "killing $p"; kill -KILL "$p" 2>/dev/null || true; }
           done
           for _ in $(seq 1 5); do
-            if ! listening; then echo "port $port free after SIGKILL"; exit 0; fi
+            if settled; then echo "port $port free and launch session empty after SIGKILL"; exit 0; fi
             sleep 1
           done
-          echo "port $port still in use" >&2
+          echo "cleanup incomplete: port_busy=$(listening && echo yes || echo no) members=$(session_members | tr '\n' ' ')" >&2
           exit 1
 
-      # 旧（测试模式）产物身份先落盘，再把 .next 让位：第二次构建必须是全新的 .next，不混用残留。
-      - name: 记录测试模式构建身份并让位
+      # 原非production构建的产物身份先落盘，再把 .next 让位：第二次构建必须是全新的 .next，不混用残留。
+      - name: 记录原非production构建身份并让位
         shell: bash
         run: |
           set -Eeuo pipefail
           test -s .next/standalone/server.js
+          session="$(cat /tmp/ci-next.session 2>/dev/null || true)"
+          if [[ "$session" =~ ^[0-9]+$ ]] && pgrep -s "$session" >/dev/null 2>&1; then
+            echo "launch session $session still has processes; refusing to move the artifacts" >&2
+            pgrep -s "$session" | tr '\n' ' '; echo >&2
+            exit 1
+          fi
           node - <<'EOF'
           const { createHash } = require('node:crypto');
           const fs = require('node:fs');
@@ -142,12 +170,12 @@ jobs:
             },
             recordedAt: new Date().toISOString(),
           };
-          fs.writeFileSync('/tmp/ci-test-build.json', JSON.stringify(identity, null, 2) + '\n');
-          console.log('TEST_BUILD_IDENTITY=' + JSON.stringify(identity));
+          fs.writeFileSync('/tmp/ci-original-build.json', JSON.stringify(identity, null, 2) + '\n');
+          console.log('ORIGINAL_BUILD_IDENTITY=' + JSON.stringify(identity));
           EOF
-          mv .next .next-test-build
+          mv .next .next-original-build
           test ! -e .next
-          echo "test-mode build moved to .next-test-build; .next is now absent"
+          echo "original build moved to .next-original-build; .next is now absent"
 
       # 独立 production 模式构建：只用已核公开输入，不继承任何业务密钥；邮件开关用 Windows 已验证过的 off。
       # site key 是客户端可见的公开值（非密钥），取自 planning 的来源核查文档，不打印到日志。
@@ -171,11 +199,11 @@ jobs:
           const m = [...s.matchAll(/"APP_ENV_AT_BUILD":"([^"]*)"/g)].map((x) => x[1]);
           if (!m.length) { console.error('APP_ENV_AT_BUILD missing'); process.exit(1); }
           if (!m.every((v) => v === 'production')) { console.error('APP_ENV_AT_BUILD=' + m.join(',')); process.exit(1); }
-          const oldId = JSON.parse(fs.readFileSync('/tmp/ci-test-build.json', 'utf8'));
+          const oldId = JSON.parse(fs.readFileSync('/tmp/ci-original-build.json', 'utf8'));
           const newId = fs.readFileSync('.next/BUILD_ID', 'utf8').trim();
           if (oldId.buildId === newId) { console.error('BUILD_ID did not change: ' + newId); process.exit(1); }
           console.log('APP_ENV_AT_BUILD=production count=' + m.length);
-          console.log('build id: test=' + oldId.buildId + ' production=' + newId);
+          console.log('build id: original=' + oldId.buildId + ' production=' + newId);
           EOF
 
       # 原产物断言：必须真跑并 0 skip；缺产物、标记不符、任何 fail/skip/todo/cancelled 都失败。
@@ -199,7 +227,10 @@ jobs:
         with:
           name: prod-mock-artifact-evidence
           path: |
-            /tmp/ci-test-build.json
+            /tmp/ci-original-build.json
+            /tmp/ci-next.session
+            /tmp/ci-next.listener
+            /tmp/next.log
             /tmp/ci-prod-build.log
             /tmp/ci-prod-mocks.tap
           if-no-files-found: ignore
