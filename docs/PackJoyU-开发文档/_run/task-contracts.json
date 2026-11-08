@@ -599,7 +599,9 @@
         "eventKinds",
         "frontendRoutes"
       ],
-      "supportPaths": [],
+      "supportPaths": [
+        "src/lib/client/analytics.ts"
+      ],
       "outputPaths": [
         "src/components/three/",
         "src/components/analytics/",
