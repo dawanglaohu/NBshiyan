@@ -47,9 +47,163 @@ jobs:
         env:
           CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
         run: |
-          pnpm start > /tmp/next.log 2>&1 &
+          setsid pnpm start > /tmp/next.log 2>&1 &
+          echo $! > /tmp/ci-next.pid
           npx --yes wait-on@8 --timeout 120000 http://localhost:3000/en http://localhost:3000/en/products
+          # 记录本次启动的真实监听进程与它所在的进程组，作为之后终止的唯一依据
+          listener="$(ss -H -ltnp "sport = :3000" | grep -oP 'pid=\K[0-9]+' | head -n 1)"
+          test -n "$listener"
+          echo "$listener" > /tmp/ci-next.listener
+          ps -o pgid= -p "$listener" | tr -d ' ' > /tmp/ci-next.pgrp
+          test -s /tmp/ci-next.pgrp
+          echo "listener pid $listener pgid $(cat /tmp/ci-next.pgrp)"
           npx --yes @lhci/cli@0.15.x autorun
+
+      # 本 job 自己启动的 Next 服务：正常/失败都停掉并确认端口释放，再做第二次生产构建。
+      # 只处理本 job 记录的会话/监听进程或本工作区内的 next 进程，不做全局 pkill。
+      - name: 清理本 job 的 Next 服务（正常或失败都执行）
+        if: always()
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          pidfile=/tmp/ci-next.pid
+          pgrpfile=/tmp/ci-next.pgrp
+          port=3000
+          session="$(cat "$pidfile" 2>/dev/null || true)"
+          pgid="$(cat "$pgrpfile" 2>/dev/null || true)"
+          listening() { ss -H -ltn "sport = :$port" 2>/dev/null | grep -q .; }
+          listener_pids() { ss -H -ltnp "sport = :$port" 2>/dev/null | grep -oP 'pid=\K[0-9]+' | sort -u; }
+          pgid_of() { ps -o pgid= -p "$1" 2>/dev/null | tr -d ' '; }
+          # 1) 启动时记录的会话：整组 TERM（覆盖 pnpm → next 子进程）
+          if [[ "$session" =~ ^[0-9]+$ ]] && kill -0 "$session" 2>/dev/null; then
+            echo "stopping session $session"
+            kill -TERM -- "-$session" 2>/dev/null || kill -TERM "$session" 2>/dev/null || true
+          fi
+          # 2) 等端口释放
+          for _ in $(seq 1 30); do
+            if ! listening; then echo "port $port free"; exit 0; fi
+            sleep 1
+          done
+          # 3) 兜底：只终止进程组等于启动时从真实监听进程读到的 pgid 的进程。
+          #    命令行含 next、工作目录相同都不作为单独依据；无法证明属于本次启动的一律拒绝，不误杀。
+          [[ "$pgid" =~ ^[0-9]+$ ]] || { echo "no recorded pgid; refusing fallback kill" >&2; exit 1; }
+          verified=()
+          while read -r p; do
+            [[ -n "$p" ]] || continue
+            g="$(pgid_of "$p")"
+            if [[ "$g" == "$pgid" ]]; then
+              verified+=("$p")
+            else
+              echo "refusing to kill pid=$p pgid=$g (recorded pgid=$pgid)" >&2
+              exit 1
+            fi
+          done < <(listener_pids)
+          for p in "${verified[@]}"; do
+            echo "stopping verified leftover $p (pgid $pgid)"
+            kill -TERM "$p" 2>/dev/null || true
+          done
+          for _ in $(seq 1 10); do
+            if ! listening; then echo "port $port free after fallback"; exit 0; fi
+            sleep 1
+          done
+          for p in "${verified[@]}"; do
+            kill -0 "$p" 2>/dev/null && { echo "killing $p"; kill -KILL "$p" 2>/dev/null || true; }
+          done
+          for _ in $(seq 1 5); do
+            if ! listening; then echo "port $port free after SIGKILL"; exit 0; fi
+            sleep 1
+          done
+          echo "port $port still in use" >&2
+          exit 1
+
+      # 旧（测试模式）产物身份先落盘，再把 .next 让位：第二次构建必须是全新的 .next，不混用残留。
+      - name: 记录测试模式构建身份并让位
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          test -s .next/standalone/server.js
+          node - <<'EOF'
+          const { createHash } = require('node:crypto');
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const walk = (dir, skip) => !fs.existsSync(dir) ? [] : fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+            const p = path.join(dir, e.name);
+            if (skip && skip(p)) return [];
+            return e.isDirectory() ? walk(p, skip) : [p];
+          });
+          const sha = (file) => createHash('sha256').update(fs.readFileSync(file)).digest('hex').toUpperCase();
+          const identity = {
+            buildId: fs.readFileSync('.next/BUILD_ID', 'utf8').trim(),
+            serverJs: { bytes: fs.statSync('.next/standalone/server.js').size, sha256: sha('.next/standalone/server.js') },
+            counts: {
+              server: walk('.next/server').length,
+              static: walk('.next/static').length,
+              standalone: walk('.next/standalone', (p) => p.includes('/node_modules/')).length,
+            },
+            recordedAt: new Date().toISOString(),
+          };
+          fs.writeFileSync('/tmp/ci-test-build.json', JSON.stringify(identity, null, 2) + '\n');
+          console.log('TEST_BUILD_IDENTITY=' + JSON.stringify(identity));
+          EOF
+          mv .next .next-test-build
+          test ! -e .next
+          echo "test-mode build moved to .next-test-build; .next is now absent"
+
+      # 独立 production 模式构建：只用已核公开输入，不继承任何业务密钥；邮件开关用 Windows 已验证过的 off。
+      # site key 是客户端可见的公开值（非密钥），取自 planning 的来源核查文档，不打印到日志。
+      - name: 独立 production 模式构建（公开输入，无业务密钥）
+        shell: bash
+        env:
+          APP_ENV: production
+          NEXT_PUBLIC_ADMIN_API: http
+          NEXT_PUBLIC_ADMIN_MAIL: 'off'
+          NEXT_PUBLIC_SITE_URL: https://geiom.com
+          NEXT_PUBLIC_TURNSTILE_SITE_KEY: '0x4AAAAAAFZNDL4a5ZSZhxee'
+          NEXT_TELEMETRY_DISABLED: '1'
+        run: |
+          set -Eeuo pipefail
+          test ! -e .next
+          pnpm build 2>&1 | tee /tmp/ci-prod-build.log
+          test -s .next/standalone/server.js
+          node - <<'EOF'
+          const fs = require('node:fs');
+          const s = fs.readFileSync('.next/standalone/server.js', 'utf8');
+          const m = [...s.matchAll(/"APP_ENV_AT_BUILD":"([^"]*)"/g)].map((x) => x[1]);
+          if (!m.length) { console.error('APP_ENV_AT_BUILD missing'); process.exit(1); }
+          if (!m.every((v) => v === 'production')) { console.error('APP_ENV_AT_BUILD=' + m.join(',')); process.exit(1); }
+          const oldId = JSON.parse(fs.readFileSync('/tmp/ci-test-build.json', 'utf8'));
+          const newId = fs.readFileSync('.next/BUILD_ID', 'utf8').trim();
+          if (oldId.buildId === newId) { console.error('BUILD_ID did not change: ' + newId); process.exit(1); }
+          console.log('APP_ENV_AT_BUILD=production count=' + m.length);
+          console.log('build id: test=' + oldId.buildId + ' production=' + newId);
+          EOF
+
+      # 原产物断言：必须真跑并 0 skip；缺产物、标记不符、任何 fail/skip/todo/cancelled 都失败。
+      - name: production 产物 mock 断言（0 skip，缺产物即失败）
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          test -s .next/standalone/server.js
+          MOCK_BUNDLE_TEST=1 node --import tsx --test --test-reporter=tap tests/prod-mocks-strip.test.ts | tee /tmp/ci-prod-mocks.tap
+          grep -qx '# fail 0' /tmp/ci-prod-mocks.tap
+          grep -qx '# skipped 0' /tmp/ci-prod-mocks.tap
+          grep -qx '# todo 0' /tmp/ci-prod-mocks.tap
+          grep -qx '# cancelled 0' /tmp/ci-prod-mocks.tap
+          grep -Eq '^# pass [1-9][0-9]*$' /tmp/ci-prod-mocks.tap
+          grep -Eq '^ok 3 ' /tmp/ci-prod-mocks.tap
+
+      # 两段构建与断言的日志分开留存；失败也上传，便于复核。
+      - name: 上传 production 构建与断言证据
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prod-mock-artifact-evidence
+          path: |
+            /tmp/ci-test-build.json
+            /tmp/ci-prod-build.log
+            /tmp/ci-prod-mocks.tap
+          if-no-files-found: ignore
+          retention-days: 7
 
   e2e:
     runs-on: ubuntu-latest
