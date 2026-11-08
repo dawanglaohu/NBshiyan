@@ -7,6 +7,7 @@ import SceneErrorBoundary from './SceneErrorBoundary';
 import { lightRig } from './lights';
 import ProductModel, { type BoxView, type AnimationClips, type ModelBounds } from './ProductModel';
 import { frameClosedBox, openFraming, easeInOut, OPEN_DOLLY_MS, type OpenView } from '@/lib/three/framing';
+import type { ModelFailureReason } from '@/lib/three/model-fallback';
 
 /**
  * 一次相机动作（E-101、E-104）：方向键/旋转按钮改朝向，复位回该产品初值。
@@ -15,7 +16,7 @@ import { frameClosedBox, openFraming, easeInOut, OPEN_DOLLY_MS, type OpenView } 
  */
 export type CameraAction = { kind: 'rotate'; azimuth?: number; polar?: number } | { kind: 'reset' };
 
-export type SceneItem = { slug: string; model?: string; visible: boolean; active: boolean; /** PC 直接旋转，不先再点一次激活 */ directRotate?: boolean; /** 空闲自转。悬停、拖动、用户暂停、离屏和减少动态效果时为 false */ spin?: boolean; /** 按钮或 Ctrl/Cmd+滚轮的一次缩放。id 递增，deltaY<0 拉近 */ zoomId?: number; zoomDelta?: number; /** 方向键/旋转按钮/复位的一次动作。id 递增才执行 */ commandId?: number; command?: CameraAction; view?: BoxView; animationClips?: AnimationClips; /** 开合途中按整条弧线取景（openFraming fitArc） */ fitArc?: boolean; /** 深色卡片（.theme-premium） */ dark?: boolean; track: RefObject<HTMLDivElement | null> };
+export type SceneItem = { slug: string; model?: string; visible: boolean; active: boolean; /** PC 直接旋转，不先再点一次激活 */ directRotate?: boolean; /** 空闲自转。悬停、拖动、用户暂停、离屏和减少动态效果时为 false */ spin?: boolean; /** 按钮或 Ctrl/Cmd+滚轮的一次缩放。id 递增，deltaY<0 拉近 */ zoomId?: number; zoomDelta?: number; /** 方向键/旋转按钮/复位的一次动作。id 递增才执行 */ commandId?: number; command?: CameraAction; view?: BoxView; animationClips?: AnimationClips; /** 开合途中按整条弧线取景（openFraming fitArc） */ fitArc?: boolean; /** 深色卡片（.theme-premium） */ dark?: boolean; /** 手动重试次数；递增即强制重建 View 并换 URL 发起真实新加载 */ attempt?: number; track: RefObject<HTMLDivElement | null> };
 
 // 整页只用一个 WebGL 画布，用 View 切分到每张卡片，避免超出浏览器的画布数量上限
 // frameloop="demand" 只在 invalidate 时出帧：View 按卡片位置裁剪，页面滚动、尺寸变化、卡片增减后都要重新出一帧，
@@ -29,6 +30,21 @@ function DemandSync({ deps }: { deps: string }) {
     return () => { window.removeEventListener('scroll', on); window.removeEventListener('resize', on); };
   }, [invalidate]);
   useEffect(() => { invalidate(); }, [deps, invalidate]);
+  return null;
+}
+
+/**
+ * context lost：画布级故障，交给画廊统一回退到产品海报；重试会重建画布重新加载。
+ * 只挂一次监听，卸载时移除，旧画布的监听不会留给下一次尝试。
+ */
+function ContextLossWatcher({ onLost }: { onLost: () => void }) {
+  const gl = useThree((s) => s.gl);
+  useEffect(() => {
+    const el = gl.domElement;
+    const on = (event: Event) => { event.preventDefault(); onLost(); };
+    el.addEventListener('webglcontextlost', on, false);
+    return () => el.removeEventListener('webglcontextlost', on, false);
+  }, [gl, onLost]);
   return null;
 }
 
@@ -164,7 +180,7 @@ const FOV = 40;
  * - 模型水平居中、底面落在 y=0；near/far 跟着模型尺寸走，OrbitControls 的缩放范围也按取景距离换算；
  * - 接触阴影按开盖全过程的底面尺寸缩放，开盖后盖子的阴影也不会被切。
  */
-function FramedGltf({ item: i, env, onReady, onError }: { item: SceneItem; env: Texture; onReady: (slug: string) => void; onError?: (slug: string) => void }) {
+function FramedGltf({ item: i, env, onReady, onError }: { item: SceneItem; env: Texture; onReady: (slug: string) => void; onError?: (slug: string, reason?: ModelFailureReason) => void }) {
   const [b, setB] = useState<ModelBounds>();
   const onBounds = useCallback((nb: ModelBounds) => setB(nb), []);
   const camera = useThree((s) => s.camera) as PCam;
@@ -262,10 +278,10 @@ function FramedGltf({ item: i, env, onReady, onError }: { item: SceneItem; env: 
   return (
     <>
       <Suspense fallback={null}>
-        <SceneErrorBoundary onError={() => onError?.(i.slug)}>
+        <SceneErrorBoundary onError={() => onError?.(i.slug, 'LOAD_ERROR')}>
           {/* 包围盒算出来之前先隐藏，避免第一帧按默认相机露出半个模型 */}
           <group position={offset} visible={!!b}>
-            <ProductModel src={i.model} slug={i.slug} view={i.view} animationClips={i.animationClips} onReady={() => onReady(i.slug)} onBounds={onBounds} />
+            <ProductModel src={i.model} slug={i.slug} view={i.view} animationClips={i.animationClips} attempt={i.attempt ?? 0} onReady={() => onReady(i.slug)} onBounds={onBounds} />
           </group>
         </SceneErrorBoundary>
         <Environment map={env} environmentIntensity={1} />
@@ -280,7 +296,7 @@ function FramedGltf({ item: i, env, onReady, onError }: { item: SceneItem; env: 
   );
 }
 
-export default function GalleryScene({ items, eventSource, onReady, onError }: { items: SceneItem[]; eventSource: RefObject<HTMLElement | null>; onReady: (slug: string) => void; onError?: (slug: string) => void }) {
+export default function GalleryScene({ items, eventSource, onReady, onError, onContextLost }: { items: SceneItem[]; eventSource: RefObject<HTMLElement | null>; onReady: (slug: string) => void; onError?: (slug: string, reason?: ModelFailureReason) => void; onContextLost?: () => void }) {
   return (
     <Canvas
       className="three-canvas"
@@ -289,22 +305,23 @@ export default function GalleryScene({ items, eventSource, onReady, onError }: {
       frameloop="demand"
       gl={{ antialias: true, powerPreference: 'high-performance', toneMapping: ACESFilmicToneMapping }}
     >
+      {onContextLost && <ContextLossWatcher onLost={onContextLost} />}
       <DemandSync deps={items.filter((i) => i.visible).map((i) => `${i.slug}:${i.view ?? ''}`).join(',')} />
       <SpinDriver on={items.some((i) => i.spin)} />
       {/* View 必须放在 Canvas 里面才会使用 track 跟踪卡片；放在外面时 drei 会走 HtmlView，忽略 track，
           改为跟踪自己生成的空 div（高度 0），所有模型都画不出来（issue #31） */}
       <Suspense fallback={null}>
       <SharedEnvironment>{(env) => items.filter((i) => i.visible).map((i) => (
-        <View key={i.slug} track={i.track as RefObject<HTMLElement>}>
+        <View key={`${i.slug}:${i.attempt ?? 0}`} track={i.track as RefObject<HTMLElement>}>
           <PerspectiveCamera makeDefault position={[2.4, 1.6, 2.6]} fov={40} />
           <StudioLights dark={i.dark} />
           {usesGltf(i) ? <FramedGltf item={i} env={env} onReady={onReady} onError={onError} /> : (<>
           <Suspense fallback={null}>
             {/* 程序化 FoldBox / 占位盒：沿用 Bounds 自动取景 */}
-              <SceneErrorBoundary onError={() => onError?.(i.slug)}>
+              <SceneErrorBoundary onError={() => onError?.(i.slug, 'LOAD_ERROR')}>
               <Bounds fit clip observe margin={1.2}>
                 <Center top>
-                  <ProductModel src={i.model} slug={i.slug} view={i.view} animationClips={i.animationClips} onReady={() => onReady(i.slug)} />
+                  <ProductModel src={i.model} slug={i.slug} view={i.view} animationClips={i.animationClips} attempt={i.attempt ?? 0} onReady={() => onReady(i.slug)} />
                 </Center>
               </Bounds>
               </SceneErrorBoundary>

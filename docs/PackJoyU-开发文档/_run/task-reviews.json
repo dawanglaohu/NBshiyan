@@ -401,15 +401,17 @@
     "verdict": "pass"
   },
   "M2-T6": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "9c7f182dcd658c72dbb9a088d59053415f62848fa351509d4555b0df84e420cc",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "a542c5911cbfc4a9df871ec719855c65ea021762b5d198e3a4dddb2e8b4abc16",
     "evidence": [
-      "定义复核（非代码/素材验收）：04-执行/19-模块任务拆分.md:25；逐字段核对该任务before/after context，唯一变化为sections指纹；任务《接通真实模型失败与海报回退》的标题/模块/依赖/input/output/accept/edges、definition阶段/能力、有效路径、wiring、界面样式与skill指引完全相等；不把共享素材说明变更解释成该任务业务范围或标准变化。",
-      "本任务具体边界：输入=model-accessibility、对应产品poster与真实GLB来源；输出=model-fallback；GLB/WebGL/context失败的静态回退和重试入口；前置=M2-T3；阶段=integration；能力=model-fallback；有效路径共18项（e2e/model-fallback.spec.ts; src/app/; src/app/admin-enroll/; src/app/admin-login/; src/app/admin-recovery/; src/app/admin/account/; src/app/admin/chat/; src/app/admin/settings/; src/app/admin/stats/; src/app/admin/users/; src/components/admin/AdminShell.tsx; src/components/layout/SiteFooter.tsx; src/components/layout/SiteHeader.tsx; src/components/three/; src/i18n/navigation.ts; src/i18n/routing.ts; src/lib/navigation/routes.ts; src/lib/three/），与当前taskPaths+supportPaths+wiring范围一致，不新增任意写权限。",
-      "本任务关联边界=none；已复核的共享变化只在00-概览/01-概述与目标.md,01-约束/04-开发条件.md,02-设计/06-系统架构与模块划分.md,02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md,03-质量/17-测试策略.md。04/06/07/11/12/13/15/17的更新统一解释为已确认工业成品/同源v3帧海报/各版本等尺寸暂停帧/实际授权渠道，保留原件与361帧时序、公司工程/事实/私有路径/真实GUI及安全门槛；其他共享章节和本任务业务接口未改。",
-      "本轮核6个selected-media-release实际文件SHA均等于清单和主干51113b0a，该任务status=todo及code/notes/verify受保护块字节与主干相同；只登记此契约版本可接受，不代表实施已完成，不调用--landed，不清除needsReview。"
+      "源码 task-contracts.json 的 tasks[\"M2-T6\"].supportPaths 由 3 条（e2e/poster-carrier.spec.ts、e2e/poster-carrier/、.github/workflows/ci.yml）扩为 4 条，仅新增 e2e/admin-legacy-model-visual.spec.ts；outputPaths 未变，未改验收语义、未改 M3-T23 验收/状态。",
+      "该路径是已审头 825e2339..8a5c391c 的真实净差：仅 e2e/admin-legacy-model-visual.spec.ts +27/−2，spec blob 40112aef… 与作者本地跑 8/8 的副本同哈希（全栈 v2 复核报告 3C2ECE1C…，PASS 仅增量）。",
+      "原子采集：entryReady 判定循环退出到测量之间无 await，检查与测量在页面同一任务内连续执行，React 提交插不进该窗口；15s 上限仍在，不满足条件的采集仍会失败；全部几何断言与真实面包屑点击保留。",
+      "重定向证据分层：另一次同源同会话 GET /admin/models（maxRedirects:0）只证明 307/308 与 Location→/admin/models/new 的产品重定向契约，不绑定本次点击的导航链，不写成点击证据。",
+      "旧序列 +40/80/120ms 三档均 1 passed、未复现；注入延迟把提交整体后移，只算不确定负控，不作修复有效性的正证；本头尚无 CI，不声明竞态问题已解决。",
+      "状态保留：M2-T6 卡仍 status: todo、未 landed，未 push；M5-T5 done、progress 94 键/done 91、原批次与补丁历史未动；未新增其他任务路径。"
     ],
-    "reviewed": "2026-10-22T12:42:30.690733+00:00",
+    "reviewed": "2026-11-07T21:39:57.373990+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
