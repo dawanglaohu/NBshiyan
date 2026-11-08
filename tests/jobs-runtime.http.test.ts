@@ -233,14 +233,20 @@ describe('M5-T8 jobs runtime + cron operations route', { concurrency: false, ski
     assert.equal(state[0]!.lastErrorCode, 'version_conflict');
   });
 
-  test('cron 模板：五分钟一次 POST operations，仅 analytics-aggregate，55s 超时，不再有旧 rollup 行', () => {
+  test('cron 模板：五分钟一次且仅一条 analytics-aggregate operations，55s 超时，不再有旧 rollup 行', () => {
     const cron = readFileSync('deploy/cron.nbshiyan', 'utf8');
     const lines = cron.split(/\r?\n/);
-    const aggregate = lines.filter((line) => line.includes('/api/admin/cron/operations'));
-    assert.equal(aggregate.length, 1, '必须恰有一条 operations 调度');
+    const operations = lines.filter((line) => line.includes('/api/admin/cron/operations'));
+    const aggregate = operations.filter((line) => line.includes("jobKey:'analytics-aggregate'"));
+    assert.equal(aggregate.length, 1, '必须恰有一条 analytics-aggregate 的 operations 调度');
     assert.match(aggregate[0]!, /^\*\/5 \* \* \* \* /, '必须是每 5 分钟');
-    assert.match(aggregate[0]!, /jobKey:'analytics-aggregate'/);
     assert.match(aggregate[0]!, /AbortSignal\.timeout\(55000\)/);
+    // 窄负控：复制一行聚合调度后计数必须变成 2；防止把唯一性退成“至少一条”。
+    assert.equal(
+      [...operations, aggregate[0]!].filter((line) => line.includes("jobKey:'analytics-aggregate'")).length,
+      2,
+      '负控：重复的 analytics-aggregate operations 行必须被计数',
+    );
     assert.equal(lines.some((line) => line.includes('/api/admin/cron/analytics-rollup')), false, '不能双写旧 rollup');
     assert.equal(
       lines.some((line) => line.includes('/api/admin/cron/retention-cleanup')),
