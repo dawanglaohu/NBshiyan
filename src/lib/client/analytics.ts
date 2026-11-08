@@ -16,6 +16,8 @@ const MAX_BATCH = 20;
 type Locale = 'en' | 'ru';
 
 let locale: Locale = 'en';
+type NavigationContext = { navigationId: string; path: string; locale: Locale };
+let navigation: NavigationContext | null = null;
 let collecting = false;
 let grantConfirmed = false;
 let generation = 0;
@@ -49,6 +51,7 @@ export function stopCollection(): void {
   queue = [];
   collecting = false;
   grantConfirmed = false;
+  navigation = null;
   flushAbort?.abort();
   flushAbort = null;
   syncMarks();
@@ -160,6 +163,7 @@ function emit(pathname: string, value: Locale): void {
     if (product.success) events.push(product.data);
   }
   if (events.length === 0) return;
+  navigation = { navigationId, path: path.data, locale: value };
   remember(events);
   scheduleFlush();
 }
@@ -242,3 +246,24 @@ export function publishConsentChoice(analytics: boolean): void {
 }
 
 syncMarks();
+
+/**
+ * True only after a signed consent grant is known and the local stop flags are clear.
+ * Producers call this before creating any identifier, so a visitor without analytics
+ * consent never gets a viewId, eventId or queued event (E-42).
+ */
+export function canCollectAnalytics(): boolean {
+  return collecting;
+}
+
+/** The navigation context of the last emitted page view in this document, when collecting. */
+export function currentNavigation(): NavigationContext | null {
+  return navigation;
+}
+
+/** Queue already-built model events through the same dedupe/flush path as page events. */
+export function enqueueAnalyticsEvents(events: AnalyticsEventDTO[]): void {
+  if (!collecting || events.length === 0) return;
+  remember(events);
+  scheduleFlush();
+}
