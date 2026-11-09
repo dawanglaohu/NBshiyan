@@ -1,0 +1,67 @@
+{
+  "patch": "m5t11-batch-units-20261109",
+  "docsCommit": "920db0f12f3eb45534d347281ad3d82e0e69bd10",
+  "integratedBy": "运维/部署工程师（仅集成，不是复验作者）",
+  "groups": [
+    {
+      "id": "G1",
+      "reviewer": "数据库审查工程师",
+      "tasks": 18,
+      "evidence": {
+        "path": "_run/revalidation-20261109/g1-db.evidence.json",
+        "bytes": 11747,
+        "sha256": "F43E91528DE6A57428BAE7C80B5C549194A3FD1C110C507915EAF21611FA5A44"
+      },
+      "report": {
+        "path": "_run/revalidation-20261109/g1-db.report.md",
+        "bytes": 8167,
+        "sha256": "28FD989DA7881C578394C1DD266276617AA905FDF2FF9A4B11EC129E53802CE8"
+      }
+    },
+    {
+      "id": "G2",
+      "reviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "tasks": 29,
+      "evidence": {
+        "path": "_run/revalidation-20261109/g2-29.evidence.json",
+        "bytes": 31584,
+        "sha256": "950F02D3A1D70DAFE393ED8AC1043D3924374A456F41A79BE5C7D82AE702B383"
+      },
+      "report": {
+        "path": "_run/revalidation-20261109/g2-29.report.md",
+        "bytes": 8564,
+        "sha256": "2E7AB42C9A322028D81DFD6E6B8FAE110D14D64AA0A04C8EEF5D1053B85CE275"
+      }
+    },
+    {
+      "id": "G3",
+      "reviewer": "前端工程师",
+      "tasks": 30,
+      "evidence": {
+        "path": "_run/revalidation-20261109/g3-30.evidence.json",
+        "bytes": 20853,
+        "sha256": "0A68D3D0259886E27818A8F5127A8F98D435385634B54702416AB90D7AC3401B"
+      },
+      "report": {
+        "path": "_run/revalidation-20261109/g3-30.report.md",
+        "bytes": 10768,
+        "sha256": "5D9FE9ACDB58BE5FC2A3A2B8DB90ED367488B506BE0668CA38F565CFAAE294DC"
+      }
+    },
+    {
+      "id": "G4",
+      "reviewer": "测试工程师",
+      "tasks": 18,
+      "evidence": {
+        "path": "_run/revalidation-20261109/g4-18.evidence.json",
+        "bytes": 10570,
+        "sha256": "124281168A8D32E07352653CD95175420427686B1110F69A2CD8FE8A1E4DB9D4"
+      },
+      "report": {
+        "path": "_run/revalidation-20261109/g4-18.report.md",
+        "bytes": 8469,
+        "sha256": "4C67D8C49412D086BA0AADEC7454DD19641BCA342752215CD8771EB34E587FE9"
+      }
+    }
+  ]
+}

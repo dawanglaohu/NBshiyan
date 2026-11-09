@@ -1,0 +1,1136 @@
+{
+  "scope": "task-contract",
+  "note": "95 项已落地复验的统一登记件：证据正文逐条来自四组原件，未改写；originalReviewer 记录原审查人，集成者不是复验作者。",
+  "patch": "m5t11-batch-units-20261109",
+  "docsCommit": "920db0f12f3eb45534d347281ad3d82e0e69bd10",
+  "integratedBy": "运维/部署工程师",
+  "tasks": {
+    "ANALYTICS-ROLLUP": {
+      "contractHash": "2f064b49a4eb8fb28a6a51a9a0534a116816faeb96105a760345bd06fe53c2b3",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务登记的是旧「统计按天汇总」写入入口（PR #477，合并 90b2658d）；main 042c7d24 上 src/app/api/admin/cron/analytics-rollup/route.ts:21-28 已退役为 410 route_retired，鉴权后不再执行聚合、数据库、审计或邮件；活动聚合作业由 M5-T8 的 registry 承载。",
+        "本次四处源文只改固定作业/分析保留的批量单位与时间预算，未给已退役路由新增义务；其历史验收文本（「已合入，本登记不重做」）与 status 未改。",
+        "交叉：活动聚合的 500 天单位核在 M5-T8 项；本项不重复计入，也不把退役入口当活动作业。"
+      ],
+      "originalReviewer": "数据库审查工程师",
+      "evidenceGroup": "G1",
+      "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json"
+    },
+    "BACKFILL-MJS": {
+      "contractHash": "cacf829f15d0fbf2b225206724016755702f140503415e3a09da6e652d7e1fb0",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（CLI/回填脚本）：产出是 node 可执行回填脚本，验收口径是\"时长与应用内回填一致\"（图谱/任务/BACKFILL-MJS.md:L26），不是注册作业；四处改动规定的是 jobs/registry 里聚合作业与分析保留的批量单位，脚本既不注册 job 也不消费 analytics-retention 的删除行批次。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "evidenceGroup": "G2",
+      "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
+    },
+    "BE-350A": {
+      "contractHash": "0e1a12f2cfb5a2695e649537ba8609691a7bf4ce7ad6d4454bcf4656fe034002",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（缓存头）：产出是 /media/ 成功响应的 Cache-Control（图谱/任务/BE-350A.md:L26）；改动只涉及作业批量单位，不触及缓存头、max-age/s-maxage 或 immutable 的任何取值。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "evidenceGroup": "G2",
+      "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
+    },
+    "BE-I18N-P0": {
+      "contractHash": "335d431eab2e0a03738a57a381cd2820aed2c2007bf0718b8739c5a3f041af92",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（邮件模板/语言）：产出是邮件模板与 Sanity schema 支持 es/de/fr、未发布语言接口仍 400（图谱/任务/BE-I18N-P0.md:L26）；与作业批量单位、保留行批次无交集。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "evidenceGroup": "G2",
+      "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
+    },
+    "BE-RATELIMIT-P3": {
+      "contractHash": "57cf0d6f94cbc5935c1f0e60a264d25573f75af516fc77035c9dc6ccfc5dbe17",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（请求限流存储）：其限额是请求计数阈值（src/lib/server/security.ts:89 hitRateLimit(key, limit=5, windowMs=10*60_000)，按 key/窗口计次），与\"500 工作单位\"是不同轴；改动后的条款仍写\"其他作业沿用各自既定的500工作单位限制\"（09-数据模型.md:L86），既未把 500 工作单位换成请求限流阈值，也未改动任何 429/Retry-After 或存储实现。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "evidenceGroup": "G2",
+      "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
+    },
+    "BE-RESET-STDIN-TTY": {
+      "contractHash": "0435bc34e8e6a5ada9d829c884220b9f6d1695a05d840b5d38d8883f902a53fa",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（CLI 终端行为）：产出是 stdin 非 TTY 时退出 2、不读密码、不改数据（图谱/任务/BE-RESET-STDIN-TTY.md:L26）；非注册作业，不消费删除行批次或自然日批次。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "evidenceGroup": "G2",
+      "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
+    },
+    "BE-RESET-TTY": {
+      "contractHash": "847a3f0e7183e13a019e2cf99b21b54f72c5267965d5127395ccd6c9a6bd3ffb",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（CLI 文档/示例）：产出是示例都带交互终端并写明无终端行为（图谱/任务/BE-RESET-TTY.md:L26）；纯 CLI 文档口径，与作业批量单位无关。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "evidenceGroup": "G2",
+      "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
+    },
+    "CATALOG-MERGE": {
+      "contractHash": "a3dcb9306bab421aba552ec3fe9b98c2a70628767028f1a13bc754049a95309d",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（目录合并与白名单对齐）：交付面是 src/lib/catalog/catalog.ts:37 `isListedCatalogKey` 与同文件的合并/装饰逻辑、产品页 SSR 目录，以及 analytics 白名单对齐；四处改动只重写作业批量单位与时间预算，不改变 catalog key、可见集合、SSR 数据源或发布开关。",
+        "其分析相关义务是 event-repo/ingest 的 publishedSlugs 白名单，不是 retention 删除批次；09 L73 的 5,000/20,000 行批次未给白名单新增义务，本卡也不注册 job。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "前端工程师",
+      "evidenceGroup": "G3",
+      "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json"
+    },
+    "CI-DB-TESTS": {
+      "contractHash": "454a476d306db5eff171440cd7164b5e96a244bf02d164d190d455c2363051cb",
+      "verdict": "pass",
+      "evidence": [
+        "任务职责：把 analytics/chat 数据库测试接进 PostgreSQL 17，并在既有 PG step 断言 TAP skipped=0、fail=0、pass>0（图谱/任务/CI-DB-TESTS.md:31、:40）。",
+        "不适用：本次共享章节只改固定作业的批次单位语义：聚合作业按站点自然日计（maxBatchDays≤500）、分析保留按删除行计（5,000行/DELETE批次、20,000行/轮、三表合计、每批独立事务）、55s 明写为时间预算、其他作业沿用既定500工作单位；CI step、清单与阈值均未被此次源文改动，ci.yml blob 在 bded1728 与 920db0f1 同为 99a79d05686009c8b2cac76e74bc7fa0df8315b7，运行时零差量。",
+        "原门禁保留：本任务只登记已合入的接入事实，未新增/放宽任何断言；本窗未运行 CI。"
+      ],
+      "originalReviewer": "测试工程师",
+      "evidenceGroup": "G4",
+      "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json"
+    },
+    "CI-DEVICE-SERIAL": {
+      "contractHash": "a150f6e4d0e8745390d04bf355aac321d6ebaaa33dd1c4a428a9e663689f99f1",
+      "verdict": "pass",
+      "evidence": [
+        "任务职责：设备会话回归串行（--test-concurrency=1）、失败打印 TAP 与文件门禁后退出 1、成功路径要求 todo=0（图谱/任务/CI-DEVICE-SERIAL.md:31、:40-42）。",
+        "不适用：条款只改固定作业批次单位，不涉及设备测试串行、TAP 汇总或文件门禁；ci.yml 未被本次补丁修改（blob 99a79d05… 同前）。",
+        "原限制保留：串行与 todo=0 门禁未变；本窗未运行设备测试。"
+      ],
+      "originalReviewer": "测试工程师",
+      "evidenceGroup": "G4",
+      "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json"
+    },
+    "CITY-STILL-WEBP": {
+      "contractHash": "ea4a2928af172fb359d5c5c8ceba7a6e9c4020f4d3add0c31955910ee3711371",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（首页静帧素材）：交付面是 src/lib/home/brandMedia.ts:11 `pauseStill` 与 1384w/2000w WebP、BrandScene 的 srcset 消费；批量单位条款不涉及图片格式、视口选择、缓存或暂停帧。",
+        "09/18 的改动句没有新增媒体发布、素材来源或浏览器验证义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "前端工程师",
+      "evidenceGroup": "G3",
+      "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json"
+    },
+    "CLIENT-API-DEADLINE": {
+      "contractHash": "2f6459d5e59952bdc7ff1f75466e659cc235818941684487887b381caf5fe8ab",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（客户端正文读取截止）：交付面是 src/lib/client/api.ts:217 `readOrAbort` 与 :265 `readCapped`；api.ts:24 `CLIENT_DEADLINE_MS = 15_000` 是每次尝试的客户端截止，09 L86 的 55s 是服务端固定作业的时间预算，两者不是同一条链，也不存在换算关系。",
+        "本次只把 55s 明写为「时间预算，不等于行数上限」，未改客户端 deadline、abort 竞速或取消优先语义。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "前端工程师",
+      "evidenceGroup": "G3",
+      "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json"
+    },
+    "DEP-AUDIT-1": {
+      "contractHash": "cc6c9b305e87c66e4b67f2fab354e2cd21d8e3d5b4f5f9fbde49c31a27d65103",
+      "verdict": "pass",
+      "evidence": [
+        "任务职责：依赖审计豁免与 scripts/audit-high-prod.ts 生产审计入口（图谱/任务/DEP-AUDIT-1.md:31、:40-43）。",
+        "不适用：本次共享章节只改固定作业的批次单位语义：聚合作业按站点自然日计（maxBatchDays≤500）、分析保留按删除行计（5,000行/DELETE批次、20,000行/轮、三表合计、每批独立事务）、55s 明写为时间预算、其他作业沿用既定500工作单位 不涉及依赖审计、豁免清单或 package.json；该卡代码位置在 main 042c7d24 全部存在。",
+        "本窗未运行审计；未改任何源码或清单。"
+      ],
+      "originalReviewer": "测试工程师",
+      "evidenceGroup": "G4",
+      "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json"
+    },
+    "DEPLOY-FIX-1": {
+      "contractHash": "dceba51a0a087ed64b0c0ad595b4dca022bb51a27a5ea0e106088f6e9625dd89",
+      "verdict": "pass",
+      "evidence": [
+        "任务职责：首页品牌媒体与海报修复（src/lib/home/brandMedia.ts、src/app/[locale]/page.tsx、poster PNG，图谱/任务/DEPLOY-FIX-1.md:29、:38-40）。",
+        "不适用：条款只作用于固定作业批次单位，与首页媒体渲染无关；该卡三处代码位置在 main 均存在。",
+        "本窗未构建、未起服务。"
+      ],
+      "originalReviewer": "测试工程师",
+      "evidenceGroup": "G4",
+      "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json"
+    },
+    "DOCKER-UPLOADS-1": {
+      "contractHash": "be0516f3035814e726c1987c48292a851f02a1d8a56ebc08566d829d61a2726f",
+      "verdict": "pass",
+      "evidence": [
+        "任务职责：.dockerignore 排除上传目录（图谱/任务/DOCKER-UPLOADS-1.md:29、:38）。",
+        "不适用：.dockerignore 与构建忽略清单不受作业批次条款影响；文件在 main 存在。",
+        "本窗未构建镜像。"
+      ],
+      "originalReviewer": "测试工程师",
+      "evidenceGroup": "G4",
+      "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json"
+    },
+    "E2E-CONSENT-FIX": {
+      "contractHash": "84a86f23c872736179670dcc013e2bae97736deed3335b4cf756dca558b98fd7",
+      "verdict": "pass",
+      "evidence": [
+        "任务职责：分析同意 e2e 的路由截取与重放断言（acceptedIds 含 pageView.eventId、duplicateIds 含该 eventId、同一 navigationId 条数=1，图谱/任务/E2E-CONSENT-FIX.md:31、:40-46）。",
+        "不适用：该任务针对事件采集/去重协议，不是聚合作业或保留作业的批处理单位；条款未改采集、去重与同意逻辑。",
+        "本窗未跑 e2e，未改该 spec。"
+      ],
+      "originalReviewer": "测试工程师",
+      "evidenceGroup": "G4",
+      "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json"
+    },
+    "FE-404-TITLE": {
+      "contractHash": "7d22bb6867d619804df21120b009bc766be797d9ea8aebf98a1fcd12b66b91e3",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（404 标题进 head）：交付面是 src/components/NotFoundTitle.tsx:19 与 not-found 路由 metadata、e2e/not-found-robots.spec.ts 的原始 HTML/document.title 断言；批量单位条款不涉及 title、robots、hydration 或软导航。",
+        "08 jobs 段与 09/18 两处保留句未新增前端 metadata 义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "前端工程师",
+      "evidenceGroup": "G3",
+      "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json"
+    },
+    "FE-FAB-390": {
+      "contractHash": "4bd509ecc8755c9889f2b6e69e70c77d259aa471394ccd76546dfbc5533755d7",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（悬浮按钮 390 命中）：交付面是 src/app/globals.css:85 `.fab{pointer-events:none}.fab>*{pointer-events:auto}` 与 FloatingActions 的展开高度测量；批量单位条款不涉及点击命中、页脚遮挡或 scrollY。",
+        "本卡无作业注册、保留删除或 55s 预算义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "前端工程师",
+      "evidenceGroup": "G3",
+      "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json"
+    },
+    "GATE-HARDEN": {
+      "contractHash": "bde3ab72cdeaa258da0319e4ad6659f0ad950381fbbcf0e20f36a80fc1099637",
+      "verdict": "pass",
+      "evidence": [
+        "任务职责：安全审查 gate 不在 PR head 执行代码、路径规则覆盖后台/媒体/SEO 组件（图谱/任务/GATE-HARDEN.md:31、:40-44）。",
+        "不适用：条款不涉及 PR 审查 gate、路径规则或合并权限；CODEOWNERS 仍在 main 指向 @dawanglaohu。",
+        "受限说明：卡上三处 security-review 工作流在 main 042c7d24 已不存在，由独立提交 82f74bcc『chore(ci): retire security-review gate tied to deleted App』退役；这是与本条款无关的历史文档漂移，不构成本次阻断，交原任务流程处理。"
+      ],
+      "originalReviewer": "测试工程师",
+      "evidenceGroup": "G4",
+      "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json"
+    },
+    "GATE-HARDEN-2": {
+      "contractHash": "49cb6a50b3e73344e227f3a72b22167f3c8588ffc246debc5e29f1db6f6f2e9e",
+      "verdict": "pass",
+      "evidence": [
+        "任务职责：.github/CODEOWNERS 对 workflows/CODEOWNERS 指定审查请求人（图谱/任务/GATE-HARDEN-2.md:31、:40-41）。",
+        "不适用：CODEOWNERS 与作业批次单位无关；main 042c7d24 两份规则仍在（/.github/workflows/ 与 /.github/CODEOWNERS → @dawanglaohu）。",
+        "本窗未改 CODEOWNERS 或工作流。"
+      ],
+      "originalReviewer": "测试工程师",
+      "evidenceGroup": "G4",
+      "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json"
+    },
+    "GATE-PATHS-1": {
+      "contractHash": "e581975a8b17d86fee4bfd0a93414a96c7340e82366180a7b13168f99ef89ae4",
+      "verdict": "pass",
+      "evidence": [
+        "任务职责：安全审查 gate 的路径规则（图谱/任务/GATE-PATHS-1.md:29、:38）。",
+        "不适用：条款不涉及 gate 路径规则或判定流程。",
+        "受限说明：卡上 .github/workflows/security-review.yml 已在 82f74bcc 退役、main 不存在；与本条款无关的文档漂移，不构成本次阻断。"
+      ],
+      "originalReviewer": "测试工程师",
+      "evidenceGroup": "G4",
+      "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json"
+    },
+    "GATE-PATHS-2": {
+      "contractHash": "d2ef2389937d81539293abe211dd11e9aeca54f3c533ae7cb82ba54358786537",
+      "verdict": "pass",
+      "evidence": [
+        "任务职责：安全审查 gate 的路径规则补充（图谱/任务/GATE-PATHS-2.md:29、:38）。",
+        "不适用：条款不涉及 gate 路径规则。",
+        "受限说明：同上，security-review.yml 已在 82f74bcc 退役；不构成本次阻断。"
+      ],
+      "originalReviewer": "测试工程师",
+      "evidenceGroup": "G4",
+      "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json"
+    },
+    "GIFT-CARD-ASSETS": {
+      "contractHash": "4dfdfec2249121ec6693c8c801de3c6cec7fc41d7e90891ce28efaa084c690b4",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（贺卡素材）：交付面是 src/data/products.ts:16 的 `gift-card.e5bf7ec9` 模型/海报映射与 OG 图、后台中文标签；批量单位条款不涉及 GLB/WebP/OG、immutable 文件名或后台文案。",
+        "本卡 notes 的「/models 一年 immutable」是缓存命名规则，与 5,000/20,000 行保留批次无关。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "前端工程师",
+      "evidenceGroup": "G3",
+      "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json"
+    },
+    "GIFT-CARDS-RENAME": {
+      "contractHash": "33bb7eb89dee1d1fbeb0ef49070fa21be4dd253099ea7315fa727d9293e0f4ad",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（品类 slug/SEO）：交付面是 src/lib/seo/categoryMeta.ts:74 的 `custom-greeting-cards` slug 映射与 ru 元数据、products/og-versions；批量单位条款不涉及 slug、metadata、OG 或路由。",
+        "本卡无作业注册、保留删除或时间预算义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "前端工程师",
+      "evidenceGroup": "G3",
+      "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json"
+    },
+    "GUARD-503": {
+      "contractHash": "a0dc6c1c872c47e3d9c1fda22332e2ddd87d74ee941be1c06b5c5bd0cccf5fe1",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（数据库故障映射）：此处的 500/503 是 HTTP 状态映射而非\"500 工作单位\"：src/lib/server/admin/guard.ts:75 返回 503 unavailable、:76 返回 500 internal；改动后的条款讲的是作业批量的工作单位（18-部署与运维.md:L99），两者只是数字巧合，无共享语义。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "evidenceGroup": "G2",
+      "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
+    },
+    "HOTFIX-LOGIN-EMPTY": {
+      "contractHash": "d29d9af29ac29c163bade0fc83910d866f021b43bb650fb888ac8da911a8c40c",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（登录契约宽松化）：产出是空白 mode/rememberDevice/recoveryCode/totp 不再让严格契约失败（图谱/任务/HOTFIX-LOGIN-EMPTY.md:L26）；属登录请求契约，与作业批量单位、保留批次无关。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "evidenceGroup": "G2",
+      "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
+    },
+    "M1-T1": {
+      "contractHash": "6d09f8ed137ab8c7a5f8ae86c719fb24a0edb72577bdaf17aecf76440a7d1757",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（品牌 token/真实冒烟）：交付面是 src/styles/tokens.css:25 起的 `--pj-*` 核心变量与首页/产品页 computed style、e2e/brand-smoke.spec.ts；批量单位条款不涉及 token 值、层叠覆盖或已审文档基线。",
+        "本卡不注册作业、不定义 batch/保留/租约，55s 与 5,000/20,000 均不在其契约面。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "前端工程师",
+      "evidenceGroup": "G3",
+      "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json"
+    },
+    "M1-T2": {
+      "contractHash": "14b9d6b8c5337eaf5bc5d85afec8700f55d3de4acc4204a1e170f0223ee7abcc",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务交付共享 Zod schema/DTO（src/lib/contracts/，tests/contracts-foundation.test.ts）；08/09/18 的四处变更句是作业批量单位与时间预算的运维口径，不新增或修改任何字段、枚举、DTO 形状或请求约束。",
+        "09 进入其 sections 列表是因为 schema 镜像 09 字段表；本次 diff 只有 4 行运维句，未触及字段表。"
+      ],
+      "originalReviewer": "数据库审查工程师",
+      "evidenceGroup": "G1",
+      "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json"
+    },
+    "M1-T3": {
+      "contractHash": "a17618d7df552a00bed0b4ccc8d3f167dcf7b8d1361adbb2c40c85ba5c4933e9",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务交付品牌静态媒体与 logo master（public/brand/、docs/brand-media/static/）；批量单位条款不涉及素材制作、来源、署名或发布。",
+        "四处源文未改任何媒体/素材/发布要求，未给本任务增加新证据义务。"
+      ],
+      "originalReviewer": "数据库审查工程师",
+      "evidenceGroup": "G1",
+      "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json"
+    },
+    "M1-T4": {
+      "contractHash": "7cdeacdc54670d233b6e44e073cf34bbfec38c4a03e34932b3872addc71b84fc",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（首页视频/场景接线）：交付面是 src/components/layout/HeroVideo.tsx:15 `HeroVideo` 与 BrandScene 的视区预载/GIF/暂停接线；批量单位条款不涉及 autoplay、15s playing 观察上限、300px 预载或用户暂停。",
+        "HeroVideo 的 15 秒是播放就绪观察上限，与 09 L86 的 55s 作业时间预算不是同一概念，本次改动未触及前者。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "前端工程师",
+      "evidenceGroup": "G3",
+      "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json"
+    },
+    "M1-T5": {
+      "contractHash": "b6c122e70a0b09aaa98744377833b3753e2de9d8cb7723fc4797af436a457212",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（公司内容/图稿消费）：交付面是 src/lib/brand/company-media.ts:33 `RELEASED` 白名单与首页/about 的 CompanySummary 消费；批量单位条款不涉及事实对照、发布开关、图片 srcset 或 alt。",
+        "09/18 改动未触及聊天 90d 或分析 30d/13 个月的用户可见口径，也未改公司事实边界。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "前端工程师",
+      "evidenceGroup": "G3",
+      "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json"
+    },
+    "M1-T6": {
+      "contractHash": "7131454bbbbacb0f26041fce812e98d84ca678251a41432b1531ff416c6519eb",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（媒体发布集合/逐帧核验）：交付面是循环 GIF、同尺寸暂停帧与 docs/brand-media/animation/verify-media-integrity.py 的 SHA/解码/时间线核验（main 上源件存档于 docs/brand-media/static/held/，首页消费已由同组媒体任务接 MP4：src/lib/home/brandMedia.ts:13-14）；批量单位条款不涉及帧序、30.08s、无限循环或发布集合。",
+        "本卡无作业注册、聚合或保留删除义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "前端工程师",
+      "evidenceGroup": "G3",
+      "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json"
+    },
+    "M1-T7": {
+      "contractHash": "86856a9543a2c3dd114449c2f1dcb63a552936452d20087c083ebaa8620d43bd",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（UI primitives）：交付面是 src/components/ui/Button.tsx:25 `Button`、src/components/ui/index.ts:1 的统一出口与 tokens.css 的组件状态；批量单位条款不涉及原生语义、busy/焦点/错误或 token 源。",
+        "本卡明确不含 fetch、Prisma、作业、保留或批处理，四处改动未增加此类义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "前端工程师",
+      "evidenceGroup": "G3",
+      "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json"
+    },
+    "M1-T8": {
+      "contractHash": "b84311112beb9aea0bb3b04c239f4740706645b3c18f68659dd6a9faf0897759",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（客户端 fetch 适配）：交付面是 src/lib/client/api.ts:24 `CLIENT_DEADLINE_MS = 15_000`、:23 的「per attempt」注释与重试/限体策略；09 L86 的 55s 是服务端固定作业预算，本卡的 15s 与 30s 分别是客户端每次尝试截止和自动等待上限，本次改动未改这两个值。",
+        "cron 禁重试是对客户端重放策略的约束，不是作业批量单位；两者没有混写。",
+        "本卡无作业注册或保留删除义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "前端工程师",
+      "evidenceGroup": "G3",
+      "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json"
+    },
+    "M1-T9": {
+      "contractHash": "40c7aa73df6a3885b141f7c567ca248a9a82ada72a483768613d9dac246aa7d7",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（公司图稿源件/清单）：交付面是 docs/brand-content/company-visuals.json:91 `selectedInput` 与可编辑工程/Web PNG 的 SHA、双语 alt；批量单位条款不涉及素材来源、工程对象或页面消费。",
+        "本卡无作业注册、保留删除或时间预算义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "前端工程师",
+      "evidenceGroup": "G3",
+      "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json"
+    },
+    "M2-T1": {
+      "contractHash": "8d26981bf92a8cbf2127f182b6ae9f835ae353acf61a1d33dec5f4c6ae53d1dd",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（产品卡布局）：交付面是 src/components/three/ProductGallery.tsx:238/344 `product-viewport` 与 globals.css 的卡高/操作行；批量单位条款不涉及 560px 卡、clamp、SSR 目录或询盘控件。",
+        "本卡无作业注册、保留删除或 55s 预算义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "前端工程师",
+      "evidenceGroup": "G3",
+      "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json"
+    },
+    "M2-T2": {
+      "contractHash": "4cd57b0e62d0c5d58a2460794a6c1922960253ba090aee4300a4057761eff991",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（3D 指针/滚轮准入）：交付面是 src/lib/three/model-pointer.ts:43 `wheelAdmission` 与 ProductGallery 的 `wheelPermit`/退出路径；批量单位条款不涉及焦点/指针命中、滚轮拦截或相机缩放。",
+        "本卡无作业注册、保留删除或时间预算义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "前端工程师",
+      "evidenceGroup": "G3",
+      "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json"
+    },
+    "M2-T3": {
+      "contractHash": "baaed0cf851faa2017e6df96ccdfd99661cc4839826002f8c97eca0d15d59932",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（3D 键盘/触屏/复位）：交付面是 src/lib/three/model-accessibility.ts:83 `TOUCH_TARGET_PX` 与 GalleryScene 的 command/zoom 两条通道、44px 目标；批量单位条款不涉及双指夹紧、复位基准或键盘动作表。",
+        "本卡无作业注册、保留删除或 55s 预算义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "前端工程师",
+      "evidenceGroup": "G3",
+      "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json"
+    },
+    "M2-T4": {
+      "contractHash": "3f4a27ad18f168c073471cab6fc984b6efae7be06ae3636261e0e0ab69c0c4db",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（模型事件纯规则）：交付面是 src/lib/analytics/model-events.ts:27/40/49 的 viewId 生命周期与 success/failure 去重；它只产出待 M2-T7 消费的事件，不执行聚合作业或保留删除，09 L73/L86 的删除批次与 55s 预算不在其契约面。",
+        "其 durationMs 取注入单调时钟差（:176），与 55s 作业预算无换算关系；本卡也不读取同意状态或发请求。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "前端工程师",
+      "evidenceGroup": "G3",
+      "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json"
+    },
+    "M2-T6": {
+      "contractHash": "8baa9d7c8cce3a346252caa15c2c98fb0618c1bf4c6b4c05d04d29ae117a1aaa",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（模型回退/重试）：交付面是 src/lib/three/model-fallback.ts:15 `MAX_MODEL_RETRIES = 3` 与 ProductGallery 的海报/失败条；批量单位条款不涉及手动重试上限、WEBGL_UNAVAILABLE 或 context lost。",
+        "本卡明确只上报加载结果、不创建分析成功事件，也不执行作业或保留删除。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "前端工程师",
+      "evidenceGroup": "G3",
+      "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json"
+    },
+    "M3-T1": {
+      "contractHash": "63e056158cd6949bf3fc7ab97b12458cdc720e7a5d419693b98bdd73e17466ef",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（后台登录/设备会话基础）：职责面与产出为产出 AdminDeviceSession 与 Auth.js sid 适配、GET /api/admin/account（图谱/任务/M3-T1.md:L22），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "evidenceGroup": "G2",
+      "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
+    },
+    "M3-T14": {
+      "contractHash": "4d54585c5cdb086c964163f63a9b33f72da8f117ee0e11b33917da1ad7406874",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（HTTP/config/计数器）：产出是共享 HTTP 错误映射与 ApiDailyCounter（图谱/任务/M3-T14.md:L22）；计数是单条 INSERT … ON CONFLICT 自增（src/lib/server/http/metrics.ts:150-157），且该卡 L75 明写\"13 个月保留不是这张表自己的删除，清理作业也不能从这里导入\"——即它既不是分析保留批次的执行者，也不是删除行单位的所有者。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "evidenceGroup": "G2",
+      "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
+    },
+    "M3-T15": {
+      "contractHash": "f111143553a82716ad85db0f297c7d55af5af3c891494a41e86dfa561c60165e",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（会话活动/期限）：产出是 POST /api/admin/account/session/activity 与期限适配（图谱/任务/M3-T15.md:L27）；义务是 2h 滑动 + 创建后 12h 绝对截止（L34/L38），与作业批量单位无关。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "evidenceGroup": "G2",
+      "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
+    },
+    "M3-T16": {
+      "contractHash": "f83df982d88023fea10b3be476ebeca73fa440eb43176828127446848224f265",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（登录方式切换/改密）：职责面与产出为产出 PATCH login-mode、POST password 与同事务 grant 核销（图谱/任务/M3-T16.md:L22），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "evidenceGroup": "G2",
+      "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
+    },
+    "M3-T17": {
+      "contractHash": "988f557426acd29b7936f82a253ec4a015cec4e04b1d0320963430552e33df4c",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（设备列表/撤销）：职责面与产出为产出 devices 列表、单设备撤销与 logout-all（图谱/任务/M3-T17.md:L22），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "evidenceGroup": "G2",
+      "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
+    },
+    "M3-T18": {
+      "contractHash": "f610f043e7bc24e2d8a7a847d080e9930b2ecd903a680af492dcc6f6cbf8ba6a",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（恢复授权 CLI）：产出是 scripts/admin-authorize-recovery.mjs（target/role/reason、TTY 隐式密码预授权与审计，图谱/任务/M3-T18.md:L22）；一次性 CLI，不是注册作业，不消费批量单位。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "evidenceGroup": "G2",
+      "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
+    },
+    "M3-T19": {
+      "contractHash": "69d98c2f338e798f6912313e8098b5c5d7f7c3fd1460fff0e28211ea7502c429",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（受限恢复会话）：职责面与产出为产出 AdminRecoverySession 与 recovery/start、受限 cookie（图谱/任务/M3-T19.md:L22），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "evidenceGroup": "G2",
+      "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
+    },
+    "M3-T2": {
+      "contractHash": "0deabc6cf9bd074282d9fbb90f455a6a46eac5721a72205d2116eae94c52bbda",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（Credentials/TOTP/绑定）：职责面与产出为产出 Credentials 的 password/totp 模式与恢复码拒绝、enroll 的 CAS（图谱/任务/M3-T2.md:L27），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "evidenceGroup": "G2",
+      "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
+    },
+    "M3-T21": {
+      "contractHash": "4d9f8872f6cbde7b360d29a248b550b39718b51d12ac15517be5245ac4519985",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（询盘后台视觉迁移）：职责面与产出为产出 legacy-inquiries-ui 统一视觉与回归，不改询盘业务（图谱/任务/M3-T21.md:L22），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "evidenceGroup": "G2",
+      "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
+    },
+    "M3-T22": {
+      "contractHash": "6aae0ed3b072faaeee3e9f7971014ded07f1a992b43e8fb9e608d13fa377e13e",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（未归类后台视觉）：职责面与产出为产出 legacy-unassigned-ui 样式统一与关闭门禁证据（图谱/任务/M3-T22.md:L22），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "evidenceGroup": "G2",
+      "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
+    },
+    "M3-T23": {
+      "contractHash": "14d35b9f39dfde3e92a56cf9d643c2e17d9c17c891680e9ef7c37ef28227ba3c",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（模型后台视觉）：职责面与产出为产出 legacy-model-admin-ui 统一视觉、列表重定向不变（图谱/任务/M3-T23.md:L22），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "evidenceGroup": "G2",
+      "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
+    },
+    "M3-T24": {
+      "contractHash": "c1e68f8f6bdd64268dcbfeab380dd1d2200d14581fc46028bd4ccd2075f719fe",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（规格后台视觉）：职责面与产出为产出 legacy-specs-ui 统一视觉、规格业务不变（图谱/任务/M3-T24.md:L22），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "evidenceGroup": "G2",
+      "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
+    },
+    "M3-T3": {
+      "contractHash": "f708d7ce29657e9fa2fbb20159ed9cbc863cba47072885d374acf5cc5bd46779",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（重认证 grant）：职责面与产出为产出 AdminActionGrant 与 POST /api/admin/account/reauth（图谱/任务/M3-T3.md:L22），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "evidenceGroup": "G2",
+      "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
+    },
+    "M3-T4": {
+      "contractHash": "4ff7f237c784572f373e5175c47f6b294752c9290a669f0a176bc6e544ec7265",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（恢复许可）：职责面与产出为产出 AdminRecoveryPermit 与 recovery-authorizations/reset-2fa 别名（图谱/任务/M3-T4.md:L22），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "evidenceGroup": "G2",
+      "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
+    },
+    "M3-T7": {
+      "contractHash": "5f08c20e76a1af87b0e7d972c266fc6f9a7a7be15557619b8f15295516d73728",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（后台外壳/导航）：职责面与产出为产出统一后台外壳、角色导航与 AdminSessionActivity（图谱/任务/M3-T7.md:L22），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "evidenceGroup": "G2",
+      "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
+    },
+    "M4-T1": {
+      "contractHash": "a924d04734b2532fe5646b8cb62dd898dc926642d8cd8377877cb9fd9804f812",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务交付聊天首消息与唯一通知出箱（conversation-service.ts、repo.ts、POST /api/chat/conversations）；main 042c7d24 的 composition.ts:192-193 只注册 analytics-aggregate，聊天通知作业尚未注册。",
+        "变更句「其他作业沿用各自既定的500工作单位限制」未给 M4 增加新义务，也未放宽任何限制；本补丁未改聊天任务卡或实现。"
+      ],
+      "originalReviewer": "数据库审查工程师",
+      "evidenceGroup": "G1",
+      "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json"
+    },
+    "M4-T15": {
+      "contractHash": "080f9d6003fd86baf3f9a8d196e494f06ca59bc2237346938c3d493f90e700a7",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务交付 Tawk 移除、FloatingActions 联系入口与隐私说明（useTawk.ts、FloatingActions.tsx、CookieConsent.tsx）；变更句不涉及任何用户可见文案。",
+        "其验收里的聊天 cookie 7d/30d、咨询 90d 与「真实清理未启用」均未被触碰；09 L73「90d聊天清理启用需另有明确生产保留授权、未获授权保持dry-run」原句保留。"
+      ],
+      "originalReviewer": "数据库审查工程师",
+      "evidenceGroup": "G1",
+      "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json"
+    },
+    "M4-T8": {
+      "contractHash": "09d22100a837066d0448480b9c2fe3d8f8136d29ae5ca8b4677b2e00b1e78120",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务交付 ChatVisitorSession 与 POST /api/chat/session 的 cookie、7d/30d 期限与限流；批量单位条款与其交付面无交集。",
+        "09 L86 保留的「租约90s」是作业租约，不是 cookie 期限；本任务验收的 7d 闲置/30d 绝对未被改动。"
+      ],
+      "originalReviewer": "数据库审查工程师",
+      "evidenceGroup": "G1",
+      "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json"
+    },
+    "M5-T1": {
+      "contractHash": "917330813673c84b9671286e5ad11afeb28836a3df037f12a60f79595c641214",
+      "verdict": "pass",
+      "evidence": [
+        "适用且仍满足：09 L86 仍要求租约90s；main 042c7d24 的 src/lib/server/jobs/types.ts:7 JOB_LEASE_MS=90_000 未变，lease-repo 的原子领取/续租/完成与代次语义未被本补丁触碰。",
+        "批量单位改由各作业自述；M5-T1 的交付面是 JobState 与租约原语，本身不含行数或天数上限，未被新增义务。",
+        "未运行数据库或测试，仅只读 Git 对象。"
+      ],
+      "originalReviewer": "数据库审查工程师",
+      "evidenceGroup": "G1",
+      "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json"
+    },
+    "M5-T2": {
+      "contractHash": "2c26ac31a45c32e81963f2211e9057eb96394cc0309953271bd88f9e11c20eb9",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务交付 POST /api/analytics/consent 与签名 cookie（consent.ts、route.ts）；批量单位条款与其交付面无交集，未改同意、验签或撤回语义。"
+      ],
+      "originalReviewer": "数据库审查工程师",
+      "evidenceGroup": "G1",
+      "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json"
+    },
+    "M5-T3": {
+      "contractHash": "949213d957f8ae56359d88609164da8b9c6934887b3c46822f3acdaf5ae39244",
+      "verdict": "pass",
+      "evidence": [
+        "适用且仍满足：08 jobs 段与 09 L86 把聚合批次定为站点自然日（maxBatchDays≤500）；main 042c7d24 的 aggregate.ts:216 注释明确「单位是站点自然日（不是事件数）」，:230-231 对 plan.siteDates.length>maxBatchDays 抛 AggregateBatchExceeded 且不写库。",
+        "aggregate-plan.ts:72-91 的 siteDates 由 siteLocalDate/lateArrivalSiteDates 生成，是站点本地日字符串，不是事件行。",
+        "500 的传入在 M5-T8 项核（registry.ts:259 maxBatchDays: JOB_MAX_BATCH）；本任务自身只提供可选上限，未被本补丁要求改成行数。"
+      ],
+      "originalReviewer": "数据库审查工程师",
+      "evidenceGroup": "G1",
+      "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json"
+    },
+    "M5-T5": {
+      "contractHash": "07e0a653173c61f8a0b970c05278c7c99ef2fb5f5df1fff2869bf8a8d72ca63f",
+      "verdict": "pass",
+      "evidence": [
+        "适用且仍满足：09 L73 与 08 jobs 段把分析保留批量定为删除行（5,000行/DELETE批次、20,000行/轮，三表合计）；main 042c7d24 的 retention-plan.ts:5-9 常量与注释一致（一次删除语句最多5,000行；一次运行最多20,000行，原始事件和汇总行合计）。",
+        "retention-plan.ts:97-111 deletionBatchSizes 按 batchSize/maxPerRun 切批；:232 候选上限复用 20,000，不产生无界查询。",
+        "计划器本身不执行删除；三表合计与每批独立事务由消费方核（RETENTION-CLEANUP 项；M5-T11 分支另行审查）。"
+      ],
+      "originalReviewer": "数据库审查工程师",
+      "evidenceGroup": "G1",
+      "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json"
+    },
+    "M5-T6": {
+      "contractHash": "2b8b53d95613cf8f177f1c10827dba11aa24b4c69917f553c64a74d5b7454ec0",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务交付事件准入与持久化（ingest.ts、event-repo.ts、POST /api/analytics/events）；变更句只改删除批次单位，不改变接收窗口、去重、白名单或限流。",
+        "其验收的 30 天保留是字段与准入规则，不受删除批量单位影响。"
+      ],
+      "originalReviewer": "数据库审查工程师",
+      "evidenceGroup": "G1",
+      "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json"
+    },
+    "M5-T7": {
+      "contractHash": "20e4d7eaf8a09b17835bac2b140210666564b5bb0ff91d4704ea6e8e15a04ca4",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务交付客户端同意 UI、页面生产者与隐私文案；其验收第 5 条的用户可见期限仍是聊天 7d/30d、咨询 90d、原始分析 30 天/聚合 13 个月，本次改动未改这些数字。",
+        "新增的 5,000/20,000 是内部作业批量，未出现在用户可见文案或验收断言；「默认 dry-run、实际清理须另行授权」的文案要求原样保留。"
+      ],
+      "originalReviewer": "数据库审查工程师",
+      "evidenceGroup": "G1",
+      "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json"
+    },
+    "M5-T8": {
+      "contractHash": "9d1af3f9226a7a4665d66152206027d5d00e87b67958d4efc8f285fe4461a838",
+      "verdict": "pass",
+      "evidence": [
+        "适用且仍满足：08 jobs 段与 18 固定作业策略的聚合单位为站点自然日；main 042c7d24 的 registry.ts:13 JOB_MAX_BATCH=500、:16 JOB_DEADLINE_MS=55_000、:259 maxBatchDays: JOB_MAX_BATCH、:350 预算取自 JOB_DEADLINE_MS；aggregate.ts:230-231 按站点日拒绝超限。",
+        "deploy/cron.nbshiyan:11 仍为 */5 调用 POST /api/admin/cron/operations，55s 为请求超时；本补丁未改 cron 或源码。",
+        "「其他作业沿用各自既定的500工作单位限制」：main 上目前只有聚合作业已注册（composition.ts:192-193），聊天/邮件/运维作业尚未注册，未被本补丁放宽。"
+      ],
+      "originalReviewer": "数据库审查工程师",
+      "evidenceGroup": "G1",
+      "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json"
+    },
+    "M5-T9": {
+      "contractHash": "76574a4989e04bf3cfe6854f5b450d6f13618e112a50fc13d03991822164a0af",
+      "verdict": "pass",
+      "evidence": [
+        "适用且仍满足：聚合批次的「站点自然日」由 main 042c7d24 的 day-boundaries.ts:170 siteDayUtcBounds、:181 siteLocalDate、:202 recomputableFrom 定义；本次改动只声明单位，不改 IANA/DST/日界算法。",
+        "aggregate-plan.ts:72-91 用这些函数生成 siteDates，单位与文档一致。"
+      ],
+      "originalReviewer": "数据库审查工程师",
+      "evidenceGroup": "G1",
+      "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json"
+    },
+    "MAIN-E2E-FIX": {
+      "contractHash": "a31afd8e29a04f1e24ddec74abe1918203375ac2231b3ad2d34091cb59ebda5b",
+      "verdict": "pass",
+      "evidence": [
+        "任务职责：只改测试——analytics ingest 的 READY/published 校验、121 字符 slug 白名单、catalog merge 接受集合（图谱/任务/MAIN-E2E-FIX.md:31、:40-42）。",
+        "不适用：这是事件摄入/目录合并测试，不是固定作业的批量单位；条款未改 ingest 校验或测试。",
+        "本窗未运行这些测试。"
+      ],
+      "originalReviewer": "测试工程师",
+      "evidenceGroup": "G4",
+      "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json"
+    },
+    "POST-LAUNCH-P3": {
+      "contractHash": "4fa787e2bba540dfcf3684c45176ccfd89112f4a7fa492eed513d54ce241ec98",
+      "verdict": "pass",
+      "evidence": [
+        "任务职责：上线后修组合——媒体缓存头/删除无引用 GIF、/og 404 no-store、Permissions-Policy、限流 429 的 Retry-After、Auth.js 登录页字段、重置脚本导出、Redis 批量解析与生产判断、smoke 断言、BrandScene 重试（图谱/任务/POST-LAUNCH-P3.md:31）。",
+        "不适用：本次共享章节只改固定作业的批次单位语义：聚合作业按站点自然日计（maxBatchDays≤500）、分析保留按删除行计（5,000行/DELETE批次、20,000行/轮、三表合计、每批独立事务）、55s 明写为时间预算、其他作业沿用既定500工作单位 不涉及缓存头、媒体、限流响应、登录页或 smoke 白名单；这些条目的既有断言与限制未被本次源文改动。",
+        "两处 GIF 在卡上标注『已删除』且 main 不存在，属卡内既定动作，不是回归。"
+      ],
+      "originalReviewer": "测试工程师",
+      "evidenceGroup": "G4",
+      "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json"
+    },
+    "R3-T09233008": {
+      "contractHash": "c2b5df862d1b89ebf52b335abb1711cbc3818d18faf77b9f18e0d0fc43165123",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（存储权限/符号链接验收）：交付面是 tests/prod-env-check.test.ts:11/18 的 POSIX/符号链接能力探测与 0600/0700、拒绝覆盖/逃逸断言，以及 storage-local/storage 测试；批量单位条款不涉及权限位、realpath 或 CI 存储作业。",
+        "本卡无作业注册、保留删除或 55s 预算义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "前端工程师",
+      "evidenceGroup": "G3",
+      "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json"
+    },
+    "R3-T09598683": {
+      "contractHash": "e18dee81c7dc5391ec42c2f81a1b4f4bbe1759254f80c7478d6cbb3c18cc3027",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（首页铺满）：交付面是 src/app/globals.css:446 起 `main:has(> .hero)` 的 ≥1489px 铺满规则与 1240px 上限、e2e/brand-smoke.spec.ts 的宽度断言；批量单位条款不涉及视口宽度、gutter 或卡片列数。",
+        "本卡无作业注册、保留删除或时间预算义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "前端工程师",
+      "evidenceGroup": "G3",
+      "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json"
+    },
+    "R3-T12074461": {
+      "contractHash": "9d9344b9612557684d49cef282eda6cbfae23c6a10ca3adf12f92559c8773e07",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（11 节文档目标值）：交付面仅是 docs/PackJoyU-开发文档/02-设计/11-UI.md:197 的 publicBrand 目标值、1489px 门槛与首页例外；本次补丁只改 08/09/18，不含 11 节。",
+        "本卡无作业注册、保留删除或 55s 预算义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "前端工程师",
+      "evidenceGroup": "G3",
+      "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json"
+    },
+    "R3-T21757567": {
+      "contractHash": "ac47ae246756fddccd1107cb640a9da4c0d6f566b3badb37ee92d08871eff574",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（Python 解释器探测/导入断言）：交付面是 tests/sanity-import.test.ts:9/12/315 的 `SANITY_IMPORT_PYTHON` 探测与导入/占位/食品声称/内链保护；批量单位条款不涉及解释器版本、9009 别名或逐字节 import.ndjson。",
+        "本卡无作业注册、保留删除或时间预算义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "前端工程师",
+      "evidenceGroup": "G3",
+      "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json"
+    },
+    "R3-T22883505": {
+      "contractHash": "99443df7ecaf778ad0cace5a607b2d6367821f9fa83c7f98c3f45696819880ff",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（standalone/密度实证）：交付面是 playwright.config.ts:9/11/12 的 standalone 服务与 e2e/brand-smoke.spec.ts 的密度测量；批量单位条款不涉及 server.js、PG17、densityProbe 或 14 次测量。",
+        "本卡无作业注册、保留删除或 55s 预算义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "前端工程师",
+      "evidenceGroup": "G3",
+      "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json"
+    },
+    "R3-T56876634": {
+      "contractHash": "4c92a5fe7637af3b17843dded87a21981657e57a43d8439a62ba5bbe4e9fdaa0",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（图稿选定输入）：交付面是 docs/brand-content/company-visuals.json:91 `selectedInput` 的 path/sha256/use 与 tests/company-visuals-selected-input.test.ts 的字节回归；批量单位条款不涉及素材选定输入或事实边界。",
+        "本卡无作业注册、保留删除或时间预算义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "前端工程师",
+      "evidenceGroup": "G3",
+      "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json"
+    },
+    "R3-T71889698": {
+      "contractHash": "4b0fdb868a1c223f98e01269601d43f96359ed4d11c9ea081d94f6ae09c84709",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（重置审计/并发预期）：交付面是 scripts/enroll-token-lib.mjs:63 `issuedAudit`（由 scripts/admin-reset-initial-password-lib.mjs:167 使用）与 tests/admin-reset-initial-password.db.test.ts:149/151 的审计多重集断言；批量单位条款不涉及密码重置、令牌签发审计或 sessionVersion。",
+        "本卡无作业注册、保留删除或 55s 预算义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "前端工程师",
+      "evidenceGroup": "G3",
+      "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json"
+    },
+    "R3-T75625096": {
+      "contractHash": "5c8639b9f95424da559f206214c66d13f8657175d13747c2b4ab61db7a7a742b",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（后台密度修复）：交付面是 src/components/admin/settings/settings.css:2 `.st-page` 等后台工作面样式与 e2e/brand-smoke.spec.ts 的 densityProbe；批量单位条款不涉及填充率、leftGap 或后台工作面。",
+        "本卡无作业注册、保留删除或 55s 预算义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "前端工程师",
+      "evidenceGroup": "G3",
+      "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json"
+    },
+    "R3-T86511435": {
+      "contractHash": "00651122fe7703ca4624509b4695803168365b85ce7d51ae7b3ddf300f95b5a6",
+      "verdict": "pass",
+      "evidence": [
+        "适用且仍满足（仅租约句）：09 L86 的「租约90s」原句保留；main 042c7d24 的 src/lib/server/jobs/types.ts:7 `JOB_LEASE_MS = 90_000` 未变，tests/job-leases.db.test.ts 仍断言同 key 并发只有一项成功、满 90s 新代次可领取、旧 owner/generation 完成被拒。",
+        "本卡不主张聚合「天」或保留「行」的批量上限，四处改动未给它新增 batch 义务；55s 是作业总预算，90s 是租约互斥窗口，两者并存且未被本补丁改写。",
+        "结论：契约仍满足；只读文档/契约复核，不冒充代码验收或运行证据（未跑 PG17）。"
+      ],
+      "originalReviewer": "前端工程师",
+      "evidenceGroup": "G3",
+      "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json"
+    },
+    "R3-T87287564": {
+      "contractHash": "d7207fcf35344f9c94346b1de96db5543c726a911f8e0434d93fd9dae7a26eb8",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（文件身份比较）：交付面是 tests/lint-ru-yo.test.ts:6/40/92 的 `defaultFiles`/`fileId` 与 prod-mocks-strip 的斜杠身份比较；批量单位条款不涉及路径归一、俄文扫描或 mock 清单。",
+        "本卡无作业注册、保留删除或时间预算义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "前端工程师",
+      "evidenceGroup": "G3",
+      "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json"
+    },
+    "R3-T92231765": {
+      "contractHash": "3e2dae43569dc5ecb687775f3e0b0b78884733c58d4b0c410a87d2ee17b6e26d",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（CRLF/真 Bash 夹具）：交付面是 .gitattributes:3 `*.sh text eol=lf` 与 11 条源码断言/真 Bash 回归；批量单位条款不涉及换行归一、plan-check 或 smoke-lib.sh。",
+        "本卡无作业注册、保留删除或 55s 预算义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "前端工程师",
+      "evidenceGroup": "G3",
+      "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json"
+    },
+    "R4-T16305211": {
+      "contractHash": "e79e3a145259db8af0fb8ea8c2e574544d673b91fd3d204540142d3ad26c4d7c",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（聊天开关/容量证据）：产出是独立聊天开关的取舍（图谱/任务/R4-T16305211.md:L23）；属前端开关与容量口径，不注册 chat-notifications/chat-retention 作业（这两个作业在 19-模块任务拆分 中归 M4-T4/M4-T7）。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "evidenceGroup": "G2",
+      "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
+    },
+    "R4-T64765902": {
+      "contractHash": "234bcebee5a6b04560a1fe8a16988b341f9c1c8a1b2f8b55a3b4c0622dcb2298",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（无调用方模块删除）：产出是删除无调用方的 adminPath.ts 及其测试（图谱/任务/R4-T64765902.md:L23）；与作业批量单位无交集。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "evidenceGroup": "G2",
+      "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
+    },
+    "R4-T76958784": {
+      "contractHash": "55acc87197641d2abf7457f887329a2c8cee12be38211cf5987bcf6cd9a2b41b",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（隐私文案）：产出是隐私页四句（7 天闲置/30 天绝对/90 天设计默认/生产清理未启用，图谱/任务/R4-T76958784.md:L23）；改动条款是分析保留的\"删除行\"批次单位，不是聊天 90 天清理的启用状态，两者不冲突。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "evidenceGroup": "G2",
+      "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
+    },
+    "R4-T78812657": {
+      "contractHash": "777799544614e42280b7957e9d957a50809b2d17dc61a19d63083fd31ad88e64",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（会话绝对截止文档）：产出是把普通会话\"2h 滑动 + 创建后 12h 绝对截止\"写进文档/文案（图谱/任务/R4-T78812657.md:L23）；属会话期限与文案，和作业批量单位不同轴。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "evidenceGroup": "G2",
+      "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
+    },
+    "R5-T10248697": {
+      "contractHash": "6a89a698c4d418e7a515706e35171208e276044e3fee00d3e27ef2d2d0698281",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（站点日界计算）：产出是\"跳过本地午夜时用该日最早存在的瞬间做左闭端\"（图谱/任务/R5-T10248697.md:L23），实现为 src/lib/analytics/day-boundaries.ts:170 siteDayUtcBounds、:190 siteDayContaining、:202 recomputableFrom；四处改动只规定\"聚合批次以站点自然日计数（maxBatchDays≤500）\"，不改变日界、DST 或 skipped-midnight 的算法，也不改变可重算起点。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "evidenceGroup": "G2",
+      "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
+    },
+    "R5-T59021355": {
+      "contractHash": "6ee7be932b53ae0aef6e49d4077411b7ac667ea40365efd99f9d209836c3bea1",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（登录恢复码语义）：产出是普通 Credentials 上非空 recoveryCode 与未知账号同失败、不核销恢复码（图谱/任务/R5-T59021355.md:L23）；属登录安全语义。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ],
+      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "evidenceGroup": "G2",
+      "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
+    },
+    "R7-T14077261": {
+      "contractHash": "85ada3292d388bf4b6e40b317d2c9bf26aabebdabcdc6c09e991d378da281be1",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务只在 tests/analytics-aggregate.db.test.ts 增加 E-82 超范围日用例，不改产品代码；批量单位条款不改变其测试义务。",
+        "其验收的 skippedDates 非空、预置超范围日聚合与 watermark 逐字段不变，与本次四处改动无交集。"
+      ],
+      "originalReviewer": "数据库审查工程师",
+      "evidenceGroup": "G1",
+      "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json"
+    },
+    "R7-T21418022": {
+      "contractHash": "e18a9b8300fc7b607ec86562b42039f7b80f7c0dafa4ceb8ac298739898246b0",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务把 aggregate-repo.ts/aggregate.ts 的 9 个时间戳参数统一改为 utc() 绑定并新增第 12 条测试；不涉及批量单位、批次上限或 maxBatchDays 分支。",
+        "其改动点是时间参数绑定与跨会话一致性，本次四处源文未给它新增批量义务。"
+      ],
+      "originalReviewer": "数据库审查工程师",
+      "evidenceGroup": "G1",
+      "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json"
+    },
+    "R7-T31416198": {
+      "contractHash": "61e02f5923718678dee5b34cc630a40c943bc01eb0e16aaac0664a908b209052",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务只补同一连接内非 UTC 会话的时间边界测试；批量单位条款不改变其测试义务或断言。"
+      ],
+      "originalReviewer": "数据库审查工程师",
+      "evidenceGroup": "G1",
+      "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json"
+    },
+    "RETENTION-CLEANUP": {
+      "contractHash": "53d9aca476eef880089e06f1fb0e593cf8e9553cfa00df9a6dbcd0f1c58472b3",
+      "verdict": "pass",
+      "evidence": [
+        "适用且仍满足：09 L73 把清理批量定为删除行（5,000行/DELETE批次、20,000行/轮，三表合计，每批独立事务）；main 042c7d24 的 retention-cleanup.ts:248-249 默认取 RETENTION_CLEANUP_BATCH_SIZE/MAX_PER_RUN，:220-231 drain 每批 min(batchSize, 剩余)，:331-338 三表共用同一 budget（removed 累计），deleteEventBatch:151、deleteDailyBatch:174、deleteRollupDayBatch:201 各自在 $transaction 内删除。",
+        "默认 dry-run 未变（retention-plan.ts:13-18 只有精确 delete 才删行）；deploy/cron.nbshiyan:10 仍为 03:30 调 /api/admin/cron/retention-cleanup。",
+        "范围注：该旧路由自己的预算是 runDeadlineMs 默认 270s（retention.ts:51）、maxDuration=300（route.ts:11），不属于 registry 的 55s 句；本补丁未改它，也未把它写成 55s。"
+      ],
+      "originalReviewer": "数据库审查工程师",
+      "evidenceGroup": "G1",
+      "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json"
+    },
+    "SEO-1": {
+      "contractHash": "be2c4b7a8d0e854d81a32fe1b07f8074268136bb906624545ffcbcd7ed59c5fd",
+      "verdict": "pass",
+      "evidence": [
+        "任务职责：关于页 sitemap 条目、hreflang/x-default、图片与 lastModified（图谱/任务/SEO-1.md:31）。",
+        "不适用：条款只改固定作业批次单位，不涉及 sitemap、SEO 元数据或图片清单。",
+        "本窗未构建、未跑 sitemap 测试。"
+      ],
+      "originalReviewer": "测试工程师",
+      "evidenceGroup": "G4",
+      "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json"
+    },
+    "SEO-2": {
+      "contractHash": "226144fdf2a3c96eeee022ccc64d74f3dfb2d105082baa4eaf3c61f81757936f",
+      "verdict": "pass",
+      "evidence": [
+        "任务职责：静态 /og jpg 的 Cache-Control 与单测断言（图谱/任务/SEO-2.md:31、:40-44）。",
+        "不适用：缓存头规则不依赖作业批次单位；next.config.ts 未被本次补丁改动。",
+        "本窗未跑 og 缓存测试。"
+      ],
+      "originalReviewer": "测试工程师",
+      "evidenceGroup": "G4",
+      "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json"
+    },
+    "SEO-4": {
+      "contractHash": "00b5fa6a8af9f5b798dbbdf5e970d2bce9831bff622cebcf653c147c2883b78a",
+      "verdict": "pass",
+      "evidence": [
+        "任务职责：去掉 VERCEL_ENV 生产兜底，统一 APP_ENV 生产判定（图谱/任务/SEO-4.md:31、:40-50）。",
+        "不适用：生产判定与作业批次单位无关；相关源码在 main 存在且未被本补丁改动。",
+        "本窗未跑 app-env 测试。"
+      ],
+      "originalReviewer": "测试工程师",
+      "evidenceGroup": "G4",
+      "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json"
+    },
+    "SEO-5": {
+      "contractHash": "5ae9356ce1309e1cec4a5aa367bdd0f0584e6aed382c0a5c90eb598e5d1882b3",
+      "verdict": "pass",
+      "evidence": [
+        "任务职责：404 页 robots 只有一条 noindex、未发布语言行为（图谱/任务/SEO-5.md:31、:40-50）。",
+        "不适用：robots/meta 与作业批次无关；相关文件在 main 存在。",
+        "本窗未跑 404 robots 测试。"
+      ],
+      "originalReviewer": "测试工程师",
+      "evidenceGroup": "G4",
+      "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json"
+    },
+    "SEO-6": {
+      "contractHash": "53ebf4a8597ac3f54599d97d5b11476662bc0bf5dd6243a0869f6927cd1d9365",
+      "verdict": "pass",
+      "evidence": [
+        "任务职责：3D 城市场景由 GIF 改 video、播放/暂停与按需加载（图谱/任务/SEO-6.md:31、:40-44）。",
+        "不适用：媒体播放与作业批次无关；brandMedia/BrandScene 在 main 存在。",
+        "本窗未跑 e2e、未验证播放行为。"
+      ],
+      "originalReviewer": "测试工程师",
+      "evidenceGroup": "G4",
+      "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json"
+    },
+    "SEO-7": {
+      "contractHash": "6a5de7eebccdb0176016cc97a4c52b78d5b64f425c094a7b4b51ce44ab99e5d7",
+      "verdict": "pass",
+      "evidence": [
+        "任务职责：SEO 复核条目（图谱/任务/SEO-7.md:31）。",
+        "不适用：条款只改固定作业批次单位，不涉及 SEO 输出或站点元数据。",
+        "本窗未运行 SEO 检查。"
+      ],
+      "originalReviewer": "测试工程师",
+      "evidenceGroup": "G4",
+      "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json"
+    }
+  }
+}

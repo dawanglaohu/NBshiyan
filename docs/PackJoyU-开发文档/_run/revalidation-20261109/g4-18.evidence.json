@@ -1,0 +1,167 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "CI-DB-TESTS": {
+      "contractHash": "454a476d306db5eff171440cd7164b5e96a244bf02d164d190d455c2363051cb",
+      "evidence": [
+        "任务职责：把 analytics/chat 数据库测试接进 PostgreSQL 17，并在既有 PG step 断言 TAP skipped=0、fail=0、pass>0（图谱/任务/CI-DB-TESTS.md:31、:40）。",
+        "不适用：本次共享章节只改固定作业的批次单位语义：聚合作业按站点自然日计（maxBatchDays≤500）、分析保留按删除行计（5,000行/DELETE批次、20,000行/轮、三表合计、每批独立事务）、55s 明写为时间预算、其他作业沿用既定500工作单位；CI step、清单与阈值均未被此次源文改动，ci.yml blob 在 bded1728 与 920db0f1 同为 99a79d05686009c8b2cac76e74bc7fa0df8315b7，运行时零差量。",
+        "原门禁保留：本任务只登记已合入的接入事实，未新增/放宽任何断言；本窗未运行 CI。"
+      ],
+      "verdict": "pass"
+    },
+    "CI-DEVICE-SERIAL": {
+      "contractHash": "a150f6e4d0e8745390d04bf355aac321d6ebaaa33dd1c4a428a9e663689f99f1",
+      "evidence": [
+        "任务职责：设备会话回归串行（--test-concurrency=1）、失败打印 TAP 与文件门禁后退出 1、成功路径要求 todo=0（图谱/任务/CI-DEVICE-SERIAL.md:31、:40-42）。",
+        "不适用：条款只改固定作业批次单位，不涉及设备测试串行、TAP 汇总或文件门禁；ci.yml 未被本次补丁修改（blob 99a79d05… 同前）。",
+        "原限制保留：串行与 todo=0 门禁未变；本窗未运行设备测试。"
+      ],
+      "verdict": "pass"
+    },
+    "DEP-AUDIT-1": {
+      "contractHash": "cc6c9b305e87c66e4b67f2fab354e2cd21d8e3d5b4f5f9fbde49c31a27d65103",
+      "evidence": [
+        "任务职责：依赖审计豁免与 scripts/audit-high-prod.ts 生产审计入口（图谱/任务/DEP-AUDIT-1.md:31、:40-43）。",
+        "不适用：本次共享章节只改固定作业的批次单位语义：聚合作业按站点自然日计（maxBatchDays≤500）、分析保留按删除行计（5,000行/DELETE批次、20,000行/轮、三表合计、每批独立事务）、55s 明写为时间预算、其他作业沿用既定500工作单位 不涉及依赖审计、豁免清单或 package.json；该卡代码位置在 main 042c7d24 全部存在。",
+        "本窗未运行审计；未改任何源码或清单。"
+      ],
+      "verdict": "pass"
+    },
+    "DEPLOY-FIX-1": {
+      "contractHash": "dceba51a0a087ed64b0c0ad595b4dca022bb51a27a5ea0e106088f6e9625dd89",
+      "evidence": [
+        "任务职责：首页品牌媒体与海报修复（src/lib/home/brandMedia.ts、src/app/[locale]/page.tsx、poster PNG，图谱/任务/DEPLOY-FIX-1.md:29、:38-40）。",
+        "不适用：条款只作用于固定作业批次单位，与首页媒体渲染无关；该卡三处代码位置在 main 均存在。",
+        "本窗未构建、未起服务。"
+      ],
+      "verdict": "pass"
+    },
+    "DOCKER-UPLOADS-1": {
+      "contractHash": "be0516f3035814e726c1987c48292a851f02a1d8a56ebc08566d829d61a2726f",
+      "evidence": [
+        "任务职责：.dockerignore 排除上传目录（图谱/任务/DOCKER-UPLOADS-1.md:29、:38）。",
+        "不适用：.dockerignore 与构建忽略清单不受作业批次条款影响；文件在 main 存在。",
+        "本窗未构建镜像。"
+      ],
+      "verdict": "pass"
+    },
+    "E2E-CONSENT-FIX": {
+      "contractHash": "84a86f23c872736179670dcc013e2bae97736deed3335b4cf756dca558b98fd7",
+      "evidence": [
+        "任务职责：分析同意 e2e 的路由截取与重放断言（acceptedIds 含 pageView.eventId、duplicateIds 含该 eventId、同一 navigationId 条数=1，图谱/任务/E2E-CONSENT-FIX.md:31、:40-46）。",
+        "不适用：该任务针对事件采集/去重协议，不是聚合作业或保留作业的批处理单位；条款未改采集、去重与同意逻辑。",
+        "本窗未跑 e2e，未改该 spec。"
+      ],
+      "verdict": "pass"
+    },
+    "GATE-HARDEN": {
+      "contractHash": "bde3ab72cdeaa258da0319e4ad6659f0ad950381fbbcf0e20f36a80fc1099637",
+      "evidence": [
+        "任务职责：安全审查 gate 不在 PR head 执行代码、路径规则覆盖后台/媒体/SEO 组件（图谱/任务/GATE-HARDEN.md:31、:40-44）。",
+        "不适用：条款不涉及 PR 审查 gate、路径规则或合并权限；CODEOWNERS 仍在 main 指向 @dawanglaohu。",
+        "受限说明：卡上三处 security-review 工作流在 main 042c7d24 已不存在，由独立提交 82f74bcc『chore(ci): retire security-review gate tied to deleted App』退役；这是与本条款无关的历史文档漂移，不构成本次阻断，交原任务流程处理。"
+      ],
+      "verdict": "pass"
+    },
+    "GATE-HARDEN-2": {
+      "contractHash": "49cb6a50b3e73344e227f3a72b22167f3c8588ffc246debc5e29f1db6f6f2e9e",
+      "evidence": [
+        "任务职责：.github/CODEOWNERS 对 workflows/CODEOWNERS 指定审查请求人（图谱/任务/GATE-HARDEN-2.md:31、:40-41）。",
+        "不适用：CODEOWNERS 与作业批次单位无关；main 042c7d24 两份规则仍在（/.github/workflows/ 与 /.github/CODEOWNERS → @dawanglaohu）。",
+        "本窗未改 CODEOWNERS 或工作流。"
+      ],
+      "verdict": "pass"
+    },
+    "GATE-PATHS-1": {
+      "contractHash": "e581975a8b17d86fee4bfd0a93414a96c7340e82366180a7b13168f99ef89ae4",
+      "evidence": [
+        "任务职责：安全审查 gate 的路径规则（图谱/任务/GATE-PATHS-1.md:29、:38）。",
+        "不适用：条款不涉及 gate 路径规则或判定流程。",
+        "受限说明：卡上 .github/workflows/security-review.yml 已在 82f74bcc 退役、main 不存在；与本条款无关的文档漂移，不构成本次阻断。"
+      ],
+      "verdict": "pass"
+    },
+    "GATE-PATHS-2": {
+      "contractHash": "d2ef2389937d81539293abe211dd11e9aeca54f3c533ae7cb82ba54358786537",
+      "evidence": [
+        "任务职责：安全审查 gate 的路径规则补充（图谱/任务/GATE-PATHS-2.md:29、:38）。",
+        "不适用：条款不涉及 gate 路径规则。",
+        "受限说明：同上，security-review.yml 已在 82f74bcc 退役；不构成本次阻断。"
+      ],
+      "verdict": "pass"
+    },
+    "MAIN-E2E-FIX": {
+      "contractHash": "a31afd8e29a04f1e24ddec74abe1918203375ac2231b3ad2d34091cb59ebda5b",
+      "evidence": [
+        "任务职责：只改测试——analytics ingest 的 READY/published 校验、121 字符 slug 白名单、catalog merge 接受集合（图谱/任务/MAIN-E2E-FIX.md:31、:40-42）。",
+        "不适用：这是事件摄入/目录合并测试，不是固定作业的批量单位；条款未改 ingest 校验或测试。",
+        "本窗未运行这些测试。"
+      ],
+      "verdict": "pass"
+    },
+    "POST-LAUNCH-P3": {
+      "contractHash": "4fa787e2bba540dfcf3684c45176ccfd89112f4a7fa492eed513d54ce241ec98",
+      "evidence": [
+        "任务职责：上线后修组合——媒体缓存头/删除无引用 GIF、/og 404 no-store、Permissions-Policy、限流 429 的 Retry-After、Auth.js 登录页字段、重置脚本导出、Redis 批量解析与生产判断、smoke 断言、BrandScene 重试（图谱/任务/POST-LAUNCH-P3.md:31）。",
+        "不适用：本次共享章节只改固定作业的批次单位语义：聚合作业按站点自然日计（maxBatchDays≤500）、分析保留按删除行计（5,000行/DELETE批次、20,000行/轮、三表合计、每批独立事务）、55s 明写为时间预算、其他作业沿用既定500工作单位 不涉及缓存头、媒体、限流响应、登录页或 smoke 白名单；这些条目的既有断言与限制未被本次源文改动。",
+        "两处 GIF 在卡上标注『已删除』且 main 不存在，属卡内既定动作，不是回归。"
+      ],
+      "verdict": "pass"
+    },
+    "SEO-1": {
+      "contractHash": "be2c4b7a8d0e854d81a32fe1b07f8074268136bb906624545ffcbcd7ed59c5fd",
+      "evidence": [
+        "任务职责：关于页 sitemap 条目、hreflang/x-default、图片与 lastModified（图谱/任务/SEO-1.md:31）。",
+        "不适用：条款只改固定作业批次单位，不涉及 sitemap、SEO 元数据或图片清单。",
+        "本窗未构建、未跑 sitemap 测试。"
+      ],
+      "verdict": "pass"
+    },
+    "SEO-2": {
+      "contractHash": "226144fdf2a3c96eeee022ccc64d74f3dfb2d105082baa4eaf3c61f81757936f",
+      "evidence": [
+        "任务职责：静态 /og jpg 的 Cache-Control 与单测断言（图谱/任务/SEO-2.md:31、:40-44）。",
+        "不适用：缓存头规则不依赖作业批次单位；next.config.ts 未被本次补丁改动。",
+        "本窗未跑 og 缓存测试。"
+      ],
+      "verdict": "pass"
+    },
+    "SEO-4": {
+      "contractHash": "00b5fa6a8af9f5b798dbbdf5e970d2bce9831bff622cebcf653c147c2883b78a",
+      "evidence": [
+        "任务职责：去掉 VERCEL_ENV 生产兜底，统一 APP_ENV 生产判定（图谱/任务/SEO-4.md:31、:40-50）。",
+        "不适用：生产判定与作业批次单位无关；相关源码在 main 存在且未被本补丁改动。",
+        "本窗未跑 app-env 测试。"
+      ],
+      "verdict": "pass"
+    },
+    "SEO-5": {
+      "contractHash": "5ae9356ce1309e1cec4a5aa367bdd0f0584e6aed382c0a5c90eb598e5d1882b3",
+      "evidence": [
+        "任务职责：404 页 robots 只有一条 noindex、未发布语言行为（图谱/任务/SEO-5.md:31、:40-50）。",
+        "不适用：robots/meta 与作业批次无关；相关文件在 main 存在。",
+        "本窗未跑 404 robots 测试。"
+      ],
+      "verdict": "pass"
+    },
+    "SEO-6": {
+      "contractHash": "53ebf4a8597ac3f54599d97d5b11476662bc0bf5dd6243a0869f6927cd1d9365",
+      "evidence": [
+        "任务职责：3D 城市场景由 GIF 改 video、播放/暂停与按需加载（图谱/任务/SEO-6.md:31、:40-44）。",
+        "不适用：媒体播放与作业批次无关；brandMedia/BrandScene 在 main 存在。",
+        "本窗未跑 e2e、未验证播放行为。"
+      ],
+      "verdict": "pass"
+    },
+    "SEO-7": {
+      "contractHash": "6a5de7eebccdb0176016cc97a4c52b78d5b64f425c094a7b4b51ce44ab99e5d7",
+      "evidence": [
+        "任务职责：SEO 复核条目（图谱/任务/SEO-7.md:31）。",
+        "不适用：条款只改固定作业批次单位，不涉及 SEO 输出或站点元数据。",
+        "本窗未运行 SEO 检查。"
+      ],
+      "verdict": "pass"
+    }
+  }
+}
