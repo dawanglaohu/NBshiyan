@@ -422,6 +422,8 @@ jobs:
               'tests/admin-reauth.http.test.ts',
               'tests/admin-recovery-authorizations.http.test.ts',
               'tests/admin-recovery-start.db.test.ts',
+              'tests/admin-recovery-reentry.http.test.ts',
+              'tests/admin-recovery-confirm.db.test.ts',
               'tests/admin-account-mode-password.http.test.ts',
               'tests/admin-device-management.http.test.ts',
               'tests/analytics-retention-plan.test.ts',
@@ -470,6 +472,8 @@ jobs:
             tests/admin-reauth.http.test.ts \
             tests/admin-recovery-authorizations.http.test.ts \
             tests/admin-recovery-start.db.test.ts \
+            tests/admin-recovery-reentry.http.test.ts \
+            tests/admin-recovery-confirm.db.test.ts \
             tests/admin-account-mode-password.http.test.ts \
             tests/admin-device-management.http.test.ts \
             tests/analytics-retention-plan.test.ts \
@@ -504,6 +508,8 @@ jobs:
             'tests/admin-reauth.http.test.ts',
             'tests/admin-recovery-authorizations.http.test.ts',
             'tests/admin-recovery-start.db.test.ts',
+            'tests/admin-recovery-reentry.http.test.ts',
+            'tests/admin-recovery-confirm.db.test.ts',
             'tests/admin-account-mode-password.http.test.ts',
             'tests/admin-device-management.http.test.ts',
             'tests/analytics-retention-plan.test.ts',

@@ -4,6 +4,7 @@ import { prisma } from './db';
 import { createActionGrantService, type ActionGrantService } from './admin/action-grant';
 import { createRecoveryAuthorizationService, type RecoveryAuthorizationService } from './admin/recovery-authorizations';
 import { createRecoveryStartService, type RecoveryStartService } from './admin/recovery-start';
+import { createRecoveryEnrollmentService, type RecoveryEnrollmentService } from './admin/recovery-enrollment';
 import { createAccountSecurityService, type AccountSecurityService } from './admin/account-security';
 import { createDeviceManagementService, type DeviceManagementService } from './admin/device-management';
 import { deviceServiceFor, type DeviceSessionService } from './admin/device-session';
@@ -35,6 +36,7 @@ export type AdminServices = HttpServices & {
   actionGrants: ActionGrantService;
   recoveryAuthorizations: RecoveryAuthorizationService;
   recoveryStart: RecoveryStartService;
+  recoveryEnrollment: RecoveryEnrollmentService;
   accountSecurity: AccountSecurityService;
   deviceManagement: DeviceManagementService;
   /** 站点统计时区设置；M5-T4 的 settings 工厂只在这里接线。 */
@@ -84,6 +86,11 @@ export function createAdminServices(deps: {
       actionGrants,
     }),
     recoveryStart: createRecoveryStartService({
+      db,
+      clock,
+      restrictedTtlMs: config.grant.restrictedTtlMs,
+    }),
+    recoveryEnrollment: createRecoveryEnrollmentService({
       db,
       clock,
       restrictedTtlMs: config.grant.restrictedTtlMs,
