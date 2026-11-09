@@ -73,7 +73,7 @@
 - M3-T25：sections
 - M3-T3：sections
 - M3-T4：sections
-- M3-T5：sections
+- M3-T5：definition、effectivePaths、sections
 - M3-T6：sections
 - M3-T7：sections
 - M3-T8：sections
@@ -179,9 +179,9 @@
  | ChatNotification（M4） | `id`，`conversationId`，`messageId`（对应访客消息），`status QUEUED/SENDING/SENT/FAILED/UNKNOWN/DISABLED`，`attempts Int`，`availableAt`，`leaseVersion Int`，`leaseOwner String?`，`stableMessageId String`，`lockedUntil DateTime?`，`requestStartedAt DateTime?`，`lastErrorCode String?`，`providerMessageId String?`，`sentAt DateTime?`，`createdAt`，`updatedAt` | messageId唯一；每条成功访客消息一条幂等通知，无定时催办产品；通知只含收件事实与受保护后台链接，不复制正文/email/token。租约认领与状态条件更新，SMTP在事务外。按至少一次策略最多3次退避1m/5m/30m；已开始SMTP后结果不明或租约过期记UNKNOWN并可用同一stableMessageId有界重领，故可能重复；CAS核leaseOwner/version防旧worker回写。SMTP适配器新增可选messageId保持旧调用兼容。未配置→DISABLED，绝不报SENT。 |
  | AnalyticsEvent（M5） | `eventId UUID`，`semanticKey String`，`payloadHash`，`browserHash`，`kind` 白名单枚举，`occurredAt UTC`，`receivedAt UTC`，`locale en/ru`，`path String?`，`productSlug String?`，`navigationId UUID?`，`viewId UUID?`，`durationMs Int?`（终态0..600000），`failureReason String?`（LOAD_ERROR/TIMEOUT/WEBGL_UNAVAILABLE） | eventId PK，semanticKey唯一；索引occurredAt、receivedAt、productSlug/occurredAt、viewId。只收服务器验过的同意cookie；browserHash由服务端域分离HMAC派生，不收IP/UA原文/email/正文/完整URL。原始按receivedAt保留30天。eventId和semanticKey均在原始窗口保留，旧于48h的事件拒绝，不能在30d清理后重放旧事件。 |
 -| AnalyticsDaily（M5） | `localDate String YYYY-MM-DD`，`timezoneRevision Int`，`timezone String`，`dimension String`（site或product:已发布产品slug），`visitors Int`，`pageViews Int`，`productViews Int`，`modelStarts Int`，`modelSuccesses Int`，`modelFailures Int`，`meanLoadDurationMs Float?`，`loadDurationSamples Int`，`chatStarts Int`，`sourceThrough DateTime`，`aggregatedAt DateTime`，`expiresAt` | 复合PK localDate/timezoneRevision/dimension；计数非负；整站访客与产品访客各自distinct，不可累加产品访客冒充全站UV。不得含browserHash、IP或可回连身份；按自然月保留13个月。不新增按浏览器长期去重账本，直接从仍保留的原始事实重算。 |
-+| AnalyticsDaily（M5） | `localDate String YYYY-MM-DD`，`timezoneRevision Int`，`timezone String`，`dimension String`（site或product:已发布产品slug），`visitors Int`，`pageViews Int?`（product为NULL），`productViews Int`，`modelStarts Int`，`modelSuccesses Int`，`modelFailures Int`，`chatStarts Int`，`durationMsSum BigInt`，`loadDurationSamples Int`，`sourceThrough DateTime?`（零事实不造时间），`aggregatedAt DateTime`，`expiresAt DateTime` | 复合PK localDate/timezoneRevision/dimension；索引expiresAt与(dimension, localDate)；计数非负；整站访客与产品访客各自distinct，不可累加产品访客冒充全站UV；耗时只存精确总和与有效样本数，均值读侧加权计算，不存日均值；不得含browserHash、IP或可回连身份；无关联聚合保留13个自然月，按行内timezone的expiresAt（等号到期、月末/闰年夹取）删除。不新增按浏览器长期去重账本，直接从仍保留的原始事实重算。 |
-+| AnalyticsAggregateDayState（M5） | `localDate String`，`timezoneRevision Int`，`timezone String`（该revision的IANA时区），`markerVersions Json`，`deferUntil DateTime?`，`gapKind String?`，`gapSince DateTime?`，`updatedAt` | 复合PK localDate/timezoneRevision；索引(timezoneRevision, localDate)；marker/defer/gap 的无身份辅助状态，不含事件/身份字段。`deferUntil` 存最早未到期值；gap只是证据。按自身timezone正推13自然月到期；同键还有未到期AnalyticsDaily时保留；13月到期优先于永久gap/远期defer/live-ahead；坏timezone只诊断并定向保守保留。被GC与所有state写者共用租约/代次守卫。 |
-+| AnalyticsDayChange（M5） | `utcDate String YYYY-MM-DD`（主键，无id），`version BigInt @default(0)`，`updatedAt` | 每UTC日的live版本；ingest在同一事务bump，聚合消费后记录markerVersions。按UTC日反推13自然月＋2天GC，删除前排除仍存续state覆盖的UTC日与markerVersions键；先state后marker。不含事件/身份字段。 |
++| AnalyticsDaily（M5） | `localDate String YYYY-MM-DD`，`timezoneRevision Int`，`timezone String`，`dimension String`（site或product:已发布产品slug），`visitors Int`，`pageViews Int?`（product为NULL），`productViews Int`，`modelStarts Int`，`modelSuccesses Int`，`modelFailures Int`，`chatStarts Int`，`durationMsSum BigInt`，`loadDurationSamples Int`，`sourceThrough DateTime?`（零事实不造时间），`aggregatedAt DateTime`，`expiresAt DateTime` | **由 M5-T12 实施后生效；当前 schema 尚无此表。** 复合PK localDate/timezoneRevision/dimension；索引expiresAt与(dimension, localDate)；计数非负；整站访客与产品访客各自distinct，不可累加产品访客冒充全站UV；耗时只存精确总和与有效样本数，均值读侧加权计算，不存日均值；不得含browserHash、IP或可回连身份；无关联聚合保留13个自然月，按行内timezone的expiresAt（等号到期、月末/闰年夹取）删除。不新增按浏览器长期去重账本，直接从仍保留的原始事实重算。 |
++| AnalyticsAggregateDayState（M5） | `localDate String`，`timezoneRevision Int`，`timezone String`（该revision的IANA时区），`markerVersions Json`，`deferUntil DateTime?`，`gapKind String?`，`gapSince DateTime?`，`updatedAt` | **由 M5-T12 实施后生效；当前 schema 尚无此表。** 复合PK localDate/timezoneRevision；索引(timezoneRevision, localDate)；marker/defer/gap 的无身份辅助状态，不含事件/身份字段。`deferUntil` 存最早未到期值；gap只是证据。按自身timezone正推13自然月到期；同键还有未到期AnalyticsDaily时保留；13月到期优先于永久gap/远期defer/live-ahead；坏timezone只诊断并定向保守保留。被GC与所有state写者共用租约/代次守卫。 |
++| AnalyticsDayChange（M5） | `utcDate String YYYY-MM-DD`（主键，无id），`version BigInt @default(0)`，`updatedAt` | **由 M5-T12 实施后生效；当前 schema 尚无此表。** 每UTC日的live版本；ingest在同一事务bump，聚合消费后记录markerVersions。按UTC日反推13自然月＋2天GC，删除前排除仍存续state覆盖的UTC日与markerVersions键；先state后marker。不含事件/身份字段。 |
  | JobState（M5作业基础，先于消费者交付） | `key` 注册白名单，`leaseOwner String?`，`generation Int`，`lockedUntil DateTime?`，`lastStartedAt DateTime?`，`lastSucceededAt DateTime?`，`lastFinishedAt DateTime?`，`lastStatus` NEVER/RUNNING/SUCCEEDED/FAILED/PARTIAL，`lastErrorCode String?`，`summary Json?` | PK key，仅固定registry接受值；租约CAS，时钟取服务端；summary严格白名单计数/时间/版本，不接任意日志。提交同时核代次/租约和当前时区revision；旧任务不得覆盖新结果。没有任意代码/脚本/调度创建API。任务失败不覆盖最近成功数据时间。 |
  | ApiDailyCounter（M3共享HTTP生产者，M6只读） | `localDate`、`timezoneRevision`、`routeId`固定白名单、`requestCount Int`、`errorCount Int`、`lastObservedAt` | 复合PK日/revision/routeId；仅本轮已接线新API的最终状态记录，error为5xx，upsert原子递增；不含请求体/IP/用户/完整URL。计数写失败不改变核心业务响应，来源标部分覆盖/失败并保留安全告警；无真实总数不展示错误率。保留13个月，不冒充全站监控。 |
  | OpsSourceSnapshot（M6） | `source STORAGE/BACKUP` PK，`status OK/FAILED/NOT_CONNECTED`，`measuredAt`，`lastSucceededAt DateTime?`，`values Json?`（只允许bytesUsed/bytesFree或backupCompletedAt/backupAgeSeconds/verified），`safeErrorCode String?` | 仅由M6交付的固定受鉴权report脚本/ops-sample任务写，M3/M4/M5不调用该来源，JSON schema限定数字/布尔/时间；浏览器看板只读，无路径、文件名、主机地址、dump内容或密钥。报告按source+measuredAt单调CAS，同时间同载荷复用原结果、同时间异载荷409、旧时间忽略；failed保留最后成功values并明确旧值，未配置无虚假成功时间。 |
@@ -283,7 +283,17 @@
 ````diff
 --- before/_run/task-contracts.json
 +++ after/_run/task-contracts.json
-@@ -2538,6 +2538,60 @@
+@@ -912,7 +912,8 @@
+         "src/lib/server/admin/audit.ts",
+         "src/lib/server/composition.ts",
+         "tests/admin-recovery-confirm.db.test.ts",
+-        "tests/admin-recovery-reentry.http.test.ts"
++        "tests/admin-recovery-reentry.http.test.ts",
++        ".github/workflows/ci.yml"
+       ],
+       "outputPaths": [
+         "src/lib/server/admin/recovery-enrollment.ts",
+@@ -2538,6 +2539,60 @@
          18
        ]
      },
@@ -344,7 +354,7 @@
      "M5-T5": {
        "provides": [
          "analytics-retention-plan"
-@@ -2886,6 +2940,10 @@
+@@ -2886,6 +2941,10 @@
          {
            "task": "M2-T7",
            "capability": "model-events"
@@ -363,7 +373,7 @@
 
 # 继续原任务 M6-T1：定义统计查询范围与核心来源DTO
 沿用分支 task/M6-T1、现有工作树和原 PR；不要创建新任务或重新初始化分支。
-任务契约版本：dc37e6fe7455b9c839dca1964d2b4d602682dc07d24d1490bca738019391f347
+任务契约版本：b9f852bdda9b563ef61bbe201e8f3125a078b1076971e479df95fe4be59d568a
 读取 _run/patches/ 中本次补丁的差异和复验清单，只处理列出的条目及其直接影响。没有差异说明时先核对现有 PR 的返工记录，不按完整实施流程重做。
 修正后的验收：
 1) 专用PG测试按同一timezoneRevision与左闭右开日区间读取AnalyticsDaily
