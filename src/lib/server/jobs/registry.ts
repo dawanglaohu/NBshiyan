@@ -327,6 +327,65 @@ export type OperationsHandlerDeps = {
   deadlineMs?: number;
 };
 
+/** 已校验请求的一次执行结果；响应映射由调用方决定。 */
+export type JobRequestOutcome =
+  | { kind: 'ran'; status: JobResultStatus; counts: JobCountsDTO; finishedAt: string }
+  | { kind: 'busy' }
+  | { kind: 'timeout' }
+  | { kind: 'failed' };
+
+/**
+ * 一次已校验作业请求的公共执行：造 deadline/abort → runWithDeadline → 映射四种结果。
+ * operations 与旧 mail-queue cron 共用这一份，不复制两套时限逻辑。
+ * 调用方负责鉴权、请求体校验与 clock 合法性（非法 clock 的 503 响应体留在调用方）。
+ */
+export async function executeJobRequest(
+  deps: { services: JobRegistry; clock?: () => Date; deadlineMs?: number },
+  jobKey: JobKey,
+  options?: { dryRun?: boolean },
+): Promise<JobRequestOutcome> {
+  const clock = deps.clock ?? (() => new Date());
+  const now = clock();
+  if (!(now instanceof Date) || !Number.isFinite(now.getTime())) return { kind: 'failed' };
+  // 业务 cutoff 用注入时钟；预算用真实墙钟，两者不能混用。
+  const deadlineMs = deps.deadlineMs ?? JOB_DEADLINE_MS;
+  const deadlineAt = new Date(Date.now() + deadlineMs);
+  const controller = new AbortController();
+  const context: JobRunContext = {
+    now,
+    deadlineAt,
+    signal: controller.signal,
+    ...(options?.dryRun !== undefined ? { dryRun: options.dryRun } : {}),
+  };
+  let outcome: JobRunOutcome | 'deadline';
+  try {
+    outcome = await runWithDeadline(deps.services.run(jobKey, context), deadlineMs);
+  } catch (error) {
+    if (error instanceof JobDeadlineExceeded) {
+      console.error('[cron] operations job deadline before claim', { jobKey });
+      return { kind: 'timeout' };
+    }
+    console.error('[cron] operations job failed', { jobKey });
+    return { kind: 'failed' };
+  }
+  if (outcome === 'deadline') {
+    controller.abort();
+    console.error('[cron] operations job deadline', { jobKey });
+    return { kind: 'timeout' };
+  }
+  if (outcome.kind === 'busy') return { kind: 'busy' };
+  if (outcome.kind === 'timeout') {
+    // 预算耗尽：本轮没有写终态，JobState 保持已领取的 RUNNING，租约到期后由下一次调度接管。
+    console.error('[cron] operations job budget exhausted', { jobKey });
+    return { kind: 'timeout' };
+  }
+  if (outcome.kind === 'finish_failed') {
+    console.error('[cron] operations job result not persisted', { jobKey });
+    return { kind: 'failed' };
+  }
+  return { kind: 'ran', status: outcome.status, counts: outcome.counts, finishedAt: clock().toISOString() };
+}
+
 /**
  * POST /api/admin/cron/operations 的处理器：固定 jobKey 白名单 + Bearer
  * CRON_SECRET（常量时间比较）。只执行 registry 里已注册的实现，不接受任意脚本、
@@ -355,53 +414,20 @@ export function createOperationsHandler(deps: OperationsHandlerDeps) {
     if (!(now instanceof Date) || !Number.isFinite(now.getTime())) {
       return reply({ error: 'service_unavailable' }, 503);
     }
-    // 业务 cutoff 用注入时钟；预算用真实墙钟，两者不能混用。
-    const deadlineMs = deps.deadlineMs ?? JOB_DEADLINE_MS;
-    const deadlineAt = new Date(Date.now() + deadlineMs);
-    const controller = new AbortController();
-
-    // 只有契约里带 dryRun 的作业会收到这个字段；其余作业的请求体里没有它。
-    const context: JobRunContext = {
-      now,
-      deadlineAt,
-      signal: controller.signal,
-      ...('dryRun' in request ? { dryRun: request.dryRun } : {}),
-    };
-    let outcome: JobRunOutcome | 'deadline';
-    try {
-      outcome = await runWithDeadline(
-        deps.services.run(jobKey, context),
-        deadlineMs,
-      );
-    } catch (error) {
-      if (error instanceof JobDeadlineExceeded) {
-        console.error('[cron] operations job deadline before claim', { jobKey });
-        return reply({ error: 'job_timeout' }, 503);
-      }
-      console.error('[cron] operations job failed', { jobKey });
-      return reply({ error: 'job_failed' }, 500);
-    }
-    if (outcome === 'deadline') {
-      controller.abort();
-      console.error('[cron] operations job deadline', { jobKey });
-      return reply({ error: 'job_timeout' }, 503);
-    }
+    const outcome = await executeJobRequest(
+      { services: deps.services, clock: deps.clock, ...(deps.deadlineMs !== undefined ? { deadlineMs: deps.deadlineMs } : {}) },
+      jobKey,
+      { ...('dryRun' in request ? { dryRun: request.dryRun } : {}) },
+    );
     if (outcome.kind === 'busy') return reply({ error: 'job_busy' }, 409);
-    if (outcome.kind === 'timeout') {
-      // 预算耗尽：本轮没有写终态，JobState 保持已领取的 RUNNING，租约到期后由下一次调度接管。
-      console.error('[cron] operations job budget exhausted', { jobKey });
-      return reply({ error: 'job_timeout' }, 503);
-    }
-    if (outcome.kind === 'finish_failed') {
-      console.error('[cron] operations job result not persisted', { jobKey });
-      return reply({ error: 'job_failed' }, 500);
-    }
+    if (outcome.kind === 'timeout') return reply({ error: 'job_timeout' }, 503);
+    if (outcome.kind === 'failed') return reply({ error: 'job_failed' }, 500);
 
     return reply({
       jobKey,
       status: outcome.status,
       counts: outcome.counts,
-      finishedAt: clock().toISOString(),
+      finishedAt: outcome.finishedAt,
     });
   };
 }
