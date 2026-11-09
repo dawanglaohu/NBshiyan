@@ -600,6 +600,7 @@
         "frontendRoutes"
       ],
       "supportPaths": [
+        "eslint.config.mjs",
         "src/lib/client/analytics.ts"
       ],
       "outputPaths": [

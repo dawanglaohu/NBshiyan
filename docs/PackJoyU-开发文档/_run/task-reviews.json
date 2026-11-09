@@ -425,15 +425,18 @@
   },
   "M2-T7": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "7dc18306725724c3f7ed90e9fe45d8afdd0b4ca0e8c6386423d7b61830bf0f8f",
+    "contractHash": "d3105783e0e59cbf9f2ec1ad04bfb09371723371fe748dbdab38d37ab7e50a4d",
     "evidence": [
-      "补丁 m2t7-client-events-scope-20261108 仅改 _run/task-contracts.json 的 M2-T7.supportPaths：新增 src/lib/client/analytics.ts；provides/requires/stage/wiring/outputPaths/sections 逐字段未变（task-contracts.json 差量只有 supportPaths 两行）。",
-      "登记依据：M2-T7 要求把真实 GLB start/terminal 接入分析采集；现有客户端生产者 src/lib/client/analytics.ts 已含同源 DTO、同意门控、内存队列与 flush（:47 撤回停采/清队列、:122 产品 key 映射、:172 首载 page_view、:227 同意串行写）。任务原有 effectivePaths 只有 src/components/three/、src/components/analytics/ 等，无法在不登记该文件的前提下扩展既有生产者；登记它避免另造第二套队列。",
-      "本补丁只登记范围，不实施 API、不改产品条款/任务集合/schema/src/tests/CI，也不声称 M2-T7 实现或 CI 通过；实现由正式前端窗在同一基线进行，CI 接线另在集成窗按单卡登记，不把 ci.yml 同时加给两卡。",
-      "影响集合 27 个任务（M2-T7 + 26 个依赖其 provides 的消费者）；这些任务定义未改，仅契约哈希传播。已落地任务未被本次标记（revalidation 仍为 {}）；progress 98 键/done 95、contracts 144、dispatch 144、batchRecords 16、dispatchBatches 22 与父头一致。",
-      "证据分层：本证据只覆盖任务契约范围复核；实现验收、真实浏览器 GLB 生命周期、隔离 PG、CI 与界面证据归后续实现/审查窗，不以本补丁冒充。"
+      "task-contracts.json M2-T7.supportPaths 现为 [eslint.config.mjs, src/lib/client/analytics.ts]；provides/requires/stage/wiring/outputPaths 未改",
+      "补丁 m2t7-lint-b4 sync：27 个契约受影响；M2-T7 变化为 definition/effectivePaths，其余 26 个（M2-T8、M3-T6/T8/T9/T10/T11/T12/T13/T25、M6-T1..T7、M7-T1..T10）全部为 HASH_ONLY，无字段变化",
+      "eslint.config.mjs 用 createRequire 解析 eslint-config-next 并 realpath 到实际安装目录，作为 FlatCompat.resolvePluginsRelativeTo；包缺失时抛明确错误，不提供降级配置，未硬编码 pnpm 版本路径",
+      "默认入口 next lint --no-cache 对 6 个变更文件 exit 0：0 error、1 条既有 @next/next/no-img-element warning（ProductGallery.tsx:418:15）",
+      "直接 eslint --no-cache 对同 6 文件 exit 0，同为 0 error/1 既有 warning",
+      "GalleryScene.tsx 与 ProductModel.tsx 的 --print-config 与旧 NODE_PATH 基线字节完全相同（31,403 B；SHA 28238d4b… 与 0bc0e353…；98 规则，规则值差异 0，插件集合一致）",
+      "负控：普通文件路径的非法 hooks 样例报 react-hooks/rules-of-hooks error（exit 1）；同内容以 ProductModel.tsx 路径运行 exit 0，既有文件级 off 保留",
+      "未安装、未重建、未改 node_modules/.next/包锁/CI/业务源码：.next BUILD_ID 仍 _QaApQh5XsL8VhTA2Swov，PID 22924 启动时间仍 2026-11-09T03:16:23"
     ],
-    "reviewed": "2026-11-08T19:17:04.673449+00:00",
+    "reviewed": "2026-11-09T15:57:49.880302+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
