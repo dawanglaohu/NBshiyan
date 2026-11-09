@@ -14,6 +14,15 @@ export function hashRecoverySessionToken(token: string): string {
 export type RecoveryDb = PrismaClient | Prisma.TransactionClient;
 
 /**
+ * M3-T5 R1：锁前只用来定位 User 行与账号限流主体的会话提示。
+ * 它不参与任何成功/失败判定；所有授权状态必须在 User→session 两把锁之后重读。
+ */
+export type RecoverySessionHint = {
+  userId: string;
+  email: string;
+};
+
+/**
  * Prisma `DateTime` 列是 PostgreSQL `timestamp(3)`（无时区）。raw SQL 里直接绑 JS Date
  * 会被驱动按 timestamptz 发送，再按会话时区落到 timestamp，产生整时区偏移；
  * 既有 `consumePermit` 已用 `($n::timestamptz AT TIME ZONE 'UTC')` 统一成 UTC 墙上时间。
@@ -157,9 +166,14 @@ export type RecoveryRepo = {
   revokeOldRecoverySessions(tx: Prisma.TransactionClient, userId: string, now: Date): Promise<void>;
   createRecoverySession(tx: Prisma.TransactionClient, session: NewRecoverySession): Promise<void>;
 
-  /** M3-T5：按 tokenHash 锁受限会话行，confirm 的所有判定都用锁后重读值。 */
+  /** M3-T5：无锁读 tokenHash 对应的 userId/email，只用于选定要锁的 User 行与账号桶主体。 */
+  readRecoverySessionHint(db: RecoveryDb, tokenHash: string): Promise<RecoverySessionHint | undefined>;
+  /**
+   * M3-T5：按 tokenHash 锁受限会话行。固定锁序 User→session：confirm/enroll 必须先
+   * `lockRecoveryFactors` 再调它，否则与 start 的 User 锁交叉成 ABBA。
+   */
   lockRecoverySession(tx: Prisma.TransactionClient, tokenHash: string): Promise<LockedRecoverySession | undefined>;
-  /** M3-T5：按 userId 锁 User 行并只取最终确认需要的因素列。 */
+  /** M3-T5：按 userId 锁 User 行并只取最终确认需要的因素列；enroll/confirm 的第一把锁。 */
   lockRecoveryFactors(tx: Prisma.TransactionClient, userId: string): Promise<LockedRecoveryFactors | undefined>;
   /** 首次 pending 写入的 CAS：只有待确认列仍为空、会话未完成/未撤销/未过期且 sv 相符时成功。 */
   setPendingSecret(tx: Prisma.TransactionClient, sessionId: string, encrypted: string, until: Date, now: Date, sessionVersion: number): Promise<boolean>;
@@ -266,6 +280,15 @@ export function createRecoveryRepo(): RecoveryRepo {
       await tx.adminRecoverySession.create({ data: session });
     },
 
+    async readRecoverySessionHint(db, tokenHash) {
+      const rows = await db.$queryRaw<RecoverySessionHint[]>`
+        SELECT s."userId", u."email"
+        FROM "AdminRecoverySession" AS s
+        JOIN "User" AS u ON u.id = s."userId"
+        WHERE s."tokenHash" = ${tokenHash}
+      `;
+      return rows[0];
+    },
     async lockRecoverySession(tx, tokenHash) {
       const rows = await tx.$queryRaw<LockedRecoverySession[]>`
         SELECT id, "userId", "sessionVersion", source::text AS source, "expiresAt",

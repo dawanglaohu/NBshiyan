@@ -6,6 +6,7 @@ import { randomBytes } from 'node:crypto';
 import { PrismaClient, type User } from '@prisma/client';
 import { authenticator } from 'otplib';
 import { encrypt, hashSecret } from '../src/lib/server/admin/crypto';
+import { createRecoveryRepo, type RecoveryRepo } from '../src/lib/server/admin/recovery-repo';
 import { MemoryStore, setRateLimitStore } from '../src/lib/server/ratelimit';
 
 /**
@@ -154,6 +155,47 @@ async function sessionRow(userId: string) {
   return db.adminRecoverySession.findFirstOrThrow({ where: { userId } });
 }
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/** 记录锁序：hint 无锁且最先，随后必须是 User 再 session。 */
+function spyRepo(calls: string[]): RecoveryRepo {
+  const real = createRecoveryRepo();
+  return {
+    ...real,
+    async readRecoverySessionHint(tx, tokenHash) {
+      calls.push('hint');
+      return real.readRecoverySessionHint(tx, tokenHash);
+    },
+    async lockRecoveryFactors(tx, userId) {
+      calls.push('user');
+      return real.lockRecoveryFactors(tx, userId);
+    },
+    async lockRecoverySession(tx, tokenHash) {
+      calls.push('session');
+      return real.lockRecoverySession(tx, tokenHash);
+    },
+  };
+}
+
+/** 在 User 锁之后停住事务，把 start 与 enroll 的交错变成可断言的顺序。 */
+function gatedRepo() {
+  const real = createRecoveryRepo();
+  let release!: () => void;
+  let markEntered!: () => void;
+  const entered = new Promise<void>((resolve) => { markEntered = resolve; });
+  const waiting = new Promise<void>((resolve) => { release = resolve; });
+  const repo: RecoveryRepo = {
+    ...real,
+    async lockRecoveryFactors(tx, userId) {
+      const row = await real.lockRecoveryFactors(tx, userId);
+      markEntered();
+      await waiting;
+      return row;
+    },
+  };
+  return { repo, entered, release };
+}
+
 describe('POST /api/auth-admin/recovery/enroll (DB)', { concurrency: 1, skip }, () => {
   test('R1 first enroll creates encrypted pending secret and keeps sv', { timeout: 180_000 }, async () => {
     const code = newCode();
@@ -236,6 +278,57 @@ describe('POST /api/auth-admin/recovery/enroll (DB)', { concurrency: 1, skip }, 
     assert.equal(response.status, 401);
     assert.equal((await response.json() as { error: string }).error, 'bad_credentials');
     assert.equal(response.headers.get('set-cookie'), null);
+  });
+
+  test('R11 enroll locks User before session after a lock-free hint', { timeout: 180_000 }, async () => {
+    const code = newCode();
+    const { user } = await makeAccount({ recoveryCodes: [await hashSecret(code)] });
+    const token = await restrictedToken(user, code);
+    const calls: string[] = [];
+    const response = await handleRecoveryEnroll(enrollRequest(token), {
+      recoveryEnrollment: createRecoveryEnrollmentService({ db, repo: spyRepo(calls) }),
+      apiCounter: counter,
+    });
+    assert.equal(response.status, 200);
+    assert.deepEqual(calls.slice(0, 3), ['hint', 'user', 'session']);
+  });
+
+  test('R12 start and enroll interleave without a lock cycle (no 5xx, state consistent)', { timeout: 240_000 }, async () => {
+    const code1 = newCode();
+    const code2 = newCode();
+    const { user } = await makeAccount({
+      recoveryCodes: [await hashSecret(code1), await hashSecret(code2)],
+    });
+    const token = await restrictedToken(user, code1);
+    const before = await db.user.findUniqueOrThrow({ where: { id: user.id } });
+    const { repo, entered, release } = gatedRepo();
+    let settled = false;
+    const enrollPromise = handleRecoveryEnroll(enrollRequest(token), {
+      recoveryEnrollment: createRecoveryEnrollmentService({ db, repo }),
+      apiCounter: counter,
+    }).then((response) => {
+      settled = true;
+      return response;
+    });
+    await entered;
+    // enroll 已按 User→session 持 User 锁；start 必须排在 User 行后面，而不是持 User 等 session。
+    const startPromise = handleRecoveryStart(startRequest(user.email, code2), {
+      recoveryStart: startService, apiCounter: counter,
+    });
+    await sleep(300);
+    assert.equal(settled, false, 'start waits on the User row held by enroll');
+    release();
+    const [enrollResponse, startResponse] = await Promise.all([enrollPromise, startPromise]);
+    assert.equal(enrollResponse.status, 200);
+    assert.equal(startResponse.status, 200);
+    const rows = await db.adminRecoverySession.findMany({ where: { userId: user.id } });
+    assert.equal(rows.length, 2);
+    assert.equal(rows.filter((row) => row.revokedAt).length, 1, 'start revokes the enrolling session');
+    const active = rows.find((row) => row.revokedAt === null);
+    assert.ok(active, 'exactly one active restricted session');
+    assert.equal(active.completedAt, null);
+    const after = await db.user.findUniqueOrThrow({ where: { id: user.id } });
+    assert.equal(after.sessionVersion, before.sessionVersion + 1);
   });
 });
 

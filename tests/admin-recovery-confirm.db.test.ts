@@ -7,8 +7,8 @@ import { PrismaClient, type User } from '@prisma/client';
 import { authenticator } from 'otplib';
 import { decode } from 'next-auth/jwt';
 import { encrypt, hashSecret } from '../src/lib/server/admin/crypto';
-import { hashRecoveryPermitToken } from '../src/lib/server/admin/recovery-repo';
-import { auditEmailHash } from '../src/lib/server/admin/login';
+import { hashRecoveryPermitToken, createRecoveryRepo, type RecoveryRepo } from '../src/lib/server/admin/recovery-repo';
+import { auditEmailHash, hashCodes } from '../src/lib/server/admin/login';
 import { MemoryStore, setRateLimitStore } from '../src/lib/server/ratelimit';
 
 /**
@@ -255,6 +255,45 @@ async function account(jar: string) {
 
 async function sessionRow(userId: string) {
   return db.adminRecoverySession.findFirstOrThrow({ where: { userId } });
+}
+
+/** 记录锁序：hint 无锁且最先，随后必须是 User 再 session。 */
+function spyRepo(calls: string[]): RecoveryRepo {
+  const real = createRecoveryRepo();
+  return {
+    ...real,
+    async readRecoverySessionHint(handle, tokenHash) {
+      calls.push('hint');
+      return real.readRecoverySessionHint(handle, tokenHash);
+    },
+    async lockRecoveryFactors(tx, userId) {
+      calls.push('user');
+      return real.lockRecoveryFactors(tx, userId);
+    },
+    async lockRecoverySession(tx, tokenHash) {
+      calls.push('session');
+      return real.lockRecoverySession(tx, tokenHash);
+    },
+  };
+}
+
+/** 在 User 锁之后停住事务，把 start 与 confirm 的交错变成可断言的顺序。 */
+function gatedRepo() {
+  const real = createRecoveryRepo();
+  let release!: () => void;
+  let markEntered!: () => void;
+  const entered = new Promise<void>((resolve) => { markEntered = resolve; });
+  const waiting = new Promise<void>((resolve) => { release = resolve; });
+  const repo: RecoveryRepo = {
+    ...real,
+    async lockRecoveryFactors(tx, userId) {
+      const row = await real.lockRecoveryFactors(tx, userId);
+      markEntered();
+      await waiting;
+      return row;
+    },
+  };
+  return { repo, entered, release };
 }
 
 describe('POST /api/auth-admin/recovery/confirm (DB)', { concurrency: 1, skip }, () => {
@@ -507,6 +546,169 @@ describe('POST /api/auth-admin/recovery/confirm (DB)', { concurrency: 1, skip },
     const after = await db.user.findUniqueOrThrow({ where: { id: user.id } });
     assert.equal(after.passwordHash, before.passwordHash, 'password hash unchanged');
     assert.equal((await sessionRow(user.id)).passwordResetSource, null);
+  });
+
+  test('R13 confirm locks User before session after a lock-free hint', { timeout: 180_000 }, async () => {
+    const code = newCode();
+    const { user } = await makeAccount({ recoveryCodes: [await hashSecret(code)] });
+    const token = await restrictedToken(user, code);
+    const { secret: pending } = await enroll(token);
+    const nowMs = Date.now();
+    const calls: string[] = [];
+    const response = await handleRecoveryConfirm(
+      withCookie(request('/api/auth-admin/recovery/confirm', {
+        totp: authenticator.clone({ epoch: nowMs }).generate(pending),
+      }), token),
+      { recoveryEnrollment: createRecoveryEnrollmentService({ db, repo: spyRepo(calls), clock: () => new Date(nowMs) }), apiCounter: counter },
+    );
+    assert.equal(response.status, 200);
+    assert.deepEqual(calls.slice(0, 3), ['hint', 'user', 'session']);
+    const body = await response.json() as { completed: boolean; recoveryCodes: string[] };
+    assert.equal(body.completed, true);
+    assert.equal(body.recoveryCodes.length, 10);
+  });
+
+  test('R14 start and confirm interleave without a lock cycle (no 5xx, state consistent)', { timeout: 240_000 }, async () => {
+    const code1 = newCode();
+    const code2 = newCode();
+    const { user } = await makeAccount({
+      recoveryCodes: [await hashSecret(code1), await hashSecret(code2)],
+    });
+    const token = await restrictedToken(user, code1);
+    const { secret: pending } = await enroll(token);
+    const totp = await codeFor(pending);
+    const before = await db.user.findUniqueOrThrow({ where: { id: user.id } });
+    const { repo, entered, release } = gatedRepo();
+    let settled = false;
+    const confirmPromise = handleRecoveryConfirm(
+      withCookie(request('/api/auth-admin/recovery/confirm', { totp }), token),
+      { recoveryEnrollment: createRecoveryEnrollmentService({ db, repo }), apiCounter: counter },
+    ).then((response) => {
+      settled = true;
+      return response;
+    });
+    await entered;
+    // confirm 已按 User→session 持 User 锁；start 必须排在 User 行后面，而不是持 User 等 session。
+    const startPromise = handleRecoveryStart(startRequest(user.email, code2), {
+      recoveryStart: startService, apiCounter: counter,
+    });
+    await sleep(300);
+    assert.equal(settled, false, 'start waits on the User row held by confirm');
+    release();
+    const [confirmResponse, startResponse] = await Promise.all([confirmPromise, startPromise]);
+    assert.equal(confirmResponse.status, 200);
+    assert.equal(startResponse.status, 401, 'the winning confirm rotated the recovery codes');
+    const rows = await db.adminRecoverySession.findMany({ where: { userId: user.id } });
+    assert.equal(rows.length, 1);
+    assert.ok(rows[0].completedAt);
+    const after = await db.user.findUniqueOrThrow({ where: { id: user.id } });
+    assert.equal(after.sessionVersion, before.sessionVersion + 1);
+  });
+
+  test('R15 pending expiry crossed during code preparation is refused at equality and persisted', { timeout: 180_000 }, async () => {
+    const code = newCode();
+    const { user } = await makeAccount({ recoveryCodes: [await hashSecret(code)] });
+    const token = await restrictedToken(user, code);
+    const { secret: pending } = await enroll(token);
+    const row = await sessionRow(user.id);
+    const until = row.pendingUntil;
+    assert.ok(until, 'pending has a deadline');
+    let nowMs = Date.now();
+    const service = createRecoveryEnrollmentService({
+      db,
+      clock: () => new Date(nowMs),
+      hashCodes: async (codes) => {
+        nowMs = until.getTime(); // 准备 10 个 Argon2 期间跨过 pendingUntil 等号
+        return hashCodes(codes);
+      },
+    });
+    const before = await db.user.findUniqueOrThrow({ where: { id: user.id } });
+    const response = await handleRecoveryConfirm(
+      withCookie(request('/api/auth-admin/recovery/confirm', {
+        totp: authenticator.clone({ epoch: until.getTime() }).generate(pending),
+      }), token),
+      { recoveryEnrollment: service, apiCounter: counter },
+    );
+    assert.equal(response.status, 401);
+    assert.equal((await response.json() as { error: string }).error, 'recovery_expired');
+    const after = await sessionRow(user.id);
+    assert.ok(after.revokedAt, 'expiry is committed, not rolled back');
+    assert.equal(after.pendingSecretEncrypted, null);
+    assert.equal(after.pendingUntil, null);
+    const accountAfter = await db.user.findUniqueOrThrow({ where: { id: user.id } });
+    assert.equal(accountAfter.sessionVersion, before.sessionVersion);
+    assert.equal(accountAfter.totpSecret, before.totpSecret);
+  });
+
+  test('R16 preparation ending before pending expiry commits normally (positive control)', { timeout: 180_000 }, async () => {
+    const code = newCode();
+    const { user } = await makeAccount({ recoveryCodes: [await hashSecret(code)] });
+    const token = await restrictedToken(user, code);
+    const { secret: pending } = await enroll(token);
+    const row = await sessionRow(user.id);
+    const until = row.pendingUntil;
+    assert.ok(until, 'pending has a deadline');
+    const target = until.getTime() - 1_000;
+    let nowMs = Date.now();
+    const service = createRecoveryEnrollmentService({
+      db,
+      clock: () => new Date(nowMs),
+      hashCodes: async (codes) => {
+        nowMs = target; // 准备在等号之前结束
+        return hashCodes(codes);
+      },
+    });
+    const before = await db.user.findUniqueOrThrow({ where: { id: user.id } });
+    const response = await handleRecoveryConfirm(
+      withCookie(request('/api/auth-admin/recovery/confirm', {
+        totp: authenticator.clone({ epoch: target }).generate(pending),
+      }), token),
+      { recoveryEnrollment: service, apiCounter: counter },
+    );
+    assert.equal(response.status, 200);
+    const body = await response.json() as { completed: boolean; recoveryCodes: string[] };
+    assert.equal(body.completed, true);
+    assert.equal(body.recoveryCodes.length, 10);
+    const after = await sessionRow(user.id);
+    assert.ok(after.completedAt);
+    const accountAfter = await db.user.findUniqueOrThrow({ where: { id: user.id } });
+    assert.equal(accountAfter.sessionVersion, before.sessionVersion + 1);
+    assert.equal(accountAfter.recoveryCodes.length, 10);
+  });
+
+  test('R17 pending expiry crossed while waiting for the session lock is refused at equality', { timeout: 180_000 }, async () => {
+    const code = newCode();
+    const { user } = await makeAccount({ recoveryCodes: [await hashSecret(code)] });
+    const token = await restrictedToken(user, code);
+    const { secret: pending } = await enroll(token);
+    const row = await sessionRow(user.id);
+    const until = row.pendingUntil;
+    assert.ok(until, 'pending has a deadline');
+    const real = createRecoveryRepo();
+    let nowMs = Date.now();
+    const repo: RecoveryRepo = {
+      ...real,
+      async lockRecoverySession(tx, tokenHash) {
+        const locked = await real.lockRecoverySession(tx, tokenHash);
+        nowMs = until.getTime(); // 等锁期间跨过 pendingUntil 等号
+        return locked;
+      },
+    };
+    const service = createRecoveryEnrollmentService({ db, repo, clock: () => new Date(nowMs) });
+    const before = await db.user.findUniqueOrThrow({ where: { id: user.id } });
+    const response = await handleRecoveryConfirm(
+      withCookie(request('/api/auth-admin/recovery/confirm', {
+        totp: authenticator.clone({ epoch: until.getTime() }).generate(pending),
+      }), token),
+      { recoveryEnrollment: service, apiCounter: counter },
+    );
+    assert.equal(response.status, 401);
+    assert.equal((await response.json() as { error: string }).error, 'recovery_expired');
+    const after = await sessionRow(user.id);
+    assert.ok(after.revokedAt, 'expiry is committed, not rolled back');
+    assert.equal(after.pendingUntil, null);
+    const accountAfter = await db.user.findUniqueOrThrow({ where: { id: user.id } });
+    assert.equal(accountAfter.sessionVersion, before.sessionVersion);
   });
 });
 
