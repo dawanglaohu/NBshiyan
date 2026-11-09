@@ -2847,7 +2847,8 @@
       ],
       "supportPaths": [
         "src/lib/server/analytics/aggregate.ts",
-        "tests/jobs-runtime.http.test.ts"
+        "tests/jobs-runtime.http.test.ts",
+        ".github/workflows/ci.yml"
       ],
       "outputPaths": [
         "src/lib/server/analytics/retention.ts",

@@ -1087,15 +1087,19 @@
   },
   "M5-T11": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "e14b37e3f55b410b38333f79f955a6cf0d6cf4cda7af3745ede2161bc872df5b",
+    "contractHash": "6a8c38d793c917a451ea54465a64eb0a24b66986211ac42313d0e5e9704b00e2",
     "evidence": [
-      "补丁 m5t11-cron-assert-20261108 仅改 _run/task-contracts.json 的 M5-T11.supportPaths：新增 tests/jobs-runtime.http.test.ts；provides/requires/stage/wiring/outputPaths/sections 逐字段未变，任务契约 diff 仅 2 增 1 删，其余 84 个任务定义逐字未变。",
-      "登记依据：M5-T11 在 1f4a2da6 新增每日 04:30 analytics-retention 的 operations 调度后，tests/jobs-runtime.http.test.ts 的 cron 模板断言（原为 operations 恰一条）失败；Chief 裁定该失败由本任务新增行触发、须在本任务修复，而该测试文件不在 M5-T11 的 outputPaths/supportPaths，故先做最小支持路径登记。",
-      "本补丁只登记范围：未改源码/测试/schema/cron/CI/产品条款，cron 断言仍未修复、jobs-runtime 仍为红项；不声称 R3 实现通过或真库/CI 通过，测试修复与真库复验另交后续步骤。",
-      "范围核对：M5-T11 effectivePaths 现 9 项 = outputPaths 5 + supportPaths 2（aggregate.ts、tests/jobs-runtime.http.test.ts）+ wiring container 注册点 2（src/auth.ts、src/lib/server/db.ts）；wiring jobs 的 registry.ts 已被 outputPaths 覆盖。",
-      "影响集合 5 个任务（M5-T11 + M7-T10/M7-T3/M7-T8/M7-T9）；定义未改，仅契约哈希传播；sync 后 revalidation 仍为空 {}，未手清标记；progress 98 键 / done 95 / hold 2 / ops 1，contracts 144、dispatch 144、batchRecords 16、dispatchBatches 22；sourceVersion 872063d1a3f5b6cd322eea1452e97d2ec697fdd3bfe583b687a944587e8b7ece。"
+      "supportPaths 增列 .github/workflows/ci.yml；effectivePaths 9→10，新增项只有该文件，jobs/container 注册点保持",
+      "补丁影响面：M5-T11 及 requires 传播链 M7-T3→M7-T8→M7-T9→M7-T10 契约哈希变化；revalidation.json 仍为 {}，无已落地任务被标待复验",
+      "ci.yml 唯一改动在既有 e2e『Analytics, chat, and other PostgreSQL regressions』step：新增 M5T11_TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/e2e 与 M5T11_REQUIRE_DATABASE=true（只指向 CI 测试库，不回退通用 DATABASE_URL）",
+      "wanted、实跑命令、files 三清单各 22 项且逐项同序一致、无重复、文件全部存在；tests/analytics-retention.db.test.ts 在三处各出现 1 次",
+      "集合实核：本 step 21→22，device step 3 不变，CI 的 PostgreSQL 测试文件合计 24→25；cron 窄修的 tests/jobs-runtime.http.test.ts 仍在本 step 实跑名单",
+      "门禁与结构不变：jobs 仍 4 个（build-and-audit/e2e/posix-storage-security/mail-evidence），e2e timeout-minutes=35，postgres:17 服务未变，逐文件 fail/skip/todo/cancelled 与 pass>=1 门禁未改，A3/M2 与生产开关未动",
+      "静态语法：ci.yml 经 PyYAML 解析通过；嵌入的 m3t2-file-gate.cjs 与 node --input-type=module 门禁均 node --check 通过；step 的 bash 脚本 bash -n 通过",
+      "范围零差量：src/ 与 tests/ 相对 c8438741 的 diff 为 0；未改产品源码、测试、依赖、生成器",
+      "边界：以上只证明契约范围与 CI 接线静态一致，不代表 PG17 或远端 CI 已执行通过"
     ],
-    "reviewed": "2026-11-08T21:51:03.023338+00:00",
+    "reviewed": "2026-11-09T11:18:27.896549+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
