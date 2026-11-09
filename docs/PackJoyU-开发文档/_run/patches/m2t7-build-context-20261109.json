@@ -36388,8 +36388,10 @@
     "_run/task-contracts.json": "ac3479f9f787395eeaf04737b8a7a3227c23ba84f99aa5879709f33f145bbeb5"
   },
   "sourceVersion": "fc6ef4605b5da7fa07883afbbd6fcd71ae59e72adb70bb4e8c36fad2c8a013fd",
-  "status": "synced",
+  "status": "verified",
   "synced": "2026-11-09T18:35:19.114099+00:00",
   "task": "M2-T7",
-  "verifiedTasks": []
+  "verifiedTasks": [
+    "M2-T7"
+  ]
 }

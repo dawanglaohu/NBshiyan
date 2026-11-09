@@ -3,138 +3,19 @@
   "tasks": {
     "M2-T7": {
       "contractHash": "7967be867d61f02caa023c778131710976060ba155e00f4834e0316000ab5944",
-      "evidence": [],
-      "verdict": "pending"
-    },
-    "M2-T8": {
-      "contractHash": "7544a6ceae06034384a9c210065276b10c7db6e6f2f4611ae290a2f145ebc5a2",
-      "evidence": [],
-      "verdict": "pending"
-    },
-    "M3-T10": {
-      "contractHash": "3632536c8e631db1dd1ab03ccf035c4530bf9acab54327e0cd7633c7d14048e0",
-      "evidence": [],
-      "verdict": "pending"
-    },
-    "M3-T11": {
-      "contractHash": "ec116c816a38df65b36d845f9f2479220584cf32ee51046ffee00c98f8160171",
-      "evidence": [],
-      "verdict": "pending"
-    },
-    "M3-T12": {
-      "contractHash": "5e3b1d95ed93b2880413cf09d61136158134ab8ca4d9e7660d05f3708ef0a438",
-      "evidence": [],
-      "verdict": "pending"
-    },
-    "M3-T13": {
-      "contractHash": "5d14a5be0fc7942e954a53aafa07555b9bea9bb333767a9718956b13b687075c",
-      "evidence": [],
-      "verdict": "pending"
-    },
-    "M3-T25": {
-      "contractHash": "ad18958b757090397bbe601d3c14f8a5fed3c6a5ae263ba8915ed62d6c53099f",
-      "evidence": [],
-      "verdict": "pending"
-    },
-    "M3-T6": {
-      "contractHash": "09ed8ae1a989d692a113a4a9fe31a37ebd9126b009a665c28fba89bc6f85c984",
-      "evidence": [],
-      "verdict": "pending"
-    },
-    "M3-T8": {
-      "contractHash": "5b9c134d11584a85c0514138a947af5fbb6c302936984045a0d08b56002839a9",
-      "evidence": [],
-      "verdict": "pending"
-    },
-    "M3-T9": {
-      "contractHash": "cbd4cc998717ad35a8c200141e2b8a9959d3bb7523cee8fcb8ba9e7600eb316b",
-      "evidence": [],
-      "verdict": "pending"
-    },
-    "M6-T1": {
-      "contractHash": "ab3c5fb9d93eeaec1f3d095e364ee8cd837be074beff22d83473e66b72c2c2f3",
-      "evidence": [],
-      "verdict": "pending"
-    },
-    "M6-T2": {
-      "contractHash": "f5ad5d4dcd189f3f2cb06423202ed11830a8e21f53eb36f678ade25c257bc233",
-      "evidence": [],
-      "verdict": "pending"
-    },
-    "M6-T3": {
-      "contractHash": "1844d245f9685dab9c41c2115b74011d9ce2acd8babb6ddd0048f54167a7bf3f",
-      "evidence": [],
-      "verdict": "pending"
-    },
-    "M6-T4": {
-      "contractHash": "1085586799811fe438756301b3690df8afb0873ac1e14e8980f160bca1f86487",
-      "evidence": [],
-      "verdict": "pending"
-    },
-    "M6-T5": {
-      "contractHash": "c35ba23703ed567ed2590236a495e94997d4380696c5d346c341377d64716830",
-      "evidence": [],
-      "verdict": "pending"
-    },
-    "M6-T6": {
-      "contractHash": "b3775d133b2af96e4eb37fc86e6fe54595acc215edda7c25b83a871321825b41",
-      "evidence": [],
-      "verdict": "pending"
-    },
-    "M6-T7": {
-      "contractHash": "b41513c5387071b3c6dbd457ea4929149a1f7ebb5064e7b4fe8aa4d893504ed1",
-      "evidence": [],
-      "verdict": "pending"
-    },
-    "M7-T1": {
-      "contractHash": "866b0cac7b75ac937620a92727871262864cb6bb7bcfbd58867f9665b86af106",
-      "evidence": [],
-      "verdict": "pending"
-    },
-    "M7-T10": {
-      "contractHash": "6348b6b6fea796c6ece4571aa35e9418a7a530d968997a25d8a35df69bb195d9",
-      "evidence": [],
-      "verdict": "pending"
-    },
-    "M7-T2": {
-      "contractHash": "e8b39a982dc0397b22a4616c67a381bcc388f044382f200999583f24591a9dd9",
-      "evidence": [],
-      "verdict": "pending"
-    },
-    "M7-T3": {
-      "contractHash": "e06d223792dcf3843e34c4b2b2fce47acc7e62f2265b8206ad99dc53ddd4b9ff",
-      "evidence": [],
-      "verdict": "pending"
-    },
-    "M7-T4": {
-      "contractHash": "a4d75266849ca3f96359490382ed9757df0c6674bf3a4808f497b4f883fca2aa",
-      "evidence": [],
-      "verdict": "pending"
-    },
-    "M7-T5": {
-      "contractHash": "cdbfa8caece11cbdd4c195db0536aeb7634e36983b962808be7751e0689283d2",
-      "evidence": [],
-      "verdict": "pending"
-    },
-    "M7-T6": {
-      "contractHash": "142d4eb3522c41316576ff9e28deaebcc0fd4decd15a40dc7411ec48aad234d3",
-      "evidence": [],
-      "verdict": "pending"
-    },
-    "M7-T7": {
-      "contractHash": "6a5a032a1fc16f4c324fccf014881180c925cf0ad1f2f3437aca87da44b8a739",
-      "evidence": [],
-      "verdict": "pending"
-    },
-    "M7-T8": {
-      "contractHash": "f2a79c222da29b3136252fede01adafd7f1323d293329f0f96faf3dc21f5fc90",
-      "evidence": [],
-      "verdict": "pending"
-    },
-    "M7-T9": {
-      "contractHash": "a47fe659af5e32801646699d623ccda3ecdf3bacd668310c891578674b015ba3",
-      "evidence": [],
-      "verdict": "pending"
+      "verdict": "pass",
+      "evidence": [
+        "固定头窄审：4ea27c83b158e81b0487d9f7001e238ec5c48af6 → 6e08ad6b45890614b61b0faf91e6ab49a5786f64（tree c9c835c56e333fadf323b9e1d9177425113f8ad9，父 4ea27c83），13 文件 +36,811/−165；代码只有 scripts/base-url.ts（新增 3 行）、e2e/base-url.ts（改为 re-export，2/3）、playwright.config.ts（仅 :4 import，1/1）；CI、.dockerignore、checker、五个 spec、src 业务事件与 tests 均未改。",
+        "支持路径增量最小：_run/task-contracts.json 仅 +1 行，M2-T7.supportPaths 10→11 项，唯一新增 scripts/base-url.ts，outputPaths 未变；契约 c445090a750b…→7967be867d61f02caa023c778131710976060ba155e00f4834e0316000ab5944，changedFields 仅 definition、effectivePaths，14 个共享章节逐文件 digest 未变（含 02-设计/09-数据模型.md、02-设计/10-接口约定.md）。",
+        "真实消费者已核：scripts/base-url.ts 只被 playwright.config.ts:4 与 e2e/base-url.ts:2 引用；src/ 与 Dockerfile 均不引用，launch-runbook.md:118 明确 E2E_PORT 只在 CI 与脚本使用，故发布镜像不消费该端口；文件必须留在构建上下文只是因根配置被 scripts/check-image-context.ts 扫描。base-url 注释已按此最小更正，未改任何运行逻辑。",
+        "BASE 唯一来源与启动门禁不变量：PORT/BASE 唯一定义在 scripts/base-url.ts:2-3；e2e/base-url.ts 仅 re-export；playwright.config.ts:6 仍 export { BASE }；prepareStandaloneAssets()、server.js 存在性检查、static/public 复制、webServer（PRIVACY_HASH_SECRET/APP_ORIGIN/PORT/HOSTNAME/E2E_SITE_REVALIDATE）、globalSetup 全部未动（config 差量 1 行）；五个 spec 未改且仍 import './base-url'。",
+        "checker 红→绿可复算：修复前本人在 4ea27c83 实跑 node --import tsx scripts/check-image-context.ts → exit 1，报 playwright.config.ts: ./e2e/base-url -> e2e/base-url.ts（被 .dockerignore 排除），日志 882 B 8C5BD9B3F3A951CA8C11C26262B7A8F92AE4881398BDDC0FEC523A1359BB874C；本头实跑 → exit 0，输出「已检查 487 个构建上下文源文件，没有引用被 .dockerignore 排除的路径」；node --import tsx --test tests/image-context.test.ts → 8 tests / 8 pass / 0 fail。",
+        "M1 分区实现（.github/workflows/ci.yml）：A3 由三段扩为五段 main/model/consent/errors/flow，各段仍由 run.sh 单独起 Playwright 管理的应用进程，共用同一构建产物与 PG；main 与收集步骤用同一份 `ls e2e/*.spec.ts | grep -v -E '/(model-events|analytics-consent|consent-writes)\\.spec\\.ts$'` 文件清单，model/consent 用显式文件参数；端口释放(ports.cjs 前后)、standalone-server.log 归属、main 段 RUM 检查、test/capture/log/release 五路结果、INT/TERM 取消处理、汇总段失败或未执行即红全部保留。",
+        "六列表实收（本头、纯 collection 配置，不建 server、不造假 server.js、不跑用例）：all=233 tests/39 files、main=202/36、model=14/1、consent=14/2、errors=2/1、flow=1/1；把实收 JSON 喂给从 ci.yml 抽出的断言脚本，输出 A3_COLLECTION all=233 main=202 model=14 consent=14 errors=2 flow=1 disjoint=true complete=true（exit 0），即五个分区互斥、并集逐键等于 all。候选分配 203/13 未采用，按实收修正为 202/14；该结果只证收集与分区，不证执行或通过。",
+        "响应诊断（e2e/model-events.spec.ts）：watchConsent 在点击之前装 page.on('response')，只记录 status 与 Retry-After、不在事件回调抛错，finally 必 dispose；非 2xx 由 expectGranted/expectNoConsentFailure 直接报 status 与 Retry-After；cookie（存在/v1+长度）与 data-analytics-collecting 分开报告，避免把两者混成「未就绪」。覆盖 acceptAnalytics、acceptOnCurrentPage、rejectOnCurrentPage、未同意用例的拒绝、F1 同页拒绝再接受、F1 在途导航、R2 撤回再授权；原生 20s 轮询与全部生命周期、真实 POST+DB、未同意零采集断言均未改。",
+        "最小充分检查：从 ci.yml 抽出的 8 个 shell 片段 bash -n 全 OK（WSL bash 5.0.17）；yaml.safe_load 解析通过（jobs 4 个、e2e 22 步）；node --check ports.cjs exit 0；eslint --no-cache e2e/model-events.spec.ts scripts/base-url.ts playwright.config.ts exit 0；tsc --noEmit --incremental false exit 0（tsconfig 明确排除 e2e/config，故这两个文件的类型保障来自 collection 载入与 eslint 解析，不冒充 tsc 覆盖）；git diff --check exit 0。",
+        "明示未验边界：真实 CI run、Docker build、e2e 实际执行（含 model 段 14/14 与 consent 段 14/14）、旧 429 是否消失、最终演示媒体均未验证；本记录只覆盖契约支持路径与上述实现差量，不把任务写成 done，不声称业务实现通过。旧 12 条复核证据仍绑 c445090a…，由本记录续接为新的契约版本。"
+      ]
     }
   }
 }

@@ -1,5 +1,5 @@
 import { PrismaClient, type AnalyticsEventKind } from '@prisma/client';
-import type { Page } from '@playwright/test';
+import type { Page, Response } from '@playwright/test';
 import { expect, test } from './fixtures';
 
 /**
@@ -59,32 +59,104 @@ function track(page: Page): string[] {
   return bodies;
 }
 
-async function waitForGrant(page: Page): Promise<void> {
-  let unavailable = false;
-  const onResponse = (response: { url: () => string; status: () => number }) => {
-    if (response.url().includes('/api/analytics/consent') && response.status() === 503) unavailable = true;
+type ConsentResponse = { status: number; retryAfter: string | null };
+
+type ConsentWatch = {
+  responses: ConsentResponse[];
+  dispose: () => void;
+};
+
+/**
+ * 同意写响应记录器：必须在触发点击之前装好，否则快速响应会被漏掉。
+ * 监听只收集状态与 Retry-After，不抛错（事件回调里抛错会变成未处理异常）；
+ * 判定放回断言线程，由 expectGranted / expectNoConsentFailure 做。
+ */
+function watchConsent(page: Page): ConsentWatch {
+  const responses: ConsentResponse[] = [];
+  const onResponse = (response: Response) => {
+    try {
+      if (!response.url().includes('/api/analytics/consent')) return;
+      responses.push({ status: response.status(), retryAfter: response.headers()['retry-after'] ?? null });
+    } catch {
+      // 响应对象已被释放时不打断用例；缺失会由断言超时暴露。
+    }
   };
   page.on('response', onResponse);
+  return { responses, dispose: () => page.off('response', onResponse) };
+}
+
+function describeConsent(responses: ConsentResponse[]): string {
+  if (!responses.length) return 'no consent response observed';
+  return responses
+    .map((item) => `status=${item.status}${item.retryAfter ? ` retry-after=${item.retryAfter}` : ''}`)
+    .join(', ');
+}
+
+function firstConsentFailure(responses: ConsentResponse[]): ConsentResponse | undefined {
+  return responses.find((item) => item.status < 200 || item.status >= 300);
+}
+
+/** cookie 与采集标记分开报，避免把两者混成一个“没就绪”。 */
+async function consentState(page: Page): Promise<string> {
+  const cookies = await page.context().cookies().catch(() => []);
+  const cookie = cookies.find((item) => item.name === 'pj_analytics');
+  const collecting = await page.locator('html').getAttribute('data-analytics-collecting').catch(() => null);
+  const granted = Boolean(cookie && cookie.value.startsWith('v1.') && cookie.value.length > 20);
+  return `cookie=${cookie ? (granted ? 'granted' : 'unexpected') : 'absent'} collecting=${collecting ?? 'missing'}`;
+}
+
+/** 等同意生效：响应失败（状态/Retry-After）与 cookie、采集标记分别报告。 */
+async function expectGranted(page: Page, watch: ConsentWatch): Promise<void> {
   try {
     await expect.poll(async () => {
-      if (unavailable) throw new Error('analytics consent signing is unavailable');
+      const failure = firstConsentFailure(watch.responses);
+      if (failure) throw new Error(`consent write rejected: ${describeConsent([failure])}`);
       const cookies = await page.context().cookies();
       const cookie = cookies.find((item) => item.name === 'pj_analytics');
       const collecting = await page.locator('html').getAttribute('data-analytics-collecting');
       return Boolean(cookie && cookie.value.startsWith('v1.') && cookie.value.length > 20 && collecting === 'true');
     }, { timeout: 20_000 }).toBe(true);
+  } catch (error) {
+    const head = String((error as Error).message).split('\n')[0];
+    throw new Error(`${head} | consent responses: ${describeConsent(watch.responses)} | ${await consentState(page)}`);
+  }
+}
+
+/** 拒绝路径：写请求本身必须 2xx，但不要求 cookie 或采集标记。 */
+function expectNoConsentFailure(watch: ConsentWatch, action: string): void {
+  const failure = firstConsentFailure(watch.responses);
+  if (failure) throw new Error(`${action} consent write failed: ${describeConsent([failure])}`);
+}
+
+/** 单次同意/拒绝写：点击前装监听，点击后按 grant 判定，最后一定摘掉监听。 */
+async function writeConsent(
+  page: Page,
+  action: string,
+  click: () => Promise<void>,
+  options: { grant: boolean },
+): Promise<void> {
+  const watch = watchConsent(page);
+  try {
+    await click();
+    if (options.grant) await expectGranted(page, watch);
+    else expectNoConsentFailure(watch, action);
   } finally {
-    page.off('response', onResponse);
+    watch.dispose();
   }
 }
 
 async function acceptAnalytics(page: Page): Promise<void> {
-  await page.goto('/en');
-  const banner = page.getByRole('region', { name: 'Cookie consent' });
-  await expect(banner).toBeVisible({ timeout: 15_000 });
-  await banner.getByRole('button', { name: 'Accept all' }).click();
-  await expect(page.locator('.consent-toast')).toBeVisible();
-  await waitForGrant(page);
+  const watch = watchConsent(page);
+  try {
+    await page.goto('/en');
+    const banner = page.getByRole('region', { name: 'Cookie consent' });
+    await expect(banner).toBeVisible({ timeout: 15_000 });
+    await banner.getByRole('button', { name: 'Accept all' }).click();
+    await expect(page.locator('.consent-toast')).toBeVisible();
+    await expectGranted(page, watch);
+  } finally {
+    watch.dispose();
+  }
 }
 
 /** Produces the existing M5-T7 product_view for a product route without a full document load. */
@@ -136,17 +208,28 @@ async function openCatalogAndArm(page: Page): Promise<void> {
 
 /** Grant analytics on the page that is already open, without navigating or reloading. */
 async function acceptOnCurrentPage(page: Page): Promise<void> {
-  const banner = page.getByRole('region', { name: 'Cookie consent' });
-  await expect(banner).toBeVisible({ timeout: 15_000 });
-  await banner.getByRole('button', { name: 'Accept all' }).click();
-  await waitForGrant(page);
+  const watch = watchConsent(page);
+  try {
+    const banner = page.getByRole('region', { name: 'Cookie consent' });
+    await expect(banner).toBeVisible({ timeout: 15_000 });
+    await banner.getByRole('button', { name: 'Accept all' }).click();
+    await expectGranted(page, watch);
+  } finally {
+    watch.dispose();
+  }
 }
 
 async function rejectOnCurrentPage(page: Page): Promise<void> {
-  const banner = page.getByRole('region', { name: 'Cookie consent' });
-  await expect(banner).toBeVisible({ timeout: 15_000 });
-  await banner.getByRole('button', { name: 'Reject all' }).click();
-  await expect(banner).toBeHidden();
+  const watch = watchConsent(page);
+  try {
+    const banner = page.getByRole('region', { name: 'Cookie consent' });
+    await expect(banner).toBeVisible({ timeout: 15_000 });
+    await banner.getByRole('button', { name: 'Reject all' }).click();
+    await expect(banner).toBeHidden();
+    expectNoConsentFailure(watch, 'reject');
+  } finally {
+    watch.dispose();
+  }
 }
 
 async function openCookieSettings(page: Page): Promise<void> {
@@ -205,7 +288,7 @@ test('M2-T7 未同意：真实模型仍可操作，0 分析请求、0 分析身�
   await page.goto('/en');
   const banner = page.getByRole('region', { name: 'Cookie consent' });
   await expect(banner).toBeVisible({ timeout: 15_000 });
-  await banner.getByRole('button', { name: 'Reject all' }).click();
+  await writeConsent(page, 'reject', () => banner.getByRole('button', { name: 'Reject all' }).click(), { grant: false });
   await expect(banner).toBeHidden();
 
   await openCatalogAndArm(page);
@@ -380,7 +463,12 @@ test('M2-T7 F1 同页接受：不重载页面，后续真实 GLB 发起即落 pr
   // 撤回后同一文档内再导航：不补发访问，也不再发事件批。
   await expect(page.locator('html')).toHaveAttribute('data-analytics-queue', '0', { timeout: 15_000 });
   await openCookieSettings(page);
-  await page.getByRole('dialog', { name: 'Cookie settings' }).getByRole('button', { name: 'Reject all' }).click();
+  await writeConsent(
+    page,
+    'reject',
+    () => page.getByRole('dialog', { name: 'Cookie settings' }).getByRole('button', { name: 'Reject all' }).click(),
+    { grant: false },
+  );
   await expect(page.locator('html')).toHaveAttribute('data-analytics-collecting', 'false', { timeout: 15_000 });
   const revokedRows = (await rowsSince(since)).length;
   const revokedPosts = posted.length;
@@ -407,8 +495,7 @@ test('M2-T7 F1 拒绝后再次接受：同页恢复采集，真实加载落库',
   await page.locator('.consent-toast button').click();
   const dialog = page.getByRole('dialog', { name: 'Cookie settings' });
   await expect(dialog).toBeVisible();
-  await dialog.getByRole('button', { name: 'Accept all' }).click();
-  await waitForGrant(page);
+  await writeConsent(page, 'accept', () => dialog.getByRole('button', { name: 'Accept all' }).click(), { grant: true });
 
   const firstCard = page.locator('article.card').first();
   await expect(firstCard.getByTestId('model-fallback')).toBeVisible({ timeout: 60_000 });
@@ -436,13 +523,18 @@ test('M2-T7 F1 同意请求在途导航：授权确认后按当前页建立上�
   await page.goto('/en');
   const banner = page.getByRole('region', { name: 'Cookie consent' });
   await expect(banner).toBeVisible({ timeout: 15_000 });
-  await banner.getByRole('button', { name: 'Accept all' }).click();
+  const consent = watchConsent(page);
+  try {
+    await banner.getByRole('button', { name: 'Accept all' }).click();
 
-  // 服务端确认还在途时用真实站内链接离开首页；授权确认后应按产品页建立上下文。
-  await page.getByTestId('products-link').click();
-  await expect(page).toHaveURL(/\/en\/products$/);
-  await expect(page.locator('article.card').first()).toBeVisible({ timeout: 20_000 });
-  await waitForGrant(page);
+    // 服务端确认还在途时用真实站内链接离开首页；授权确认后应按产品页建立上下文。
+    await page.getByTestId('products-link').click();
+    await expect(page).toHaveURL(/\/en\/products$/);
+    await expect(page.locator('article.card').first()).toBeVisible({ timeout: 20_000 });
+    await expectGranted(page, consent);
+  } finally {
+    consent.dispose();
+  }
 
   await page.mouse.move(320, 260);
   await expect.poll(async () => (await rowsSince(since, 'model_view_start')).length, { timeout: 90_000 }).toBeGreaterThan(0);
@@ -545,12 +637,21 @@ test('M2-T7 R2 撤回再授权后返回：新访问的真实加载计入', async
   await expect.poll(async () => (await rowsSince(since, 'model_view_start')).length, { timeout: 90_000 }).toBeGreaterThan(0);
 
   await openCookieSettings(page);
-  await page.getByRole('dialog', { name: 'Cookie settings' }).getByRole('button', { name: 'Reject all' }).click();
+  await writeConsent(
+    page,
+    'reject',
+    () => page.getByRole('dialog', { name: 'Cookie settings' }).getByRole('button', { name: 'Reject all' }).click(),
+    { grant: false },
+  );
   await expect(page.locator('html')).toHaveAttribute('data-analytics-collecting', 'false', { timeout: 15_000 });
 
   await openCookieSettings(page);
-  await page.getByRole('dialog', { name: 'Cookie settings' }).getByRole('button', { name: 'Accept all' }).click();
-  await waitForGrant(page);
+  await writeConsent(
+    page,
+    'accept',
+    () => page.getByRole('dialog', { name: 'Cookie settings' }).getByRole('button', { name: 'Accept all' }).click(),
+    { grant: true },
+  );
   const beforeReturn = (await rowsSince(since, 'model_view_start')).length;
 
   await page.getByTestId('home-link').click();
