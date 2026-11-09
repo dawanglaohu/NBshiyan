@@ -613,19 +613,22 @@
   },
   "M2-T7": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "9ee20338a655fd900ab17fde6cbd2369404bc6fa874a56b0751d395dcc42ea0c",
+    "contractHash": "c445090a750be9e0ea6126dd988b12e9651bbdc99b2281f2ff2bd7e75519c84d",
     "evidence": [
-      "task-contracts.json M2-T7.supportPaths 新增 .github/workflows/ci.yml、e2e/base-url.ts、playwright.config.ts、e2e/admin-device-session.spec.ts、e2e/admin-enroll.spec.ts、e2e/admin-login.spec.ts、e2e/admin.spec.ts、e2e/hotfix-login-empty.spec.ts；provides/requires/stage/wiring/outputPaths 未改",
-      "补丁 m2t7-collection-d sync：27 个契约受影响；M2-T7 为 definition/effectivePaths，其余 26 个全部 HASH_ONLY",
-      "D 实现：新增 e2e/base-url.ts（PORT=Number(process.env.E2E_PORT ?? 3100)、BASE=http://localhost:${PORT}）；playwright.config.ts 改为 import { BASE, PORT } 并 export { BASE }；5 个 spec 各只改 1 行 import 为 ./base-url，无其他测试标题/断言改动",
-      "BASE 语义实测：默认 PORT=3100/BASE=http://localhost:3100；E2E_PORT=3555 时 PORT=3555/BASE=http://localhost:3555；仓库内无第二处 export const BASE",
-      "真实配置的 prepareStandaloneAssets()、server.js 存在检查、.next/static 与 public 复制、webServer 启动与 globalSetup 顺序原样保留；普通真实配置 --list 仍可能需要构建，未声称已消除",
-      "规划集合配置实收四份 JSON：all 233（39 文件）、main 230、errors 2、flow 1；errors/flow 标题与既有断言完全一致；model-events.spec.ts 14 条逐条具名；互斥并集校验通过",
-      "ci.yml 仅改 5 处计数：步骤名 230+2+1=233、assert {all:233,main:230,errors:2,flow:1}、并集 233、日志行、主段步骤名 230 例；断言、时限、四 job 均未放宽",
-      "lint 新模块/真实配置/5 个 spec：0 error、0 warning；未安装、未构建、未改 node_modules/.next；.next BUILD_ID 仍 _QaApQh5XsL8VhTA2Swov，PID 22924 启动时间未变",
-      "边界：pnpm exec 因依赖漂移不可用，本单用 node CLI 直接运行，不代表默认入口已恢复；本 verify 仅表示范围与接线复核"
+      "契约与映射：当前卡 c445090a 的验收 1–3 与边界 E-42/E-46/E-103/E-63 逐条映射到 14 项动态证据与同源实现，不按条数拼合；A1–A3 三条源文只把均值/samples/零成功输出责任交给 M6-T1/M6-T6/M7-T3，未删除任何 3D 事件能力。",
+      "源码同一性：原始层 6 个实现文件（src/components/analytics/model-events-producer.ts、three/GalleryScene.tsx、three/ProductGallery.tsx、three/ProductModel.tsx、src/lib/client/analytics.ts、e2e/model-events.spec.ts）自已测头 01a471cd 到本头 cfa3b1fa 的 git diff 为 0 文件；P1（cd09635b）相对 M2 侧 78e10dcf 对这 6 个文件亦 0 差量。",
+      "动态证据：01a471cd/tree bf5ad536/BUILD_ID _QaApQh5XsL8VhTA2Swov 上 14/14 passed（4.1m，真实 POST+DB）：产品访问/start/success 同 viewId 与真实 durationMs；未同意 0 请求；WebGL 不支持无 start/terminal；下载失败 failure→重试新 viewId success；30s TIMEOUT failure；切走取消不补终态；同页同意/拒绝后再接受/在途导航/不补发同意前尝试；context lost 立即 WEBGL_UNAVAILABLE；R2 同文档返回 3 条。",
+      "验收 3 边界：成功/失败/超时两次尝试、切卡取消、真实 durationMs、分母仅同意后 start、timeout=failure、不补拒绝样本由 #1/#4/#5/#6 覆盖；均值/samples/零成功 0% 的输出已按 A1 文交由 M6-T1 计算、M6-T6 输出、M7-T3 终验，本卡不重复验收。",
+      "已测头之后的 M2 侧改动仅配置/测试基建：8 文件 +26/−8（5 个 admin spec 各 1 行 import、e2e/base-url.ts 新增、eslint.config.mjs +17、playwright.config.ts 2 行），分别由 B4 提交 8fadd090（8 条、pass、d3105783）与 D 提交 78e10dcf（9 条、pass、9ee20338）限定覆盖；原始层实现未随之变化。",
+      "本头 lint：pnpm lint 因 ERR_PNPM_VERIFY_DEPS_BEFORE_RUN（package.json 的 pnpm 字段漂移，需 pnpm-workspace.yaml）不可用，未安装/未改锁；同一 next lint 入口 node 直调 --no-cache 覆盖相对 main 的 14 个非 CI 改动文件，exit 0；2 条 warning（eslint.config.mjs:22 anonymous default export；ProductGallery.tsx:418 既有 no-img-element）。不宣称 pnpm 入口恢复。",
+      "本头类型：node node_modules/typescript/bin/tsc --noEmit --incremental false exit 0；tsconfig.json exclude 含 e2e 与 playwright.config.ts，7 个 e2e 文件与该配置不在 tsc 覆盖内，不据此宣称其类型通过；tsconfig.tsbuildinfo 为既有被忽略产物，未新写。",
+      "main 并入内容：main 8209b2de 相对 042c7d24 的 10 个运行文件 +2,814/−68（analytics retention/aggregate、composition、jobs/registry、PG 保留测试、cron 测试、e2e analytics-job-runtime、deploy/cron.nbshiyan、ci.yml PG 三清单），全部为 M5 统计/保留层；P1 merge-forward 未改 M2 原始层 6 文件。",
+      "发布材料分类更正：相对 main 的 15 个非文档文件实为 5 个 src（producer、3 个 three 组件、lib/client/analytics）+ 7 个 e2e（6 个 admin/hotfix 相关 + model-events/base-url）+ 2 个配置（eslint.config.mjs、playwright.config.ts）+ 1 个 CI（.github/workflows/ci.yml），不是 10+1。",
+      "未验边界（不主张通过、不填 pass）：本头 Linux next build 与 standalone 启动、四 job CI 与 A3 实收（预期 all=233/main=230/errors=2/flow=1，233 是收集数）、隔离 PG、M6 统计实现、新头媒体均未运行；233 收集数不能写成 233 条执行通过。",
+      "媒体现状：现有 GIF 433,788 B 18CF5200… 绑定 01a471cd/tree bf5ad536/BUILD_ID _QaApQh5XsL8VhTA2Swov，是状态帧摘录，不证明落库/均值；next.config.ts 固定 output:'standalone'，Windows 非 standalone 构建不是可行路径，新头媒体须在 Linux/WSL 或具符号链接权限的 standalone 构建上录制，本单不重录、不上传。",
+      "历史出处保留：scope 5 条（仓库 _run/patches/m2t7-client-events-scope-20261108.evidence.json，5,973 B 61B30C8E）；B4 8 条在 8fadd090 的 task-reviews（d3105783）；CI 接线 6 条在 bb3c094d（72d520ff）；D 9 条在 78e10dcf（9ee20338）；lint-b4/ci-wiring 的 .evidence.json 为 pending 模板，不作通过证据；D 的 verify 不覆盖当前契约 c445090a。"
     ],
-    "reviewed": "2026-11-09T16:31:52.735610+00:00",
+    "reviewed": "2026-11-09T17:17:16.069292+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
