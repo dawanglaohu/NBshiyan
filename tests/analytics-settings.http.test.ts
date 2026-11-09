@@ -1,6 +1,12 @@
 import { after, before, beforeEach, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import { createRequire } from 'node:module';
+import { randomBytes } from 'node:crypto';
 import { PrismaClient } from '@prisma/client';
+import { authenticator } from 'otplib';
+import { encrypt, hashSecret } from '../src/lib/server/admin/crypto';
+import { MemoryStore, setRateLimitStore } from '../src/lib/server/ratelimit';
 import { recomputableFrom as earliestRecomputableFrom } from '../src/lib/analytics/day-boundaries';
 import {
   ANALYTICS_SETTINGS_GET_ROUTE_ID,
@@ -49,6 +55,9 @@ const skip = !database && 'no M5T4_TEST_DATABASE_URL';
 if (database) process.env.DATABASE_URL = database.url;
 process.env.APP_ENV = 'test';
 process.env.AUTH_SECRET ??= 'm5t4-settings-http-test-secret-32b';
+process.env.ADMIN_TOTP_KEY ??= Buffer.alloc(32, 7).toString('base64');
+delete process.env.AUTH_URL;
+delete process.env.NEXTAUTH_URL;
 
 const db = database ? new PrismaClient({ datasources: { db: { url: database.url } } }) : null;
 
@@ -119,24 +128,109 @@ async function valueOf(key: string): Promise<unknown> {
   return row ? JSON.parse(row.value) as unknown : null;
 }
 
+const SEEDED_USER_IDS = ['admin-a', 'admin-b', 'sales-1', 'editor-1'] as const;
+const realUserIds: string[] = [];
+let handleAuth: typeof import('../src/auth').handleAuth;
+let createAdminServices: typeof import('../src/lib/server/composition').createAdminServices;
+let settingsRoute: typeof import('../src/app/api/admin/settings/analytics/route');
+
+function cookieJar(response: Response, previous = ''): string {
+  const pairs = new Map<string, string>();
+  for (const part of previous.split(';')) {
+    const trimmed = part.trim();
+    if (!trimmed) continue;
+    const name = trimmed.split('=', 1)[0];
+    pairs.set(name, trimmed.slice(name.length + 1));
+  }
+  for (const cookie of response.headers.getSetCookie()) {
+    const pair = cookie.split(';', 1)[0] ?? '';
+    const name = pair.split('=', 1)[0] ?? '';
+    const value = pair.slice(name.length + 1);
+    if (!value) pairs.delete(name);
+    else pairs.set(name, value);
+  }
+  return [...pairs].map(([name, value]) => `${name}=${value}`).join('; ');
+}
+
+/** 真登录：真 User/AdminDeviceSession 行 + 真 Auth.js csrf/credentials 往返，返回会话 cookie 串。 */
+async function enrolled(role: 'ADMIN' | 'SALES' | 'EDITOR') {
+  const client = requireDb();
+  const plain = authenticator.generateSecret();
+  const email = `m5t4-${role.toLowerCase()}-${randomBytes(4).toString('hex')}@example.com`;
+  const password = 'correct-horse-battery';
+  const row = await client.user.create({
+    data: { email, name: 'M5T4', passwordHash: await hashSecret(password), role, totpSecret: encrypt(plain), totpEnabled: true },
+  });
+  realUserIds.push(row.id);
+  return { id: row.id, email, password, code: () => authenticator.generate(plain) };
+}
+
+async function login(email: string, password: string, totp: string): Promise<string> {
+  const first = await handleAuth(new Request(`${origin}/api/auth/csrf`, { headers: { cookie: '' } }));
+  const body = await first.json() as { csrfToken: string };
+  const jar = cookieJar(first);
+  const form = new URLSearchParams({ email, password, totp, csrfToken: body.csrfToken, callbackUrl: `${origin}/admin` });
+  const response = await handleAuth(new Request(`${origin}/api/auth/callback/credentials`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/x-www-form-urlencoded', cookie: jar, origin },
+    body: form,
+  }));
+  const cookie = cookieJar(response, jar);
+  assert.ok(cookie.split('; ').some((part) => part.startsWith('authjs.session-token=') && !part.endsWith('=')), '登录必须拿到真实会话 cookie');
+  return cookie;
+}
+
+function realGet(cookie: string): Promise<Response> {
+  return settingsRoute.GET(new Request(`${origin}/api/admin/settings/analytics`, { headers: { cookie, origin } }));
+}
+
+function realPatch(cookie: string, body: unknown, { withOrigin = true }: { withOrigin?: boolean } = {}): Promise<Response> {
+  const headers: Record<string, string> = { cookie, 'content-type': 'application/json' };
+  if (withOrigin) headers.origin = origin;
+  return settingsRoute.PATCH(new Request(`${origin}/api/admin/settings/analytics`, {
+    method: 'PATCH',
+    headers,
+    body: JSON.stringify(body),
+  }));
+}
+
+async function auditRows(): Promise<{ actorId: string; action: string; meta: unknown }[]> {
+  return requireDb().$queryRaw<
+    { actorId: string; action: string; meta: unknown }[]
+  >`SELECT "actorId", "action", "meta" FROM "AuditLog" WHERE "action" = 'analytics.timezone_change' ORDER BY "createdAt"`;
+}
+
 before(async () => {
   if (!db) return;
   const conn = requireDb();
-  await conn.$executeRawUnsafe(`CREATE SCHEMA IF NOT EXISTS "${database!.schema}"`);
-  await conn.$executeRawUnsafe(`CREATE TABLE IF NOT EXISTS "User" ("id" TEXT PRIMARY KEY, "role" TEXT NOT NULL)`);
-  await conn.$executeRawUnsafe(`CREATE TABLE IF NOT EXISTS "SiteSetting" ("key" TEXT PRIMARY KEY, "value" JSONB NOT NULL)`);
-  await conn.$executeRawUnsafe(`CREATE TABLE IF NOT EXISTS "AuditLog" (
-    "id" TEXT PRIMARY KEY, "actorId" TEXT, "action" TEXT NOT NULL, "target" TEXT,
-    "meta" JSONB, "ip" TEXT, "createdAt" TIMESTAMP(3) NOT NULL
-  )`);
+  setRateLimitStore(new MemoryStore());
+  const prismaCli = createRequire(import.meta.url).resolve('prisma/build/index.js');
+  execFileSync(process.execPath, [prismaCli, 'db', 'push', '--skip-generate', '--schema', 'prisma/schema.prisma'], {
+    cwd: process.cwd(),
+    env: { ...process.env, DATABASE_URL: database!.url },
+    stdio: 'pipe',
+  });
   for (const [id, role] of [['admin-a', 'ADMIN'], ['admin-b', 'ADMIN'], ['sales-1', 'SALES'], ['editor-1', 'EDITOR']] as const) {
-    await conn.$executeRaw`INSERT INTO "User" ("id", "role") VALUES (${id}, ${role}) ON CONFLICT ("id") DO UPDATE SET "role" = EXCLUDED."role"`;
+    await conn.user.upsert({
+      where: { id },
+      create: { id, email: `${id}@example.com`, name: id, passwordHash: 'fixture', role, totpEnabled: true },
+      update: { role, totpEnabled: true, disabled: false, sessionVersion: 0, lockedUntil: null },
+    });
   }
-  await conn.$executeRaw`INSERT INTO "SiteSetting" ("key", "value") VALUES
-    ('about.enabled', ${JSON.stringify({ enabled: true, version: 4 })}::jsonb),
-    ('site.organization', ${JSON.stringify({ version: 2, name: 'PackJoyU' })}::jsonb)
-    ON CONFLICT ("key") DO NOTHING`;
-});
+  for (const [key, value] of [
+    ['about.enabled', { enabled: true, version: 4 }],
+    ['site.organization', { version: 2, name: 'PackJoyU' }],
+  ] as const) {
+    await conn.siteSetting.upsert({
+      where: { key },
+      create: { key, value },
+      update: { value },
+    });
+  }
+  ({ handleAuth } = await import('../src/auth'));
+  ({ createAdminServices } = await import('../src/lib/server/composition'));
+  settingsRoute = await import('../src/app/api/admin/settings/analytics/route');
+}, { timeout: 180_000 });
 
 beforeEach(async () => {
   if (!db) return;
@@ -150,7 +244,13 @@ after(async () => {
   const conn = requireDb();
   await conn.$executeRaw`DELETE FROM "SiteSetting" WHERE "key" IN (${ANALYTICS_SETTINGS_KEY}, ${ANALYTICS_RECOMPUTE_KEY})`;
   await conn.$executeRaw`DELETE FROM "AuditLog" WHERE "action" = 'analytics.timezone_change'`;
-  await conn.$executeRaw`DELETE FROM "User" WHERE "id" IN ('admin-a', 'admin-b', 'sales-1', 'editor-1')`;
+  await conn.siteSetting.deleteMany({ where: { key: { in: ['about.enabled', 'site.organization'] } } });
+  await conn.apiDailyCounter.deleteMany({
+    where: { routeId: { in: [ANALYTICS_SETTINGS_GET_ROUTE_ID, ANALYTICS_SETTINGS_PATCH_ROUTE_ID] } },
+  });
+  // 登录链路会写 auth.login_success；按本次创建的用户 actorId 精确删除，再删用户（设备行随外键级联）。
+  if (realUserIds.length > 0) await conn.auditLog.deleteMany({ where: { actorId: { in: realUserIds } } });
+  await conn.user.deleteMany({ where: { id: { in: [...SEEDED_USER_IDS, ...realUserIds] } } });
   await db.$disconnect();
 });
 
@@ -265,5 +365,108 @@ describe('M5-T4 GET/PATCH /api/admin/settings/analytics', { concurrency: false, 
     assert.equal(typeof route.PATCH, 'function');
     assert.equal(ANALYTICS_SETTINGS_GET_ROUTE_ID, 'GET /api/admin/settings/analytics');
     assert.equal(ANALYTICS_SETTINGS_PATCH_ROUTE_ID, 'PATCH /api/admin/settings/analytics');
+  });
+});
+
+// R1：不传 gate、不 mock requireAdmin/composition。真登录拿 Auth.js 会话 cookie → 真 route 导出 →
+// 真 requireAdmin → 真 createAdminServices → 真 PG 的 m5t4 schema。
+describe('M5-T4 R1 真实认证入口 GET/PATCH /api/admin/settings/analytics', { concurrency: false, skip }, () => {
+  test('ADMIN 真实登录全链：GET 200；PATCH 200 持久 settings/待办/audit，about/org 不变', async () => {
+    const built = createAdminServices();
+    assert.equal(typeof built.analyticsSettings.read, 'function');
+    assert.equal(typeof built.analyticsSettings.update, 'function');
+
+    const member = await enrolled('ADMIN');
+    const jar = await login(member.email, member.password, member.code());
+
+    const first = await realGet(jar);
+    assert.equal(first.status, 200);
+    const firstBody = await first.json() as { version: number; timezone: string; timezoneRevision: number; recomputableFrom: string | null };
+    assert.deepEqual(firstBody, { version: 0, timezone: 'UTC', timezoneRevision: 1, recomputableFrom: null });
+
+    const patched = await realPatch(jar, { timezone: 'America/New_York', expectedVersion: 0 });
+    assert.equal(patched.status, 200);
+    const patchedBody = await patched.json() as { rebuildScheduled: boolean; timezoneRevision: number; recomputableFrom: string };
+    assert.equal(patchedBody.rebuildScheduled, true);
+    assert.equal(patchedBody.timezoneRevision, 2);
+    assert.equal(typeof patchedBody.recomputableFrom, 'string');
+
+    const stored = await valueOf(ANALYTICS_SETTINGS_KEY) as Record<string, unknown>;
+    assert.equal(stored.version, 1);
+    assert.equal(stored.timezone, 'America/New_York');
+    assert.equal(stored.timezoneRevision, 2);
+    assert.equal(stored.updatedBy, member.id);
+    const backlog = await valueOf(ANALYTICS_RECOMPUTE_KEY) as Record<string, unknown>;
+    assert.equal(backlog.status, 'pending');
+    assert.equal(backlog.timezone, 'America/New_York');
+    assert.equal(backlog.updatedBy, member.id);
+    assert.equal(backlog.recomputableFrom, patchedBody.recomputableFrom);
+
+    const audits = await auditRows();
+    assert.equal(audits.length, 1);
+    assert.equal(audits[0]!.actorId, member.id);
+
+    const second = await realGet(jar);
+    assert.equal(second.status, 200);
+    const secondBody = await second.json() as { timezone: string; timezoneRevision: number; recomputableFrom: string | null };
+    assert.equal(secondBody.timezone, 'America/New_York');
+    assert.equal(secondBody.timezoneRevision, 2);
+    assert.equal(typeof secondBody.recomputableFrom, 'string');
+
+    assert.deepEqual(await valueOf('about.enabled'), { enabled: true, version: 4 });
+    assert.deepEqual(await valueOf('site.organization'), { version: 2, name: 'PackJoyU' });
+  });
+
+  test('SALES 真实会话：GET/PATCH 均 403，配置与审计不变', async () => {
+    const member = await enrolled('SALES');
+    const jar = await login(member.email, member.password, member.code());
+
+    const read = await realGet(jar);
+    assert.equal(read.status, 403);
+    assert.equal((await read.json() as { error: string }).error, 'forbidden');
+    const write = await realPatch(jar, { timezone: 'Europe/Berlin', expectedVersion: 0 });
+    assert.equal(write.status, 403);
+
+    assert.equal(await valueOf(ANALYTICS_SETTINGS_KEY), null);
+    assert.equal(await valueOf(ANALYTICS_RECOMPUTE_KEY), null);
+    assert.equal((await auditRows()).length, 0);
+    assert.deepEqual(await valueOf('about.enabled'), { enabled: true, version: 4 });
+  });
+
+  test('EDITOR 真实会话：GET/PATCH 均 403，配置不变', async () => {
+    const member = await enrolled('EDITOR');
+    const jar = await login(member.email, member.password, member.code());
+
+    assert.equal((await realGet(jar)).status, 403);
+    assert.equal((await realPatch(jar, { timezone: 'Europe/Berlin', expectedVersion: 0 })).status, 403);
+    assert.equal(await valueOf(ANALYTICS_SETTINGS_KEY), null);
+    assert.equal(await valueOf(ANALYTICS_RECOMPUTE_KEY), null);
+    assert.equal((await auditRows()).length, 0);
+  });
+
+  test('ADMIN 旧 version 409、缺 Origin 403，配置均不变；随后同会话可成功', async () => {
+    const member = await enrolled('ADMIN');
+    const jar = await login(member.email, member.password, member.code());
+
+    const stale = await realPatch(jar, { timezone: 'Europe/Berlin', expectedVersion: 7 });
+    assert.equal(stale.status, 409);
+    assert.equal((await stale.json() as { error: string }).error, 'version_conflict');
+    assert.equal(await valueOf(ANALYTICS_SETTINGS_KEY), null);
+    assert.equal(await valueOf(ANALYTICS_RECOMPUTE_KEY), null);
+    assert.equal((await auditRows()).length, 0);
+
+    const noOrigin = await realPatch(jar, { timezone: 'Europe/Berlin', expectedVersion: 0 }, { withOrigin: false });
+    assert.equal(noOrigin.status, 403);
+    assert.equal((await noOrigin.json() as { error: string }).error, 'forbidden_origin');
+    assert.equal(await valueOf(ANALYTICS_SETTINGS_KEY), null);
+    assert.equal(await valueOf(ANALYTICS_RECOMPUTE_KEY), null);
+    assert.equal((await auditRows()).length, 0);
+
+    const accepted = await realPatch(jar, { timezone: 'Europe/Berlin', expectedVersion: 0 });
+    assert.equal(accepted.status, 200);
+    assert.equal(((await valueOf(ANALYTICS_SETTINGS_KEY)) as Record<string, unknown>).updatedBy, member.id);
+    const audits = await auditRows();
+    assert.equal(audits.length, 1);
+    assert.equal(audits[0]!.actorId, member.id);
   });
 });
