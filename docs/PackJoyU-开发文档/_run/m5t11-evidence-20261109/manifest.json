@@ -1,0 +1,30 @@
+{
+  "patch": "m5t11-batch-units-20261109",
+  "card": "docs/PackJoyU-开发文档/图谱/任务/M5-T11.md",
+  "files": [
+    {
+      "name": "language-m5t11-card-revised-draft-c8438741-20261109.md",
+      "bytes": 17953,
+      "sha256": "0D945874EC73D8CDB3EEF6F18D129F1955A9947019730E2E144E09BBA2DF6C8B",
+      "source": "D:\\xiangmu\\.codex-plans\\NBshiyan-m5-t11\\language-m5t11-card-revised-draft-c8438741-20261109.md"
+    },
+    {
+      "name": "db-m5t11-r5-static-c8438741-20261109.md",
+      "bytes": 14618,
+      "sha256": "17395477980AABD3057CBC76C142435F9AB2D9AF607B137E3C55B85588181777",
+      "source": "D:\\xiangmu\\.codex-plans\\NBshiyan-m5-t11\\db-m5t11-r5-static-c8438741-20261109.md"
+    },
+    {
+      "name": "testing-m5t11-r5-postmigration-review-c8438741-20261109.md",
+      "bytes": 7899,
+      "sha256": "113E32733DA7935BBC7AA75F080512EF6A1802234F0ACB60FC79AE1A01528BB4",
+      "source": "D:\\xiangmu\\.codex-plans\\NBshiyan-m5-t11\\testing-m5t11-r5-postmigration-review-c8438741-20261109.md"
+    },
+    {
+      "name": "testing-m5t11-ci-review-bded1728-20261109.md",
+      "bytes": 10376,
+      "sha256": "292A7FBEE275BF0A698C07F09F104F4F21B0297076D2B2AF3B4DAB0200B999FC",
+      "source": "D:\\xiangmu\\.codex-plans\\NBshiyan-m5-t11\\testing-m5t11-ci-review-20261109\\testing-m5t11-ci-review-bded1728-20261109.md"
+    }
+  ]
+}

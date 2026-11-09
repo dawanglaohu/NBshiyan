@@ -25,7 +25,7 @@
         "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
         "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
       ],
-      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "originalReviewer": "全栈工程师/安全工程师",
       "evidenceGroup": "G2",
       "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
     },
@@ -37,7 +37,7 @@
         "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
         "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
       ],
-      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "originalReviewer": "全栈工程师/安全工程师",
       "evidenceGroup": "G2",
       "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
     },
@@ -49,7 +49,7 @@
         "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
         "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
       ],
-      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "originalReviewer": "全栈工程师/安全工程师",
       "evidenceGroup": "G2",
       "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
     },
@@ -61,7 +61,7 @@
         "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
         "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
       ],
-      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "originalReviewer": "全栈工程师/安全工程师",
       "evidenceGroup": "G2",
       "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
     },
@@ -73,7 +73,7 @@
         "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
         "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
       ],
-      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "originalReviewer": "全栈工程师/安全工程师",
       "evidenceGroup": "G2",
       "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
     },
@@ -85,7 +85,7 @@
         "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
         "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
       ],
-      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "originalReviewer": "全栈工程师/安全工程师",
       "evidenceGroup": "G2",
       "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
     },
@@ -301,7 +301,7 @@
         "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
         "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
       ],
-      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "originalReviewer": "全栈工程师/安全工程师",
       "evidenceGroup": "G2",
       "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
     },
@@ -313,7 +313,7 @@
         "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
         "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
       ],
-      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "originalReviewer": "全栈工程师/安全工程师",
       "evidenceGroup": "G2",
       "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
     },
@@ -492,7 +492,7 @@
         "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
         "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
       ],
-      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "originalReviewer": "全栈工程师/安全工程师",
       "evidenceGroup": "G2",
       "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
     },
@@ -504,7 +504,7 @@
         "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
         "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
       ],
-      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "originalReviewer": "全栈工程师/安全工程师",
       "evidenceGroup": "G2",
       "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
     },
@@ -516,7 +516,7 @@
         "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
         "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
       ],
-      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "originalReviewer": "全栈工程师/安全工程师",
       "evidenceGroup": "G2",
       "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
     },
@@ -528,7 +528,7 @@
         "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
         "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
       ],
-      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "originalReviewer": "全栈工程师/安全工程师",
       "evidenceGroup": "G2",
       "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
     },
@@ -540,7 +540,7 @@
         "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
         "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
       ],
-      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "originalReviewer": "全栈工程师/安全工程师",
       "evidenceGroup": "G2",
       "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
     },
@@ -552,7 +552,7 @@
         "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
         "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
       ],
-      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "originalReviewer": "全栈工程师/安全工程师",
       "evidenceGroup": "G2",
       "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
     },
@@ -564,7 +564,7 @@
         "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
         "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
       ],
-      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "originalReviewer": "全栈工程师/安全工程师",
       "evidenceGroup": "G2",
       "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
     },
@@ -576,7 +576,7 @@
         "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
         "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
       ],
-      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "originalReviewer": "全栈工程师/安全工程师",
       "evidenceGroup": "G2",
       "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
     },
@@ -588,7 +588,7 @@
         "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
         "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
       ],
-      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "originalReviewer": "全栈工程师/安全工程师",
       "evidenceGroup": "G2",
       "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
     },
@@ -600,7 +600,7 @@
         "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
         "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
       ],
-      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "originalReviewer": "全栈工程师/安全工程师",
       "evidenceGroup": "G2",
       "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
     },
@@ -612,7 +612,7 @@
         "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
         "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
       ],
-      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "originalReviewer": "全栈工程师/安全工程师",
       "evidenceGroup": "G2",
       "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
     },
@@ -624,7 +624,7 @@
         "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
         "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
       ],
-      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "originalReviewer": "全栈工程师/安全工程师",
       "evidenceGroup": "G2",
       "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
     },
@@ -636,7 +636,7 @@
         "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
         "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
       ],
-      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "originalReviewer": "全栈工程师/安全工程师",
       "evidenceGroup": "G2",
       "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
     },
@@ -648,7 +648,7 @@
         "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
         "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
       ],
-      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "originalReviewer": "全栈工程师/安全工程师",
       "evidenceGroup": "G2",
       "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
     },
@@ -660,7 +660,7 @@
         "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
         "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
       ],
-      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "originalReviewer": "全栈工程师/安全工程师",
       "evidenceGroup": "G2",
       "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
     },
@@ -952,7 +952,7 @@
         "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
         "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
       ],
-      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "originalReviewer": "全栈工程师/安全工程师",
       "evidenceGroup": "G2",
       "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
     },
@@ -964,7 +964,7 @@
         "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
         "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
       ],
-      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "originalReviewer": "全栈工程师/安全工程师",
       "evidenceGroup": "G2",
       "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
     },
@@ -976,7 +976,7 @@
         "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
         "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
       ],
-      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "originalReviewer": "全栈工程师/安全工程师",
       "evidenceGroup": "G2",
       "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
     },
@@ -988,7 +988,7 @@
         "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
         "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
       ],
-      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "originalReviewer": "全栈工程师/安全工程师",
       "evidenceGroup": "G2",
       "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
     },
@@ -1000,7 +1000,7 @@
         "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
         "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
       ],
-      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "originalReviewer": "全栈工程师/安全工程师",
       "evidenceGroup": "G2",
       "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
     },
@@ -1012,7 +1012,7 @@
         "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
         "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
       ],
-      "originalReviewer": "未署名（G2 原件无署名；按组标识登记）",
+      "originalReviewer": "全栈工程师/安全工程师",
       "evidenceGroup": "G2",
       "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json"
     },
