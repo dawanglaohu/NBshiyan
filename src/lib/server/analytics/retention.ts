@@ -18,6 +18,7 @@ import {
 import {
   AggregateBatchExceeded,
   AggregateDeadlineExceeded,
+  AggregateGuardFailure,
   AggregateVersionConflict,
   aggregateOneDayInSnapshot,
   assertCurrentTimezoneRevision,
@@ -228,8 +229,18 @@ function errorName(error: unknown): string {
   return 'Error';
 }
 
+/**
+ * 守卫阶段失败（版本冲突或守卫本身没能完成）必须终止本轮：不能再记 gap、更不能继续删除。
+ * 校验通过之后的普通聚合失败不在此列，仍按契约记 gap。
+ */
+export function abortsRetentionRun(error: unknown): boolean {
+  return error instanceof AggregateVersionConflict || error instanceof AggregateGuardFailure;
+}
+
 function errorCodeOf(error: unknown): AppErrorCode {
   if (error instanceof AggregateVersionConflict) return 'version_conflict';
+  // 守卫未完成：按内部错误上报，不冒充版本冲突，也不是普通聚合失败。
+  if (error instanceof AggregateGuardFailure) return 'internal_error';
   if (error instanceof AggregateBatchExceeded) return 'invalid';
   return 'internal_error';
 }
@@ -462,7 +473,9 @@ export async function runAnalyticsRetention(deps: {
         if (error instanceof AggregateDeadlineExceeded || isBudgetTimeoutError(error) || budgetExhausted(budget)) {
           throw new RetentionRunTimeout();
         }
-        if (error instanceof AggregateVersionConflict) throw error;
+        // 守卫阶段失败（含 23505/未知 SQLSTATE 这类“核对没完成”的错误）：终止整轮，
+        // 不记 gap、不继续删除。只有校验通过后的普通聚合失败才走下面的 gap 分支。
+        if (abortsRetentionRun(error)) throw error;
         // 尝试已发生但失败：完整性无法确认，记 gap；随后仍按 30 天删除，
         // 不无限延长原始保留，也不改写旧聚合实物。
         console.error('[cron] analytics retention preflight aggregate failed', errorName(error));

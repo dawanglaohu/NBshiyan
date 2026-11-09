@@ -53,6 +53,20 @@ export class AggregateBatchExceeded extends Error {
   }
 }
 
+/**
+ * 守卫阶段自身失败：时区代次还没核对完就出错（未知 SQLSTATE、唯一冲突、连接中断等）。
+ *
+ * 阶段标记而不是错误码黑名单：只要错误出自 `assertCurrentTimezoneRevision`，就说明
+ * “revision 校验没有完成”，调用方必须终止本轮、不得继续删除，也不能把它记成普通聚合
+ * 失败的 gap。预算错误（55P03/57014/P2028）不在此列，仍按预算分类处理。
+ */
+export class AggregateGuardFailure extends Error {
+  constructor(readonly original: unknown) {
+    super('guard_failure');
+    this.name = 'AggregateGuardFailure';
+  }
+}
+
 /** 事务等待连接的上限；与执行时间合计不得超过本轮剩余预算。 */
 const AGGREGATE_TX_MAX_WAIT_MS = 2_000;
 
@@ -186,7 +200,12 @@ export async function assertCurrentTimezoneRevision(
     `;
     requireCurrentRevision(initialized[0]?.value, expectedRevision);
   } catch (error) {
-    throw asVersionConflict(error);
+    if (isBudgetFailure(error)) throw error;
+    if (error instanceof AggregateVersionConflict) throw error;
+    if (isWriteConflict(error)) throw new AggregateVersionConflict('write_conflict');
+    // 未能完成 revision 核对：打上阶段标记，让上层按「守卫失败」终止，
+    // 而不是落进普通聚合失败 -> gap -> 继续删除。
+    throw new AggregateGuardFailure(error);
   }
 }
 

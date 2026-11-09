@@ -11,6 +11,7 @@ import { Prisma, PrismaClient } from '@prisma/client';
 import { createOperationsHandler, createJobRegistry } from '../src/lib/server/jobs/registry';
 import {
   ANALYTICS_RETENTION_KEY,
+  abortsRetentionRun,
   classifyHistoricalDays,
   coverageOfHistory,
   createAnalyticsRetentionJob,
@@ -26,6 +27,7 @@ import {
 import { createJobLeaseRepo } from '../src/lib/server/jobs/lease-repo';
 import {
   AggregateDeadlineExceeded,
+  AggregateGuardFailure,
   AggregateVersionConflict,
   aggregateOneDayInSnapshot,
   assertCurrentTimezoneRevision,
@@ -160,14 +162,16 @@ test('单日聚合预算：充足时按剩余预算切分 maxWait/timeout，并�
   assert.ok(Number(options?.timeout) < 15_000, '不得退回默认 15s，应按剩余预算派生');
 });
 
-test('D4 守卫：写前复核 revision，序列化/写冲突归一为版本冲突且一个字节都不写', async () => {
+test('D4 守卫：写前复核 revision，版本冲突归一、未知失败打阶段标记且一个字节都不写', async () => {
   type FakePgError = { meta?: { code?: string }; code?: string };
-  const makeTx = (options: { revision?: number; revisionError?: FakePgError; generation?: number | null }) => {
+  const makeTx = (options: { revision?: number; revisionError?: FakePgError; generation?: number | null; writeError?: Error }) => {
     const executed: string[] = [];
     const tx = {
       $executeRawUnsafe: async () => 0,
       $executeRaw: async (strings: TemplateStringsArray) => {
-        executed.push(strings.join(' '));
+        const text = strings.join(' ');
+        executed.push(text);
+        if (options.writeError && text.includes('DELETE FROM')) throw options.writeError;
         return 1;
       },
       $queryRaw: async (strings: TemplateStringsArray) => {
@@ -217,14 +221,47 @@ test('D4 守卫：写前复核 revision，序列化/写冲突归一为版本冲�
     assert.equal(executed.filter((text) => text.includes('DELETE FROM')).length, 0);
   }
 
-  // C. 锁等待/语句超时是预算错误：原样上抛，不能吞成版本冲突或普通失败。
+  // C. 守卫没能完成（23505 唯一冲突 / 未知 XX000）：不能归一成版本冲突，但必须打上守卫阶段标记，
+  //    让上层终止本轮；守卫之后同样一个字节都不写。阶段判断不依赖具体 SQLSTATE。
+  for (const revisionError of [{ meta: { code: '23505' } }, { meta: { code: 'XX000' }, code: 'P2010' }] as FakePgError[]) {
+    const { tx, executed } = makeTx({ revision: 1, revisionError });
+    await assert.rejects(
+      () => aggregateOneDayInSnapshot({ db: dbFor(tx), ...args }),
+      (thrown: unknown) => thrown instanceof AggregateGuardFailure
+        && !(thrown instanceof AggregateVersionConflict)
+        && (thrown as AggregateGuardFailure).original === revisionError,
+    );
+    assert.equal(executed.filter((text) => text.includes('DELETE FROM')).length, 0);
+  }
+
+  // D. 校验已经通过后的普通聚合失败：不得被打成守卫失败，仍按普通失败上抛（上层记 gap）。
+  {
+    const { tx } = makeTx({ revision: 1, writeError: new Error('aggregate_write_failed') });
+    await assert.rejects(
+      () => aggregateOneDayInSnapshot({ db: dbFor(tx), ...args }),
+      (thrown: unknown) => thrown instanceof Error
+        && thrown.message === 'aggregate_write_failed'
+        && !(thrown instanceof AggregateGuardFailure),
+    );
+  }
+
+  // E. 锁等待/语句超时是预算错误：原样上抛，不能吞成版本冲突、守卫失败或普通失败。
   const { tx: budgetTx } = makeTx({ revision: 1, revisionError: { meta: { code: '55P03' } } });
   await assert.rejects(
     () => aggregateOneDayInSnapshot({ db: dbFor(budgetTx), ...args }),
     (thrown: unknown) =>
       !(thrown instanceof AggregateVersionConflict)
+      && !(thrown instanceof AggregateGuardFailure)
       && (thrown as { meta?: { code?: string } }).meta?.code === '55P03',
   );
+});
+
+test('R4 失败阶段：守卫失败必须终止，普通聚合失败仍 gap，预算错误保留', () => {
+  assert.equal(abortsRetentionRun(new AggregateVersionConflict('stale_timezone_revision')), true);
+  assert.equal(abortsRetentionRun(new AggregateGuardFailure(new Error('guard broke'))), true);
+  assert.equal(abortsRetentionRun(new Error('aggregate_write_failed')), false);
+  // 预算错误在 preflight 更早的分支按 timeout 处理，不属于“守卫失败终止”。
+  assert.equal(abortsRetentionRun({ meta: { code: '55P03' } }), false);
 });
 
 test('单日聚合：写入后到期即抛错回滚，occurredNotAfter 与旧代次按既有语义处理', async () => {
