@@ -13,6 +13,16 @@ export function hashRecoverySessionToken(token: string): string {
 
 export type RecoveryDb = PrismaClient | Prisma.TransactionClient;
 
+/**
+ * Prisma `DateTime` 列是 PostgreSQL `timestamp(3)`（无时区）。raw SQL 里直接绑 JS Date
+ * 会被驱动按 timestamptz 发送，再按会话时区落到 timestamp，产生整时区偏移；
+ * 既有 `consumePermit` 已用 `($n::timestamptz AT TIME ZONE 'UTC')` 统一成 UTC 墙上时间。
+ * 新 raw 写/比较必须走同一转换。
+ */
+function utcWall(value: Date): Prisma.Sql {
+  return Prisma.sql`(${value}::timestamptz AT TIME ZONE 'UTC')`;
+}
+
 export type LockedRecoveryTarget = {
   id: string;
   sessionVersion: number;
@@ -50,6 +60,47 @@ export type LockedRecoveryUser = {
   recoveryCodes: string[];
   sessionVersion: number;
 };
+
+/** M3-T5：受限会话行。confirm 在锁内重读 pending/sv/期限/失败计数，不用锁前快照。 */
+export type LockedRecoverySession = {
+  id: string;
+  userId: string;
+  sessionVersion: number;
+  source: 'RECOVERY_CODE' | 'ADMIN' | 'SERVER_OWNER' | 'SELF_REAUTH';
+  expiresAt: Date;
+  pendingSecretEncrypted: string | null;
+  pendingUntil: Date | null;
+  pendingPasswordHash: string | null;
+  passwordResetSource: string | null;
+  failedAttempts: number;
+  completedAt: Date | null;
+  revokedAt: Date | null;
+};
+
+/** M3-T5：最终确认要核对的 User 因素；只投必要列，不把整行 User 快照带进事务外。 */
+export type LockedRecoveryFactors = {
+  id: string;
+  email: string;
+  disabled: boolean;
+  totpEnabled: boolean;
+  totpSecret: string | null;
+  recoveryCodes: string[];
+  sessionVersion: number;
+  passwordHash: string;
+};
+
+/** 最终确认的原子 User CAS 输入：新 secret/step/恢复码/sv+1 同一条 UPDATE。 */
+export type CommitRecoveredFactors = {
+  userId: string;
+  expectedSessionVersion: number;
+  expectedTotpSecret: string | null;
+  newTotpSecretEncrypted: string;
+  totpLastStep: number;
+  recoveryCodeHashes: string[];
+  /** 仅 SERVER_OWNER 的受限会话才带；HTTP 永不写。 */
+  pendingPasswordHash: string | null;
+};
+
 
 export type ConsumedPermit = {
   id: string;
@@ -102,9 +153,26 @@ export type RecoveryRepo = {
   consumeRecoveryCode(tx: Prisma.TransactionClient, userId: string, code: string): Promise<boolean>;
   /** sv 递增后撤销旧设备与旧的未完成恢复会话，再建 10min 受限会话，全部在同一 tx。 */
   bumpSessionVersion(tx: Prisma.TransactionClient, userId: string, now: Date): Promise<number>;
-  revokeOldDevices(tx: Prisma.TransactionClient, userId: string, sessionVersion: number, now: Date): Promise<void>;
+  revokeOldDevices(tx: Prisma.TransactionClient, userId: string, sessionVersion: number, now: Date, reason?: string): Promise<void>;
   revokeOldRecoverySessions(tx: Prisma.TransactionClient, userId: string, now: Date): Promise<void>;
   createRecoverySession(tx: Prisma.TransactionClient, session: NewRecoverySession): Promise<void>;
+
+  /** M3-T5：按 tokenHash 锁受限会话行，confirm 的所有判定都用锁后重读值。 */
+  lockRecoverySession(tx: Prisma.TransactionClient, tokenHash: string): Promise<LockedRecoverySession | undefined>;
+  /** M3-T5：按 userId 锁 User 行并只取最终确认需要的因素列。 */
+  lockRecoveryFactors(tx: Prisma.TransactionClient, userId: string): Promise<LockedRecoveryFactors | undefined>;
+  /** 首次 pending 写入的 CAS：只有待确认列仍为空、会话未完成/未撤销/未过期且 sv 相符时成功。 */
+  setPendingSecret(tx: Prisma.TransactionClient, sessionId: string, encrypted: string, until: Date, now: Date, sessionVersion: number): Promise<boolean>;
+  /** 过期/作废：持久撤销受限会话并清掉 pending，不从只读检查里返回。 */
+  revokeRecoverySession(tx: Prisma.TransactionClient, sessionId: string, now: Date): Promise<void>;
+  /** 错码 +1 与第 5 次作废合并成一条 UPDATE；拒绝分支的副作用不能在 throw 时被回滚。 */
+  recordConfirmFailure(tx: Prisma.TransactionClient, sessionId: string, now: Date): Promise<number | undefined>;
+  /** 成功领取受限会话：completedAt 置位并清 pending；条件不满足时整组回滚。 */
+  completeRecoverySession(tx: Prisma.TransactionClient, sessionId: string, now: Date, expectedPendingSecret: string, sessionVersion: number): Promise<boolean>;
+  /** 成功后撤销同账号其他未完成受限会话；当前这条不撤，置 completedAt。 */
+  revokeOtherRecoverySessions(tx: Prisma.TransactionClient, userId: string, keepSessionId: string, now: Date): Promise<void>;
+  /** 最终原子发布：新 secret/step/恢复码/sv+1（SERVER_OWNER 时含密码）一条 UPDATE，返回新 sv。 */
+  commitRecoveredFactors(tx: Prisma.TransactionClient, input: CommitRecoveredFactors): Promise<number | undefined>;
 };
 
 export function createRecoveryRepo(): RecoveryRepo {
@@ -182,10 +250,10 @@ export function createRecoveryRepo(): RecoveryRepo {
       `;
       return rows[0]?.sessionVersion ?? 0;
     },
-    async revokeOldDevices(tx, userId, sessionVersion, now) {
+    async revokeOldDevices(tx, userId, sessionVersion, now, reason = 'recovery_start') {
       await tx.adminDeviceSession.updateMany({
         where: { userId, revokedAt: null, sessionVersion: { lt: sessionVersion } },
-        data: { revokedAt: now, revokedReason: 'recovery_start' },
+        data: { revokedAt: now, revokedReason: reason },
       });
     },
     async revokeOldRecoverySessions(tx, userId, now) {
@@ -196,6 +264,105 @@ export function createRecoveryRepo(): RecoveryRepo {
     },
     async createRecoverySession(tx, session) {
       await tx.adminRecoverySession.create({ data: session });
+    },
+
+    async lockRecoverySession(tx, tokenHash) {
+      const rows = await tx.$queryRaw<LockedRecoverySession[]>`
+        SELECT id, "userId", "sessionVersion", source::text AS source, "expiresAt",
+               "pendingSecretEncrypted", "pendingUntil", "pendingPasswordHash",
+               "passwordResetSource", "failedAttempts", "completedAt", "revokedAt"
+        FROM "AdminRecoverySession"
+        WHERE "tokenHash" = ${tokenHash}
+        FOR UPDATE
+      `;
+      return rows[0];
+    },
+    async lockRecoveryFactors(tx, userId) {
+      const rows = await tx.$queryRaw<LockedRecoveryFactors[]>`
+        SELECT id, email, disabled, "totpEnabled", "totpSecret", "recoveryCodes",
+               "sessionVersion", "passwordHash"
+        FROM "User"
+        WHERE id = ${userId}
+        FOR UPDATE
+      `;
+      return rows[0];
+    },
+    async setPendingSecret(tx, sessionId, encrypted, until, now, sessionVersion) {
+      const rows = await tx.$queryRaw<{ id: string }[]>`
+        UPDATE "AdminRecoverySession"
+        SET "pendingSecretEncrypted" = ${encrypted}, "pendingUntil" = ${utcWall(until)}
+        WHERE id = ${sessionId}
+          AND "sessionVersion" = ${sessionVersion}
+          AND "completedAt" IS NULL
+          AND "revokedAt" IS NULL
+          AND "expiresAt" > ${utcWall(now)}
+          AND "pendingSecretEncrypted" IS NULL
+          AND "pendingUntil" IS NULL
+        RETURNING id
+      `;
+      return rows.length === 1;
+    },
+    async revokeRecoverySession(tx, sessionId, now) {
+      await tx.adminRecoverySession.updateMany({
+        where: { id: sessionId, revokedAt: null, completedAt: null },
+        data: { revokedAt: now, pendingSecretEncrypted: null, pendingUntil: null },
+      });
+    },
+    async recordConfirmFailure(tx, sessionId, now) {
+      const rows = await tx.$queryRaw<{ failedAttempts: number }[]>`
+        UPDATE "AdminRecoverySession"
+        SET "failedAttempts" = "failedAttempts" + 1,
+            "revokedAt" = CASE WHEN "failedAttempts" + 1 >= 5 THEN ${utcWall(now)} ELSE "revokedAt" END,
+            "pendingSecretEncrypted" = CASE WHEN "failedAttempts" + 1 >= 5 THEN NULL ELSE "pendingSecretEncrypted" END,
+            "pendingUntil" = CASE WHEN "failedAttempts" + 1 >= 5 THEN NULL ELSE "pendingUntil" END
+        WHERE id = ${sessionId}
+          AND "failedAttempts" < 5
+          AND "completedAt" IS NULL
+          AND "revokedAt" IS NULL
+        RETURNING "failedAttempts"
+      `;
+      return rows[0]?.failedAttempts;
+    },
+    async completeRecoverySession(tx, sessionId, now, expectedPendingSecret, sessionVersion) {
+      const rows = await tx.$queryRaw<{ id: string }[]>`
+        UPDATE "AdminRecoverySession"
+        SET "completedAt" = ${utcWall(now)},
+            "pendingSecretEncrypted" = NULL,
+            "pendingUntil" = NULL
+        WHERE id = ${sessionId}
+          AND "sessionVersion" = ${sessionVersion}
+          AND "completedAt" IS NULL
+          AND "revokedAt" IS NULL
+          AND "pendingSecretEncrypted" = ${expectedPendingSecret}
+          AND "pendingUntil" IS NOT NULL
+          AND "pendingUntil" > ${utcWall(now)}
+        RETURNING id
+      `;
+      return rows.length === 1;
+    },
+    async revokeOtherRecoverySessions(tx, userId, keepSessionId, now) {
+      await tx.adminRecoverySession.updateMany({
+        where: { userId, id: { not: keepSessionId }, revokedAt: null, completedAt: null },
+        data: { revokedAt: now },
+      });
+    },
+    async commitRecoveredFactors(tx, input) {
+      const hashes = Prisma.sql`ARRAY[${Prisma.join(input.recoveryCodeHashes)}]::text[]`;
+      const rows = await tx.$queryRaw<{ sessionVersion: number }[]>`
+        UPDATE "User"
+        SET "totpSecret" = ${input.newTotpSecretEncrypted},
+            "totpEnabled" = true,
+            "totpLastStep" = ${input.totpLastStep},
+            "recoveryCodes" = ${hashes},
+            "sessionVersion" = "sessionVersion" + 1,
+            "passwordHash" = COALESCE(${input.pendingPasswordHash}::text, "passwordHash")
+        WHERE id = ${input.userId}
+          AND "sessionVersion" = ${input.expectedSessionVersion}
+          AND "totpSecret" IS NOT DISTINCT FROM ${input.expectedTotpSecret}
+          AND "totpEnabled" = true
+        RETURNING "sessionVersion"
+      `;
+      return rows[0]?.sessionVersion;
     },
   };
 }
