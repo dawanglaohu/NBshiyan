@@ -142,6 +142,20 @@ function asVersionConflict(error: unknown): unknown {
   return isWriteConflict(error) ? new AggregateVersionConflict('write_conflict') : error;
 }
 
+/**
+ * 前置校验阶段的错误分类（R5）：generation 读取与 settings 代次守卫同属“写前能否确认本轮权限”。
+ * 只有这段里的未知错误才打 `AggregateGuardFailure` 标记；校验通过后的业务聚合错误不受影响。
+ * 已带标记的错误原样透传，避免重复包装；deadline/预算/版本冲突保持原分类。
+ */
+function asPreflightStageError(error: unknown): unknown {
+  if (error instanceof AggregateGuardFailure) return error;
+  if (error instanceof AggregateDeadlineExceeded) return error;
+  if (error instanceof AggregateVersionConflict) return error;
+  if (isBudgetFailure(error)) return error;
+  if (isWriteConflict(error)) return new AggregateVersionConflict('write_conflict');
+  return new AggregateGuardFailure(error);
+}
+
 function asJson(value: unknown): unknown {
   if (typeof value !== 'string') return value;
   try { return JSON.parse(value) as unknown; } catch { return value; }
@@ -322,17 +336,25 @@ export async function aggregateOneDayInSnapshot(deps: {
   }
   if (deadlineReached()) throw new AggregateDeadlineExceeded();
 
+  let enteredTransaction = false;
   try {
     return await runInRepeatableReadSnapshot(db, async (tx) => {
-      if (deadlineReached()) throw new AggregateDeadlineExceeded();
-      const lockedGeneration = await readLockedGeneration(tx);
-      if (lockedGeneration !== null && lockedGeneration > generation) {
-        throw new AggregateVersionConflict('stale_generation');
+      enteredTransaction = true;
+      // 写前前置：generation 与 settings 代次都必须能确认。这一段的任何未知错误都按守卫失败终止，
+      // 不能落进“校验通过但业务聚合失败”的 gap 分支。
+      try {
+        if (deadlineReached()) throw new AggregateDeadlineExceeded();
+        const lockedGeneration = await readLockedGeneration(tx);
+        if (lockedGeneration !== null && lockedGeneration > generation) {
+          throw new AggregateVersionConflict('stale_generation');
+        }
+        if (deps.assertTimezoneRevision) {
+          await assertCurrentTimezoneRevision(tx, deps.timezoneRevision, deps.now);
+        }
+        if (deadlineReached()) throw new AggregateDeadlineExceeded();
+      } catch (error) {
+        throw asPreflightStageError(error);
       }
-      if (deps.assertTimezoneRevision) {
-        await assertCurrentTimezoneRevision(tx, deps.timezoneRevision, deps.now);
-      }
-      if (deadlineReached()) throw new AggregateDeadlineExceeded();
       const day = await writeOneDayInTx(tx, {
         siteDate: deps.siteDate,
         siteTimezone: deps.siteTimezone,
@@ -346,6 +368,8 @@ export async function aggregateOneDayInSnapshot(deps: {
       return day;
     }, txOptions);
   } catch (error) {
+    // 事务都没能开成：前置校验同样无法执行，按守卫阶段处理（预算错误原样保留）。
+    if (!enteredTransaction) throw asPreflightStageError(error);
     // 旧快照下的并发写冲突（40001/P2034）必须当版本冲突上抛：调用方不能把它降级成普通失败后继续删除。
     throw asVersionConflict(error);
   }
@@ -413,13 +437,17 @@ export async function runAggregateOnce(deps: {
   // 不 catch 成「部分成功」——09 节 `:71` 禁止留下部分天新、部分天旧的半成品。
   try {
     days = await runInRepeatableReadSnapshot(deps.db, async (tx) => {
-      // 整组只做一次行锁与代次校验。
-      const lockedGeneration = await readLockedGeneration(tx);
-      if (lockedGeneration !== null && lockedGeneration > deps.generation) {
-        throw new AggregateVersionConflict('stale_generation');
-      }
-      if (deps.assertTimezoneRevision) {
-        await assertCurrentTimezoneRevision(tx, deps.timezoneRevision, deps.now);
+      // 整组只做一次行锁与代次校验；写前前置的未知错误按守卫失败终止，不混进业务聚合失败。
+      try {
+        const lockedGeneration = await readLockedGeneration(tx);
+        if (lockedGeneration !== null && lockedGeneration > deps.generation) {
+          throw new AggregateVersionConflict('stale_generation');
+        }
+        if (deps.assertTimezoneRevision) {
+          await assertCurrentTimezoneRevision(tx, deps.timezoneRevision, deps.now);
+        }
+      } catch (error) {
+        throw asPreflightStageError(error);
       }
       const written: AggregateDayResult[] = [];
       for (const siteDate of plan.siteDates) {

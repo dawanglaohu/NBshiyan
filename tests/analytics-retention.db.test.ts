@@ -164,7 +164,7 @@ test('单日聚合预算：充足时按剩余预算切分 maxWait/timeout，并�
 
 test('D4 守卫：写前复核 revision，版本冲突归一、未知失败打阶段标记且一个字节都不写', async () => {
   type FakePgError = { meta?: { code?: string }; code?: string };
-  const makeTx = (options: { revision?: number; revisionError?: FakePgError; generation?: number | null; writeError?: Error }) => {
+  const makeTx = (options: { revision?: number; revisionError?: FakePgError; generation?: number | null; generationError?: FakePgError; writeError?: Error }) => {
     const executed: string[] = [];
     const tx = {
       $executeRawUnsafe: async () => 0,
@@ -177,6 +177,7 @@ test('D4 守卫：写前复核 revision，版本冲突归一、未知失败打�
       $queryRaw: async (strings: TemplateStringsArray) => {
         const text = strings.join(' ');
         if (text.includes('FROM "JobState"')) {
+          if (options.generationError) throw options.generationError;
           return options.generation === null ? [] : [{ generation: options.generation ?? 1 }];
         }
         if (text.includes('FROM "SiteSetting"')) {
@@ -254,6 +255,224 @@ test('D4 守卫：写前复核 revision，版本冲突归一、未知失败打�
       && !(thrown instanceof AggregateGuardFailure)
       && (thrown as { meta?: { code?: string } }).meta?.code === '55P03',
   );
+
+  // F. generation 前置读取（JobState FOR UPDATE）的未知错误同样属于守卫阶段：打标记、不写。
+  for (const generationError of [{ meta: { code: 'XX000' } }, { code: 'P1017' }] as FakePgError[]) {
+    const { tx, executed } = makeTx({ revision: 1, generationError });
+    await assert.rejects(
+      () => aggregateOneDayInSnapshot({ db: dbFor(tx), ...args }),
+      (thrown: unknown) => thrown instanceof AggregateGuardFailure
+        && !(thrown instanceof AggregateVersionConflict)
+        && (thrown as AggregateGuardFailure).original === generationError,
+    );
+    assert.equal(executed.filter((text) => text.includes('DELETE FROM')).length, 0);
+  }
+
+  // G. generation 前置读取的预算错误保持原分类，不得被标成守卫失败。
+  const { tx: generationBudgetTx } = makeTx({ revision: 1, generationError: { meta: { code: '57014' } } });
+  await assert.rejects(
+    () => aggregateOneDayInSnapshot({ db: dbFor(generationBudgetTx), ...args }),
+    (thrown: unknown) =>
+      !(thrown instanceof AggregateGuardFailure)
+      && !(thrown instanceof AggregateVersionConflict)
+      && (thrown as { meta?: { code?: string } }).meta?.code === '57014',
+  );
+
+  // H. generation 真超前（库里 2 > 本轮 1）：版本冲突语义不变。
+  const { tx: staleGenerationTx } = makeTx({ revision: 1, generation: 2 });
+  await assert.rejects(
+    () => aggregateOneDayInSnapshot({ db: dbFor(staleGenerationTx), ...args }),
+    (thrown: unknown) => thrown instanceof AggregateVersionConflict && !(thrown instanceof AggregateGuardFailure),
+  );
+});
+
+test('R5 服务级假 DB：preflight 的 generation/settings 前置失败按守卫失败终止，不记 gap、不删', async () => {
+  type FakePgError = { meta?: { code?: string }; code?: string };
+  // 假 DB 只覆盖本用例需要的查询面；它证明的是服务层分类与顺序，不证明真实 PG 回滚。
+  const makeRetentionDb = (options: {
+    generationFirst?: { generation: number };
+    generationErrorOnce?: FakePgError;
+    settingsErrorOnce?: FakePgError;
+    preflightDeleteErrorOnce?: boolean;
+  } = {}) => {
+    const settings = {
+      version: 1,
+      timezone: TZ,
+      timezoneRevision: 1,
+      changedAt: '2026-01-01T00:00:00.000Z',
+      updatedBy: null,
+    };
+    const leaseRow = {
+      generation: 1,
+      lastStatus: 'RUNNING',
+      lastStartedAt: NOW.toISOString(),
+      lastFinishedAt: null,
+      lastSucceededAt: null,
+      lockedUntil: '2027-03-15T04:05:00.000Z',
+      lastErrorCode: null,
+      summary: null,
+    };
+    const failedRow = {
+      generation: 1,
+      lastStatus: 'FAILED',
+      lastStartedAt: NOW.toISOString(),
+      lastFinishedAt: NOW.toISOString(),
+      lastSucceededAt: null,
+      lockedUntil: null,
+      lastErrorCode: 'internal_error',
+      summary: null,
+    };
+    const stats = { deletedEvents: 0, deletedDaily: 0, deletedDays: 0, generationChecks: 0 };
+    let generationInjected = false;
+    let settingsInjected = false;
+    let preflightDeleteInjected = false;
+    let jobStateInserts = 0;
+    const textOf = (query: unknown): string => {
+      if (Array.isArray(query)) return query.map(String).join(' ');
+      if (query && typeof query === 'object') {
+        const inline = (query as { text?: unknown }).text ?? (query as { sql?: unknown }).sql;
+        if (typeof inline === 'string') return inline;
+        const parts = (query as { strings?: unknown }).strings;
+        if (Array.isArray(parts)) return parts.map(String).join(' ');
+      }
+      return '';
+    };
+    const tx = {
+      $executeRawUnsafe: async () => 0,
+      $executeRaw: async (query: unknown) => {
+        const text = textOf(query);
+        if (text.includes('LOCK TABLE')) return 0;
+        if (text.includes('DELETE FROM "AnalyticsEvent"')) {
+          stats.deletedEvents += 1;
+          return 1;
+        }
+        if (text.includes('DELETE FROM "AnalyticsDailyRollup"')) {
+          if (text.includes('AS target')) return 0;
+          if (!preflightDeleteInjected && options.preflightDeleteErrorOnce) {
+            preflightDeleteInjected = true;
+            throw new Error('aggregate_write_failed');
+          }
+          stats.deletedDaily += 1;
+          return 1;
+        }
+        if (text.includes('DELETE FROM "AnalyticsRollupDay"')) return 0;
+        if (text.includes('INSERT INTO "AnalyticsRollupDay"')) return 1;
+        return 0;
+      },
+      $queryRaw: async (query: unknown) => {
+        const text = textOf(query);
+        if (text.includes('FROM "SiteSetting"')) {
+          if (text.includes('FOR UPDATE') && !settingsInjected && options.settingsErrorOnce) {
+            settingsInjected = true;
+            throw options.settingsErrorOnce;
+          }
+          return [{ value: settings }];
+        }
+        if (text.includes('INSERT INTO "JobState"')) {
+          jobStateInserts += 1;
+          return [jobStateInserts === 1 ? leaseRow : failedRow];
+        }
+        if (text.includes('UPDATE "JobState"')) {
+          // 租约续租的 UPDATE 返回完整行；释放租约的 UPDATE 只要 generation。
+          return text.includes('SET "leaseOwner"') ? [{ generation: 1 }] : [leaseRow];
+        }
+        if (text.includes('FROM "JobState"')) {
+          if (text.includes('SELECT "generation"')) {
+            stats.generationChecks += 1;
+            if (!generationInjected && stats.generationChecks === 1 && options.generationErrorOnce) {
+              generationInjected = true;
+              throw options.generationErrorOnce;
+            }
+            if (!generationInjected && stats.generationChecks === 1 && options.generationFirst) {
+              generationInjected = true;
+              return [{ generation: options.generationFirst.generation }];
+            }
+            return [{ generation: 1 }];
+          }
+          return [];
+        }
+        if (text.includes('FROM "AnalyticsEvent"')) {
+          if (text.includes('COUNT(*)')) return [{ count: 1 }];
+          if (text.includes('ORDER BY "receivedAt"')) return [{ eventId: 'e1', siteDate: '2027-03-14' }];
+          return [];
+        }
+        if (text.includes('FROM "AnalyticsDailyRollup"')) {
+          if (text.includes('COUNT(*)')) return [{ count: 0 }];
+          return [];
+        }
+        if (text.includes('FROM "AnalyticsRollupDay"')) {
+          if (text.includes('COUNT(*)')) return [{ count: 0 }];
+          return [];
+        }
+        return [];
+      },
+    };
+    const db = {
+      $queryRaw: tx.$queryRaw,
+      $executeRaw: tx.$executeRaw,
+      $transaction: async (fn: (client: unknown) => Promise<unknown>) => fn(tx),
+    } as unknown as Parameters<typeof runAnalyticsRetention>[0]['db'];
+    return { db, stats };
+  };
+  const runWith = (db: Parameters<typeof runAnalyticsRetention>[0]['db']) =>
+    runAnalyticsRetention({ db, context: context(NOW, false), clock: () => NOW, deleteAuthorized: true });
+
+  // A. generation 读取未知错误：FAILED/internal_error，gap 为空，raw 未删。
+  {
+    const { db, stats } = makeRetentionDb({ generationErrorOnce: { meta: { code: 'XX000' } } });
+    const run = await runWith(db);
+    assert.equal(run.kind, 'completed');
+    if (run.kind !== 'completed') return;
+    assert.equal(run.status, 'FAILED');
+    assert.equal(run.errorCode, 'internal_error');
+    assert.deepEqual(run.report.history.gapDays, []);
+    assert.equal(run.report.deletedEvents, 0);
+    assert.equal(stats.deletedEvents, 0);
+  }
+
+  // B. generation 预算错误：按预算超时返回，不标守卫失败、不删。
+  {
+    const { db, stats } = makeRetentionDb({ generationErrorOnce: { meta: { code: '57014' } } });
+    const run = await runWith(db);
+    assert.equal(run.kind, 'timeout');
+    assert.equal(stats.deletedEvents, 0);
+  }
+
+  // C. generation 真超前：版本冲突，不删。
+  {
+    const { db, stats } = makeRetentionDb({ generationFirst: { generation: 2 } });
+    const run = await runWith(db);
+    assert.equal(run.kind, 'completed');
+    if (run.kind !== 'completed') return;
+    assert.equal(run.status, 'FAILED');
+    assert.equal(run.errorCode, 'version_conflict');
+    assert.deepEqual(run.report.history.gapDays, []);
+    assert.equal(stats.deletedEvents, 0);
+  }
+
+  // D. settings 守卫未知错误（R3 A4/A5 同形）：同样终止，不落 gap、不删。
+  {
+    const { db, stats } = makeRetentionDb({ settingsErrorOnce: { meta: { code: '23505' } } });
+    const run = await runWith(db);
+    assert.equal(run.kind, 'completed');
+    if (run.kind !== 'completed') return;
+    assert.equal(run.status, 'FAILED');
+    assert.equal(run.errorCode, 'internal_error');
+    assert.deepEqual(run.report.history.gapDays, []);
+    assert.equal(stats.deletedEvents, 0);
+  }
+
+  // E. 前置校验通过后的普通聚合失败：仍按契约记 gap 并继续删除（阶段区分不被扩大）。
+  {
+    const { db, stats } = makeRetentionDb({ preflightDeleteErrorOnce: true });
+    const run = await runWith(db);
+    assert.equal(run.kind, 'completed');
+    if (run.kind !== 'completed') return;
+    assert.deepEqual(run.report.history.gapDays, ['2027-03-14']);
+    assert.deepEqual(run.report.history.recomputedDays, []);
+    assert.equal(run.report.deletedEvents, 1);
+    assert.equal(stats.deletedEvents, 1);
+  }
 });
 
 test('R4 失败阶段：守卫失败必须终止，普通聚合失败仍 gap，预算错误保留', () => {
@@ -262,6 +481,26 @@ test('R4 失败阶段：守卫失败必须终止，普通聚合失败仍 gap，�
   assert.equal(abortsRetentionRun(new Error('aggregate_write_failed')), false);
   // 预算错误在 preflight 更早的分支按 timeout 处理，不属于“守卫失败终止”。
   assert.equal(abortsRetentionRun({ meta: { code: '55P03' } }), false);
+});
+
+test('R5 事务都没开成：按守卫阶段失败上抛，不落普通聚合失败', async () => {
+  const db = {
+    $transaction: async () => { throw new Error('connect_failed'); },
+  } as unknown as Parameters<typeof aggregateOneDayInSnapshot>[0]['db'];
+  await assert.rejects(
+    () => aggregateOneDayInSnapshot({
+      db,
+      siteDate: '2027-02-14',
+      siteTimezone: TZ,
+      cutoff: NOW,
+      timezoneRevision: 1,
+      generation: 1,
+      now: NOW,
+      assertTimezoneRevision: true,
+    }),
+    (thrown: unknown) => thrown instanceof AggregateGuardFailure
+      && (thrown as AggregateGuardFailure).original instanceof Error,
+  );
 });
 
 test('单日聚合：写入后到期即抛错回滚，occurredNotAfter 与旧代次按既有语义处理', async () => {
