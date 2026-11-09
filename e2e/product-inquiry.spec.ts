@@ -174,6 +174,8 @@ test('EN 390: card name/spec and inquiry entry stay visible and submit a real In
   page.on('request', (r) => {
     if (r.method() === 'POST' && new URL(r.url()).pathname === '/api/inquiries') inquiryPosts += 1;
   });
+  await controlCardModel(page, first);
+  expect(inquiryPosts).toBe(0);
   await first.getByTestId('inquire-product').click();
   await expect(page).toHaveURL(new RegExp(`/en/contact\\?product=${card.slug}$`));
   await expect(page.getByTestId('inquiry-product-context')).toContainText(card.name);
@@ -225,11 +227,14 @@ test('catalog: gift-boxes card keeps its category key; published READY and desig
   const publishedSlug = `published-gift-box-${stamp}`;
   let modelId: string | undefined;
   let designId: string | undefined;
+  let failure: unknown;
   try {
     const model = await db.model3D.create({
       data: {
         productSlug: publishedSlug,
         category: 'gift-boxes',
+        sortOrder: -2_000_000_000,
+        publishedAt: new Date(),
         sourceKey: `e2e/m2t5/${stamp}.glb`,
         published: true,
         status: 'READY',
@@ -275,8 +280,12 @@ test('catalog: gift-boxes card keeps its category key; published READY and desig
     ]));
 
     // 同一个 Model3D 的 category 是 gift-boxes，卡片入口必须仍发 gift-boxes，而不是 productSlug。
+    const revalidated = await page.request.post('/api/site-settings-revalidate');
+    expect(revalidated.status()).toBe(204);
     await page.goto('/en/products');
     await dismissConsent(page);
+    const pageHtml = await page.content();
+    expect(pageHtml).toContain(`/api/models/${model.id}/glb`);
     const entry = page.locator('[data-testid="inquire-product"][data-slug="gift-boxes"]');
     await expect(entry).toHaveCount(1);
     await expect(entry).toHaveAttribute('href', '/en/contact?product=gift-boxes');
@@ -284,15 +293,30 @@ test('catalog: gift-boxes card keeps its category key; published READY and desig
     await entry.click();
     await expect(page).toHaveURL(/\/en\/contact\?product=gift-boxes$/);
     await expect(page.getByTestId('inquiry-product-context')).toContainText('Gift Boxes');
+  } catch (error) {
+    failure = error;
   } finally {
-    try {
-      await db.inquiry.deleteMany({ where: { contact: { email: { startsWith: emailPrefix } } } });
-    } finally {
-      if (designId) await db.sharedDesign.deleteMany({ where: { id: designId } });
-      if (modelId) await db.model3D.deleteMany({ where: { id: modelId } });
-      await db.contact.deleteMany({ where: { email: { startsWith: emailPrefix }, inquiries: { none: {} } } });
+    const cleanupErrors: unknown[] = [];
+    const clean = async (run: () => Promise<unknown>) => {
+      try {
+        await run();
+      } catch (error) {
+        cleanupErrors.push(error);
+      }
+    };
+    await clean(() => db.inquiry.deleteMany({ where: { contact: { email: { startsWith: emailPrefix } } } }));
+    if (designId) await clean(() => db.sharedDesign.deleteMany({ where: { id: designId } }));
+    if (modelId) await clean(() => db.model3D.deleteMany({ where: { id: modelId } }));
+    await clean(() => db.contact.deleteMany({ where: { email: { startsWith: emailPrefix }, inquiries: { none: {} } } }));
+    if (cleanupErrors.length) {
+      throw new AggregateError([...(failure ? [failure] : []), ...cleanupErrors], 'catalog fixture cleanup failed');
     }
+    if (failure) throw failure;
   }
+  const afterCleanup = await page.request.get('/api/models');
+  expect(afterCleanup.status()).toBe(200);
+  const afterItems = (await afterCleanup.json()) as { items?: { productSlug?: string }[] };
+  expect(afterItems.items?.some((item) => item.productSlug === publishedSlug)).toBe(false);
 });
 
 test('invalid product with an old CART leaves the wizard empty instead of substituting another product', async ({ page }) => {
