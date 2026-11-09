@@ -1,0 +1,58 @@
+{
+    "scope":  "task-contract",
+    "tasks":  {
+                  "M2-T5":  {
+                                "contractHash":  "3077deab3cbb112e52f2390a2943462998b1eaa28a6ae55a3b4c7d29b5acb147",
+                                "evidence":  [
+                                                 "2026-11-09 补丁 m2t5-support-paths-20261109：仅任务配置 tasks.M2-T5.supportPaths 由 [] 增为 [\".github/workflows/ci.yml\", \"e2e/product-cards.spec.ts\"]。",
+                                                 "依据1：入口置于 .actions 行（Jev D2=A，置信 0.12），e2e/product-cards.spec.ts:187 断言 .actions 两个子元素、:359 锚点夹具断言 1 个，必须同步计数，故登记为支持路径。",
+                                                 "依据2：新增 e2e 用例落地后，A3 收集计数（ci.yml 内 all/main/errors/flow 三处清单）需按实际 --list 更新，故 ci.yml 登记为支持路径。",
+                                                 "未变：outputPaths 5 条、provides/requires、stage=integration、wiring=frontendRoutes、验收标准与边界、任务卡状态。",
+                                                 "该文件与 e2e/product-cards.spec.ts 均未在本补丁改动代码，仅补路径归属；实现与计数更新由实施窗完成。"
+                                             ],
+                                "verdict":  "pass"
+                            },
+                  "M2-T8":  {
+                                "contractHash":  "13b7bb85c7c5ce4e4ae8e4140162193b1da3e92aa979e774e2ff3bac25f7eb37",
+                                "evidence":  [
+                                                 "随 M2-T5 契约哈希变化更新依赖上下文（capability product-inquiry）。与 HEAD 逐字段比对：本任务定义/验收/边界/有效路径/依赖均无变化，仅依赖上下文哈希不同；本补丁未给本任务新增义务。"
+                                             ],
+                                "verdict":  "pass"
+                            },
+                  "M7-T1":  {
+                                "contractHash":  "b48d4604178f447bf6aea0cf69d8aa21b1baeecc9ead7954f60f1bfc0d2336d4",
+                                "evidence":  [
+                                                 "随 M2-T5 契约哈希变化更新依赖上下文（capability product-inquiry）。与 HEAD 逐字段比对：本任务定义/验收/边界/有效路径/依赖均无变化，仅依赖上下文哈希不同；本补丁未给本任务新增义务。"
+                                             ],
+                                "verdict":  "pass"
+                            },
+                  "M7-T10":  {
+                                 "contractHash":  "9bc9aeedf2a77baffa85ffcd03d28728a2aee96d25f50961d16a68ae80221840",
+                                 "evidence":  [
+                                                  "随 M2-T5 契约哈希变化更新依赖上下文（capability product-inquiry）。与 HEAD 逐字段比对：本任务定义/验收/边界/有效路径/依赖均无变化，仅依赖上下文哈希不同；本补丁未给本任务新增义务。"
+                                              ],
+                                 "verdict":  "pass"
+                             },
+                  "M7-T4":  {
+                                "contractHash":  "7f16c5c3232d24a913199f27fec910d25141dcfe5010f5e7e6800fdbced4ce86",
+                                "evidence":  [
+                                                 "随 M2-T5 契约哈希变化更新依赖上下文（capability product-inquiry）。与 HEAD 逐字段比对：本任务定义/验收/边界/有效路径/依赖均无变化，仅依赖上下文哈希不同；本补丁未给本任务新增义务。"
+                                             ],
+                                "verdict":  "pass"
+                            },
+                  "M7-T8":  {
+                                "contractHash":  "a78e39d469a017f51f07d0d0ce036635d9ac2c49700b85f30c80eb2b54fd23e7",
+                                "evidence":  [
+                                                 "随 M2-T5 契约哈希变化更新依赖上下文（capability product-inquiry）。与 HEAD 逐字段比对：本任务定义/验收/边界/有效路径/依赖均无变化，仅依赖上下文哈希不同；本补丁未给本任务新增义务。"
+                                             ],
+                                "verdict":  "pass"
+                            },
+                  "M7-T9":  {
+                                "contractHash":  "ba76cc42e866fdd8b05aecf48a4b9ba17bfe58576c7dd1195ef96a6f0b9beb4c",
+                                "evidence":  [
+                                                 "随 M2-T5 契约哈希变化更新依赖上下文（capability product-inquiry）。与 HEAD 逐字段比对：本任务定义/验收/边界/有效路径/依赖均无变化，仅依赖上下文哈希不同；本补丁未给本任务新增义务。"
+                                             ],
+                                "verdict":  "pass"
+                            }
+              }
+}

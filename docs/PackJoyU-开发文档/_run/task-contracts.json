@@ -505,7 +505,10 @@
       "wiring": [
         "frontendRoutes"
       ],
-      "supportPaths": [],
+      "supportPaths": [
+        ".github/workflows/ci.yml",
+        "e2e/product-cards.spec.ts"
+      ],
       "outputPaths": [
         "src/components/inquiry/",
         "src/components/quote/",
