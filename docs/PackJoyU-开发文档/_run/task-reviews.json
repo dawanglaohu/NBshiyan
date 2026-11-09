@@ -1274,15 +1274,18 @@
     "verdict": "pass"
   },
   "M5-T4": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "4a488fb8a1e79fd9ad22cf54e0b24a516c899e621cf427075216682b54390ad5",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "bd655119bd29afd5c1b9d589e5b84784b1c8c0bf041931b880a9a993dd4c88ec",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M5-T4《接通时区设置HTTP与重算范围查询》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "只改三处源：04-执行/19-模块任务拆分.md:71 的 M5-T4 行、02-设计/10-接口约定.md:45-46 的 settings/analytics 两行、_run/task-contracts.json 的 M5-T4 supportPaths；图谱/任务/M5-T4.md 由 build_vault 派生（仅验收段落引用变化），未手改。",
+      "契约 supportPaths 11 条：最终输入 §5 的 9 条逐字一致（settings.ts、settings-repo.ts、aggregate-plan.ts、aggregate.ts、registry.ts、analytics-aggregate-plan.test.ts、jobs-runtime.http.test.ts、analytics-settings.db.test.ts、analytics-aggregate.db.test.ts），另加 .github/workflows/ci.yml（后续独立接线）与 src/lib/contracts/analytics.ts（仅字段注释澄清）。",
+      "outputPaths 保留原 3 条（src/app/api/admin/settings/analytics/route.ts、src/lib/server/composition.ts、tests/analytics-settings.http.test.ts）；provides/requires、wiring [backendRoutes, container]、sections 12 项未改。composition.ts 仍属 M3-T5 在途写锁，本窗不写、不并写。",
+      "19 节 M5-T4 行：GET 在 pending 匹配且起点非未来时取读时实时起点；null 只表示读时无可用 pending、不证明完成；坏 settings 503；DTO 四字段不变——取自最终输入 §1-§3 与 correction §3，未扩用户需求。",
+      "19 节同行：settings 与待办单语句同快照；整组聚合＋完整待办值 CAS 删除＋JobState 终态同事务；只重算仍保留完整 30 天原始覆盖的窗口，更早范围 partial；不新增分页或分块推进——取自最终输入 §2-§4 与 correction §1/§4，与 M5-T3/M5-T8 既有条款一致。",
+      "10 节 45-46 行：GET 四字段不变＋live/null/503/缺行默认；PATCH CAS 并审计、重算待办同事务；未新增端点、字段或错误码。",
+      "未验：M5-T4 未实施任何源码/测试；未跑 HTTP/PG/tsc/eslint/CI；ci.yml 与 contracts/analytics.ts 只登记为支持路径、本窗未修改；本 pass 仅为文档契约范围，不代表代码或验收通过。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-11-09T20:12:36.487117+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
