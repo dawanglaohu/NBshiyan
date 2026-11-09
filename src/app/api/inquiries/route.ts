@@ -98,7 +98,7 @@ export async function POST(req: Request) {
   const live = await liveDesignIds(designIds);
   if (live.size !== designIds.length) return NextResponse.json({ error: 'design_invalid' }, { status: 422 });
 
-  // M2-T5/Jev C：仅 WIZARD/CART 且无 designId 的条目做目录认可；designId 条目已过上面的 liveDesignIds。
+  // 仅 WIZARD/CART 且无 designId 的条目做目录认可；designId 条目已过上面的 liveDesignIds。
   // 目录 = 静态 12 个 product slug ∪ published READY 的 Model3D.productSlug；读取失败向上抛，绝不放行。
   if (b.source === 'WIZARD' || b.source === 'CART') {
     const needsCatalog = b.items.some((i) => !i.designId && !STATIC_PRODUCT_SLUGS.has(i.productSlug));

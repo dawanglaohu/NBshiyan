@@ -135,7 +135,7 @@ export default function InquiryWizard() {
   const productEntryChecked = useRef(false);
   const prevQuote = useRef<string[]>([]);
 
-  // M2-T5：产品卡入口带 product=<slug>。from=quote 仍走原清单流程；
+  // 产品卡入口带 product=<slug>。from=quote 仍走原清单流程；
   // 否则有效 product 优先于陈旧本地清单；非法 product 不替换成别的产品。
   useEffect(() => {
     if (productEntryChecked.current) return;
