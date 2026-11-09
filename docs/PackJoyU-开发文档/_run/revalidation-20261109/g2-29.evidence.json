@@ -1,0 +1,268 @@
+{
+  "scope": "task-contract",
+  "patch": "m5t11-batch-units-20261109",
+  "docCommit": "920db0f12f3eb45534d347281ad3d82e0e69bd10",
+  "tasks": {
+    "BACKFILL-MJS": {
+      "contractHash": "cacf829f15d0fbf2b225206724016755702f140503415e3a09da6e652d7e1fb0",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（CLI/回填脚本）：产出是 node 可执行回填脚本，验收口径是\"时长与应用内回填一致\"（图谱/任务/BACKFILL-MJS.md:L26），不是注册作业；四处改动规定的是 jobs/registry 里聚合作业与分析保留的批量单位，脚本既不注册 job 也不消费 analytics-retention 的删除行批次。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "BE-350A": {
+      "contractHash": "0e1a12f2cfb5a2695e649537ba8609691a7bf4ce7ad6d4454bcf4656fe034002",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（缓存头）：产出是 /media/ 成功响应的 Cache-Control（图谱/任务/BE-350A.md:L26）；改动只涉及作业批量单位，不触及缓存头、max-age/s-maxage 或 immutable 的任何取值。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "BE-I18N-P0": {
+      "contractHash": "335d431eab2e0a03738a57a381cd2820aed2c2007bf0718b8739c5a3f041af92",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（邮件模板/语言）：产出是邮件模板与 Sanity schema 支持 es/de/fr、未发布语言接口仍 400（图谱/任务/BE-I18N-P0.md:L26）；与作业批量单位、保留行批次无交集。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "BE-RATELIMIT-P3": {
+      "contractHash": "57cf0d6f94cbc5935c1f0e60a264d25573f75af516fc77035c9dc6ccfc5dbe17",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（请求限流存储）：其限额是请求计数阈值（src/lib/server/security.ts:89 hitRateLimit(key, limit=5, windowMs=10*60_000)，按 key/窗口计次），与\"500 工作单位\"是不同轴；改动后的条款仍写\"其他作业沿用各自既定的500工作单位限制\"（09-数据模型.md:L86），既未把 500 工作单位换成请求限流阈值，也未改动任何 429/Retry-After 或存储实现。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "BE-RESET-STDIN-TTY": {
+      "contractHash": "0435bc34e8e6a5ada9d829c884220b9f6d1695a05d840b5d38d8883f902a53fa",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（CLI 终端行为）：产出是 stdin 非 TTY 时退出 2、不读密码、不改数据（图谱/任务/BE-RESET-STDIN-TTY.md:L26）；非注册作业，不消费删除行批次或自然日批次。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "BE-RESET-TTY": {
+      "contractHash": "847a3f0e7183e13a019e2cf99b21b54f72c5267965d5127395ccd6c9a6bd3ffb",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（CLI 文档/示例）：产出是示例都带交互终端并写明无终端行为（图谱/任务/BE-RESET-TTY.md:L26）；纯 CLI 文档口径，与作业批量单位无关。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "GUARD-503": {
+      "contractHash": "a0dc6c1c872c47e3d9c1fda22332e2ddd87d74ee941be1c06b5c5bd0cccf5fe1",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（数据库故障映射）：此处的 500/503 是 HTTP 状态映射而非\"500 工作单位\"：src/lib/server/admin/guard.ts:75 返回 503 unavailable、:76 返回 500 internal；改动后的条款讲的是作业批量的工作单位（18-部署与运维.md:L99），两者只是数字巧合，无共享语义。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "HOTFIX-LOGIN-EMPTY": {
+      "contractHash": "d29d9af29ac29c163bade0fc83910d866f021b43bb650fb888ac8da911a8c40c",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（登录契约宽松化）：产出是空白 mode/rememberDevice/recoveryCode/totp 不再让严格契约失败（图谱/任务/HOTFIX-LOGIN-EMPTY.md:L26）；属登录请求契约，与作业批量单位、保留批次无关。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M3-T1": {
+      "contractHash": "63e056158cd6949bf3fc7ab97b12458cdc720e7a5d419693b98bdd73e17466ef",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（后台登录/设备会话基础）：职责面与产出为产出 AdminDeviceSession 与 Auth.js sid 适配、GET /api/admin/account（图谱/任务/M3-T1.md:L22），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M3-T14": {
+      "contractHash": "4d54585c5cdb086c964163f63a9b33f72da8f117ee0e11b33917da1ad7406874",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（HTTP/config/计数器）：产出是共享 HTTP 错误映射与 ApiDailyCounter（图谱/任务/M3-T14.md:L22）；计数是单条 INSERT … ON CONFLICT 自增（src/lib/server/http/metrics.ts:150-157），且该卡 L75 明写\"13 个月保留不是这张表自己的删除，清理作业也不能从这里导入\"——即它既不是分析保留批次的执行者，也不是删除行单位的所有者。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M3-T15": {
+      "contractHash": "f111143553a82716ad85db0f297c7d55af5af3c891494a41e86dfa561c60165e",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（会话活动/期限）：产出是 POST /api/admin/account/session/activity 与期限适配（图谱/任务/M3-T15.md:L27）；义务是 2h 滑动 + 创建后 12h 绝对截止（L34/L38），与作业批量单位无关。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M3-T16": {
+      "contractHash": "f83df982d88023fea10b3be476ebeca73fa440eb43176828127446848224f265",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（登录方式切换/改密）：职责面与产出为产出 PATCH login-mode、POST password 与同事务 grant 核销（图谱/任务/M3-T16.md:L22），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M3-T17": {
+      "contractHash": "988f557426acd29b7936f82a253ec4a015cec4e04b1d0320963430552e33df4c",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（设备列表/撤销）：职责面与产出为产出 devices 列表、单设备撤销与 logout-all（图谱/任务/M3-T17.md:L22），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M3-T18": {
+      "contractHash": "f610f043e7bc24e2d8a7a847d080e9930b2ecd903a680af492dcc6f6cbf8ba6a",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（恢复授权 CLI）：产出是 scripts/admin-authorize-recovery.mjs（target/role/reason、TTY 隐式密码预授权与审计，图谱/任务/M3-T18.md:L22）；一次性 CLI，不是注册作业，不消费批量单位。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M3-T19": {
+      "contractHash": "69d98c2f338e798f6912313e8098b5c5d7f7c3fd1460fff0e28211ea7502c429",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（受限恢复会话）：职责面与产出为产出 AdminRecoverySession 与 recovery/start、受限 cookie（图谱/任务/M3-T19.md:L22），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M3-T2": {
+      "contractHash": "0deabc6cf9bd074282d9fbb90f455a6a46eac5721a72205d2116eae94c52bbda",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（Credentials/TOTP/绑定）：职责面与产出为产出 Credentials 的 password/totp 模式与恢复码拒绝、enroll 的 CAS（图谱/任务/M3-T2.md:L27），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M3-T21": {
+      "contractHash": "4d9f8872f6cbde7b360d29a248b550b39718b51d12ac15517be5245ac4519985",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（询盘后台视觉迁移）：职责面与产出为产出 legacy-inquiries-ui 统一视觉与回归，不改询盘业务（图谱/任务/M3-T21.md:L22），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M3-T22": {
+      "contractHash": "6aae0ed3b072faaeee3e9f7971014ded07f1a992b43e8fb9e608d13fa377e13e",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（未归类后台视觉）：职责面与产出为产出 legacy-unassigned-ui 样式统一与关闭门禁证据（图谱/任务/M3-T22.md:L22），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M3-T23": {
+      "contractHash": "14d35b9f39dfde3e92a56cf9d643c2e17d9c17c891680e9ef7c37ef28227ba3c",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（模型后台视觉）：职责面与产出为产出 legacy-model-admin-ui 统一视觉、列表重定向不变（图谱/任务/M3-T23.md:L22），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M3-T24": {
+      "contractHash": "c1e68f8f6bdd64268dcbfeab380dd1d2200d14581fc46028bd4ccd2075f719fe",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（规格后台视觉）：职责面与产出为产出 legacy-specs-ui 统一视觉、规格业务不变（图谱/任务/M3-T24.md:L22），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M3-T3": {
+      "contractHash": "f708d7ce29657e9fa2fbb20159ed9cbc863cba47072885d374acf5cc5bd46779",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（重认证 grant）：职责面与产出为产出 AdminActionGrant 与 POST /api/admin/account/reauth（图谱/任务/M3-T3.md:L22），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M3-T4": {
+      "contractHash": "4ff7f237c784572f373e5175c47f6b294752c9290a669f0a176bc6e544ec7265",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（恢复许可）：职责面与产出为产出 AdminRecoveryPermit 与 recovery-authorizations/reset-2fa 别名（图谱/任务/M3-T4.md:L22），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M3-T7": {
+      "contractHash": "5f08c20e76a1af87b0e7d972c266fc6f9a7a7be15557619b8f15295516d73728",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（后台外壳/导航）：职责面与产出为产出统一后台外壳、角色导航与 AdminSessionActivity（图谱/任务/M3-T7.md:L22），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "R4-T16305211": {
+      "contractHash": "e79e3a145259db8af0fb8ea8c2e574544d673b91fd3d204540142d3ad26c4d7c",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（聊天开关/容量证据）：产出是独立聊天开关的取舍（图谱/任务/R4-T16305211.md:L23）；属前端开关与容量口径，不注册 chat-notifications/chat-retention 作业（这两个作业在 19-模块任务拆分 中归 M4-T4/M4-T7）。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "R4-T64765902": {
+      "contractHash": "234bcebee5a6b04560a1fe8a16988b341f9c1c8a1b2f8b55a3b4c0622dcb2298",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（无调用方模块删除）：产出是删除无调用方的 adminPath.ts 及其测试（图谱/任务/R4-T64765902.md:L23）；与作业批量单位无交集。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "R4-T76958784": {
+      "contractHash": "55acc87197641d2abf7457f887329a2c8cee12be38211cf5987bcf6cd9a2b41b",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（隐私文案）：产出是隐私页四句（7 天闲置/30 天绝对/90 天设计默认/生产清理未启用，图谱/任务/R4-T76958784.md:L23）；改动条款是分析保留的\"删除行\"批次单位，不是聊天 90 天清理的启用状态，两者不冲突。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "R4-T78812657": {
+      "contractHash": "777799544614e42280b7957e9d957a50809b2d17dc61a19d63083fd31ad88e64",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（会话绝对截止文档）：产出是把普通会话\"2h 滑动 + 创建后 12h 绝对截止\"写进文档/文案（图谱/任务/R4-T78812657.md:L23）；属会话期限与文案，和作业批量单位不同轴。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "R5-T10248697": {
+      "contractHash": "6a89a698c4d418e7a515706e35171208e276044e3fee00d3e27ef2d2d0698281",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（站点日界计算）：产出是\"跳过本地午夜时用该日最早存在的瞬间做左闭端\"（图谱/任务/R5-T10248697.md:L23），实现为 src/lib/analytics/day-boundaries.ts:170 siteDayUtcBounds、:190 siteDayContaining、:202 recomputableFrom；四处改动只规定\"聚合批次以站点自然日计数（maxBatchDays≤500）\"，不改变日界、DST 或 skipped-midnight 的算法，也不改变可重算起点。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "R5-T59021355": {
+      "contractHash": "6ee7be932b53ae0aef6e49d4077411b7ac667ea40365efd99f9d209836c3bea1",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（登录恢复码语义）：产出是普通 Credentials 上非空 recoveryCode 与未知账号同失败、不核销恢复码（图谱/任务/R5-T59021355.md:L23）；属登录安全语义。",
+        "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+        "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    }
+  }
+}

@@ -2856,7 +2856,13 @@
         "jobs",
         "container"
       ],
-      "supportPaths": [],
+      "supportPaths": [
+        "src/lib/server/analytics/aggregate.ts",
+        "tests/jobs-runtime.http.test.ts",
+        ".github/workflows/ci.yml",
+        "tests/cron-analytics-rollup.test.ts",
+        "e2e/analytics-job-runtime.spec.ts"
+      ],
       "outputPaths": [
         "src/lib/server/analytics/retention.ts",
         "src/lib/server/jobs/registry.ts",

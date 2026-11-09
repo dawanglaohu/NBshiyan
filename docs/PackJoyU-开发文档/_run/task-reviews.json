@@ -1,397 +1,585 @@
 {
   "ANALYTICS-ROLLUP": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "2e53631d49f16c6a728602061fe54c057ead6f58ab54fe4cb9ac560fbc5e2a80",
+    "contractHash": "2f064b49a4eb8fb28a6a51a9a0534a116816faeb96105a760345bd06fe53c2b3",
     "evidence": [
-      "原证据来源：planning `db-b8-revalidation-ANALYTICS-ROLLUP-20261108.evidence.json`（2476 B、SHA256 85d23782a791fd9ccf97f91561cd312117eebdab5050a779cb3ff97509317007），数据库独立复验；本次只补合入后绑定，不改原复验事实。",
-      "范围声明：自本条之后、『合入后绑定』之前列出的各条，均为**原复验时点（e7e2b7ee，合入前）的历史结论**，不代表当前 main；当前事实见『合入后绑定』。",
-      "变更字段仅 task（补丁 d1d2-rollup-writeback-20261108；源 04-执行/遗留issue-20261024.md:601，渲染卡面 ANALYTICS-ROLLUP.md:21 与 :73）：把旧入口现状限定为「收口分支已退役、main `78966e99` 尚未包含、main 仍保留旧写入实现、未核验生产部署版本」，并把「收进 registry 另立任务」标为 #477 阶段历史结论、该接入已由 M5-T8 完成；验收文本、status、PR #477、合并提交 90b2658d 均未改。",
-      "固定 e7e2b7ee 代码事实：src/app/api/admin/cron/analytics-rollup/route.ts blob bc82e095…（1,326 B、sha256 1707A02D…，与 D1 冻结头 3410fe95 及 7bcb2468 同 blob）；:21 为 410 `route_retired` + `Cache-Control: no-store`，:27-28 缺/错凭据 401（真实 secretMatches），:33-34 GET/POST 共用同一 handler；鉴权通过后不再调用数据库、聚合、告警、审计或邮件。",
-      "main 事实核对：78966e99 是 Merge pull request #541 from dawanglaohu/task/M5-T8（双亲 a6f0089b、6701a749），其 route.ts 仍为 blob 1435d105…（旧写入实现）；`git merge-base --is-ancestor 3410fe95 78966e99` 返回 1，D1 修复未进 main，与卡面事实限定一致；「未核验生产部署版本」是边界声明，未把分支态写成 main 或生产态。",
-      "部署链：deploy/cron.nbshiyan:11 为每 5 分钟 POST /api/admin/cron/operations（jobKey analytics-aggregate，Bearer 取自容器 env），文件已无 analytics-rollup 调度行，与卡面 :61「旧 rollup 行已删」一致；当前生产部署版本未核验，不作宣称。",
-      "通过依据沿用既有 PASS：D1 真实路由调用计数红测 5 用例 1 pass/4 fail（旧路由 200/run=1、500/alert+audit、409、500/alert+audit），三份受影响测试绿 11/11、0 skip；3410fe95 默认入口实跑与预存哨兵窄复核 PASS（db-d1-narrow-recheck-3410fe95-20261108.md）；实际 diff Jev 复判 A high 0.97（state FAA2E202…/result FD758DAB…）。本次只核固定对象与既有证据，未重跑测试、未连库。",
-      "证据对象是候补分支 e7e2b7ee（worktree 0 dirty），不是 main；当时 main 78966e99 尚未含 D1/D2 修复，不把候选分支状态冒称 main 已修或生产已部署。",
-      "合入后绑定：PR #542 已 MERGED（2026-11-08T13:03:11Z），merge commit `12ba8989c7f6e84984c8c9eccadc34f28127a22c`，parents `78966e99`+`272356cf`，tree `350698eb…`＝已审头 tree；main 已实际包含本修复（route.ts blob `bc82e095…`、aggregate-repo.ts blob `48403236…`，与证据冻结头一致；3410fe95/b2ea2cfe/272356cf 均为 12ba8989 祖先）。本地主目录与批次工作树已 fast-forward 至 12ba8989（运维同步回执 EE2D6443…，34 个既有未跟踪项原样保留）。",
-      "边界：本登记只表示『合入后契约复验完成、标记由工具清除』；未重跑测试/CI、未连库、不声称生产已部署；生产部署版本仍未核验。"
+      "不适用：本任务登记的是旧「统计按天汇总」写入入口（PR #477，合并 90b2658d）；main 042c7d24 上 src/app/api/admin/cron/analytics-rollup/route.ts:21-28 已退役为 410 route_retired，鉴权后不再执行聚合、数据库、审计或邮件；活动聚合作业由 M5-T8 的 registry 承载。",
+      "本次四处源文只改固定作业/分析保留的批量单位与时间预算，未给已退役路由新增义务；其历史验收文本（「已合入，本登记不重做」）与 status 未改。",
+      "交叉：活动聚合的 500 天单位核在 M5-T8 项；本项不重复计入，也不把退役入口当活动作业。"
     ],
-    "reviewed": "2026-11-08T13:22:54.003033+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json",
+    "evidenceGroup": "G1",
+    "originalReviewer": "数据库审查工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "BACKFILL-MJS": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "bbd1bc6c31462441f4b1cd67f03279dc8e2a3ea29be5a9c47be4e0694e37cf91",
+    "contractHash": "cacf829f15d0fbf2b225206724016755702f140503415e3a09da6e652d7e1fb0",
     "evidence": [
-      "PR #488 状态 MERGED。合并提交 f95a8e234cc1d1b531e67324118b10c85205d3d6。mergedAt 2026-10-26T08:45:04Z。标题：BACKFILL-MJS：hardExpiresAt 回填改为生产可跑的 .mjs。",
-      "CI rollup：build-and-audit SUCCESS 2026-10-26T08:38:54Z；gate SUCCESS 2026-10-26T08:44:46Z；ping SUCCESS 2026-10-26T08:44:30Z；e2e SUCCESS 2026-10-26T08:42:09Z；posix-storage-security SUCCESS 2026-10-26T08:34:14Z。rollup 里列出的检查结论都是 SUCCESS。"
+      "不适用（CLI/回填脚本）：产出是 node 可执行回填脚本，验收口径是\"时长与应用内回填一致\"（图谱/任务/BACKFILL-MJS.md:L26），不是注册作业；四处改动规定的是 jobs/registry 里聚合作业与分析保留的批量单位，脚本既不注册 job 也不消费 analytics-retention 的删除行批次。",
+      "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+      "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-10-26T09:24:37.586158+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json",
+    "evidenceGroup": "G2",
+    "originalReviewer": "全栈工程师/安全工程师",
+    "reviewed": "2026-11-09T12:28:19.107808+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "BE-350A": {
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "0e1a12f2cfb5a2695e649537ba8609691a7bf4ce7ad6d4454bcf4656fe034002",
+    "evidence": [
+      "不适用（缓存头）：产出是 /media/ 成功响应的 Cache-Control（图谱/任务/BE-350A.md:L26）；改动只涉及作业批量单位，不触及缓存头、max-age/s-maxage 或 immutable 的任何取值。",
+      "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+      "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+    ],
+    "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json",
+    "evidenceGroup": "G2",
+    "originalReviewer": "全栈工程师/安全工程师",
+    "reviewed": "2026-11-09T12:28:19.107808+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "BE-I18N-P0": {
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "335d431eab2e0a03738a57a381cd2820aed2c2007bf0718b8739c5a3f041af92",
+    "evidence": [
+      "不适用（邮件模板/语言）：产出是邮件模板与 Sanity schema 支持 es/de/fr、未发布语言接口仍 400（图谱/任务/BE-I18N-P0.md:L26）；与作业批量单位、保留行批次无交集。",
+      "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+      "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+    ],
+    "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json",
+    "evidenceGroup": "G2",
+    "originalReviewer": "全栈工程师/安全工程师",
+    "reviewed": "2026-11-09T12:28:19.107808+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "BE-RATELIMIT-P3": {
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "57cf0d6f94cbc5935c1f0e60a264d25573f75af516fc77035c9dc6ccfc5dbe17",
+    "evidence": [
+      "不适用（请求限流存储）：其限额是请求计数阈值（src/lib/server/security.ts:89 hitRateLimit(key, limit=5, windowMs=10*60_000)，按 key/窗口计次），与\"500 工作单位\"是不同轴；改动后的条款仍写\"其他作业沿用各自既定的500工作单位限制\"（09-数据模型.md:L86），既未把 500 工作单位换成请求限流阈值，也未改动任何 429/Retry-After 或存储实现。",
+      "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+      "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+    ],
+    "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json",
+    "evidenceGroup": "G2",
+    "originalReviewer": "全栈工程师/安全工程师",
+    "reviewed": "2026-11-09T12:28:19.107808+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "BE-RESET-STDIN-TTY": {
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "0435bc34e8e6a5ada9d829c884220b9f6d1695a05d840b5d38d8883f902a53fa",
+    "evidence": [
+      "不适用（CLI 终端行为）：产出是 stdin 非 TTY 时退出 2、不读密码、不改数据（图谱/任务/BE-RESET-STDIN-TTY.md:L26）；非注册作业，不消费删除行批次或自然日批次。",
+      "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+      "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+    ],
+    "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json",
+    "evidenceGroup": "G2",
+    "originalReviewer": "全栈工程师/安全工程师",
+    "reviewed": "2026-11-09T12:28:19.107808+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "BE-RESET-TTY": {
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "847a3f0e7183e13a019e2cf99b21b54f72c5267965d5127395ccd6c9a6bd3ffb",
+    "evidence": [
+      "不适用（CLI 文档/示例）：产出是示例都带交互终端并写明无终端行为（图谱/任务/BE-RESET-TTY.md:L26）；纯 CLI 文档口径，与作业批量单位无关。",
+      "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+      "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
+    ],
+    "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json",
+    "evidenceGroup": "G2",
+    "originalReviewer": "全栈工程师/安全工程师",
+    "reviewed": "2026-11-09T12:28:19.107808+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "CATALOG-MERGE": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "919b24bbe4fa942da8557aca7951281f4b43adb5315bb06f8eca311a00eebd66",
+    "contractHash": "a3dcb9306bab421aba552ec3fe9b98c2a70628767028f1a13bc754049a95309d",
     "evidence": [
-      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
-      "本条影响判定：该任务交付物不实现、不调用也不约束 3D 相机滚轮准入，E-98 收紧不改变其输入输出与验收；本条被标记仅因契约引用了变化章节的正文哈希。",
-      "main 落地实证（CATALOG-MERGE）：任务卡 status=done，code=OK(1427B)、notes=OK(154B)，两个受保护区块均已回填；任务卡代码位置 14 处引用，14 处可直接核实。",
-      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
+      "不适用（目录合并与白名单对齐）：交付面是 src/lib/catalog/catalog.ts:37 `isListedCatalogKey` 与同文件的合并/装饰逻辑、产品页 SSR 目录，以及 analytics 白名单对齐；四处改动只重写作业批量单位与时间预算，不改变 catalog key、可见集合、SSR 数据源或发布开关。",
+      "其分析相关义务是 event-repo/ingest 的 publishedSlugs 白名单，不是 retention 删除批次；09 L73 的 5,000/20,000 行批次未给白名单新增义务，本卡也不注册 job。",
+      "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-04T15:53:37.150290+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json",
+    "evidenceGroup": "G3",
+    "originalReviewer": "前端工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "CI-DB-TESTS": {
-    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
-    "contractHash": "22373db0ebcf53e771644d174e36d8d8ff64c67d2151e65f96bf4a35796ccf66",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "454a476d306db5eff171440cd7164b5e96a244bf02d164d190d455c2363051cb",
     "evidence": [
-      "PR #472 状态 MERGED。合并提交 a3fb6696162fedc5d71b4c9b8a3678823c403351。mergedAt 2026-10-25T11:59:37Z。标题：CI-DB-TESTS: 把 analytics 和 chat 的数据库测试接进 PostgreSQL 17。",
-      "CI rollup：build-and-audit SUCCESS 2026-10-25T11:57:45Z job 121160870319；gate SUCCESS 2026-10-25T11:56:11Z job 121161595659；gate SUCCESS 2026-10-25T11:56:07Z job 121161574587；e2e SUCCESS 2026-10-25T11:59:13Z job 121160870236；posix-storage-security SUCCESS 2026-10-25T11:53:04Z job 121160870333。rollup 里列出的检查结论都是 SUCCESS。"
+      "任务职责：把 analytics/chat 数据库测试接进 PostgreSQL 17，并在既有 PG step 断言 TAP skipped=0、fail=0、pass>0（图谱/任务/CI-DB-TESTS.md:31、:40）。",
+      "不适用：本次共享章节只改固定作业的批次单位语义：聚合作业按站点自然日计（maxBatchDays≤500）、分析保留按删除行计（5,000行/DELETE批次、20,000行/轮、三表合计、每批独立事务）、55s 明写为时间预算、其他作业沿用既定500工作单位；CI step、清单与阈值均未被此次源文改动，ci.yml blob 在 bded1728 与 920db0f1 同为 99a79d05686009c8b2cac76e74bc7fa0df8315b7，运行时零差量。",
+      "原门禁保留：本任务只登记已合入的接入事实，未新增/放宽任何断言；本窗未运行 CI。"
     ],
-    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json",
+    "evidenceGroup": "G4",
+    "originalReviewer": "测试工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "CI-DEVICE-SERIAL": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "7f20693e5a9d708bbd88340e51070dfc6bf2d591e7cbd19d9d914b78c151ab99",
+    "contractHash": "a150f6e4d0e8745390d04bf355aac321d6ebaaa33dd1c4a428a9e663689f99f1",
     "evidence": [
-      "PR #485 状态 MERGED。合并提交 5bae3f292558d91cfe18475f3aec82c8efee4df0。mergedAt 2026-10-26T03:38:12Z。标题：CI-DEVICE-SERIAL: 设备会话回归步骤串行化并在失败时打印 TAP。",
-      "CI rollup：build-and-audit SUCCESS 2026-10-26T03:33:03Z；gate SUCCESS 2026-10-26T03:38:05Z；ping SUCCESS 2026-10-26T03:37:49Z；e2e SUCCESS 2026-10-26T03:36:02Z；posix-storage-security SUCCESS 2026-10-26T03:28:20Z。rollup 里列出的检查结论都是 SUCCESS。",
-      "PR 描述写明临时本地 PostgreSQL 17 上三个文件串行通过，24 pass / 0 fail / 0 skip / 0 todo，按文件 5、11、8。本次回填没有重跑该库。"
+      "任务职责：设备会话回归串行（--test-concurrency=1）、失败打印 TAP 与文件门禁后退出 1、成功路径要求 todo=0（图谱/任务/CI-DEVICE-SERIAL.md:31、:40-42）。",
+      "不适用：条款只改固定作业批次单位，不涉及设备测试串行、TAP 汇总或文件门禁；ci.yml 未被本次补丁修改（blob 99a79d05… 同前）。",
+      "原限制保留：串行与 todo=0 门禁未变；本窗未运行设备测试。"
     ],
-    "reviewed": "2026-10-26T09:24:37.586158+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json",
+    "evidenceGroup": "G4",
+    "originalReviewer": "测试工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "CITY-STILL-WEBP": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "bd84c095ad11e0e98c742ab465a20bdfda846c8bc53f69530637c56c08008d34",
+    "contractHash": "ea4a2928af172fb359d5c5c8ceba7a6e9c4020f4d3add0c31955910ee3711371",
     "evidence": [
-      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
-      "本条影响判定：该任务交付物不实现、不调用也不约束 3D 相机滚轮准入，E-98 收紧不改变其输入输出与验收；本条被标记仅因契约引用了变化章节的正文哈希。",
-      "main 落地实证（CITY-STILL-WEBP）：任务卡 status=done，code=OK(429B)、notes=OK(77B)，两个受保护区块均已回填；任务卡代码位置按该卡记录约定为文件级引用，所列文件在 main 均存在。",
-      "CITY-STILL-WEBP 代码位置按该卡记录约定为文件级（`src/components/layout/BrandScene.tsx`、`src/lib/home/brandMedia.ts`、两张 poster webp、`tests/home-brand-media.test.ts`、`e2e/home-media.spec.ts`），不带行号；上述文件在 main 均存在。本任务交付首页品牌场景静态海报，不涉及 3D 相机准入。",
-      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
+      "不适用（首页静帧素材）：交付面是 src/lib/home/brandMedia.ts:11 `pauseStill` 与 1384w/2000w WebP、BrandScene 的 srcset 消费；批量单位条款不涉及图片格式、视口选择、缓存或暂停帧。",
+      "09/18 的改动句没有新增媒体发布、素材来源或浏览器验证义务。",
+      "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-04T15:53:37.150290+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json",
+    "evidenceGroup": "G3",
+    "originalReviewer": "前端工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "CLIENT-API-DEADLINE": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "d12642d68cf265c84580004883acd57c812a4f06d8eb1810415a0b1150c03406",
+    "contractHash": "2f6459d5e59952bdc7ff1f75466e659cc235818941684487887b381caf5fe8ab",
     "evidence": [
-      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
-      "本条影响判定：该任务交付物不实现、不调用也不约束 3D 相机滚轮准入，E-98 收紧不改变其输入输出与验收；本条被标记仅因契约引用了变化章节的正文哈希。",
-      "main 落地实证（CLIENT-API-DEADLINE）：任务卡 status=done，code=OK(543B)、notes=OK(139B)，两个受保护区块均已回填；任务卡代码位置 4 处引用，4 处可直接核实。",
-      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
+      "不适用（客户端正文读取截止）：交付面是 src/lib/client/api.ts:217 `readOrAbort` 与 :265 `readCapped`；api.ts:24 `CLIENT_DEADLINE_MS = 15_000` 是每次尝试的客户端截止，09 L86 的 55s 是服务端固定作业的时间预算，两者不是同一条链，也不存在换算关系。",
+      "本次只把 55s 明写为「时间预算，不等于行数上限」，未改客户端 deadline、abort 竞速或取消优先语义。",
+      "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-04T15:53:37.150290+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json",
+    "evidenceGroup": "G3",
+    "originalReviewer": "前端工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "DEP-AUDIT-1": {
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "cc6c9b305e87c66e4b67f2fab354e2cd21d8e3d5b4f5f9fbde49c31a27d65103",
+    "evidence": [
+      "任务职责：依赖审计豁免与 scripts/audit-high-prod.ts 生产审计入口（图谱/任务/DEP-AUDIT-1.md:31、:40-43）。",
+      "不适用：本次共享章节只改固定作业的批次单位语义：聚合作业按站点自然日计（maxBatchDays≤500）、分析保留按删除行计（5,000行/DELETE批次、20,000行/轮、三表合计、每批独立事务）、55s 明写为时间预算、其他作业沿用既定500工作单位 不涉及依赖审计、豁免清单或 package.json；该卡代码位置在 main 042c7d24 全部存在。",
+      "本窗未运行审计；未改任何源码或清单。"
+    ],
+    "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json",
+    "evidenceGroup": "G4",
+    "originalReviewer": "测试工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "DEPLOY-FIX-1": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "9eac64fd89c5ac3f43f7c4c48ae141db5ad8aae958aee5a26692ed39746f6d85",
+    "contractHash": "dceba51a0a087ed64b0c0ad595b4dca022bb51a27a5ea0e106088f6e9625dd89",
     "evidence": [
-      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
-      "本条影响判定：该任务交付物不实现、不调用也不约束 3D 相机滚轮准入，E-98 收紧不改变其输入输出与验收；本条被标记仅因契约引用了变化章节的正文哈希。",
-      "main 落地实证（DEPLOY-FIX-1）：任务卡 status=done，code=OK(202B)、notes=OK(77B)，两个受保护区块均已回填；任务卡代码位置按该卡记录约定为文件级引用，所列文件在 main 均存在。",
-      "DEPLOY-FIX-1 代码位置为文件级引用，文件在 main 均存在。本任务属部署修复，与 E-98 无关。",
-      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
+      "任务职责：首页品牌媒体与海报修复（src/lib/home/brandMedia.ts、src/app/[locale]/page.tsx、poster PNG，图谱/任务/DEPLOY-FIX-1.md:29、:38-40）。",
+      "不适用：条款只作用于固定作业批次单位，与首页媒体渲染无关；该卡三处代码位置在 main 均存在。",
+      "本窗未构建、未起服务。"
     ],
-    "reviewed": "2026-11-04T15:53:37.150290+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json",
+    "evidenceGroup": "G4",
+    "originalReviewer": "测试工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "DOCKER-UPLOADS-1": {
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "be0516f3035814e726c1987c48292a851f02a1d8a56ebc08566d829d61a2726f",
+    "evidence": [
+      "任务职责：.dockerignore 排除上传目录（图谱/任务/DOCKER-UPLOADS-1.md:29、:38）。",
+      "不适用：.dockerignore 与构建忽略清单不受作业批次条款影响；文件在 main 存在。",
+      "本窗未构建镜像。"
+    ],
+    "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json",
+    "evidenceGroup": "G4",
+    "originalReviewer": "测试工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "E2E-CONSENT-FIX": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "aaf044751182541977b9b17ceee8faa0edaf4996d1576f1af5a10d476ea76d65",
+    "contractHash": "84a86f23c872736179670dcc013e2bae97736deed3335b4cf756dca558b98fd7",
     "evidence": [
-      "PR #489 状态 MERGED。合并提交 6c2833ba90be585286d4faf13c4864611d422b21。mergedAt 2026-10-26T08:57:03Z。标题：E2E-CONSENT-FIX: analytics-consent 导航去重用例改用 route 截取回执。",
-      "CI rollup：build-and-audit SUCCESS 2026-10-26T08:47:11Z；gate SUCCESS 2026-10-26T08:42:25Z；ping SUCCESS 2026-10-26T08:56:56Z；e2e SUCCESS 2026-10-26T08:50:36Z；posix-storage-security SUCCESS 2026-10-26T08:42:47Z。rollup 里列出的检查结论都是 SUCCESS。",
-      "PR 描述写 Playwright 待 CI，并给出预期条数。上面的 e2e 结论是合入时的检查结果，不把该预期条数当作已观察到的计数。"
+      "任务职责：分析同意 e2e 的路由截取与重放断言（acceptedIds 含 pageView.eventId、duplicateIds 含该 eventId、同一 navigationId 条数=1，图谱/任务/E2E-CONSENT-FIX.md:31、:40-46）。",
+      "不适用：该任务针对事件采集/去重协议，不是聚合作业或保留作业的批处理单位；条款未改采集、去重与同意逻辑。",
+      "本窗未跑 e2e，未改该 spec。"
     ],
-    "reviewed": "2026-10-26T09:24:37.586158+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json",
+    "evidenceGroup": "G4",
+    "originalReviewer": "测试工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "FE-404-TITLE": {
-    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
-    "contractHash": "b77bab9f64656a254042871dd842199b7235e7b5f1c2d9eed4ff654c777e841d",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "7d22bb6867d619804df21120b009bc766be797d9ea8aebf98a1fcd12b66b91e3",
     "evidence": [
-      "PR #461 状态 MERGED。合并提交 cc63de7cc401987a636f3aa8abf954c1aa02459a。mergedAt 2026-10-25T08:03:15Z。标题：FE-404-TITLE 404 页标题进 head。",
-      "CI rollup：build-and-audit SUCCESS 2026-10-25T07:33:42Z job 121107431838；gate SUCCESS 2026-10-25T07:29:12Z job 121107431854；gate SUCCESS 2026-10-25T07:41:23Z job 121109822563；e2e SUCCESS 2026-10-25T07:35:47Z job 121107432020；posix-storage-security SUCCESS 2026-10-25T07:29:30Z job 121107431988。rollup 里列出的检查结论都是 SUCCESS。"
+      "不适用（404 标题进 head）：交付面是 src/components/NotFoundTitle.tsx:19 与 not-found 路由 metadata、e2e/not-found-robots.spec.ts 的原始 HTML/document.title 断言；批量单位条款不涉及 title、robots、hydration 或软导航。",
+      "08 jobs 段与 09/18 两处保留句未新增前端 metadata 义务。",
+      "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json",
+    "evidenceGroup": "G3",
+    "originalReviewer": "前端工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "FE-FAB-390": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "ab2c7c10f3af54553b5ce90da994867fa2f3a6b26b6151736ab40f806b698b83",
+    "contractHash": "4bd509ecc8755c9889f2b6e69e70c77d259aa471394ccd76546dfbc5533755d7",
     "evidence": [
-      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
-      "本条影响判定：该任务交付物不实现、不调用也不约束 3D 相机滚轮准入，E-98 收紧不改变其输入输出与验收；本条被标记仅因契约引用了变化章节的正文哈希。",
-      "main 落地实证（FE-FAB-390）：任务卡 status=done，code=OK(1165B)、notes=OK(530B)，两个受保护区块均已回填；任务卡代码位置 8 处引用，8 处可直接核实。",
-      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
+      "不适用（悬浮按钮 390 命中）：交付面是 src/app/globals.css:85 `.fab{pointer-events:none}.fab>*{pointer-events:auto}` 与 FloatingActions 的展开高度测量；批量单位条款不涉及点击命中、页脚遮挡或 scrollY。",
+      "本卡无作业注册、保留删除或 55s 预算义务。",
+      "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-04T15:53:37.150290+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json",
+    "evidenceGroup": "G3",
+    "originalReviewer": "前端工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "GATE-HARDEN": {
-    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
-    "contractHash": "03fa659af1d70c115d579120301278023d8607de3337ba708a951a3c54846554",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "bde3ab72cdeaa258da0319e4ad6659f0ad950381fbbcf0e20f36a80fc1099637",
     "evidence": [
-      "PR #438 状态 MERGED。合并提交 bec2066b4876ce814554dd64d2d63f71b5abb26c。mergedAt 2026-10-25T15:54:10Z。标题：GATE-HARDEN 安全审查 gate 防止 PR 改 workflow 绕过并补齐后台/媒体路径。",
-      "CI rollup：build-and-audit SUCCESS 2026-10-24T13:27:40Z job 120883907661；ping SUCCESS 2026-10-24T13:23:53Z job 120884042877；ping SUCCESS 2026-10-24T13:25:51Z job 120884453538；ping SUCCESS 2026-10-24T13:43:21Z job 120888118210；e2e SUCCESS 2026-10-24T13:29:04Z job 120883907574；posix-storage-security SUCCESS 2026-10-24T13:23:38Z job 120883907373。rollup 里列出的检查结论都是 SUCCESS。"
+      "任务职责：安全审查 gate 不在 PR head 执行代码、路径规则覆盖后台/媒体/SEO 组件（图谱/任务/GATE-HARDEN.md:31、:40-44）。",
+      "不适用：条款不涉及 PR 审查 gate、路径规则或合并权限；CODEOWNERS 仍在 main 指向 @dawanglaohu。",
+      "受限说明：卡上三处 security-review 工作流在 main 042c7d24 已不存在，由独立提交 82f74bcc『chore(ci): retire security-review gate tied to deleted App』退役；这是与本条款无关的历史文档漂移，不构成本次阻断，交原任务流程处理。"
     ],
-    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json",
+    "evidenceGroup": "G4",
+    "originalReviewer": "测试工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "GATE-HARDEN-2": {
-    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
-    "contractHash": "ec24334be3a2949847e711a2290303697cb5debd157f03d64c9e57265b8e9322",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "49cb6a50b3e73344e227f3a72b22167f3c8588ffc246debc5e29f1db6f6f2e9e",
     "evidence": [
-      "PR #481 状态 MERGED。合并提交 14a2dadb5cc6d06b531c9eb3d3830d7a16c3570b。mergedAt 2026-10-25T17:05:41Z。标题：GATE-HARDEN-2 工作流 CODEOWNERS 与 App 来源 gate。",
-      "CI rollup：build-and-audit SUCCESS 2026-10-25T16:48:36Z job 121228381982；gate SUCCESS 2026-10-25T16:46:29Z job 121228906146；ping SUCCESS 2026-10-25T16:46:14Z job 121228843774；e2e SUCCESS 2026-10-25T16:51:10Z job 121228381861；posix-storage-security SUCCESS 2026-10-25T16:44:47Z job 121228382058。rollup 里列出的检查结论都是 SUCCESS。"
+      "任务职责：.github/CODEOWNERS 对 workflows/CODEOWNERS 指定审查请求人（图谱/任务/GATE-HARDEN-2.md:31、:40-41）。",
+      "不适用：CODEOWNERS 与作业批次单位无关；main 042c7d24 两份规则仍在（/.github/workflows/ 与 /.github/CODEOWNERS → @dawanglaohu）。",
+      "本窗未改 CODEOWNERS 或工作流。"
     ],
-    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json",
+    "evidenceGroup": "G4",
+    "originalReviewer": "测试工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "GATE-PATHS-1": {
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "e581975a8b17d86fee4bfd0a93414a96c7340e82366180a7b13168f99ef89ae4",
+    "evidence": [
+      "任务职责：安全审查 gate 的路径规则（图谱/任务/GATE-PATHS-1.md:29、:38）。",
+      "不适用：条款不涉及 gate 路径规则或判定流程。",
+      "受限说明：卡上 .github/workflows/security-review.yml 已在 82f74bcc 退役、main 不存在；与本条款无关的文档漂移，不构成本次阻断。"
+    ],
+    "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json",
+    "evidenceGroup": "G4",
+    "originalReviewer": "测试工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "GATE-PATHS-2": {
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "d2ef2389937d81539293abe211dd11e9aeca54f3c533ae7cb82ba54358786537",
+    "evidence": [
+      "任务职责：安全审查 gate 的路径规则补充（图谱/任务/GATE-PATHS-2.md:29、:38）。",
+      "不适用：条款不涉及 gate 路径规则。",
+      "受限说明：同上，security-review.yml 已在 82f74bcc 退役；不构成本次阻断。"
+    ],
+    "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json",
+    "evidenceGroup": "G4",
+    "originalReviewer": "测试工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "GIFT-CARD-ASSETS": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "7ca71d7798f491483825ab43de10273bef159494554a811dc641331112bbb668",
+    "contractHash": "4dfdfec2249121ec6693c8c801de3c6cec7fc41d7e90891ce28efaa084c690b4",
     "evidence": [
-      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
-      "本条影响判定：该任务交付物不实现、不调用也不约束 3D 相机滚轮准入，E-98 收紧不改变其输入输出与验收；本条被标记仅因契约引用了变化章节的正文哈希。",
-      "main 落地实证（GIFT-CARD-ASSETS）：任务卡 status=done，code=OK(912B)、notes=OK(656B)，两个受保护区块均已回填；任务卡代码位置 5 处引用，5 处可直接核实。",
-      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
+      "不适用（贺卡素材）：交付面是 src/data/products.ts:16 的 `gift-card.e5bf7ec9` 模型/海报映射与 OG 图、后台中文标签；批量单位条款不涉及 GLB/WebP/OG、immutable 文件名或后台文案。",
+      "本卡 notes 的「/models 一年 immutable」是缓存命名规则，与 5,000/20,000 行保留批次无关。",
+      "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-04T15:53:37.150290+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json",
+    "evidenceGroup": "G3",
+    "originalReviewer": "前端工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "GIFT-CARDS-RENAME": {
-    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
-    "contractHash": "ee73018820ea411c47c960ee61553f4fcb5af0e8067b2c0eca3f90192c3d72dc",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "33bb7eb89dee1d1fbeb0ef49070fa21be4dd253099ea7315fa727d9293e0f4ad",
     "evidence": [
-      "PR #465 状态 MERGED。合并提交 7ceff069b4c381c55b7e01fe428fea90d34de865。mergedAt 2026-10-25T10:19:23Z。标题：GIFT-CARDS-RENAME 礼品卡品类 slug 与 SEO 元数据改为贺卡。",
-      "CI rollup：build-and-audit SUCCESS 2026-10-25T10:16:36Z job 121140323060；gate SUCCESS 2026-10-25T10:12:56Z job 121140322733；e2e SUCCESS 2026-10-25T10:19:11Z job 121140323173；posix-storage-security SUCCESS 2026-10-25T10:13:17Z job 121140323171。rollup 里列出的检查结论都是 SUCCESS。"
+      "不适用（品类 slug/SEO）：交付面是 src/lib/seo/categoryMeta.ts:74 的 `custom-greeting-cards` slug 映射与 ru 元数据、products/og-versions；批量单位条款不涉及 slug、metadata、OG 或路由。",
+      "本卡无作业注册、保留删除或时间预算义务。",
+      "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json",
+    "evidenceGroup": "G3",
+    "originalReviewer": "前端工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "GUARD-503": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "677fbc64f8086eaed5f5cea261cd1044405d0b8126a7c347b89e676036294061",
+    "contractHash": "a0dc6c1c872c47e3d9c1fda22332e2ddd87d74ee941be1c06b5c5bd0cccf5fe1",
     "evidence": [
-      "PR #483 状态 MERGED。合并提交 46621db51ec59e7d062de784f866370254f86c0f。mergedAt 2026-10-26T07:49:08Z。标题：GUARD-503 数据库故障时保留后台登录并返回 503。",
-      "CI rollup：build-and-audit SUCCESS 2026-10-26T07:28:08Z；gate SUCCESS 2026-10-26T07:48:54Z；ping SUCCESS 2026-10-26T07:48:36Z；e2e SUCCESS 2026-10-26T07:41:26Z；posix-storage-security SUCCESS 2026-10-26T07:23:34Z。rollup 里列出的检查结论都是 SUCCESS。"
+      "不适用（数据库故障映射）：此处的 500/503 是 HTTP 状态映射而非\"500 工作单位\"：src/lib/server/admin/guard.ts:75 返回 503 unavailable、:76 返回 500 internal；改动后的条款讲的是作业批量的工作单位（18-部署与运维.md:L99），两者只是数字巧合，无共享语义。",
+      "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+      "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-10-26T09:24:37.586158+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json",
+    "evidenceGroup": "G2",
+    "originalReviewer": "全栈工程师/安全工程师",
+    "reviewed": "2026-11-09T12:28:19.107808+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "HOTFIX-LOGIN-EMPTY": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "a9c6e5bc78674be0fe5853cc656c76693854898716c3633434f0fa54600e91a9",
+    "contractHash": "d29d9af29ac29c163bade0fc83910d866f021b43bb650fb888ac8da911a8c40c",
     "evidence": [
-      "PR #486 状态 MERGED。合并提交 e8d7f7afd569ba16d07bf3b043eeb77add8b67d0。mergedAt 2026-10-26T04:41:05Z。标题：HOTFIX-LOGIN-EMPTY: 默认登录页空框导致无法登录。",
-      "CI rollup：build-and-audit SUCCESS 2026-10-26T04:07:50Z；gate SUCCESS 2026-10-26T04:40:52Z；ping SUCCESS 2026-10-26T04:40:38Z；e2e SUCCESS 2026-10-26T04:11:10Z；posix-storage-security SUCCESS 2026-10-26T04:02:48Z。rollup 里列出的检查结论都是 SUCCESS。",
-      "PR 描述写明单元测试 8 通过，以及本地 next start 上一次真实表单登录返回 302 且会话邮箱匹配。本次回填没有再登录。"
+      "不适用（登录契约宽松化）：产出是空白 mode/rememberDevice/recoveryCode/totp 不再让严格契约失败（图谱/任务/HOTFIX-LOGIN-EMPTY.md:L26）；属登录请求契约，与作业批量单位、保留批次无关。",
+      "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+      "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-10-26T09:24:37.586158+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json",
+    "evidenceGroup": "G2",
+    "originalReviewer": "全栈工程师/安全工程师",
+    "reviewed": "2026-11-09T12:28:19.107808+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M1-T1": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "55b6e260ed1c3197324fdca9e50523d483c8de22959d9bcf0042194e79d5b772",
+    "contractHash": "6d09f8ed137ab8c7a5f8ae86c719fb24a0edb72577bdaf17aecf76440a7d1757",
     "evidence": [
-      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
-      "本条影响判定：与 E-98 的 3D 相机滚轮准入无实现或调用关系；初次自动关键词扫描的命中经人工复核均为素材缩放/卡片 hover，非相机准入。",
-      "main 落地实证（M1-T1）：任务卡 status=done，code=OK(2571B)、notes=OK(3203B)，两个受保护区块均已回填；任务卡代码位置 26 处引用，26 处可直接核实。",
-      "M1-T1 的 26 处代码位置全部可核实。需要说明：我初次自动扫描把它标为「涉及 3D」，是误判——命中项是 `src/app/globals.css:345` 的「hover 只换强调色边界，不位移不缩放」，讲的是卡片 hover 不缩放，与 E-98 滚轮准入无关。本任务交付的是 8 个核心视觉 token，不实现滚轮准入。",
-      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
+      "不适用（品牌 token/真实冒烟）：交付面是 src/styles/tokens.css:25 起的 `--pj-*` 核心变量与首页/产品页 computed style、e2e/brand-smoke.spec.ts；批量单位条款不涉及 token 值、层叠覆盖或已审文档基线。",
+      "本卡不注册作业、不定义 batch/保留/租约，55s 与 5,000/20,000 均不在其契约面。",
+      "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-04T15:53:37.150290+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json",
+    "evidenceGroup": "G3",
+    "originalReviewer": "前端工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M1-T2": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "5f3be1a318ec318644b2b669005b1353003d21ee28460defc64056ad1dbef1e8",
+    "contractHash": "14b9d6b8c5337eaf5bc5d85afec8700f55d3de4acc4204a1e170f0223ee7abcc",
     "evidence": [
-      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
-      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
-      "当前 main 代码位置逐条可见：src/lib/contracts/common.ts:3（Int32、UUID、UTC/自然日、IANA 时区、Unicode 正文、站内路径及分页游标的共享规则。）；src/lib/contracts/account.ts:4（LoginMode、rememberDevice 显式解析及账号/设备请求响应；E-95 缺值、false、字面 fal）；src/lib/contracts/recovery.ts:7（既有首次绑定与独立受限恢复分别导出 schema/DTO，保持原成功体。）；src/lib/contracts/chat.ts:28（人工聊天全部请求与严格嵌套响应、seq/read/分页规则。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
-      "当前契约 hash=5f3be1a318ec318644b2b669005b1353003d21ee28460defc64056ad1dbef1e8；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
-      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      "不适用：本任务交付共享 Zod schema/DTO（src/lib/contracts/，tests/contracts-foundation.test.ts）；08/09/18 的四处变更句是作业批量单位与时间预算的运维口径，不新增或修改任何字段、枚举、DTO 形状或请求约束。",
+      "09 进入其 sections 列表是因为 schema 镜像 09 字段表；本次 diff 只有 4 行运维句，未触及字段表。"
     ],
-    "reviewed": "2026-11-04T15:56:27.538597+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json",
+    "evidenceGroup": "G1",
+    "originalReviewer": "数据库审查工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M1-T3": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "38c76cd2a52daa51a05e86eff0e542c677ca19ff266af01117c5a0c7ab2517cc",
+    "contractHash": "a17618d7df552a00bed0b4ccc8d3f167dcf7b8d1361adbb2c40c85ba5c4933e9",
     "evidence": [
-      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
-      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
-      "当前 main 代码位置逐条可见：public/brand/packjoyu-logo-master.svg:1（现用完整字标转曲及来源核验（E-28）。）；docs/brand-media/static/brand-static-media.json:1（6个选定发布副本、完整媒体SHA/尺寸及历史待核集合。）；docs/brand-media/static/selected_release_checks.py:1（选定成片、真实来源、实际抽帧、静态裁剪和制作记录的发布校验。）；docs/brand-media/static/source-attestation.json:1（员工现场拍摄和助手后加Logo的直接用户说明及限定范围。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
-      "当前契约 hash=38c76cd2a52daa51a05e86eff0e542c677ca19ff266af01117c5a0c7ab2517cc；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
-      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      "不适用：本任务交付品牌静态媒体与 logo master（public/brand/、docs/brand-media/static/）；批量单位条款不涉及素材制作、来源、署名或发布。",
+      "四处源文未改任何媒体/素材/发布要求，未给本任务增加新证据义务。"
     ],
-    "reviewed": "2026-11-04T15:56:27.538597+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json",
+    "evidenceGroup": "G1",
+    "originalReviewer": "数据库审查工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M1-T4": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "410ee6176814b3eafa343406a8e783e51940467f09991e61da400dff3aaffc45",
+    "contractHash": "7cdeacdc54670d233b6e44e073cf34bbfec38c4a03e34932b3872addc71b84fc",
     "evidence": [
-      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
-      "本条影响判定：该任务交付物不实现、不调用也不约束 3D 相机滚轮准入，E-98 收紧不改变其输入输出与验收；本条被标记仅因契约引用了变化章节的正文哈希。",
-      "main 落地实证（M1-T4）：任务卡 status=done，code=OK(1479B)、notes=OK(1803B)，两个受保护区块均已回填；任务卡代码位置 19 处引用，19 处可直接核实。",
-      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
+      "不适用（首页视频/场景接线）：交付面是 src/components/layout/HeroVideo.tsx:15 `HeroVideo` 与 BrandScene 的视区预载/GIF/暂停接线；批量单位条款不涉及 autoplay、15s playing 观察上限、300px 预载或用户暂停。",
+      "HeroVideo 的 15 秒是播放就绪观察上限，与 09 L86 的 55s 作业时间预算不是同一概念，本次改动未触及前者。",
+      "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-04T15:53:37.150290+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json",
+    "evidenceGroup": "G3",
+    "originalReviewer": "前端工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M1-T5": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "e98247b9bf3cd53ae8647b60268309d4bd8807bc54e069a8a627fafcbefc95e9",
+    "contractHash": "b6c122e70a0b09aaa98744377833b3753e2de9d8cb7723fc4797af436a457212",
     "evidence": [
-      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
-      "本条影响判定：该任务交付物不实现、不调用也不约束 3D 相机滚轮准入，E-98 收紧不改变其输入输出与验收；本条被标记仅因契约引用了变化章节的正文哈希。",
-      "main 落地实证（M1-T5）：任务卡 status=done，code=OK(2479B)、notes=OK(391B)，两个受保护区块均已回填；任务卡代码位置 34 处引用，34 处可直接核实。",
-      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
+      "不适用（公司内容/图稿消费）：交付面是 src/lib/brand/company-media.ts:33 `RELEASED` 白名单与首页/about 的 CompanySummary 消费；批量单位条款不涉及事实对照、发布开关、图片 srcset 或 alt。",
+      "09/18 改动未触及聊天 90d 或分析 30d/13 个月的用户可见口径，也未改公司事实边界。",
+      "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-04T15:53:37.150290+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json",
+    "evidenceGroup": "G3",
+    "originalReviewer": "前端工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M1-T6": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "7191040391c7bea9554d6ad6286585e142b909777d27a13eb0b8ecd50781e0e1",
+    "contractHash": "7131454bbbbacb0f26041fce812e98d84ca678251a41432b1531ff416c6519eb",
     "evidence": [
-      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
-      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
-      "当前 main 代码位置逐条可见：public/brand/packjoyu-industrial-city-v3-loop.gif:1（发布用循环 GIF，1384×720、361 帧、30080 毫秒、无限循环，画面为 PackJoyU（E-26、E-3）；public/brand/packjoyu-industrial-city-v3-loop-preview.gif:1（同时间轴的 960×500 预览 GIF。）；docs/brand-media/static/held/packjoyu-industrial-city-v3-loop-poster.png:1（暂停静帧档案，1384×720，与发布副本逐字节相同。）；public/brand/packjoyu-industrial-city-v3-loop-poster.png:1（同尺寸暂停静帧的发布副本，首页从这里引用。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
-      "当前契约 hash=7191040391c7bea9554d6ad6286585e142b909777d27a13eb0b8ecd50781e0e1；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
-      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      "不适用（媒体发布集合/逐帧核验）：交付面是循环 GIF、同尺寸暂停帧与 docs/brand-media/animation/verify-media-integrity.py 的 SHA/解码/时间线核验（main 上源件存档于 docs/brand-media/static/held/，首页消费已由同组媒体任务接 MP4：src/lib/home/brandMedia.ts:13-14）；批量单位条款不涉及帧序、30.08s、无限循环或发布集合。",
+      "本卡无作业注册、聚合或保留删除义务。",
+      "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-04T15:56:27.538597+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json",
+    "evidenceGroup": "G3",
+    "originalReviewer": "前端工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M1-T7": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "7de1e70f8f46a2bff25e233b1d0a0ec0fd734adaef952c22237a581fa4d99581",
+    "contractHash": "86856a9543a2c3dd114449c2f1dcb63a552936452d20087c083ebaa8620d43bd",
     "evidence": [
-      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
-      "本条影响判定：该任务交付物不实现、不调用也不约束 3D 相机滚轮准入，E-98 收紧不改变其输入输出与验收；本条被标记仅因契约引用了变化章节的正文哈希。",
-      "main 落地实证（M1-T7）：任务卡 status=done，code=OK(711B)、notes=OK(711B)，两个受保护区块均已回填；任务卡代码位置 11 处引用，11 处可直接核实。",
-      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
+      "不适用（UI primitives）：交付面是 src/components/ui/Button.tsx:25 `Button`、src/components/ui/index.ts:1 的统一出口与 tokens.css 的组件状态；批量单位条款不涉及原生语义、busy/焦点/错误或 token 源。",
+      "本卡明确不含 fetch、Prisma、作业、保留或批处理，四处改动未增加此类义务。",
+      "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-04T15:53:37.150290+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json",
+    "evidenceGroup": "G3",
+    "originalReviewer": "前端工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M1-T8": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "01218af8360c4dcb7c3c3f34ab541ffe30cc757b0ffe67f129c58fdee07f1344",
+    "contractHash": "b84311112beb9aea0bb3b04c239f4740706645b3c18f68659dd6a9faf0897759",
     "evidence": [
-      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
-      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
-      "当前 main 代码位置逐条可见：src/lib/client/api.ts:24（每次尝试单独计 15 秒截止，不把 1/2/4 秒退避算进同一次截止。）；src/lib/client/api.ts:26（响应 JSON 超过 4MiB 即停止读取，正文不进入失败结果。）；src/lib/client/api.ts:71（只接受单斜杠开头的相对路径，拒绝绝对地址、双斜杠、反斜杠、片段和点段。）；src/lib/client/api.ts:95（`/api/auth` 在 fetch 之前拒绝；`/api/auth-admin` 仍走统一请求。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
-      "当前契约 hash=01218af8360c4dcb7c3c3f34ab541ffe30cc757b0ffe67f129c58fdee07f1344；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
-      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      "不适用（客户端 fetch 适配）：交付面是 src/lib/client/api.ts:24 `CLIENT_DEADLINE_MS = 15_000`、:23 的「per attempt」注释与重试/限体策略；09 L86 的 55s 是服务端固定作业预算，本卡的 15s 与 30s 分别是客户端每次尝试截止和自动等待上限，本次改动未改这两个值。",
+      "cron 禁重试是对客户端重放策略的约束，不是作业批量单位；两者没有混写。",
+      "本卡无作业注册或保留删除义务。",
+      "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-04T15:56:27.538597+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json",
+    "evidenceGroup": "G3",
+    "originalReviewer": "前端工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M1-T9": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "1484d07a9c901ebef6b4c4c2046003ed50bb4677fd61b5b52cd259735758b045",
+    "contractHash": "40c7aa73df6a3885b141f7c567ca248a9a82ada72a483768613d9dac246aa7d7",
     "evidence": [
-      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
-      "本条影响判定：与 E-98 的 3D 相机滚轮准入无实现或调用关系；初次自动关键词扫描的命中经人工复核均为素材缩放/卡片 hover，非相机准入。",
-      "main 落地实证（M1-T9）：任务卡 status=done，code=OK(1627B)、notes=OK(1345B)，两个受保护区块均已回填；任务卡代码位置 18 处引用，18 处可直接核实。",
-      "M1-T9 的 18 处代码位置全部可核实。初次扫描的「涉及 3D」同样是误判：命中项是字标「保持统一缩放」与 `logo-master` 导入，指图稿缩放而非相机缩放。本任务交付公司图稿工程，只引用 11-UI（不引用 07/12），不与滚轮准入相干。",
-      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
+      "不适用（公司图稿源件/清单）：交付面是 docs/brand-content/company-visuals.json:91 `selectedInput` 与可编辑工程/Web PNG 的 SHA、双语 alt；批量单位条款不涉及素材来源、工程对象或页面消费。",
+      "本卡无作业注册、保留删除或时间预算义务。",
+      "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-04T15:53:37.150290+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json",
+    "evidenceGroup": "G3",
+    "originalReviewer": "前端工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M2-T1": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "bfeab882f98436862d8cd36584f100dc41119e1ae38e12c6410cbcf2ec686265",
+    "contractHash": "8d26981bf92a8cbf2127f182b6ae9f835ae353acf61a1d33dec5f4c6ae53d1dd",
     "evidence": [
-      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
-      "本条影响判定：M2-T1 是共享 Canvas 大卡与独立模型/动作区域的实现任务，直接落在 E-98 准入范围内，因此按新矩阵逐条核对（见下）。",
-      "main 落地实证（M2-T1）：任务卡 status=done，code=OK(2533B)、notes=OK(1204B)，两个受保护区块均已回填；任务卡代码位置 33 处引用，32 处可直接核实。",
-      "M2-T1 与 3D 准入直接相关，已按新矩阵实证：main 上 `src/components/three/ProductGallery.tsx`（321 行）`wheelAdmission` 在 `:159` 调用，`:162` 明确 `focusBelongsToModel: wheelPermit.current === slug && surface.contains(document.activeElement)`——用真实 DOM 焦点而非缓存 focusedSlug，正对应 12-UX 新增要求；`:168-170` 仅当 verdict 为 `zoom-camera` 才 `preventDefault` 并缩放，其余保留浏览器默认行为；`:120`、`:127`、`:137`、`:194` 在释放/退出路径同步 `wheelPermit.current = null`，`:61-62` 注释写明「遗留 DOM 焦点也无法让该监听再次缩放相机，只由本模型取得焦点重新签发」。即本任务交付物已满足收紧后的 E-98 双重准入，无需返工。",
-      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
+      "不适用（产品卡布局）：交付面是 src/components/three/ProductGallery.tsx:238/344 `product-viewport` 与 globals.css 的卡高/操作行；批量单位条款不涉及 560px 卡、clamp、SSR 目录或询盘控件。",
+      "本卡无作业注册、保留删除或 55s 预算义务。",
+      "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-04T15:53:37.150290+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json",
+    "evidenceGroup": "G3",
+    "originalReviewer": "前端工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M2-T2": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "5b4b8b6f682a107ddb8a34c968b3ef9f855a2d602fd60dddce535d97ddb964be",
+    "contractHash": "4cd57b0e62d0c5d58a2460794a6c1922960253ba090aee4300a4057761eff991",
     "evidence": [
-      "仅复核 M2-T2 的条款与有效范围，不代表整体验收、终审或可合并；本轮未改产品行为、依赖或测试断言。任务保留 status todo，未执行 --landed，未合并。",
-      "取证配置支持路径：playwright.config.ts:36 的 CI list reporter 已在 PR 差异中，但原 taskPaths/supportPaths 未含该文件；按定点文档补丁 M2-T2-test-reporter-support 将其追加到 supportPaths，不改验收、生成器或其他任务。",
-      "e2e 仅改 328 行注释与 333 行断言标签，措辞为「不接管相机缩放、未阻止默认行为」；断言对象仍为 data-camera-distance，产品源码未改。",
-      "两个受保护区块已回填真实仓库相对路径与固定 head 44f1fd82 实际行号；pointerup 只清 ownerSlug/dragging 并保留焦点，不写经 withoutInteraction 清空全部；旧规则自测未被写成实际旧产品失败。",
-      "证据分层：CI run 41684377166（检出测试合并 3d4befd）提供两条 E-98 具名通过，证明断言级行为；本地 next start v4 成对对照仅支持 B/C 两格有限 JSON 结论，不替代 standalone 或完整验收。",
-      "v4 采集限制已按更正说明记录：事件后状态由 setTimeout(0) 宏任务读取；两端 frames 为空，不得声称磁盘图片为本次关联帧；绿侧 C 触发定位 0→445、红侧 C 为 89，各自定位完成后测量区间稳定，不宣称初始滚动位置相同；D 格两端均不接管，不是红→绿。",
-      "defaultPrevented=false 只证未阻止默认行为，不证明已实测浏览器页缩放；.hint 只证存在与 elementFromPoint 命中，未验证完整交互语义。未测项与本地对照无 DB、非 standalone 的限制保留。",
-      "同步后复查：revalidation 仍 40 条，M2-T2 status todo，其余普通任务与 R* 状态未改，产品源码与依赖未改。"
+      "不适用（3D 指针/滚轮准入）：交付面是 src/lib/three/model-pointer.ts:43 `wheelAdmission` 与 ProductGallery 的 `wheelPermit`/退出路径；批量单位条款不涉及焦点/指针命中、滚轮拦截或相机缩放。",
+      "本卡无作业注册、保留删除或时间预算义务。",
+      "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-04T06:17:11.746851+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json",
+    "evidenceGroup": "G3",
+    "originalReviewer": "前端工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M2-T3": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "6e95012a627d50f859cceb011f5250fb0110d71d43802eefdffd14543abae596",
+    "contractHash": "baaed0cf851faa2017e6df96ccdfd99661cc4839826002f8c97eca0d15d59932",
     "evidence": [
-      "契约补登复核（本轮只核变化字段）：M2-T3 的 supportPaths 从 [] 变为 ['tests/m2-t3-model-accessibility.test.ts']，其余字段 provides/requires/stage/wiring/outputPaths/sections 逐字未变。逐任务对比 0d0a26dd 与当前 task-contracts.json，实际被改动的契约只有 M2-T3 一个。",
-      "补登理由（来自实际代码，不是形式补充）：该单测是「漏传 zoomId/zoomDelta 导致缩放静默失效」的唯一守卫。该用例把 <ModelOrbit .../> 调用点逐个提取，对每个调用点分别断言 zoomId={i.zoomId} 与 zoomDelta={i.zoomDelta}；PR 描述记录这次回归：改接新通道时两处调用点一度只传 commandId，缩放按钮与键盘加减号全部失效，而只断言源码字面量的单测仍然全绿。删掉该测试会失去对这次回归的防护。",
-      "漏列事实（已独立核实）：在 141 个契约中检索 tests/m2-t3-model-accessibility.test.ts，没有任何任务在 taskPaths/supportPaths/outputPaths 登记该路径；M2-T3 原 outputPaths 只有 src/components/three/、src/lib/three/、e2e/model-accessibility.spec.ts 三项，supportPaths 为空。按 AGENTS.md「漏列的必要支持文件由审查方补齐并核对冲突，不私自无限扩大范围」，只补这一条路径，未改动任何其他任务、未新增产品代码、未改规范正文。",
-      "传播范围解释（避免把机制误读为波及）：sync 输出的 30 条「待真实复核」是补丁 affected 传播清单，包含 M2-T5/T6/T7/T8、M3-T6/T8/T9/T10/T11/T12/T13/T25、M6-T1..T7、M7-T1..T10 等；逐任务对比后确认这些任务的契约内容实际未变，它们的 changedFields 只来自输出路径共享检测，不是我的改动波及。补丁 M2-T3-model-accessibility-test-path.json 的 verifiedTasks 为 []，changes 中 M2-T3 的 before/after 仅体现 supportPaths。",
-      "不造成复验回潮的实测：sync 之后 _run/revalidation.json 仍是 {}（0 条）、maintenance.js 的 needsReview 仍是 []、pendingTasks 是 []。即没有把任何已落地任务重新标为待复验；30 条只是「任务契约待语义复核」的提示，未写入 revalidation。",
-      "下游影响：只有 M2-T6（provides model-accessibility 的消费者）依赖 M2-T3，且 M2-T6 当前 status 仍为 todo、未落地，因此本次契约哈希变化不会触发任何已落地任务的复验标记。",
-      "范围边界：本补丁只改 docs/PackJoyU-开发文档/_run/task-contracts.json 的 M2-T3.supportPaths 一处（3 行：+3/-1），未改产品源码、未改 e2e/单测内容、未改 compose/schema/messages/globals.css，未改其他任何任务的契约。"
+      "不适用（3D 键盘/触屏/复位）：交付面是 src/lib/three/model-accessibility.ts:83 `TOUCH_TARGET_PX` 与 GalleryScene 的 command/zoom 两条通道、44px 目标；批量单位条款不涉及双指夹紧、复位基准或键盘动作表。",
+      "本卡无作业注册、保留删除或 55s 预算义务。",
+      "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-05T01:37:39.172411+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json",
+    "evidenceGroup": "G3",
+    "originalReviewer": "前端工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M2-T4": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "ba9a8aa1a4cf0c1789cd159b76cc72fdd373adb219b66f8e5f5b7e8fabc6bff2",
+    "contractHash": "3f4a27ad18f168c073471cab6fc984b6efae7be06ae3636261e0e0ab69c0c4db",
     "evidence": [
-      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
-      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
-      "当前 main 代码位置逐条可见：src/lib/analytics/model-events.ts:77（终态类型复用打开状态的共同字段并替换 status，支持判别联合收窄。）；src/lib/analytics/model-events.ts:118（按记录顺序归约信号；空序列不产生事件。）；src/lib/analytics/model-events.ts:134（start、success、timeout、failure、cancel、retry 的纯转换；visit、displa）；src/lib/analytics/model-events.ts:176（durationMs 只取注入整数时钟差，范围外不改写、不可读则不算终态。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
-      "当前契约 hash=ba9a8aa1a4cf0c1789cd159b76cc72fdd373adb219b66f8e5f5b7e8fabc6bff2；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
-      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      "不适用（模型事件纯规则）：交付面是 src/lib/analytics/model-events.ts:27/40/49 的 viewId 生命周期与 success/failure 去重；它只产出待 M2-T7 消费的事件，不执行聚合作业或保留删除，09 L73/L86 的删除批次与 55s 预算不在其契约面。",
+      "其 durationMs 取注入单调时钟差（:176），与 55s 作业预算无换算关系；本卡也不读取同意状态或发请求。",
+      "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-04T15:56:27.538597+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json",
+    "evidenceGroup": "G3",
+    "originalReviewer": "前端工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -410,16 +598,16 @@
   },
   "M2-T6": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "a542c5911cbfc4a9df871ec719855c65ea021762b5d198e3a4dddb2e8b4abc16",
+    "contractHash": "8baa9d7c8cce3a346252caa15c2c98fb0618c1bf4c6b4c05d04d29ae117a1aaa",
     "evidence": [
-      "源码 task-contracts.json 的 tasks[\"M2-T6\"].supportPaths 由 3 条（e2e/poster-carrier.spec.ts、e2e/poster-carrier/、.github/workflows/ci.yml）扩为 4 条，仅新增 e2e/admin-legacy-model-visual.spec.ts；outputPaths 未变，未改验收语义、未改 M3-T23 验收/状态。",
-      "该路径是已审头 825e2339..8a5c391c 的真实净差：仅 e2e/admin-legacy-model-visual.spec.ts +27/−2，spec blob 40112aef… 与作者本地跑 8/8 的副本同哈希（全栈 v2 复核报告 3C2ECE1C…，PASS 仅增量）。",
-      "原子采集：entryReady 判定循环退出到测量之间无 await，检查与测量在页面同一任务内连续执行，React 提交插不进该窗口；15s 上限仍在，不满足条件的采集仍会失败；全部几何断言与真实面包屑点击保留。",
-      "重定向证据分层：另一次同源同会话 GET /admin/models（maxRedirects:0）只证明 307/308 与 Location→/admin/models/new 的产品重定向契约，不绑定本次点击的导航链，不写成点击证据。",
-      "旧序列 +40/80/120ms 三档均 1 passed、未复现；注入延迟把提交整体后移，只算不确定负控，不作修复有效性的正证；本头尚无 CI，不声明竞态问题已解决。",
-      "状态保留：M2-T6 卡仍 status: todo、未 landed，未 push；M5-T5 done、progress 94 键/done 91、原批次与补丁历史未动；未新增其他任务路径。"
+      "不适用（模型回退/重试）：交付面是 src/lib/three/model-fallback.ts:15 `MAX_MODEL_RETRIES = 3` 与 ProductGallery 的海报/失败条；批量单位条款不涉及手动重试上限、WEBGL_UNAVAILABLE 或 context lost。",
+      "本卡明确只上报加载结果、不创建分析成功事件，也不执行作业或保留删除。",
+      "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-07T21:39:57.373990+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json",
+    "evidenceGroup": "G3",
+    "originalReviewer": "前端工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -456,15 +644,16 @@
   },
   "M3-T1": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "af4278d674453839280856fd8bb3ad1e2c55eb4a66a15168222e7c2c18833e2a",
+    "contractHash": "63e056158cd6949bf3fc7ab97b12458cdc720e7a5d419693b98bdd73e17466ef",
     "evidence": [
-      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
-      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
-      "当前 main 代码位置逐条可见：prisma/schema.prisma:75（User.passwordlessEnabled 默认 false）；prisma/schema.prisma:92（AdminDeviceSession：192 位 id、会话版本、设备闲置和绝对期限、撤销时间）；src/lib/server/admin/device-session.ts:21（普通设备从 lastActivityAt 滑动 2 小时；记住设备取 7 天闲置和首次签发后 30 天的较早期限（E-0）；src/lib/server/admin/device-session.ts:53（先核账号与设备，再判路由角色；无效设备为 401，有效设备越权为 403；到期等号拒绝（E-70））。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
-      "当前契约 hash=af4278d674453839280856fd8bb3ad1e2c55eb4a66a15168222e7c2c18833e2a；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
-      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      "不适用（后台登录/设备会话基础）：职责面与产出为产出 AdminDeviceSession 与 Auth.js sid 适配、GET /api/admin/account（图谱/任务/M3-T1.md:L22），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+      "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+      "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-04T15:56:27.538597+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json",
+    "evidenceGroup": "G2",
+    "originalReviewer": "全栈工程师/安全工程师",
+    "reviewed": "2026-11-09T12:28:19.107808+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -522,109 +711,106 @@
   },
   "M3-T14": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "8578593a729c5671e80a84732325f5d0b409033ecbc5646a0145a1c429e7da19",
+    "contractHash": "4d54585c5cdb086c964163f63a9b33f72da8f117ee0e11b33917da1ad7406874",
     "evidence": [
-      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
-      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
-      "当前 main 代码位置逐条可见：prisma/schema.prisma:402（ApiDailyCounter 以站点日、timezoneRevision、routeId 为复合主键，只存 reque）；src/lib/server/config.ts:5（冻结的后台会话 2h/7d/30d/15min 与 grant 5min、permit 15min、受限会话 10min）；src/lib/server/config.ts:68（配置失败只报告字段名和「未设置/无效」，不使用 Zod 自带的 issue.message。）；src/lib/server/config.ts:112（生产环境缺既有秘密即拒绝；返回的冻结对象不复制秘密值。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
-      "当前契约 hash=8578593a729c5671e80a84732325f5d0b409033ecbc5646a0145a1c429e7da19；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
-      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      "不适用（HTTP/config/计数器）：产出是共享 HTTP 错误映射与 ApiDailyCounter（图谱/任务/M3-T14.md:L22）；计数是单条 INSERT … ON CONFLICT 自增（src/lib/server/http/metrics.ts:150-157），且该卡 L75 明写\"13 个月保留不是这张表自己的删除，清理作业也不能从这里导入\"——即它既不是分析保留批次的执行者，也不是删除行单位的所有者。",
+      "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+      "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-04T15:56:27.538597+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json",
+    "evidenceGroup": "G2",
+    "originalReviewer": "全栈工程师/安全工程师",
+    "reviewed": "2026-11-09T12:28:19.107808+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T15": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "78852ec002863d3d345e213d81d1be0f9f0154cd2a9cab89ea45960158bbc45c",
+    "contractHash": "f111143553a82716ad85db0f297c7d55af5af3c891494a41e86dfa561c60165e",
     "evidence": [
-      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
-      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
-      "当前 main 代码位置逐条可见：src/app/api/admin/account/session/activity/route.ts:6（POST 先做同源检查，再 requireAdmin，然后交给会话活动处理。）；src/lib/server/admin-session-activity.ts:52（真实活动处理。按用户限流、空对象。同源检查和 requireAdmin 在路由里。）；src/lib/server/admin/device-session.ts:42（只回填空的 `hardExpiresAt`。）；src/lib/server/admin/device-session.ts:97（绝对截止的等号拒绝，不写库。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
-      "当前契约 hash=78852ec002863d3d345e213d81d1be0f9f0154cd2a9cab89ea45960158bbc45c；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
-      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      "不适用（会话活动/期限）：产出是 POST /api/admin/account/session/activity 与期限适配（图谱/任务/M3-T15.md:L27）；义务是 2h 滑动 + 创建后 12h 绝对截止（L34/L38），与作业批量单位无关。",
+      "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+      "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-04T15:56:27.538597+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json",
+    "evidenceGroup": "G2",
+    "originalReviewer": "全栈工程师/安全工程师",
+    "reviewed": "2026-11-09T12:28:19.107808+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T16": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "fd9cf4a6514ba6ab7a992d42469b182829004cdbc18cb4d58b15d2fd2b29a7f8",
+    "contractHash": "f83df982d88023fea10b3be476ebeca73fa440eb43176828127446848224f265",
     "evidence": [
-      "接线点：实现已随 #517 合入 main（merge commit 0dabe481），本登记只补落地记录、不重做代码。真实 PATCH /api/admin/account/login-mode 与 POST /api/admin/account/password 两个 handler 都经 requireAdmin → assertSameOrigin → 账号+IP 限流 → 限体 → Zod strict → createAdminServices().accountSecurity → 统一 {error,requestId,fieldErrors?} 错误映射；AccountModeRequestSchema/PasswordChangeRequestSchema 与两个 DTO 复用 src/lib/contracts/account.ts 既有定义，未在路由内另造类型。",
-      "验收 1/E-06：LOGIN_MODE grant 启用 passwordlessEnabled 后，tests/admin-account-mode-password.http.test.ts 用真实 Auth.js Credentials mode=totp 只提交 email/totp 即可登录；关闭后该模式通用失败、password+totp 仍可登录。该文件默认 skip（本机无 PostgreSQL），CI 用 M3T3_TEST_DATABASE_URL 专用库必跑，本机不冒充已跑 PG。",
-      "验收 2/E-07/E-08/E-73：grant 按 purpose 严格区分——actionGrants.consume 的 SQL 条件含 purpose::text = 入参 且 \"targetId\" IS NULL，PASSWORD 授权不能切方式、LOGIN_MODE 授权不能改密；消费与最终动作在同一 db.$transaction，并发同 grant 最多一次成功。启用无密码但账号无已绑定且开启的 TOTP 时抛 version_conflict 且零写入（service 级 fake repo 具名测）；关闭后 passwordHash 恒非空、password+TOTP 仍可用，不会失去所有方式。错误/过期/重放不提交，最终查询仍至少一种已验证方式。",
-      "验收 3/E-03/E-74：account-repo.ts 的 applySensitiveChange 用 where {id, sessionVersion} 做 CAS 并 sessionVersion increment 1；最终事务重查当前账号与 sv，成功后 revokeDevices 撤销 < 新 sv 的旧设备、createAudit 写 account.mode_change / account.password_change 审计同事务，旧 JWT 未到期也被拒绝。兼容旧 currentPassword+totp 路径执行同强度新鲜验证（consumeTotpStep 走独立连接，放在事务外避免持 User 行锁死锁），非空 recoveryCode 由 PasswordChangeRequestSchema 的 z.literal('').optional() + strict 拒绝；login.ts:242 的 TODO(M3-T19) 日常恢复码路径本任务未动（属 R5-T59021355）。",
-      "范围边界：src/lib/server/composition.ts 只追加 accountSecurity 注册、复用同一 actionGrants，未碰 src/app/api/admin/account/devices/（M3-T17）、analytics/stats/recovery 段、deploy.sh、messages/*.json；M3-T3 的 grant 与 M3-T4 的 permit 语义均未回退。改动 7 文件全在契约/supportPaths 内：account-repo.ts、account-security.ts、login-mode/route.ts、password/route.ts、composition.ts、tests/admin-account-mode-password.http.test.ts、任务卡两保护区。",
-      "检查证据（#517 时已实测且代码已入 main）：tsc --noEmit=0、prisma validate=0、build_vault --check=0、git diff --check worktree/cached/HEAD^..HEAD=0、7 文件 CR=0、提交与推送前两次 fail-fast 关卡全 PASS；全量 pnpm test 1747 pass / 3 fail（仅 Windows CRLF 噪声 sanity-import×2 + linkmap，未改动 main 上同样红）/ 36 skip，无新红。",
-      "本次复核按当前权威 contractHash fd9cf4a6… 出具：status --task M3-T16 以 Python 脚本文件直调取得，stale=[]、runtimeDrift=[]、blockers=[]，ready=false 仅为『待语义复核』WARN（与 AGENTS.md 一致、不进 blockers）；未复用 task-reviews.json 里的旧 hash efa9ed3a…，也未用旧工作树 status 副产物 5ea3c3fb…。两保护区已随 #517 回填完整、本登记只核质量不重写。",
-      "边界：本证据只登记 M3-T16 契约复核与落地，不跑 --landed 之外的状态变更、不合并、不部署、不打开生产功能、不迁移数据库；落地后 progress 应只新增 M3-T16: done 一条，40 条复验、批次与返工记录、其他任务状态零改动。"
+      "不适用（登录方式切换/改密）：职责面与产出为产出 PATCH login-mode、POST password 与同事务 grant 核销（图谱/任务/M3-T16.md:L22），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+      "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+      "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-05T06:39:12.766049+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json",
+    "evidenceGroup": "G2",
+    "originalReviewer": "全栈工程师/安全工程师",
+    "reviewed": "2026-11-09T12:28:19.107808+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T17": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "e26408b43cedbe0498618642cdf2eccea26a0ccbef9798e838a315aafe5bf9e0",
+    "contractHash": "988f557426acd29b7936f82a253ec4a015cec4e04b1d0320963430552e33df4c",
     "evidence": [
-      "Chief independently compared HEAD 9cd631543277b068273313b233556dfd2ae8813b with the M3-T17 worktree: the only canonical task-contract change is adding the exact repository-relative .github/workflows/ci.yml to M3-T17 supportPaths. Output paths, provides/requires, acceptance criteria, task dependency definitions, edge clauses and implementation stage remain unchanged.",
-      "The existing M3-T17 task requires real handlers -> device-management, private stable device listing, same-transaction single-use grants and durable revoke/logout-all behavior. The already-declared tests/admin-device-management.http.test.ts needs the existing PostgreSQL 17 job, not the DB-free unit job. ci.yml changes are exactly its three matching registrations in wanted, the serial node test command and the per-file gate. Existing positive-pass and zero-fail/skip/todo/cancelled checks and M3T3_REQUIRE_DATABASE=true remain unchanged.",
-      "Chief read the new test setup: it accepts only the existing dedicated M3T3_TEST_DATABASE_URL PostgreSQL URL and throws if M3T3_REQUIRE_DATABASE=true without that URL. This supports the scope registration; the in-progress test implementation and actual PostgreSQL execution are not accepted by this contract-only review.",
-      "Independent script verify-t17-ci-support.py exited 0: M3-T17 context changes only definition/effectivePaths, exactly .github/workflows/ci.yml added; all eight other affected tasks have byte-equivalent contexts and provider-hash-only changes. Nine affected tasks remain todo, so revalidation remains empty. M3-T21/M3-T23/M3-T24 contracts are not changed.",
-      "The same independent comparison verified progress 86/done 83, all 12 batchRecords including merged batch6 clean/pass, 17 repairTasks, 22 dispatch batch task sets and existing task/edge/spec data are unchanged. Eight batch summary hashes propagate normally. Structural review is current with zero blockers. No manual generated-output edit, task landing, product acceptance, CI success or new deployment is certified here."
+      "不适用（设备列表/撤销）：职责面与产出为产出 devices 列表、单设备撤销与 logout-all（图谱/任务/M3-T17.md:L22），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+      "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+      "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-06T02:59:58.229775+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json",
+    "evidenceGroup": "G2",
+    "originalReviewer": "全栈工程师/安全工程师",
+    "reviewed": "2026-11-09T12:28:19.107808+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T18": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "0cd57c17b82a5452e71749d3f04bcd9438410504311bd8504d57f68289e23f2b",
+    "contractHash": "f610f043e7bc24e2d8a7a847d080e9930b2ecd903a680af492dcc6f6cbf8ba6a",
     "evidence": [
-      "实现已随 PR #521 合入 main：实现头 e951454fee2a150674bf53e877d624ff03f87a85、merge 64e37afad8ca7e6e1dde10edeaf0871d54171a5f，5 文件 / +1119（scripts/admin-authorize-recovery.mjs、.d.mts、src/lib/server/admin/owner-recovery.ts、recovery-repo.ts+15、tests/admin-owner-recovery-cli.test.ts）；本次登记基线是 #527 合并后的 main d7ea36fe。",
-      "验收 1（OS-owner 拒绝路径，E-12）：scripts/admin-authorize-recovery.mjs:123 hasOsAdminPrivilege 的 POSIX 仅 euid===0（刻意不看补充组）、Windows 靠 openProtectedOnWindows(:146) 打开 \\\\.\\PHYSICALDRIVE0 独占写、其他平台/探测缺失一律拒绝且绝不降级；:274 stdin/stdout 非 TTY 在连库前 not_tty 返回、测试断言 writes.length===0。parseArgs(:78) 把 --email/--id 二选一、缺/都给/模糊/--force/--clear-2fa/--skip-totp/密码类参数全拒且不回显值；decideTarget(:210) 只放行存在/未停用/ADMIN，--role 只校验与库中当前 ADMIN 一致（防提权），不提供改角色。E-12 隔离账号（无 TOTP/无恢复码/无第二管理员）被放行，测试 #424 具名覆盖。",
-      "验收 1（一次性 permit 与审计）：PERMIT_TTL_MS=15min(:23)、token 库里只存 sha256 hex（:72 hashPermitToken 与 recovery-repo.ts:5 hashRecoveryPermitToken 同算法，测试 #413 钉住），真实 main() 的 writePermit 用 $transaction 把 adminRecoveryPermit.create + auditLog.create 包在同一事务(:361)，source: SERVER_OWNER、issuedById: null、绑定当前 sessionVersion，M3-T19 的 consumePermit CAS/consumedAt IS NULL(:152) 能对接。凭据只在成功路径末尾 stdout 打印一次（permitLines :219，测试断言计数=1），auditMeta(:228) 固定 actor/passwordReset/reason/source/time/via 且断言无 43 字符 base64url 凭据，stderr 只固定文案、db_error 只输出 e?.name 不带 message/连接串，密码不进 stdout/stderr、密码环境变量只删不读。",
-      "验收 2（可选改密，E-75）：promptPassword(:192) 在 TTY raw 隐藏输入并确认两次、后台同一套 Argon(:25 memoryCost 19456/timeCost 2/parallelism 1，与初始密码脚本同源)；hash 只进 permit 的 pendingPasswordHash(:251)，permit 行不含 passwordHash/totpSecret/recoveryCodes/totpEnabled，User 表零写入；初始密码脚本 admin-reset-initial-password.mjs 的 ADMIN/未绑定/未停用/TTY guard 原样未改。ADMIN/HTTP 路径 recovery-authorizations.ts:87 调 createPermit 不传 pendingPasswordHash，git grep pendingPasswordHash -- 'src/app/**' 为 0 命中，无 HTTP 入口（E-75）。",
-      "两者未混同：『依法一次性返回』（凭据打印到交互终端一次）与『禁止日志泄露』（不进 auditLog/文件/stderr/参数）是两条独立实现且各有断言，没有把必须返回误做成也禁输出，也没把输出放进审计。",
-      "CI 真跑证据（非本机复跑）：run 41982048159 的 head_sha 正是 e951454f，三项全 success（build-and-audit 06:46:07Z / posix 06:41:24Z / e2e 06:55:26Z；e2e 内含 prisma db push、PostgreSQL 回归、standalone 启动、Playwright Chromium、RUM 脱敏核对）；Unit tests 具名日志（job 127094146857）ok 411–443 共 33 条、0 fail / 0 skip，admin-owner-recovery-cli.test.ts 是实跑不是整组 skip。PR 上 Codex bot 的 code_review: failed / has_unresolved_findings: true 不是代码发现（正文是 couldn't complete this review + usage limits，审查未完成，get_reviews 为空），不当通过也不当阻断；后端工程师按同一契约独立审查四项无阻断。",
-      "范围如实登记：净差异 5 文件、零 docs/_run 生成物、零 HTTP 路由；owner-recovery.ts（226 行 TS 服务层）在 src//scripts//tests/ 无任何产品调用方，CLI 运行时不 import 它、composition.ts 只注册 recoveryAuthorizations/recoveryStart，真正跑的是自包含 .mjs。测试只用源码比对 + 行为等价钉住 decideTarget 防漂移（#414），两层 auditMeta 有非秘密细微差异（CLI 多 via、actor 构造不同），属同一契约两套实现、其一无产品入口的架构冗余/简化候选，不影响 CLI 安全行为。4 处残留风险如实登记：孤儿 permit 靠 15min expiresAt 兜底、Windows 物理盘探测失败即拒绝、euid===0 不区分等效能力者、审计 ip 固定 local-cli。",
-      "契约外类型配套：scripts/admin-authorize-recovery.d.mts 因 tsconfig 的 allowJs:false → TS7016 必需（既有 6 个 .mjs 都配 .d.mts），但 141 契约 0 命中、不在 effectivePaths 内。按 Chief 裁定不补契约、不改 hash、不自改 supportPaths，本证据如实写为『契约外类型配套』，若第 6 批收口坚持再走补丁挂 supportPaths。事务证据层级：真实 $transaction 原子性只在 main() 里静态可核，33 条 CLI 用例是假 db 单元测试，e2e 的 DB 回归清单未含该文件，没有专用 Postgres 集成测试证明 permit+audit 同事务与失败回滚，不冒充『真 DB 事务已测』。",
-      "知识库回填（本轮补做）：#521 实现 PR 未带 图谱/任务/M3-T18.md，两保护区此前仍是 AGENTS.md 明令禁止的占位符；本轮按已合入 #521 实现的真实行号（mjs:23/:72/:78/:123/:146/:192/:210/:219/:228/:240/:251/:274/:361、owner-recovery.ts:161、recovery-repo.ts:5/:152、recovery-authorizations.ts:87、CLI 测试:60 等）与后端独审结论回填『代码位置』与『实施沉淀』，不编造、不重写产品代码、不降低验收标准。build_vault --check 核质量。",
-      "落地登记只推进 M3-T18 一条：任务卡 status todo→done、progress 只新增 M3-T18: done，不改 batchRecords / repairTasks / dispatchBatches，不回退 M3-T7 / M3-T16 / R5-T59021355 / M5-T3 的 done 与第 4、5 批 clean，revalidation / needsReview 保持空；第 6 批收口不在本登记内完成，ci.yml 的 M3-T7 契约外事项交该收口复核。"
+      "不适用（恢复授权 CLI）：产出是 scripts/admin-authorize-recovery.mjs（target/role/reason、TTY 隐式密码预授权与审计，图谱/任务/M3-T18.md:L22）；一次性 CLI，不是注册作业，不消费批量单位。",
+      "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+      "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-05T12:35:12.928765+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json",
+    "evidenceGroup": "G2",
+    "originalReviewer": "全栈工程师/安全工程师",
+    "reviewed": "2026-11-09T12:28:19.107808+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T19": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "73a8297e7d9d9b905ae9ada040b3a8344d74745bdfa19ec3b4c6aa216237779a",
+    "contractHash": "69d98c2f338e798f6912313e8098b5c5d7f7c3fd1460fff0e28211ea7502c429",
     "evidence": [
-      "固定基线 main 28196042（#515 合并后、第 4 批 4 返工全 done）。M3-T19（原子核销恢复码或 permit 为受限会话）实现已随 PR #513 合入主干（merge commit 937a129b），但任务卡 status 仍 todo、progress 无该条、task-reviews.json 中旧复核记录 hash 为 c5404e15… 落后于当前契约；本次只补落地登记，不重做实现。",
-      "按当前 contractHash 73a8297e… 重新出证据（不复用旧 hash）。status --task M3-T19 实测 stale=[]、runtimeDrift=[]、blockers=[]，ready=false 仅为「任务契约待语义复核」WARN，与 AGENTS.md 第 16 行一致，不进 blockers、不锁 --landed。",
-      "验收 1（真实 POST start 单事务 CAS）：recovery-start.ts:64 db.$transaction 内顺序为锁 User → 重读当前 recoveryCodes/permit → 核销 → sv+1 → 撤销旧设备/旧恢复会话 → 建 10min 受限 session → recovery.started 审计同事务；consumePermit 用 UPDATE...WHERE sessionVersion=当前 AND consumedAt IS NULL AND expiresAt>now RETURNING，consumeRecoveryCode 用 array_remove(当前数组恰好匹配 hash) RETURNING，均非先查后写；lockRecoveryUser 带 FOR UPDATE。全栈 #513 独立复核已确认四点全部成立（schema 只加 recovery 段、cookie 隔离、单事务 CAS、E-10 零变化断言）。",
-      "验收 1（email 单独 / 旧凭据拒绝 E-10/E-11）：handleRecoveryStart 走同源→账号+IP 限流→限体→Zod strict 判别联合，缺 credential 或旧凭据返回 400 invalid；tests/admin-recovery-start.db.test.ts 具名用例对 {email} 与 {email,credentialKind:'RECOVERY_CODE'} 断言 400、无 set-cookie、sv/recoveryCodes/totpSecret/受限会话/permit/审计全部零变化，并发同码仅一次成功、不同码不复活已用码。",
-      "验收 2（受限 cookie 隔离 E-14）：recoverySetCookie 仅 Path=/api/auth-admin/recovery、Secure/HttpOnly/SameSite=Strict、无 Domain，cookie 名 pj_recovery 与 Auth.js 的 authjs.session-token/__Secure- 前缀不同名；readSessionToken 只认 authjs cookie，受限 cookie 不换后台会话、不挂 ADMIN 角色、原有效 TOTP/password/defaultMode 保持；SERVER_OWNER 的 pendingPasswordHash 仅服务器事务从 permit 转入 session，HTTP body 不接。",
-      "任务卡两保护区（code/notes）已随 #513 回填完整、非占位，本轮只读复核无占位、frontmatter 除 status 外逐字未动；按流程不再重写。本机无 PostgreSQL，专用 DB 测试默认 skip、CI M3T3_TEST_DATABASE_URL 专用库必跑，不冒充已跑 PG 并发锁证据；e2e/类型检查结论以 #513 CI（三项全绿）为准。",
-      "本轮仅登记落地：按当前 hash verify → --landed M3-T19 → 精确提交任务卡 status、docs-data.js progress、build-manifest 指纹、task-reviews 复核记录与证据文件；不改产品源码、不改规范正文、不动其他任务状态、不改生成器。revalidation/needsReview 保持空、40 条复验与批次记录不变。"
+      "不适用（受限恢复会话）：职责面与产出为产出 AdminRecoverySession 与 recovery/start、受限 cookie（图谱/任务/M3-T19.md:L22），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+      "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+      "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-05T03:58:34.792164+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json",
+    "evidenceGroup": "G2",
+    "originalReviewer": "全栈工程师/安全工程师",
+    "reviewed": "2026-11-09T12:28:19.107808+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T2": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "e32e66da774e525f5a755059d37f947c9c7343b5cae49c6c91ad5917dd984df5",
+    "contractHash": "0deabc6cf9bd074282d9fbb90f455a6a46eac5721a72205d2116eae94c52bbda",
     "evidence": [
-      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
-      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
-      "当前 main 代码位置逐条可见：src/auth.ts:21（去掉 Auth.js 传输字段和空密码后再解析登录契约，6 位验证码保持字符串（E-96））；src/auth.ts:69（真实 Credentials 调用 `authorizeLogin`；失败抛同一 `CredentialsSignin`）；src/lib/server/admin/login.ts:100（按当前密文、`totpEnabled`、`sessionVersion` 和时间步原子核销（E-72、E-08））；src/lib/server/admin/login.ts:102（`checkDelta` 和时间步共用一次取样）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
-      "当前契约 hash=e32e66da774e525f5a755059d37f947c9c7343b5cae49c6c91ad5917dd984df5；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
-      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      "不适用（Credentials/TOTP/绑定）：职责面与产出为产出 Credentials 的 password/totp 模式与恢复码拒绝、enroll 的 CAS（图谱/任务/M3-T2.md:L27），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+      "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+      "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-04T15:56:27.538597+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json",
+    "evidenceGroup": "G2",
+    "originalReviewer": "全栈工程师/安全工程师",
+    "reviewed": "2026-11-09T12:28:19.107808+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -643,62 +829,61 @@
   },
   "M3-T21": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "90abea96e1790c0df3bd5bc8e1e8d5b05dff4062cc3c6bda5920efb48639a1b1",
+    "contractHash": "4d9f8872f6cbde7b360d29a248b550b39718b51d12ac15517be5245ac4519985",
     "evidence": [
-      "固定头 526f5764d136cb159745c3c58232e40d0a585ed2（PR #532，未进 main；main 仍 e1e274b3），相对 8d5c7d6d 仅改 tests/evidence/admin-legacy-inquiries-mail.spec.ts（+25 行：showDisabledComposer/assertBoxesInViewport 与居中滚动定位）。",
-      "真实 Linux CI：run 42273889836 attempt 1 success（19:10:47Z），checkout merge e632f0f512bc634377c21d99f1b2360186c91c01、tree a4aa6039704815b43dba83a3ee7aa624d14c7c70（=526f 树）；四 job 全 success：posix 18:48:02Z、mail-evidence 18:51:56Z、build-and-audit 18:53:04Z、e2e 19:10:47Z。",
-      "E2E 终态：MAIN 203 用例 → 194 passed / 0 failed / 9 skipped（18.0m，admin-legacy-model-visual.spec.ts 约 6.1m 导致偏慢）；ERRORS 2、FLOW 1 通过；A3 门通过；零 ##[error]；合计 197 passed / 0 failed / 9 skipped；D2 spec.ts:471:7 通过（3.2s）。",
-      "邮件三模式业务（本 run 重点）：http-real 8.7s（201 / 451→502 持久 / 人工重试同 mail id / legacy 合并）、http-disabled 5.1s（config false + 禁发 + send409/retry409 + databaseUnchanged）、off 4.6s（config404 + 入口隐藏 + legacy 回退 + 五路 404 + DB 不变），各 1 passed、cleanupErrors=[]；探针 Prisma 生成链与 ARGON2_GNU_PACKAGE 全 resolved（musl/local 缺失属预期）；清理 privateCleanup/preparedArtifactCleanup 双 true；artifact 4,061,318 B / 23 条目；安全摘要仅 mail-auth-off.json 且 logState:no_match、零模式命中。",
-      "禁用态画面缺口已关闭：新 PNG inquiry-visual-mail-http-disabled-disabled-no-send.png 1440×900 / 47,753 B / SHA256 17C8E227BD86E2157B7FCE3193312ED88D6F4D2B4D4CAD14A2306200220318AF；disabledFrame 几何 regionHeight 623 / fitsViewport true / 横幅 x=236 y=184 w=832 h=44 / 发送按钮 x=1000 y=619 w=68 h=44；3D 独立实读确认横幅 y=184–228 与按钮 y=619–663 同屏、清晰、无遮挡，自测几何与 disabledFrame 逐点一致。",
-      "disabled 样式级联已更正：src/app/admin/mail.css:90 的 .ml .ml-btn:disabled（特异性 0,3,0，background:var(--pj-bg)、color:var(--pj-fg)、border-style:dashed）覆盖同文件 :38 的 .ml-btn:disabled 与 :89 的 .ml .ml-btn.primary；src/styles/tokens.css:25-26 定义 --pj-bg:#ffffff、--pj-fg:#000000。故白底/黑字/虚线即当前生效 disabled 样式，先前「禁用外观不符/渲染异常」推断已撤回；禁用真实性仍由 toBeDisabled() + send409/retry409/databaseUnchanged 承担（来源更正：Chief 对级联的复核 + 3D 报告更正版 8EB35D75…）。",
-      "回填覆盖当前头：按门槛报告 testing-gate-526f5764.md 指出的缺口，本轮更新任务笔记两保护区——notes 改 3 句（GIF 已发布 / editor 已供规格 E2E / 新池 CI 已关闭）+ 增 3 小段（邮件三模式首通、媒体与禁用态关闭、历史失败保留）；code 补 5 条实测行号（specs-visual:36/52/248/311/429/590、mail spec:321/163/268/291/87/143/244/260/287、mail config:7/17/26、local-smtp:257/262/326/75/83/296、ci.yml:634/655/1221/1228）。不搬整份过程记录。",
-      "历史失败保留（不删、不改写成通过）：42220351373 的 mail job 因 mail-evidence.config.ts 首 webServer 未设 cwd 报 MODULE_NOT_FOUND（已在 :26 修为 cwd: sourceRoot）；42224789939 失败归档在册；旧实现头 1ab0d77d / CI 42169912366 的 1 fail（brand credentials rate_limited）继续作为「旧头不证明新池」的历史证据。",
-      "门槛与留档现状：testing-gate-526f5764.md 已核代码与必过检查通过（PR #532 open/非 draft/clean、build-and-audit+e2e success、无未结 review threads、契约 tasks.M3-T21 在册且 task-reviews pass、maintenance 无 pending）；仍缺的两项是回填（本提交补齐）与 PR 当前头审查留档（由测试工程师按 Chief 安排补 COMMENT review，不属本提交）。",
-      "范围与保护：只改 图谱/任务/M3-T21.md 两保护区 + 本证据文件 + 工具直接派生产物；不改 task-contracts.json、不改生成器、不改其他任务状态、不改批次记录；原 614 字节 judgments.jsonl 追加为工作树既有脏项，按实际 git status 精确暂存、不混入本提交。"
+      "不适用（询盘后台视觉迁移）：职责面与产出为产出 legacy-inquiries-ui 统一视觉与回归，不改询盘业务（图谱/任务/M3-T21.md:L22），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+      "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+      "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-06T19:22:10.394003+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json",
+    "evidenceGroup": "G2",
+    "originalReviewer": "全栈工程师/安全工程师",
+    "reviewed": "2026-11-09T12:28:19.107808+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T22": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "9318c939fa95b9f23968a42304f55b58087c8ddc5fd5ca333695feb5266fed0f",
+    "contractHash": "6aae0ed3b072faaeee3e9f7971014ded07f1a992b43e8fb9e608d13fa377e13e",
     "evidence": [
-      "契约源 _run/task-contracts.json 的 tasks['M3-T22'].supportPaths 由 [e2e/admin-legacy-unassigned-gate.spec.ts, tests/admin-legacy-unassigned-style.test.ts] 扩为三条，新增 .github/workflows/ci.yml；outputPaths 仍为 UnassignedInbox.tsx、UnassignedNav.tsx、mail.css 三条，未改验收语义。",
-      "ci.yml 确为本任务真实 delta：94fb9454..f3ea8eb1 中 .github/workflows/ci.yml +4/−4——A3 收集断言 210/207/2/1（L355 名称、L386 分区断言、L388 去重、L399 回显）与本轮合入后主段显示名由 203 改 207（L478，仅名称）。",
-      "merge-forward 后语义核对：保留本任务 210/207/2/1，同时保留 main 的 M5-T5 PG17 接线（M5T5_TEST_DATABASE_URL/REQUIRE_DATABASE 于 L196-197、测试登记 L227/271/301），未引入 M2-T6 的 212/209 或 M3-T23 内容；未改断言、预算或其他 job。",
-      "状态与边界：任务卡仍 status: todo，未跑 --landed；回填与证据边界写作将沿用现有卡片，媒体独验与最终头 CI 未齐前不标 done。",
-      "派生在合并后用 maintain_docs.py build 统一重建（非仅 build_docs），sourceVersion/输入产物哈希见收尾核验。"
+      "不适用（未归类后台视觉）：职责面与产出为产出 legacy-unassigned-ui 样式统一与关闭门禁证据（图谱/任务/M3-T22.md:L22），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+      "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+      "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-07T20:55:26.938354+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json",
+    "evidenceGroup": "G2",
+    "originalReviewer": "全栈工程师/安全工程师",
+    "reviewed": "2026-11-09T12:28:19.107808+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T23": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "463705c8e567d50bf41e234505d3ccb7af8d3d8b7358368a76566e2bcfed9b24",
+    "contractHash": "14d35b9f39dfde3e92a56cf9d643c2e17d9c17c891680e9ef7c37ef28227ba3c",
     "evidence": [
-      "Chief 独立对照基线 9cd631543277b068273313b233556dfd2ae8813b 与原 M3-T23 工作树：唯一任务定义差异是 M3-T23.supportPaths 增加精确 .github/workflows/ci.yml；3个产品产出、2个既有测试支持、前置能力、任务验收、边界E-108与integration阶段不变。",
-      "M3-T23 任务卡明确要求真实ADMIN/EDITOR登录、原模型HTTP和GLB流程、三尺寸操作GIF/computed style及D1-D6证据。现有成功运行只上传webm和账号报告，新增两个精确glob test-results/**/admin-legacy-model.json 与 test-results/**/model-workflow-*.png 是该既定验收所需的证据支持，不新增业务或豁免验收。",
-      "Chief 实际读取 CI 差异：仅上述两条path及同位置两行注释更正；既有webm/账号报告、always条件、1天保留期、其它步骤和所有门禁均保持。读取本卡新e2e的shot/outputPath/writeFileSync调用已确认文件命名对应。只核命名与支持必要性，具体数据脱敏、截图内容和真实运行结果仍归产品验收。",
-      "Chief 独立执行 verify-t23-ci-support.py exit0：仅 M3-T23 的definition/effectivePaths变化，M7-T9/M7-T10上下文逐字段不变、仅provider hash传播；三项均todo，revalidation为空、maintenance两数组为空。本分支没有导入T17的中间CI/test登记，不冒称包含另一任务补丁。",
-      "独立对比确认progress86/done83、全部12条历史记录及batch6 clean/pass、17返工、22批任务集合与提示保持；仅批次6/20/21摘要hash合法变化。六项manifest产品指纹按UTF-8文本的JSON字符串规范哈希独立复算全部一致，结构审查current且block0。此为task-contract范围复核，不代表模型实现、PG/API/GLB/GIF、CI或落地已经通过。"
+      "不适用（模型后台视觉）：职责面与产出为产出 legacy-model-admin-ui 统一视觉、列表重定向不变（图谱/任务/M3-T23.md:L22），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+      "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+      "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-06T03:21:58.191954+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json",
+    "evidenceGroup": "G2",
+    "originalReviewer": "全栈工程师/安全工程师",
+    "reviewed": "2026-11-09T12:28:19.107808+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T24": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "3d928681bb561c81559551e01373c3f24a184e954a88900909e06bbca0b3a623",
+    "contractHash": "c1e68f8f6bdd64268dcbfeab380dd1d2200d14581fc46028bd4ccd2075f719fe",
     "evidence": [
-      "Chief 独立比较9cd631543277b068273313b233556dfd2ae8813b与本工作树：唯一canonical定义差异是M3-T24.supportPaths加入tests/spec-editor-render.test.ts及.github/workflows/ci.yml；原输出、输入、提供/依赖能力、四条验收、边界E-109及integration阶段不变，SpecEditorView只读未加入写入范围。",
-      "既有spec-editor-render测试第46至47行锁定--err/#B42318，与本卡唯一M1 token错误提示迁移要求冲突；该测试属于必要支持文件。当前差异只增加规则/真实token取值、适配两处视觉断言及准确用例名，保留typed value、受控错误不重复、服务器敏感内容隐藏与焦点链断言；不通过删除语义检查或添加死CSS迁就测试。此处核支持必要性，不代替产品质量审查。",
-      "已核E2E真实写出点与CI覆盖：既有always m3-t7-visual仅新增admin-legacy-specs.json、admin-legacy-specs-visual.json、admin-legacy-specs-states.json与specs-*.png四条glob及用途注释；原webm已覆盖specs-video。未改其他步骤、条件、retention、门禁，未复制T17/T21/T23的未合分支补丁。采集代码存在不代表产物或验收已成立。",
-      "独立verify-t24-ci-support.py退出0：T24仅definition/effectivePaths变化；M7-T9与M7-T10完整context不变、仅provider hash传播，三项均todo。progress86/done83、12历史记录含batch6clean/pass、17repair、22批任务集合与提示保持，仅6/20/21批摘要hash变化；revalidation仍空，maintenance.pendingTasks/needsReview均空，task-reviews在登记前与基线一致。",
-      "已人工读派发文本差异：非affected任务只新增M3-T24共享路径提示，自身hash不变；M7-T9引用的九个codeRefs来自本卡已授权源code/notes投影，不是他人源或状态回退。六项规范JSON文本digest独立复算匹配，build-state完整且sourceVersion一致，结构review.current=true/block0。本登记仅task-contract支持范围，不证明规格GET/PUT、三角色权限、真实六态、密度、PNG/video/GIF、CI或落地通过。"
+      "不适用（规格后台视觉）：职责面与产出为产出 legacy-specs-ui 统一视觉、规格业务不变（图谱/任务/M3-T24.md:L22），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+      "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+      "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-06T04:46:18.430505+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json",
+    "evidenceGroup": "G2",
+    "originalReviewer": "全栈工程师/安全工程师",
+    "reviewed": "2026-11-09T12:28:19.107808+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -716,79 +901,32 @@
     "verdict": "pass"
   },
   "M3-T3": {
-    "ci": {
-      "base": "b2db0294da689759424c3ec8c777f90ec89ff477",
-      "checkout": "f58dea13d848b19c65fc2f3af3193fd1cc803ce8",
-      "files": {
-        "tests/admin-action-grant.db.test.ts": {
-          "cancelled": 0,
-          "fail": 0,
-          "pass": 6,
-          "skip": 0,
-          "todo": 0
-        },
-        "tests/admin-reauth.http.test.ts": {
-          "cancelled": 0,
-          "fail": 0,
-          "pass": 7,
-          "skip": 0,
-          "todo": 0
-        },
-        "tests/admin-session-activity.http.test.ts": {
-          "cancelled": 0,
-          "fail": 0,
-          "pass": 8,
-          "skip": 0,
-          "todo": 0
-        }
-      },
-      "head": "a5d851d493be5369be06eedd583db15610af856e",
-      "jobUrl": "https://github.com/dawanglaohu/NBshiyan/actions/runs/41605525328/job/125814267369",
-      "runUrl": "https://github.com/dawanglaohu/NBshiyan/actions/runs/41605525328"
-    },
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "8239d7e82e6efdac5fa2d76115a788f4af34f25d4076fc036036030e636edd24",
-    "decisionBasis": "现有独立产品条款复核、全栈安全完整审查与 P2 增量复验回执，以及对应代码 head 的真实 CI；脚本只登记这些证据，不自动执行安全审查或产生 App 批准。",
+    "contractHash": "f708d7ce29657e9fa2fbb20159ed9cbc863cba47072885d374acf5cc5bd46779",
     "evidence": [
-      "验收1/E-72：reauth真实POST handler经同源和当前设备守卫，现密码及共享TOTP时间步原子核销后才签256bit token，只存SHA-256。prisma/schema.prisma:145；reauth/route.ts:7；action-grant.ts:153。真实PG文件admin-reauth.http.test.ts在CI41605525328为7 pass/0 fail/skip/todo/cancelled，覆盖登录已消费时间步拒绝、并发一次签发和哈希存储。",
-      "验收2/E-73/E-74：action-grant.ts:206在同一事务按purpose/target/user/sid/sv/expiry/usedAt核销，当前权限与目标归属检查在:135。真实PG admin-action-grant.db.test.ts为6 pass/0 fail/skip/todo/cancelled，覆盖用途/目标/账号/设备不匹配、5min等号、撤销/版本变化、并发一次消费与删除账号。",
-      "P2修复：action-grant.ts:212-214先取得User/Device两行锁，再读取一次clock，账号/设备有效性与授权SQL统一用锁后时间。全栈工程师/安全工程师在本群独立确认a5d851d493be5369be06eedd583db15610af856e上P2关闭、无代码阻断；受控探针对照只作为额外代码证据，不算PG。",
-      "真实PG锁等待回归tests/admin-action-grant.db.test.ts:246：独立连接持User/Device锁，消费者PID的pg_blocking_pids及wait_event_type=Lock在到期前后验证等待。CI日志743-746四组User/Device×grant/device：blocker132/141/142/151与consumer130不同连接，waitingAt<expiresAt<releasedAt，分别晚2/4/11/6ms释放，全部消费false且usedAtnull。未过期可消费、重复拒绝保留；fixture短TTL不改变生产5min规则。",
-      "验收3/E-75：真实Auth.js+reauth Request/Response handler与PG验证仅会话或TOTP、或携带recoveryCode不签普通授权，缺密码返回401且grant不变，后续普通passwordless登录可用；这是进程内handler集成，不冒称监听端口上的reauth网络E2E。",
-      "同一CI41605525328使用Node22.23.4和PostgreSQL17.11，M3T3_TEST_DATABASE_URL指向隔离e2e库schema=m3t3，M3T3_REQUIRE_DATABASE=true；三个逐文件名单和缺计数/skip/todo/cancelled拒绝门禁均保留。实际checkout f58dea13d848b19c65fc2f3af3193fd1cc803ce8，包含代码head a5d851d4及base b2db0294。",
-      "本轮CI三个普通job均SUCCESS：build-and-audit、e2e、posix-storage-security。完整Playwright154 pass/9 skip；三个目标PG文件无skip，不把全量9个跳过写成零跳过。Linux构建、standalone启动、Lighthouse、RUM与POSIX检查通过。本机无PG，不将CI结果说成本地实跑。",
-      "回填核查：任务代码位置与实施沉淀已填；产品经理/产品策划独立回读数据影响两句通过，明确totpLastStep、授权/审计新增、usedAt更新，以及本轮未执行生产迁移、生产现状未核验。核心代码/测试/CI与已复验a5d851d4保持相同；后续仅登记分支落地与证据。",
-      "范围与状态：只登记M3-T3。当前task-contracts、dispatch和收口源没有本任务直接关联的R<批>-T<号>返工，17个R任务不代标完成；共享workflow/fetch说明不等于完成其他返工。revalidation初始为空，不手动清除标记。本次按Chief授权只在原分支执行--landed；主检出/主交接台先不改，不合并或部署。",
-      "批准边界：指定packjoyu-security-reviewer[bot]对最终SHA的正式APPROVED尚未取得，普通团队复验不能代替。当前代码head的gate41605522203要求该批准；落地记录不构成合并许可，也不宣称生产迁移或主检出已同步。"
+      "不适用（重认证 grant）：职责面与产出为产出 AdminActionGrant 与 POST /api/admin/account/reauth（图谱/任务/M3-T3.md:L22），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+      "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+      "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
     ],
-    "implementationReviewedHead": "a5d851d493be5369be06eedd583db15610af856e",
-    "independentReviewers": [
-      "产品经理/产品策划",
-      "全栈工程师/安全工程师"
-    ],
-    "mainCheckoutSynced": false,
-    "mergeAuthorized": false,
-    "productionExecuted": false,
-    "reviewed": "2026-11-03T09:21:33.398912+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json",
+    "evidenceGroup": "G2",
+    "originalReviewer": "全栈工程师/安全工程师",
+    "reviewed": "2026-11-09T12:28:19.107808+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T4": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "5fb965004691814a5cf4a6ebe9ca9747690cbf9cb6cd4dbae120583faf33777d",
+    "contractHash": "4ff7f237c784572f373e5175c47f6b294752c9290a669f0a176bc6e544ec7265",
     "evidence": [
-      "验收1/E-13：真实 ADMIN handler 新增 POST /api/admin/account/recovery-authorizations，并把 POST /api/admin/users/[id]/reset-2fa 改为同一 handler 的 URL 绑定别名；两个入口都 requireAdmin(['ADMIN'])、assertSameOrigin、限流、限体、Zod strict。旧无 body 直重置、仅 session、匿名、访客邮件请求、SALES/EDITOR 均到不了 service，目标账号 TOTP/recoveryCodes/sessionVersion 零改动。",
-      "验收1/E-73：当前密码+新 TOTP 由 M3-T3 的 reauth 签发 RECOVERY_AUTHORIZE grant；本服务在 db.$transaction 内调用 actionGrants.consume(token,purpose,targetId,userId,sid,tx) 一次性核销，重复、跨用途、跨目标、过期都返回 action_grant_invalid 且不签第二份。授权方 User 行由 grant 核销按固定 User→Device→Grant 锁序持有，本服务只补读当前角色与目标 sv，不另加 FOR UPDATE，避免两管理员互为目标时交叉死锁。",
-      "验收2：permit 用 randomBytes(32).toString('base64url') 生成 256bit 明文，只在 RecoveryPermitDTO 响应里返回一次；库里 AdminRecoveryPermit 只存 sha256 hex（recovery-repo.ts:hashRecoveryPermitToken），日志与审计 meta 不含 token/邮箱/验证码。15min 期限取自 config.grant.permitTtlMs；recovery.issued 审计与 permit 落库、grant 核销同事务，meta 只记 source/target/reason。",
-      "验收2/E-75：服务不接 body 里的 password/totp，普通 passwordless 会话缺现密码时拿不到 RECOVERY_AUTHORIZE grant，也就签不出 permit；响应丢失后重放同 grant 不再签发。AdminRecoveryPermit 预留 pendingPasswordHash/source=SERVER_OWNER 供 M3-T18/M3-T19 本地 TTY 使用，HTTP 入口永不写该字段。",
-      "验收2 后继复用：schema.prisma 只加 recovery 段（AdminRecoveryPermit + User 两条关系 + RecoverySource 枚举 + targetUserId/expiresAt 索引），AdminRecoverySession 留给 M3-T19；recovery-repo.ts 接显式 tx、不反调 service，可被 M3-T19 的 recovery/start 复用。composition.ts 仅在 createAdminServices 追加 recoveryAuthorizations 注册，analytics/stats 段零改动，未碰 deploy.sh、messages/*.json。",
-      "E-13/E-73/E-75 运行时覆盖：tests/admin-recovery-authorizations.http.test.ts 用真实 Auth.js 登录→reauth grant→两个入口，覆盖 256bit/15min、hash only、重复同 grant、跨用途、目标因素不变、旧旁路拒绝、兼容别名同形。本机无 PostgreSQL，该文件默认 skip；CI 用 M3T3_TEST_DATABASE_URL 专用库必跑，本机不冒充已跑 PG。",
-      "B 方案限定范围：按 Chief 裁定只改断言旧旁路的 #347 测试（admin-reset-2fa-unlock-347 / admin-enroll-token-347 / admin-enroll-hardening-347-348）及 UsersAdmin.tsx 中 reset-2fa 那一处最小调用；admin-enroll-347-fe.test.ts 因同样焊死旧 UI 的 pickEnrollLink 静态断言连带改，并一并补登 M3-T4 supportPaths（begin→sync→verify）。M3-T9 的 UI 迁移未提前做。",
-      "全量 pnpm test：10 个断言已删除旧旁路的红全部清零（173/209/220/450-455/457）；剩 3 个 sanity-import/linkmap 红为 Windows 检出层 CRLF 噪声，在未改动 main a4a4a9bc 上同样红，已作基线证据，按 Chief 要求不给无关文件打补丁。另有 1 个 plan-check 红在全量并行时出现、单独跑通过且与未改动主检出一致，属 bash/CRLF 环境噪声。",
-      "检查：tsc --noEmit=0、prisma validate=0（临时假 DATABASE_URL，generate 已成功）、build_vault --check=0、git diff --check=0、改动文件 CR=0；sync 后 revalidation={}、needsReview=[]、pendingTasks=[] 无回潮，17 条 affected 只属契约哈希传播。",
-      "边界：本证据只登记 M3-T4 契约复核，不跑 --landed、不合并、不部署、不打开生产功能、不迁移数据库；R4-T78812657 等其它任务状态零改动。"
+      "不适用（恢复许可）：职责面与产出为产出 AdminRecoveryPermit 与 recovery-authorizations/reset-2fa 别名（图谱/任务/M3-T4.md:L22），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+      "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+      "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-05T02:01:31.056527+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json",
+    "evidenceGroup": "G2",
+    "originalReviewer": "全栈工程师/安全工程师",
+    "reviewed": "2026-11-09T12:28:19.107808+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -820,19 +958,16 @@
   },
   "M3-T7": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "4dd79c9765ab65f9f578437c800145372b6dabb03a3de3333d2af8c797e55cbe",
+    "contractHash": "5f08c20e76a1af87b0e7d972c266fc6f9a7a7be15557619b8f15295516d73728",
     "evidence": [
-      "实现已随 PR #526 合入 main：锁 6e39e6501cf212538e40a8843c08430d7060591a 用 merge commit 合并，merge 68686b24338cc546caf7b470f8ed67f440437f32（12:11:42Z），8 文件 / +771/−3；本次登记基线正是该 merge 后的 main 68686b24。基线 progress 84 / done 81，M3-T7 此前无条目。",
-      "验收 1（统一后台外壳 / 账号 / signOut）：实现分布在 src/lib/client/account.ts（getAccount/postSessionActivity 走既有 requestApi，不重造 fetch）、src/components/admin/AdminShell.tsx（:35 进后台读 GET account 带 AbortSignal、:45 onUnauthorized 清内容取消在途、:138 角色来自服务端、:143 data-testid=admin-signout 真 Auth.js signOut({callbackUrl:'/admin-login'})）、src/components/admin/auth/AdminSessionActivity.tsx（15min 节流、隐藏/失焦页丢弃、401 清内容停止后续、503 静默）。401 立即清本账号内容/取消在途请求、菜单 role 来自服务端会话（E-03、E-70）。",
-      "验收 2（只上报真实活动）：鼠标/键盘/路由真实操作后才 POST /api/admin/account/session/activity，15min 内至多一次；仅轮询/隐藏页/无参 session 读取不发 activity；window blur 丢弃在途、focus 不补发、卸载 dispose；AdminShell 保留既有首帧守卫与 pointerdown/keydown/submit 三个真实事件监听（既有结构断言不破坏）。T15 续期写回与撤销并发沿既有 http 测试与 e2e/admin-device-session.spec.ts，本卡未重跑、不冒充（E-68）。",
-      "验收 3（minimalist-flat 三尺寸视觉）：src/app/admin/admin.css:163 壳元素 .adm-top/.adm-side/.adm-main/.adm-account 统一 2px 黑边 / 0 圆角 / 无阴影；:225 .adm-signout 44px 触屏目标、黑白反转 hover、#b45700 焦点环，消费 tokens.css 的 --pj-* 唯一 token。旧业务内层 .adm-card/.adm-btn/表格未改，按任务卡列为未迁移区域、不计本卡通过。",
-      "CI 真跑证据（当前 main，不沿用旧结果）：run 42022538059 三项全绿（posix / build-and-audit / e2e success），e2e 173 passed / 9 skipped；5 条具名 ✓（#170 未登录、#171 角色菜单、#172 首帧不报+真实操作 POST、#173 三尺寸样式、#174 signOut 旧 cookie 401），admin.spec.ts #34 ✓ 保留，`Cannot use({video})` 0 次；m3-t7-visual 视频产物已上传（262022 bytes / artifact 13413041667），Chief 已从该 run 转成 GIF 挂进 PR #526 正文（raw 链接 200 / image/gif / 500030 字节）。三尺寸壳 computed style 与 GIF 以 CI 为准，本机不冒充。",
-      "e2e 规格与单测守卫：e2e/admin-shell-activity.spec.ts 用 useSharedAdmin 独立管理员、主体组与 signOut 组各自独立会话、整组一次登录、无 test.skip；test.use({video:'on'}) 写在文件顶层一次（两个 describe 共用，避免 describe 内强制新 worker 触发 Playwright 收集期 Cannot use({video}) 报错）。tests/admin-shell-activity.test.ts 纯逻辑覆盖节流/隐藏/失焦/在途互斥/401 清内容/503 静默及源码接线守卫。本机相关单测 101 条全通过、新增 16 条纯逻辑通过（任务卡实施沉淀如实登记，本机 next build 末尾 standalone 复制报 Windows EPERM 属环境限制，不冒充）。",
-      "任务卡两保护区已随 #526 回填且本轮核过质量：code 区 15 条 `路径:行号` 全部精确命中真实文件（含前端修正后的 src/app/admin/admin.css:225 = .adm-signout{，:224 为 .adm-account-cleared）、notes 区 9 条如实登记 CI 口径、三处 e2e 修正、未取得项（本机无法真登录壳 / T15 并发未重跑 / 本机 e2e 未执行）与踩坑。本轮只核质量、不重写。",
-      "契约外支持改动（按 Chief 裁定）：.github/workflows/ci.yml 不在 M3-T7 的 outputPaths/supportPaths/effectivePaths 内；#526 为 +10 行 `if: always()` 的 m3-t7-visual 视频上传步骤（test-results/**/*.webm、retention-days:1、if-no-files-found: warn），位置在 standalone-smoke 后、既有 `if: failure()` 的 playwright-report 前，后者一字未动。按裁定不补契约、不改 hash、不自改 supportPaths，本证据如实写为「契约外必要支持改动：e2e 视频上传步骤」，并作为遗留交第 6 批收口复核；若收口坚持再走补丁流程挂 supportPaths。零 src/ 产品代码改动（累计 108b3db5..6e39e650 共 4 文件：ci.yml、任务卡、e2e spec、单测守卫）。",
-      "落地登记只推进 M3-T7 一条：任务卡 status todo→done、progress 只新增 M3-T7: done（84→85、done 81→82，删 0 / 改值 0），不改 batchRecords / repairTasks / dispatchBatches，不回退 M3-T16 / R5-T59021355 / M5-T3 的 done 与第 4、5 批 clean，revalidation / needsReview 保持空；第 6 批收口不在本登记内完成，M3-T18 登记排在本 PR 合并后串行开，不并发写 docs/_run。"
+      "不适用（后台外壳/导航）：职责面与产出为产出统一后台外壳、角色导航与 AdminSessionActivity（图谱/任务/M3-T7.md:L22），属认证/会话/后台 UI，不注册也不消费固定作业，与作业批量单位无交集。",
+      "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+      "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-05T12:14:46.167419+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json",
+    "evidenceGroup": "G2",
+    "originalReviewer": "全栈工程师/安全工程师",
+    "reviewed": "2026-11-09T12:28:19.107808+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -864,19 +999,15 @@
   },
   "M4-T1": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "a7eae271ebab1ce4c25b5eb5fa5bf8697d03a34f604919c24d9e4f54d08ce26e",
+    "contractHash": "a924d04734b2532fe5646b8cb62dd898dc926642d8cd8377877cb9fd9804f812",
     "evidence": [
-      "完整契约复核，不是仅支持路径复核：固定已审实现头 abca9dc4（tree 8204247c78a3412a826b3dd6a0a3ae08ce0b587f，父 1f5bcc38）；git diff 89284f3a abca9dc4 -- src prisma .github 为 0 行，89284f3a 本身是既有授权的 CI 接线 +6 行与 rules.ts 2 行注释，本窗未改生产源码/测试/CI。",
-      "验收 1（调用方/接线/事务）：src/app/api/chat/conversations/route.ts:51 为真实 POST 入口（同源→16KiB 限体→strict schema→必要 cookie→新会话两桶限流→写桶），conversation-service.ts:118 在剩余预算 arm 后按“守卫→读写→最终条件 touch”执行；会话/首消息/seq/唯一出箱同事务，repo.ts:97/112/155/192/224 与 schema 唯一约束保证同 UUID 同载荷幂等、异载荷 409、并发仅一消息一通知。",
-      "验收 2（限体与字段）：16KiB 在解析前限制；strict schema 下正文 1..4000 code points，email 省略/空值按不填，trim 后超 254、CRLF/显示名/非法格式返回字段错误（rules.ts 与 route.ts 段）；测试覆盖 16,384 合法正例、Unicode 与邮箱边界，未放宽。",
-      "验收 3（身份与分析分离）：visitor-session.ts:206 的 resolve() 只读校验，身份只取必要 cookie；拒绝分析仍接收且不建分析身份（E-40）；repo.ts:276 事务内新鲜度守卫先于 readExisting，repo.ts:296 条件 touch 0 行即整笔回滚（C3），400/409/500/503 不续期。",
-      "非作者审查：数据库运行审（b5975207）30/30 PASS；全栈静态审（b5975207）PASS；数据库最终复审（abca9dc4）PASS，含块注释冒充模型的利用复现（旧头 1/1 假绿 → 修复头 0/1 fail）；译审（89284f3a）PASS，附 1 处必要补充——R1 日志出处，已由 6b7bba11 落实；6b7bba11 未单独送非作者译审，其历史回滚表述残留经 Chief 检出后由 7adbb63a 修正；运维 CI 差量审（89284f3a）PASS。",
-      "PR CI：run 42504582269 attempt 1 success，head abca9dc4；GitHub merge checkout 60461a934759e028b8364cf363c6ca3a388c1f00（父 a7521e36+abca9dc4，tree 8204247c 与已审 head 同 tree）。PG17 三文件 analytics pass=10、chat-session pass=19、chat-first-message pass=30，fail=skip=todo=cancelled=0；build 的 Unit tests/build/Lighthouse/standalone 3/3/production mock 4/4 通过；Playwright A3 收集 219，实跑 209 通过、10 跳过（主段 206/10 + 2 + 1），219 是收集数不是全部执行通过。",
-      "首跑 42499360492（head 7adbb63a）failure 保留：PG17 首消息回归 30/30 已通过；build not ok 640 与 e2e not ok 17 是同一用例——tests/analytics-ingest.http.db.test.ts 的“AnalyticsEvent 进入 schema”——其 EOF 切片把相邻模型 ChatConversation.email/ChatMessage.bodyText 误算入分析字段，Playwright 未执行。tests/chat-session.http.test.ts 的同类切片因 ChatVisitorSession 当时位于最后而通过，属同类潜伏问题，不构成首跑失败原因；修复只收窄测试作用域并在定位前剥离真实注释，未改生产 schema/源码/CI，也未放宽禁字段断言。",
-      "保留边界：本地 PG12 与 CI PG17 非同载体；commit/WAL 不在 statement_timeout 内；maxWait 2s 属事务外排队、不计入内部事务预算；R1 三份原日志被 R2 同名脚本覆盖、授权有界范围内未恢复（4,698ms 据作者当时记录，7,080ms 来自初版独审探针）；计时为客户端事务调用包络，不是生产内部预算起点。",
-      "契约未变：本窗未改 _run/task-contracts.json；supportPaths 仅增 tests/analytics-ingest.http.db.test.ts（chat-session 原已在列），provides/requires/stage/wiring/outputPaths/sections 逐字段未变；契约哈希 a7eae271ebab1ce4c25b5eb5fa5bf8697d03a34f604919c24d9e4f54d08ce26e 与 status 一致。"
+      "不适用：本任务交付聊天首消息与唯一通知出箱（conversation-service.ts、repo.ts、POST /api/chat/conversations）；main 042c7d24 的 composition.ts:192-193 只注册 analytics-aggregate，聊天通知作业尚未注册。",
+      "变更句「其他作业沿用各自既定的500工作单位限制」未给 M4 增加新义务，也未放宽任何限制；本补丁未改聊天任务卡或实现。"
     ],
-    "reviewed": "2026-11-08T18:18:24.752698+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json",
+    "evidenceGroup": "G1",
+    "originalReviewer": "数据库审查工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -947,14 +1078,15 @@
   },
   "M4-T15": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "f39022bdbb75799ebe5f7d7319e3e3e85c00ae89bd3701e2c45bf4087a09eef6",
+    "contractHash": "080f9d6003fd86baf3f9a8d196e494f06ca59bc2237346938c3d493f90e700a7",
     "evidence": [
-      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
-      "本条影响判定：该任务交付物不实现、不调用也不约束 3D 相机滚轮准入，E-98 收紧不改变其输入输出与验收；本条被标记仅因契约引用了变化章节的正文哈希。",
-      "main 落地实证（M4-T15）：任务卡 status=done，code=OK(1483B)、notes=OK(734B)，两个受保护区块均已回填；任务卡代码位置 18 处引用，18 处可直接核实。",
-      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
+      "不适用：本任务交付 Tawk 移除、FloatingActions 联系入口与隐私说明（useTawk.ts、FloatingActions.tsx、CookieConsent.tsx）；变更句不涉及任何用户可见文案。",
+      "其验收里的聊天 cookie 7d/30d、咨询 90d 与「真实清理未启用」均未被触碰；09 L73「90d聊天清理启用需另有明确生产保留授权、未获授权保持dry-run」原句保留。"
     ],
-    "reviewed": "2026-11-04T15:53:37.150290+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json",
+    "evidenceGroup": "G1",
+    "originalReviewer": "数据库审查工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -1038,15 +1170,15 @@
   },
   "M4-T8": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "4c02e776743875eea86dd2173267e43006b0bb224ac06b6490769089b1a90942",
+    "contractHash": "09d22100a837066d0448480b9c2fe3d8f8136d29ae5ca8b4677b2e00b1e78120",
     "evidence": [
-      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
-      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
-      "当前 main 代码位置逐条可见：prisma/schema.prisma:460（ChatVisitorSession 存 id、tokenHash、createdAt、lastActivityAt、a）；src/lib/server/config.ts:163（CHAT_VISITOR_POLICY 固定 7 天闲置、首次签发后 30 天绝对，不读环境变量。）；src/lib/server/composition.ts:85（createChatServices 注册 visitorSessions，POST 路由调用它。）；src/lib/server/chat/visitor-session.ts:50（256bit base64url 原值，库存 SHA-256。比较走等长 timingSafeEqual；查无此行也对哑）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
-      "当前契约 hash=4c02e776743875eea86dd2173267e43006b0bb224ac06b6490769089b1a90942；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
-      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      "不适用：本任务交付 ChatVisitorSession 与 POST /api/chat/session 的 cookie、7d/30d 期限与限流；批量单位条款与其交付面无交集。",
+      "09 L86 保留的「租约90s」是作业租约，不是 cookie 期限；本任务验收的 7d 闲置/30d 绝对未被改动。"
     ],
-    "reviewed": "2026-11-04T15:56:27.538597+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json",
+    "evidenceGroup": "G1",
+    "originalReviewer": "数据库审查工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -1065,15 +1197,16 @@
   },
   "M5-T1": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "9ab71e76d753125515dd5ce55ab53808db1b2d5397b87f6f48a293ba08d67067",
+    "contractHash": "917330813673c84b9671286e5ad11afeb28836a3df037f12a60f79595c641214",
     "evidence": [
-      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
-      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
-      "当前 main 代码位置逐条可见：prisma/schema.prisma:415（JobRunStatus 五个状态。）；prisma/schema.prisma:423（JobState 的 key、租约、代次、成功时间和 summary。）；deploy/deploy.sh:94（现有 db push 消费整份 schema.prisma，不带 accept-data-loss。）；src/lib/server/jobs/types.ts:7（租约 90 秒；到期等号视为已释放。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
-      "当前契约 hash=9ab71e76d753125515dd5ce55ab53808db1b2d5397b87f6f48a293ba08d67067；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
-      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      "适用且仍满足：09 L86 仍要求租约90s；main 042c7d24 的 src/lib/server/jobs/types.ts:7 JOB_LEASE_MS=90_000 未变，lease-repo 的原子领取/续租/完成与代次语义未被本补丁触碰。",
+      "批量单位改由各作业自述；M5-T1 的交付面是 JobState 与租约原语，本身不含行数或天数上限，未被新增义务。",
+      "未运行数据库或测试，仅只读 Git 对象。"
     ],
-    "reviewed": "2026-11-04T15:56:27.538597+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json",
+    "evidenceGroup": "G1",
+    "originalReviewer": "数据库审查工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -1091,47 +1224,57 @@
     "verdict": "pass"
   },
   "M5-T11": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "32bb3dc09fa145d985d8f5e8aa2285e8b5baa09c33f4a37fb38dfeea33c5be3d",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "4e76e24ba9cb852bad784187e36eab01e4a1e624724d687b2c692d614f529133",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M5-T11《注册默认dry-run的分析保留任务》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "对象与范围：文档 920db0f1（tree 69eefad0，父 bded1728）、源码 c8438741（tree 6f357212，父 803038df）；git diff c8438741 920db0f1 -- src tests deploy 为空。契约 supportPaths 在 920db0f1 含 .github/workflows/ci.yml；CI 接线在 bded1728：ci.yml:390-391 设 M5T11_TEST_DATABASE_URL / M5T11_REQUIRE_DATABASE=true，:424/:471/:504 三处清单各含 tests/analytics-retention.db.test.ts，postgres:17 服务与逐文件门禁未改。",
+      "验收1（固定入口→服务→registry/cron 实际注册；默认 dry-run；无授权删除请求拒绝、删 0、只返回候选计数）：composition.ts:198 deleteAuthorized 只取容器 RETENTION_CLEANUP_MODE=delete（缺省 false），:200-203 注册 createAnalyticsRetentionJob；retention.ts:63 key=analytics-retention、:81-90 resolveRetentionMode 需请求删除且授权、:404-407 未授权删除请求落 FAILED/forbidden；deploy/cron.nbshiyan:16 每日 04:30 POST operations、AbortSignal 55s。测试 tests/analytics-retention.db.test.ts:593 registry+operations 原样透传 dryRun、:1029 默认 dry-run 只数候选删 0 且 JobState SUCCEEDED、:1061 未授权删除 FAILED/forbidden 删 0 只回候选计数、:1710 HTTP 真接线缺省 dryRun 不删。",
+      "验收2（仅隔离 Postgres 验证 receivedAt 30 天/聚合 13 自然月目标集合、计数与去标识；显示覆盖、不重建过期明细、不扩备份/既有删除权限）：retention-plan.ts:126-139 receivedAt+30 天等号到期、:149-179 13 自然月按 expiresAt 正推反解等号到期；候选仓储 :273-340 只选 eventId/siteDate/kind/locale/productSlug，不选 browserHash/path/payloadHash；retention.ts:396-427 候选计数与同源 id 清单。真库 tests/analytics-retention.db.test.ts 41/41（15 纯+26 真库，PG12.22、隔离 schema、跑后残留 0），日志 14,241 B a45eb2f9a0995d7b5a13227bfa083f30098980c0e054082a163a06b804d947ef。",
+      "验收3（删后只重算 dayStart≥完整原始覆盖起点、48h 迟到仍完整时重算；部分清理日保留旧聚合并返回 partial/unavailable 与原口径；旧代次拒绝、不接触生产/恢复/备份）：retention.ts:445-453 classifyHistoricalDays 以 completeRawCoverageStartUtc 分类、:456-486 删除前逐日聚合、:586-605 runAggregateOnce(maxBatchDays=500, assertTimezoneRevision=true)；aggregate-plan.ts 以 recomputableFrom 判定可整日重算，lateArrivalSiteDates 纳入 48h。真库 41/41 + analytics-aggregate.db 17/17；D4 用例 :1602/:1626/:1661/:1686 覆盖缺行并发插入、批间 revision 变化、预检冲突、删后聚合整组不写；:1436 可整日重算日先聚合后删。守卫阶段标记的入口限制：enteredTransaction 阶段标记只覆盖删除前单日 preflight（aggregate.ts 单日入口），不是所有入口，runAggregateOnce 无该标记。",
+      "E-48：保留边界即上述 30 天/13 自然月等号到期；默认 dry-run 由 retention-plan.ts:14-18（仅精确 delete 才删）与 composition.ts:198 决定；生产授权门为 retention.ts:81-90；删除 SQL 只触 AnalyticsEvent/AnalyticsDailyRollup/AnalyticsRollupDay（retention.ts:537-582），代码中无备份、恢复或既有数据删除路径；真库测试使用一次性隔离 schema，未 reset 整库、未改配置/权限。",
+      "E-82：只重算 dayStart 不早于完整原始覆盖起点的日（retention.ts:445-453），48h 迟到由 planSnapshot/lateArrivalSiteDates 纳入；部分清理日只记 retained（仅旧行存在性）或 gap，覆盖度取最坏值并返回 partial/unavailable。旧行不动的范围：未到期且未成功重算的保留日、失败回滚的旧结果保持旧行与 revision 不动；成功重算按替换语义更新，13 个月到期按删除语义删除（测试 :1151/:1213/:1264/:1341/:1376）；校验通过后的普通聚合失败仍记 gap 并按 30 天删 raw，不延长保留（retention.ts:479-483）。",
+      "逐批计数（B2）：每批删除事务成功返回后才累计计数（retention.ts:535-547、:549-582；失败批次不计、已计入不重复）。仅当终态已持久化，且不存在删除事务提交结果未知时，才适用“真实删除差量＝返回计数＝JobState 摘要”。timeout 不写终态；finish_failed 表示终态未成功持久化；提交结果未知则可能随后持久化 FAILED（retention.ts:606-612 对非超时错误仍尝试写 FAILED），但摘要只覆盖已成功返回的批次，终态写成也不能证明未知批次是否实际提交，因此该等式仍不适用。",
+      "R5 静态（D4 守卫阶段）：aggregate.ts:145-157 asPreflightStageError 只包写前前置块，单日入口 :339-375、整轮入口 :441-451；未知错误终止整轮不记 gap，预算/版本冲突保持原分类，普通业务失败不被扩大；R4-S1/R4-S2 限定关闭。报告 db-m5t11-r5-static-c8438741-20261109.md 14,618 B 17395477980AABD3057CBC76C142435F9AB2D9AF607B137E3C55B85588181777。",
+      "真库 D4 矩阵（恢复后新跑）：A4 settings 23505 / A5 settings XX000 / A5b generation XX000 / A6 删除批次 XX000 均 FAILED/internal_error、gap=[]、删 0、raw 在、终态一致；D3 前置通过后业务失败 PARTIAL/source_unavailable + gap + 删 1；W1 真实等锁期间 revision=2 → finish_failed、删 0、无终态；W2 热锁 → timeout、删 0。报告 testing-m5t11-r5-postmigration-review-c8438741-20261109.md 7,899 B 113E32733DA7935BBC7AA75F080512EF6A1802234F0ACB60FC79AE1A01528BB4；相关套件 68/68（aggregate 17、job-leases 15、jobs-runtime 16 含 cron 窄修实跑、retention-cleanup 9+11）。",
+      "未闭合项按性质三分（不得混成一张待补测试单）：(a) 明确必过门禁——远端 CI（PG17）：本地真库 PG12.22，ci.yml 只在本地提交 bded1728，合并/落地前必须绿（项目 required checks，运维本窗核为 build-and-audit/e2e），不是任务卡新增条款，也不由本契约复核替代；(b) 尚未观测、不得声称已证、也不自动阻断开发交付——真实 04:30 部署调度（验收1只要求 registry/每日 cron 实际注册，运行未观测；M5-T8 的“重启后实际运行”要求不属于本卡）、5,000 行生产负载（任务验收无负载条款）、真库“事务未开启”（D4 边界，仅假 DB）、commit/WAL 与自然 23505/40001（合成注入为既定方法）；(c) 明确未授权不执行——生产删除（B1 未授予、默认 dry-run，不是待补测试）。",
+      "登记边界：本条为契约语义复核的限定通过，不表示 M5-T11 任务通过、不表示可 --landed、不授权 push/PR/发布；任务卡 status 仍 todo、未 push、未 landed；B1 生产删除授权未授予，生产默认 dry-run（明确未授权不执行，不是待补测试）。M5-T11 不在 95 项中（95 项均为 previousStatus=done 的已落地任务）；95 项记录不证明本任务，本条也不证明那 95 项，两份记录互不替代。",
+      "共享批量复核依据（本次契约哈希重绑）：bded1728→920db0f1 的 M5 契约上下文只改 08/09/18 四处批量条款（+4/−4），task-contracts 的 M5-T11 条目逐字节相同；M5-T11 的 sections 含 8/9/18，故契约哈希由 6a8c38d7… 变为现行 67056941…（docs-data.js handoff.contracts 与 _run/patches/m5t11-batch-units-20261109.evidence.json 两处一致）。920db0f1→060746d4 只改任务卡 code/notes（+51/−2），前 45 行（验收/依赖/status）逐行相同。四处条款对 M5 自身的对应：聚合批次按站点自然日（registry.ts:13 JOB_MAX_BATCH=500、:259 maxBatchDays，aggregate.ts:216 单位注释、:230-231 超限拒绝）；分析保留按删除行（retention-plan.ts:6/:9 5,000/20,000，retention.ts:535-547/:549-582 分批删除）；55s 为时间预算（registry.ts:16 JOB_DEADLINE_MS=55_000、:350）；其他作业 500 工作单位未被本任务放宽（composition.ts:200-203 仅聚合与保留）。本条为哈希重绑依据，不改前 11 条正文，也不改计数/失败语义。",
+      "补丁范围：仅 _run/task-contracts.json 的 M5-T11.supportPaths 追加 tests/cron-analytics-rollup.test.ts 与 e2e/analytics-job-runtime.spec.ts；provides/requires/stage/wiring/outputPaths/sections 逐字段未变，其余 143 个任务定义逐字未变。新契约哈希 4e76e24ba9cb852bad784187e36eab01e4a1e624724d687b2c692d614f529133（原 67056941…），sourceVersion 7bcb0565c8fcd2c2d98edd83e858cfa4e7c5835181e7c370e14434b6dcc3ba19。",
+      "登记依据：PR #545 run 42624444676 的两个红 job 同因——M5-T11 的 1f4a2da6 新增 04:30 jobKey:'analytics-retention' operations 行且排在 */5 aggregate 行之前；tests/cron-analytics-rollup.test.ts:9/11 与 e2e/analytics-job-runtime.spec.ts:28/51 的 first-operations 选择器取到 retention 行。生产 cron 顺序与 retention 行均正确、未改（deploy/cron.nbshiyan 零 diff）。",
+      "选择器修复：两处都先筛 /api/admin/cron/operations，再按精确 token jobKey:'analytics-aggregate' 选行并断言恰好一条；retention 行 409 注释里的 analytics-aggregate lease held 不匹配该 token；保留五分钟、55s、process.env.CRON_SECRET、409、日志路径、旧 rollup 退役等原断言。unit 新增负控：缺失或重复必抛；retention 或其它 operations 行在前/在后都不改变选择。",
+      "本地实测（非 CI、未跑库）：修前 unit tests/cron-analytics-rollup.test.ts EXIT=1（2 用例 1 红，红在 :11，实取 retention 行）；修前 e2e 静态 cron 用例 EXIT=1（同一条 retention 字符串）；修后 unit 4/4 pass EXIT=0；修后 e2e 静态 1/1 pass EXIT=0；测试工程师独立夹具 selector-fixture.mjs 12/12 pass。日志在 D:/xiangmu/.codex-plans/NBshiyan-m5-t11/db-m5t11-ci-cron-fix-20261109/。",
+      "边界：未改生产 cron、业务源码、CI workflow、A3 计数或原任务验收；未 push/rerun/merge/landed；未启停 3230 或 PG；未跑 41+68 或整套 e2e。测试文件哈希：tests/cron-analytics-rollup.test.ts 5,085 B 8E2F19CAC0F0B679DCD094B7F47ABB66CF67F2D0D7D11B92F0929F531D73BD62；e2e/analytics-job-runtime.spec.ts 24,655 B FCD9810487F9B5A780A070CB37B9CAD758169C12362223A995DB40214353E5AD。",
+      "派生：sync 生成 docs-data.js、_run/{dispatch,review,build-manifest,build-state}.json 与新 patch 三件；affected=M5-T11,M7-T10,M7-T3,M7-T8,M7-T9，新哈希 4e76e24b…/29c4c15e…/3a04bd9f…/d8bdb1fb…/a3ba1faf…；revalidation 仍为 {}（未手清）。本补丁只登记 M5-T11 支持路径，不代表 selector 修复已由远端 CI 通过。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-11-09T15:36:33.355438+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M5-T2": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "65cd0cb870abaebe21b7e86662898376f4989a79c091403fe94f20f96f0c6fb6",
+    "contractHash": "2c26ac31a45c32e81963f2211e9057eb96394cc0309953271bd88f9e11c20eb9",
     "evidence": [
-      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
-      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
-      "当前 main 代码位置逐条可见：src/app/api/analytics/consent/route.ts:5（注册 nodejs `POST`，进入 `createConsentPost`。）；src/app/api/analytics/consent/post.ts:78（精确同源失败后丢弃未读正文，映射为带 `requestId` 的 `forbidden_origin`。）；src/app/api/analytics/consent/post.ts:84（先扣已出示 cookie 的桶，每 10 分钟 10 次；拒绝时不再扣 IP 桶。）；src/app/api/analytics/consent/post.ts:99（再扣 IP-HMAC 桶，每 10 分钟 20 次；存储失败拒绝，`Retry-After` 为 600。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
-      "当前契约 hash=65cd0cb870abaebe21b7e86662898376f4989a79c091403fe94f20f96f0c6fb6；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
-      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      "不适用：本任务交付 POST /api/analytics/consent 与签名 cookie（consent.ts、route.ts）；批量单位条款与其交付面无交集，未改同意、验签或撤回语义。"
     ],
-    "reviewed": "2026-11-04T15:56:27.538597+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json",
+    "evidenceGroup": "G1",
+    "originalReviewer": "数据库审查工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M5-T3": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "eac5d5771eecc4d3510b445105efd0e58ad1c57793fe97a16b2c21c7470bfb01",
+    "contractHash": "949213d957f8ae56359d88609164da8b9c6934887b3c46822f3acdaf5ae39244",
     "evidence": [
-      "实现已随 PR #520 合入 main：merge commit 5f6a9bf1ab2cd498477b2ab19f6dbb9d230c4864（双亲 04c5b75e + da7adbae），冻结头 da7adbaeb17da8fcd51dab2a38f9813c1f652859，17 文件；本次登记基线正是该 merge 后的 main 5f6a9bf1。三项 CI 全绿（run 41999427892），后端按同一契约只读复核三处阻断全部闭合、无剩余阻断。",
-      "验收 1（一致快照 + cutoff + 整组原子替换）：src/lib/server/analytics/aggregate.ts 的 runAggregateOnce 把 plan.siteDates 全放进一个 runInRepeatableReadSnapshot 事务；行锁与 generation 校验只在事务开头做一次；writeOneDayInTx 共用同一 tx 做 DELETE / 整组 INSERT / 带 WHERE 守卫的 watermark upsert；任一天抛 AggregateVersionConflict 整组回滚、一天都不写。aggregate-repo.ts 的 loadEventsAtSnapshot 显式 receivedAt <= cutoff，新到事件留下一轮（E-80、E-81）。",
-      "验收 2（generation / timezoneRevision 真落库互斥）：readLockedGeneration 在 tx 内 SELECT generation FROM JobState FOR UPDATE 真读真锁，旧代次抛 stale_generation；upsertWatermarkGuarded 的 ON CONFLICT DO UPDATE 带 WHERE timezoneRevision<=EXCLUDED AND watermark 单调守卫，affected!==1 抛 watermark_regression 回滚；writeOneDayInTx 另查已存 revision 拦 stale_timezone_revision；原无条件覆盖路径已不存在（E-81、E-83）。",
-      "验收 2/3（迟到窗口、超范围、时区）：只重算 dayStart 不早于完整原始覆盖起点的日，48h 迟到重算该日，超范围保留原完整值并返回 partial/unavailable 及原口径，不延长原始保留、不用残片变小；结果携带 timezoneRevision，旧代次不得覆盖新时区结果；DST 23/25 小时与午夜左闭右开单归属按站点 IANA 计算（E-56、E-57、E-58、E-82）。",
-      "CI 真跑证据（非本机复跑）：run 41999427892 的 PostgreSQL 回归 job 具名行 `tests/analytics-aggregate.db.test.ts pass=9 fail=0 skip=0 todo=0 cancelled=0`；9 条用例覆盖 E-80 cutoff、E-81 整组替换幂等、E-81/E-83 旧 revision 拒绝、generation 真行锁、watermark 单调、E-82 超范围、48h 迟到窗口、RepeatableRead（已改为另一独立连接提交写入、非本事务看不到自己的写）、整组第 2 天失败回滚。ci.yml 把该文件纳入 wanted / 命令行 / gate.files 三处，M5T3_REQUIRE_DATABASE=true 只在 PG 步骤打开；单测 job 无 flag 时整组 skip 不打红（ok 572 SKIP no DATABASE_URL、Unit tests fail 0）。",
-      "范围与依赖如实登记：净差异只改 aggregate.ts / aggregate-repo.ts / aggregate-plan.ts / 两个测试 / ci.yml 与按源重生成的生成物；未接 composition / cron / 未改 schema.prisma / 未碰 middleware / route.ts。真实 5 分钟调度按任务卡由 M5-T8 接，本任务不硬接，故「零产品调用方」为契约内状态、非孤立死代码。effectivePaths 7 条与 presentation.json 的 handoff.taskPaths 及 #520 的 M5-T3-taskpaths 补丁一致。",
-      "知识库回填（本轮补做）：#520 实现 PR 未带 图谱/任务/M5-T3.md，两保护区此前仍是 AGENTS.md 明令禁止的占位符；本轮按 #520 已合入实现、测试工程师 9 条具名用例与后端三处阻断复核回填「代码位置」与「实施沉淀」，不编造、不重写产品代码、不降低验收标准。",
-      "非阻断证据边界（沿用后端复核、不冒充已测）：① 两个同时开启的 RepeatableRead 写事务抢同一 JobState 行触发 40001 回滚的路径没有直接用例，注释声称会但未实测；② 新代码直接把 JS Date 传给 $queryRaw/$executeRaw，未走既有 rollup.ts 刻意用的 utc() 显式 ::timestamptz AT TIME ZONE 'UTC'，CI 在 UTC 会话下 9 例通过，非 UTC 会话等价性未单独验证；③ 本机无 PostgreSQL，DB 用例默认 skip，不冒充本机全绿。",
-      "落地登记只推进 M5-T3 一条：progress 只新增 M5-T3: done，任务卡 status todo→done，不改 batchRecords（含 batch-5-20261026 仍 open/fail）、repairTasks、dispatchBatches，不回退 M3-T16 / R5-T59021355 的 done，revalidation / needsReview 保持空；第 5 批不凭本登记自动改 clean，后续仍要真实收口。"
+      "适用且仍满足：08 jobs 段与 09 L86 把聚合批次定为站点自然日（maxBatchDays≤500）；main 042c7d24 的 aggregate.ts:216 注释明确「单位是站点自然日（不是事件数）」，:230-231 对 plan.siteDates.length>maxBatchDays 抛 AggregateBatchExceeded 且不写库。",
+      "aggregate-plan.ts:72-91 的 siteDates 由 siteLocalDate/lateArrivalSiteDates 生成，是站点本地日字符串，不是事件行。",
+      "500 的传入在 M5-T8 项核（registry.ts:259 maxBatchDays: JOB_MAX_BATCH）；本任务自身只提供可选上限，未被本补丁要求改成行数。"
     ],
-    "reviewed": "2026-11-05T09:35:43.697521+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json",
+    "evidenceGroup": "G1",
+    "originalReviewer": "数据库审查工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -1150,76 +1293,73 @@
   },
   "M5-T5": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "b3d6f9d40f3cb4a5a475fe406b88644e74af212282fee857f2e1b8e07c46f0d0",
+    "contractHash": "07e0a653173c61f8a0b970c05278c7c99ef2fb5f5df1fff2869bf8a8d72ca63f",
     "evidence": [
-      "契约源 _run/task-contracts.json 的 tasks['M5-T5'].supportPaths 由 [] 改为 ['.github/workflows/ci.yml']；outputPaths 仍为 ['src/lib/server/analytics/retention-plan.ts','tests/analytics-retention-plan.test.ts'] 两条，provides/requires/stage/wiring/sections 未变。",
-      "该路径确为已授权 CI 接线所在：1339e5c8 的 git show --numstat 为 .github/workflows/ci.yml +7/−0；ci.yml:196-197 设置 M5T5_TEST_DATABASE_URL／M5T5_REQUIRE_DATABASE，:227/:271/:301 三处登记 tests/analytics-retention-plan.test.ts。",
-      "CI 文件按共享基础进 supportPaths 而非 outputPaths；未新增其他任务路径、未改其他任务条目；M5-T3 的契约哈希未因此笔变化，既有待复验记录未清除。",
-      "回填内容保持：任务卡 27 条代码引用与 10 条实施沉淀未变，status 仍为 todo；未运行 --landed，docs-data.js 的 progress 未把这笔算作落地。",
-      "派生差量仅限 docs-data.js／dispatch.json／review.json／build-manifest.json／build-state.json 与本补丁 record/evidence/md；待复核集合 M5-T5、M5-T11、M7-T3、M7-T8、M7-T9、M7-T10 是 provides 传播结果，不等于把这些任务判为未完成。"
+      "适用且仍满足：09 L73 与 08 jobs 段把分析保留批量定为删除行（5,000行/DELETE批次、20,000行/轮，三表合计）；main 042c7d24 的 retention-plan.ts:5-9 常量与注释一致（一次删除语句最多5,000行；一次运行最多20,000行，原始事件和汇总行合计）。",
+      "retention-plan.ts:97-111 deletionBatchSizes 按 batchSize/maxPerRun 切批；:232 候选上限复用 20,000，不产生无界查询。",
+      "计划器本身不执行删除；三表合计与每批独立事务由消费方核（RETENTION-CLEANUP 项；M5-T11 分支另行审查）。"
     ],
-    "reviewed": "2026-11-07T18:36:35.096448+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json",
+    "evidenceGroup": "G1",
+    "originalReviewer": "数据库审查工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M5-T6": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "aa41cb48a946c6ecf60a11f22583a5006174e921047d97c1b5c0796042bde13c",
+    "contractHash": "2b8b53d95613cf8f177f1c10827dba11aa24b4c69917f553c64a74d5b7454ec0",
     "evidence": [
-      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
-      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
-      "当前 main 代码位置逐条可见：prisma/schema.prisma:460（追加 `AnalyticsEventKind` 与 `AnalyticsEvent`。行里只有事件标识、语义键、载荷哈希）；src/app/api/analytics/events/route.ts:5（`POST` 入口，只导出路由。）；src/app/api/analytics/events/post.ts:73（同源失败为 403 `forbidden_origin`，不计入事件配额。）；src/app/api/analytics/events/post.ts:79（复用 `readAnalyticsCookie` 与 `verifyValue`。cookie 缺失、伪造或 `anal）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
-      "当前契约 hash=aa41cb48a946c6ecf60a11f22583a5006174e921047d97c1b5c0796042bde13c；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
-      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      "不适用：本任务交付事件准入与持久化（ingest.ts、event-repo.ts、POST /api/analytics/events）；变更句只改删除批次单位，不改变接收窗口、去重、白名单或限流。",
+      "其验收的 30 天保留是字段与准入规则，不受删除批量单位影响。"
     ],
-    "reviewed": "2026-11-04T15:56:27.538597+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json",
+    "evidenceGroup": "G1",
+    "originalReviewer": "数据库审查工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M5-T7": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "219d89a1d65c8d08123867e648b12cb5fe231f0e411d4fcdb844519ec09265e9",
+    "contractHash": "20e4d7eaf8a09b17835bac2b140210666564b5bb0ff91d4704ea6e8e15a04ca4",
     "evidence": [
-      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
-      "本条影响判定：该任务交付物不实现、不调用也不约束 3D 相机滚轮准入，E-98 收紧不改变其输入输出与验收；本条被标记仅因契约引用了变化章节的正文哈希。",
-      "main 落地实证（M5-T7）：任务卡 status=done，code=OK(1888B)、notes=OK(838B)，两个受保护区块均已回填；任务卡代码位置 19 处引用，17 处可直接核实。",
-      "M5-T7 行号漂移已实证（只影响引用坐标，不影响落地事实）：任务卡写 `src/app/[locale]/privacy/page.tsx:64`，main 上该文件实际 49 行，隐私统计同意段落真实位于 `:42`（`<section id=\"privacy-analytics-consent\">`）与 `:45`（`t('ledger.analytics', facts)`）；`e2e/privacy-analytics.spec.ts:32` 在 main 为 21 行，该用例实际起于 `:3`。`src/app/[locale]/privacy/retention-facts.ts` 确实存在于 main（13 行；`:8` retentionFacts、`:6` AGGREGATE_RETENTION_MONTHS=13；`:10` rawAnalyticsDays 取自 RAW_EVENT_RETENTION_MS）。任务要求的内容在 main 成立。",
-      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
+      "不适用：本任务交付客户端同意 UI、页面生产者与隐私文案；其验收第 5 条的用户可见期限仍是聊天 7d/30d、咨询 90d、原始分析 30 天/聚合 13 个月，本次改动未改这些数字。",
+      "新增的 5,000/20,000 是内部作业批量，未出现在用户可见文案或验收断言；「默认 dry-run、实际清理须另行授权」的文案要求原样保留。"
     ],
-    "reviewed": "2026-11-04T15:53:37.150290+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json",
+    "evidenceGroup": "G1",
+    "originalReviewer": "数据库审查工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M5-T8": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "cbaf13f86bcfb5423c36ecf407210068b85f9c62785068f1fb22a9210136ebab",
+    "contractHash": "9d1af3f9226a7a4665d66152206027d5d00e87b67958d4efc8f285fe4461a838",
     "evidence": [
-      "原证据来源：planning `db-b8-revalidation-M5-T8-20261108.evidence.json`（2526 B、SHA256 5d2278caafb926d632bc8234cb4b92e2dcc40d81bf62873d37ab1a3dcbba11e8），数据库独立复验；本次只补合入后绑定，不改原复验事实。",
-      "范围声明：自本条之后、『合入后绑定』之前列出的各条，均为**原复验时点（e7e2b7ee，合入前）的历史结论**，不代表当前 main；当前事实见『合入后绑定』。",
-      "变更字段 definition/effectivePaths：task-contracts.json 的 M5-T8.supportPaths 由 4 条增至 8 条，仅新增 src/app/api/admin/cron/analytics-rollup/route.ts、tests/analytics-rollup.test.ts、tests/d1-route-sideeffect.test.ts、tests/fixtures/d1-route-sideeffect.case.ts；outputPaths、验收标准、边界与状态未动。卡面 M5-T8.md:104-106 新增 D1/D2 事实限定，属定义文字增量。",
-      "四条新 supportPaths 在 e7e2b7ee 均存在且与冻结头一致：route.ts blob bc82e095…（1,326 B / 1707A02D…，= D1 3410fe95）；tests/d1-route-sideeffect.test.ts blob 917bff9f…、tests/fixtures/d1-route-sideeffect.case.ts blob d47aa4f1…（与 3410fe95 同 blob）；tests/analytics-rollup.test.ts 存在。8 条 supportPaths 逐条可读，无空项。",
-      "卡面 :105 的 D1 事实核对：78966e99→7bcb2468 对 route.ts 有修改（M），7bcb2468 与 3410fe95 的 route.ts 同 blob bc82e095…、两提交间无 diff；旧路由红测 5 用例 1 pass/4 fail，修复后三份受影响测试 11/11、0 skip，3410fe95 默认入口实跑与窄复核 PASS，Jev A high 0.97 — 与既有 PASS 证据一致。",
-      "卡面 :106 的 D2 事实核对：aggregate-repo.ts:117 为 upsertWatermarkGuarded、:147-159 为 revision 分流 WHERE（blob 48403236… = D2 冻结头 b2ea2cfe）；aggregate.ts:157 仍为 `affected !== 1` 抛 AggregateVersionConflict('watermark_regression')。红 1 pass/4 fail、绿 17/17（0 skip）、jobs-runtime 16/16、数据库独审 PASS（b2ea2cfe）；旧守卫本就放行较新 revision 的 NULL，NULL 重定不计入本次修复收益 — 与 db-d2-watermark-guard-review 一致。",
-      "卡面 :100/:104 的「当时未 push/无 CI」是历史状态限定，并写明原任务其后由 #541 合入 main（merge 78966e99）；「本轮 D1/D2 修复截至原复验时点尚未合入 main」经 `git merge-base --is-ancestor 3410fe95/b2ea2cfe 78966e99` 均返回 1 核实。证据对象为候补分支 e7e2b7ee（0 dirty），不是 main。",
-      "边界：D1/D2 的测试与 CI 结论仍绑定各自提交（3410fe95 本地 11/11；b2ea2cfe 本地 17/17 + jobs-runtime 16/16），本次只核 blobs 未漂移并复用既有 PASS；原复验使用当时已有证据；后续该头 CI 已通过（PR #542 run 42473786975，测试对象 ec43bf0 与该头同 tree），本次未重跑，也不冒称完整 HTTP 链或真实时区设置链已验证。",
-      "合入后绑定：PR #542 已 MERGED（2026-11-08T13:03:11Z），merge commit `12ba8989c7f6e84984c8c9eccadc34f28127a22c`，parents `78966e99`+`272356cf`，tree `350698eb…`＝已审头 tree；main 已实际包含本修复（route.ts blob `bc82e095…`、aggregate-repo.ts blob `48403236…`，与证据冻结头一致；3410fe95/b2ea2cfe/272356cf 均为 12ba8989 祖先）。本地主目录与批次工作树已 fast-forward 至 12ba8989（运维同步回执 EE2D6443…，34 个既有未跟踪项原样保留）。",
-      "边界：本登记只表示『合入后契约复验完成、标记由工具清除』；未重跑测试/CI、未连库、不声称生产已部署；生产部署版本仍未核验。"
+      "适用且仍满足：08 jobs 段与 18 固定作业策略的聚合单位为站点自然日；main 042c7d24 的 registry.ts:13 JOB_MAX_BATCH=500、:16 JOB_DEADLINE_MS=55_000、:259 maxBatchDays: JOB_MAX_BATCH、:350 预算取自 JOB_DEADLINE_MS；aggregate.ts:230-231 按站点日拒绝超限。",
+      "deploy/cron.nbshiyan:11 仍为 */5 调用 POST /api/admin/cron/operations，55s 为请求超时；本补丁未改 cron 或源码。",
+      "「其他作业沿用各自既定的500工作单位限制」：main 上目前只有聚合作业已注册（composition.ts:192-193），聊天/邮件/运维作业尚未注册，未被本补丁放宽。"
     ],
-    "reviewed": "2026-11-08T13:23:03.616973+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json",
+    "evidenceGroup": "G1",
+    "originalReviewer": "数据库审查工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M5-T9": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "d58697af3e14e4d5f94cec7803d4ad2c934f682a674e648502f78231f8f447ad",
+    "contractHash": "76574a4989e04bf3cfe6854f5b450d6f13618e112a50fc13d03991822164a0af",
     "evidence": [
-      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
-      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
-      "当前 main 代码位置逐条可见：src/lib/analytics/day-boundaries.ts:4（原始事件保留 30 个绝对日，不按本地日历月）；src/lib/analytics/day-boundaries.ts:55（`Intl` `formatToParts`，`hourCycle` `h23`，24 点进到下一日历日）；src/lib/analytics/day-boundaries.ts:114（本地午夜取最早匹配的 UTC 时刻，重叠小时只归开始日）；src/lib/analytics/day-boundaries.ts:140（左闭右开边界；查看者时区不参与，也不能代替无效站点时区）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
-      "当前契约 hash=d58697af3e14e4d5f94cec7803d4ad2c934f682a674e648502f78231f8f447ad；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
-      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      "适用且仍满足：聚合批次的「站点自然日」由 main 042c7d24 的 day-boundaries.ts:170 siteDayUtcBounds、:181 siteLocalDate、:202 recomputableFrom 定义；本次改动只声明单位，不改 IANA/DST/日界算法。",
+      "aggregate-plan.ts:72-91 用这些函数生成 siteDates，单位与文档一致。"
     ],
-    "reviewed": "2026-11-04T15:56:27.538597+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json",
+    "evidenceGroup": "G1",
+    "originalReviewer": "数据库审查工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -1432,339 +1572,433 @@
     "verdict": "pass"
   },
   "MAIN-E2E-FIX": {
-    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
-    "contractHash": "2cd064950343958b957d6328abcac8c75306c5246734687e5d9ee1d270f7a7da",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "a31afd8e29a04f1e24ddec74abe1918203375ac2231b3ad2d34091cb59ebda5b",
     "evidence": [
-      "PR #475 状态 MERGED。合并提交 848b0f43db72225b3994d39d2006af92e9aac893。mergedAt 2026-10-25T12:38:28Z。标题：修复 main e2e：analytics db 测试跟上 #470 的 categoryMeta 规则。",
-      "CI rollup：build-and-audit SUCCESS 2026-10-25T12:37:03Z job 121169349186；gate SUCCESS 2026-10-25T12:31:59Z job 121169349180；gate SUCCESS 2026-10-25T12:33:37Z job 121169710468；e2e SUCCESS 2026-10-25T12:38:02Z job 121169349391；posix-storage-security SUCCESS 2026-10-25T12:32:20Z job 121169349424。rollup 里列出的检查结论都是 SUCCESS。"
+      "任务职责：只改测试——analytics ingest 的 READY/published 校验、121 字符 slug 白名单、catalog merge 接受集合（图谱/任务/MAIN-E2E-FIX.md:31、:40-42）。",
+      "不适用：这是事件摄入/目录合并测试，不是固定作业的批量单位；条款未改 ingest 校验或测试。",
+      "本窗未运行这些测试。"
     ],
-    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json",
+    "evidenceGroup": "G4",
+    "originalReviewer": "测试工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "POST-LAUNCH-P3": {
-    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
-    "contractHash": "de7d0fef51bf6d5ff9cb4135d2edc96449e45194a7ffa87f45c345e008fc8896",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "4fa787e2bba540dfcf3684c45176ccfd89112f4a7fa492eed513d54ce241ec98",
     "evidence": [
-      "PR #459 状态 MERGED。合并提交 e5dc024fc467bbd10c2ed0df75cedd44ea097e74。mergedAt 2026-10-25T07:06:01Z。标题：POST-LAUNCH-P3 上线后小任务。",
-      "CI rollup：build-and-audit SUCCESS 2026-10-25T07:00:32Z job 121101211585；gate SUCCESS 2026-10-25T07:05:33Z job 121103009955；gate SUCCESS 2026-10-25T07:05:27Z job 121102990965；e2e SUCCESS 2026-10-25T07:00:25Z job 121101211442；posix-storage-security SUCCESS 2026-10-25T06:56:01Z job 121101211527。rollup 里列出的检查结论都是 SUCCESS。"
+      "任务职责：上线后修组合——媒体缓存头/删除无引用 GIF、/og 404 no-store、Permissions-Policy、限流 429 的 Retry-After、Auth.js 登录页字段、重置脚本导出、Redis 批量解析与生产判断、smoke 断言、BrandScene 重试（图谱/任务/POST-LAUNCH-P3.md:31）。",
+      "不适用：本次共享章节只改固定作业的批次单位语义：聚合作业按站点自然日计（maxBatchDays≤500）、分析保留按删除行计（5,000行/DELETE批次、20,000行/轮、三表合计、每批独立事务）、55s 明写为时间预算、其他作业沿用既定500工作单位 不涉及缓存头、媒体、限流响应、登录页或 smoke 白名单；这些条目的既有断言与限制未被本次源文改动。",
+      "两处 GIF 在卡上标注『已删除』且 main 不存在，属卡内既定动作，不是回归。"
     ],
-    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json",
+    "evidenceGroup": "G4",
+    "originalReviewer": "测试工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R3-T09233008": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "746c8c6884471ad6845cb3f1fa4b002700ba746cd72de6adb75469eaab92b4a1",
+    "contractHash": "c2b5df862d1b89ebf52b335abb1711cbc3818d18faf77b9f18e0d0fc43165123",
     "evidence": [
-      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
-      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
-      "当前 main 代码位置逐条可见：tests/prod-env-check.test.ts:11（探测 POSIX 应用根、临时目录是否绝对、以及符号链接能否创建；缺能力时原因写明分支未执行。）；tests/prod-env-check.test.ts:39（真实符号链接前缀夹具同时要求符号链接、POSIX 临时目录和 POSIX 应用根。）；tests/prod-env-check.test.ts:237（词法拒绝与路径不外泄在任何平台都执行。）；tests/prod-env-check.test.ts:249（拒绝根目录 `/`。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
-      "当前契约 hash=746c8c6884471ad6845cb3f1fa4b002700ba746cd72de6adb75469eaab92b4a1；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
-      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      "不适用（存储权限/符号链接验收）：交付面是 tests/prod-env-check.test.ts:11/18 的 POSIX/符号链接能力探测与 0600/0700、拒绝覆盖/逃逸断言，以及 storage-local/storage 测试；批量单位条款不涉及权限位、realpath 或 CI 存储作业。",
+      "本卡无作业注册、保留删除或 55s 预算义务。",
+      "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-04T15:56:27.538597+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json",
+    "evidenceGroup": "G3",
+    "originalReviewer": "前端工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R3-T09598683": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "509fa325ea51ffb50fa4779092473077bcc2764e43e927408e70250f3d9d9af7",
+    "contractHash": "e18dee81c7dc5391ec42c2f81a1b4f4bbe1759254f80c7478d6cbb3c18cc3027",
     "evidence": [
-      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
-      "本条影响判定：该任务交付物不实现、不调用也不约束 3D 相机滚轮准入，E-98 收紧不改变其输入输出与验收；本条被标记仅因契约引用了变化章节的正文哈希。",
-      "main 落地实证（R3-T09598683）：任务卡 status=done，code=OK(1053B)、notes=OK(1585B)，两个受保护区块均已回填；任务卡代码位置 16 处引用，16 处可直接核实。",
-      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
+      "不适用（首页铺满）：交付面是 src/app/globals.css:446 起 `main:has(> .hero)` 的 ≥1489px 铺满规则与 1240px 上限、e2e/brand-smoke.spec.ts 的宽度断言；批量单位条款不涉及视口宽度、gutter 或卡片列数。",
+      "本卡无作业注册、保留删除或时间预算义务。",
+      "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-04T15:53:37.150290+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json",
+    "evidenceGroup": "G3",
+    "originalReviewer": "前端工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R3-T12074461": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "68a4b92703fb10a6fd82aec838a6d75da143acb505e4195bc5fd89a119557a98",
+    "contractHash": "9d9344b9612557684d49cef282eda6cbfae23c6a10ca3adf12f92559c8773e07",
     "evidence": [
-      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
-      "本条影响判定：该任务交付物不实现、不调用也不约束 3D 相机滚轮准入，E-98 收紧不改变其输入输出与验收；本条被标记仅因契约引用了变化章节的正文哈希。",
-      "main 落地实证（R3-T12074461）：任务卡 status=done，code=OK(717B)、notes=OK(584B)，两个受保护区块均已回填；任务卡代码位置 9 处引用，9 处可直接核实。",
-      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
+      "不适用（11 节文档目标值）：交付面仅是 docs/PackJoyU-开发文档/02-设计/11-UI.md:197 的 publicBrand 目标值、1489px 门槛与首页例外；本次补丁只改 08/09/18，不含 11 节。",
+      "本卡无作业注册、保留删除或 55s 预算义务。",
+      "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-04T15:53:37.150290+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json",
+    "evidenceGroup": "G3",
+    "originalReviewer": "前端工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R3-T21757567": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "f8377abe3c49dbc2a0ba2145008fd483ead5881e8d97892ce1952e04684f057b",
+    "contractHash": "ac47ae246756fddccd1107cb640a9da4c0d6f566b3badb37ee92d08871eff574",
     "evidence": [
-      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
-      "本条影响判定：该任务交付物不实现、不调用也不约束 3D 相机滚轮准入，E-98 收紧不改变其输入输出与验收；本条被标记仅因契约引用了变化章节的正文哈希。",
-      "main 落地实证（R3-T21757567）：任务卡 status=done，code=OK(1866B)、notes=OK(1077B)，两个受保护区块均已回填；任务卡代码位置 26 处引用，26 处可直接核实。",
-      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
+      "不适用（Python 解释器探测/导入断言）：交付面是 tests/sanity-import.test.ts:9/12/315 的 `SANITY_IMPORT_PYTHON` 探测与导入/占位/食品声称/内链保护；批量单位条款不涉及解释器版本、9009 别名或逐字节 import.ndjson。",
+      "本卡无作业注册、保留删除或时间预算义务。",
+      "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-04T15:53:37.150290+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json",
+    "evidenceGroup": "G3",
+    "originalReviewer": "前端工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R3-T22883505": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "245df9e0d4faa8d82c72774499950a4ef6681ecf6767fa47595834f557f4ab01",
+    "contractHash": "99443df7ecaf778ad0cace5a607b2d6367821f9fa83c7f98c3f45696819880ff",
     "evidence": [
-      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
-      "本条影响判定：该任务交付物不实现、不调用也不约束 3D 相机滚轮准入，E-98 收紧不改变其输入输出与验收；本条被标记仅因契约引用了变化章节的正文哈希。",
-      "main 落地实证（R3-T22883505）：任务卡 status=done，code=OK(1667B)、notes=OK(2051B)，两个受保护区块均已回填；任务卡代码位置 21 处引用，21 处可直接核实。",
-      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
+      "不适用（standalone/密度实证）：交付面是 playwright.config.ts:9/11/12 的 standalone 服务与 e2e/brand-smoke.spec.ts 的密度测量；批量单位条款不涉及 server.js、PG17、densityProbe 或 14 次测量。",
+      "本卡无作业注册、保留删除或 55s 预算义务。",
+      "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-04T15:53:37.150290+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json",
+    "evidenceGroup": "G3",
+    "originalReviewer": "前端工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R3-T56876634": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "8a7849184f811d15c69b2089ab3cd0f02894aad0aba4225d28c57779c94b2a48",
+    "contractHash": "4c92a5fe7637af3b17843dded87a21981657e57a43d8439a62ba5bbe4e9fdaa0",
     "evidence": [
-      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
-      "本条影响判定：与 E-98 的 3D 相机滚轮准入无实现或调用关系；初次自动关键词扫描的命中经人工复核均为素材缩放/卡片 hover，非相机准入。",
-      "main 落地实证（R3-T56876634）：任务卡 status=done，code=OK(732B)、notes=OK(514B)，两个受保护区块均已回填；任务卡代码位置 7 处引用，7 处可直接核实。",
-      "R3-T56876634 的 7 处代码位置全部可核实。初次扫描命中项是 `logo-master` 与「成片」字样，属图稿素材，非相机缩放。本任务交付品牌图稿，与 E-98 无关。",
-      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
+      "不适用（图稿选定输入）：交付面是 docs/brand-content/company-visuals.json:91 `selectedInput` 的 path/sha256/use 与 tests/company-visuals-selected-input.test.ts 的字节回归；批量单位条款不涉及素材选定输入或事实边界。",
+      "本卡无作业注册、保留删除或时间预算义务。",
+      "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-04T15:53:37.150290+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json",
+    "evidenceGroup": "G3",
+    "originalReviewer": "前端工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R3-T71889698": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "f2fc89441b421299464c9bb70dbdc92fdcbcddc5d3dda8003b6390df7aad88d6",
+    "contractHash": "4b0fdb868a1c223f98e01269601d43f96359ed4d11c9ea081d94f6ae09c84709",
     "evidence": [
-      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
-      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
-      "当前 main 代码位置逐条可见：scripts/admin-reset-initial-password-lib.mjs:153（实际签发时追加 auth.enroll_token_issued；密码重置与待确认清理审计仍留在同一函数。）；scripts/admin-reset-initial-password-lib.mjs:290（锁内判定拒绝后立刻返回，不签发令牌、不写审计。）；tests/admin-reset-initial-password.db.test.ts:144（后提交的重置覆盖令牌哈希；两次成功仍各留一条签发审计。）；tests/admin-reset-initial-password.db.test.ts:148（两次并发成功的审计多重集固定为两条密码重置加两条令牌签发。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
-      "当前契约 hash=f2fc89441b421299464c9bb70dbdc92fdcbcddc5d3dda8003b6390df7aad88d6；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
-      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      "不适用（重置审计/并发预期）：交付面是 scripts/enroll-token-lib.mjs:63 `issuedAudit`（由 scripts/admin-reset-initial-password-lib.mjs:167 使用）与 tests/admin-reset-initial-password.db.test.ts:149/151 的审计多重集断言；批量单位条款不涉及密码重置、令牌签发审计或 sessionVersion。",
+      "本卡无作业注册、保留删除或 55s 预算义务。",
+      "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-04T15:56:27.538597+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json",
+    "evidenceGroup": "G3",
+    "originalReviewer": "前端工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R3-T75625096": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "01d373f96df7eb76e63d95515a64f141be425ec10d46e26ab20b4772cdf7f14b",
+    "contractHash": "5c8639b9f95424da559f206214c66d13f8657175d13747c2b4ab61db7a7a742b",
     "evidence": [
-      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
-      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
-      "当前 main 代码位置逐条可见：src/app/admin/admin.css:145（账号表单标题为 16px，下边距 8px，桌面字段与标题同一行。）；src/components/admin/settings/settings.css:2（设置页水平内边距为 0，左边距只来自主区；上下为 24px 与 96px。）；src/components/admin/settings/settings.css:121（桌面图片格不足三张时收缩到实际占用的列：一张约 260px，两张并排，三张用基础三列网格。）；src/components/admin/models/models.css:6（上传区圆角面的内边距为 16px。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
-      "当前契约 hash=01d373f96df7eb76e63d95515a64f141be425ec10d46e26ab20b4772cdf7f14b；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
-      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      "不适用（后台密度修复）：交付面是 src/components/admin/settings/settings.css:2 `.st-page` 等后台工作面样式与 e2e/brand-smoke.spec.ts 的 densityProbe；批量单位条款不涉及填充率、leftGap 或后台工作面。",
+      "本卡无作业注册、保留删除或 55s 预算义务。",
+      "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-04T15:56:27.538597+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json",
+    "evidenceGroup": "G3",
+    "originalReviewer": "前端工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R3-T86511435": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "346f915cb5710b0dc4533b1b23747822bfa151df14f7c6f68223e324fd3fe5ca",
+    "contractHash": "00651122fe7703ca4624509b4695803168365b85ce7d51ae7b3ddf300f95b5a6",
     "evidence": [
-      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
-      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
-      "当前 main 代码位置逐条可见：tests/job-leases.db.test.ts:10（租约文件没有 postgres 开头的 DATABASE_URL 时，数据库用例按环境跳过。）；tests/job-leases.db.test.ts:143（同一 key 并发领取只有一项成功，另一个 key 不互相阻塞。）；tests/job-leases.db.test.ts:167（注入时钟满 90 秒后新代次可以领取；旧 owner 与旧 generation 的完成写被拒绝，不覆盖新结果。）；src/lib/server/jobs/types.ts:7（租约窗口 90 秒；到期等号视为已释放。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
-      "当前契约 hash=346f915cb5710b0dc4533b1b23747822bfa151df14f7c6f68223e324fd3fe5ca；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
-      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      "适用且仍满足（仅租约句）：09 L86 的「租约90s」原句保留；main 042c7d24 的 src/lib/server/jobs/types.ts:7 `JOB_LEASE_MS = 90_000` 未变，tests/job-leases.db.test.ts 仍断言同 key 并发只有一项成功、满 90s 新代次可领取、旧 owner/generation 完成被拒。",
+      "本卡不主张聚合「天」或保留「行」的批量上限，四处改动未给它新增 batch 义务；55s 是作业总预算，90s 是租约互斥窗口，两者并存且未被本补丁改写。",
+      "结论：契约仍满足；只读文档/契约复核，不冒充代码验收或运行证据（未跑 PG17）。"
     ],
-    "reviewed": "2026-11-04T15:56:27.538597+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json",
+    "evidenceGroup": "G3",
+    "originalReviewer": "前端工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R3-T87287564": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "2eace128c2903b7593e86281cd344ac785916a06f7fa3b01a7917e124d47ab0e",
+    "contractHash": "d7207fcf35344f9c94346b1de96db5543c726a911f8e0434d93fd9dae7a26eb8",
     "evidence": [
-      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
-      "本条影响判定：该任务交付物不实现、不调用也不约束 3D 相机滚轮准入，E-98 收紧不改变其输入输出与验收；本条被标记仅因契约引用了变化章节的正文哈希。",
-      "main 落地实证（R3-T87287564）：任务卡 status=done，code=OK(707B)、notes=OK(587B)，两个受保护区块均已回填；任务卡代码位置 11 处引用，11 处可直接核实。",
-      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
+      "不适用（文件身份比较）：交付面是 tests/lint-ru-yo.test.ts:6/40/92 的 `defaultFiles`/`fileId` 与 prod-mocks-strip 的斜杠身份比较；批量单位条款不涉及路径归一、俄文扫描或 mock 清单。",
+      "本卡无作业注册、保留删除或时间预算义务。",
+      "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-04T15:53:37.150290+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json",
+    "evidenceGroup": "G3",
+    "originalReviewer": "前端工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R3-T92231765": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "a2cfe1f3644992e8d4f669c1b59c9ad659ee858bc5cbeeff8ac9ba788c245bd0",
+    "contractHash": "3e2dae43569dc5ecb687775f3e0b0b78884733c58d4b0c410a87d2ee17b6e26d",
     "evidence": [
-      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
-      "本条影响判定：该任务交付物不实现、不调用也不约束 3D 相机滚轮准入，E-98 收紧不改变其输入输出与验收；本条被标记仅因契约引用了变化章节的正文哈希。",
-      "main 落地实证（R3-T92231765）：任务卡 status=done，code=OK(1784B)、notes=OK(742B)，两个受保护区块均已回填；任务卡代码位置 22 处引用，22 处可直接核实。",
-      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
+      "不适用（CRLF/真 Bash 夹具）：交付面是 .gitattributes:3 `*.sh text eol=lf` 与 11 条源码断言/真 Bash 回归；批量单位条款不涉及换行归一、plan-check 或 smoke-lib.sh。",
+      "本卡无作业注册、保留删除或 55s 预算义务。",
+      "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-04T15:53:37.150290+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g3-30.evidence.json",
+    "evidenceGroup": "G3",
+    "originalReviewer": "前端工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R4-T16305211": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "1ae8c04d33cc26c85af0c09cf25ec227daee3cfe9ae176a42e5264454863f4e1",
+    "contractHash": "e79e3a145259db8af0fb8ea8c2e574544d673b91fd3d204540142d3ad26c4d7c",
     "evidence": [
-      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
-      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
-      "当前 main 代码位置逐条可见：src/app/[locale]/contact/HumanContactNotice.tsx:16（`useState(false)` 让聊天开关默认关闭；开关状态只存在组件内，不落同意存储。）；src/app/[locale]/contact/HumanContactNotice.tsx:30-46（开关与状态句所在行；`:32` `id=\"contact-chat-switch\"`、`:34` `role=\"swit）；src/app/[locale]/contact/HumanContactNotice.tsx:20-29（询盘邮箱入口 `id=\"inquiry-email-entry\"`，在开关之外不受 `chatEnabled` 约束，关）；src/app/globals.css:84（`.contact-chat-line` 的换行布局；`:86` 状态句 `flex-basis:100%` 独占一行；）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
-      "当前契约 hash=1ae8c04d33cc26c85af0c09cf25ec227daee3cfe9ae176a42e5264454863f4e1；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
-      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      "不适用（聊天开关/容量证据）：产出是独立聊天开关的取舍（图谱/任务/R4-T16305211.md:L23）；属前端开关与容量口径，不注册 chat-notifications/chat-retention 作业（这两个作业在 19-模块任务拆分 中归 M4-T4/M4-T7）。",
+      "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+      "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-04T15:56:27.538597+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json",
+    "evidenceGroup": "G2",
+    "originalReviewer": "全栈工程师/安全工程师",
+    "reviewed": "2026-11-09T12:28:19.107808+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R4-T64765902": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "1aad3c32e902f99c471115a8fc54e63a7085ad5a1fd35b97d0059c463fb58a63",
+    "contractHash": "234bcebee5a6b04560a1fe8a16988b341f9c1c8a1b2f8b55a3b4c0622dcb2298",
     "evidence": [
-      "固定当前 main 2e15565d79b1b056d48eadf6ed1e1e316f117395（含 #507 的 3268083a 与 #502 的 2e15565d）：R4-T64765902 任务卡 status=todo，两个保护区仍为占位；实现已随 #496（merge 69611a8c…）合入且为当前 main 祖先。",
-      "逐条验收静态复核：当前 main 全树无 src/lib/chat/adminPath.ts 与 tests/tawk-admin.test.ts，src/lib/chat/ 为空；src/tests/e2e 中 isAdminPath、adminPath、tawk-admin 的产品/测试引用为 0。tests/consent-write.test.ts:48 的 \"https://embed.tawk.to/x.js\" 是清理残留的模拟夹具字符串，不是加载第三方脚本。",
-      "security-headers.ts:4-20 的 CSP script-src 仅 self/内联/wasm 与 Cloudflare challenges、insights，不含 tawk.to、不含通配 https:；e2e/tawk.spec.ts:23-104 跨同意状态、旧 chat=true、admin 路径与 CSP 均断言无第三方聊天。当前 main 在 7d0b4f23..2e15565d 之间这些 R4 相关文件逐字未变。",
-      "联系页与同意入口在当前 main 的真实行号：src/app/[locale]/contact/page.tsx:20-22 intro/HumanContactNotice/InquiryWizard；HumanContactNotice.tsx:19-29 #iq-email 邮箱跳转；src/components/consent/CookieConsent.tsx:79-87、112-114、177-190 必要人工联系常开、可选分析独立、所有写入 chat:false；src/components/quote/FloatingActions.tsx:59 公共联系入口仍指向 /contact；src/lib/consent.ts:29、65 固定 chat:false 并迁移旧 true。",
-      "假设纠正（本轮实测）：source-map.json 头部自述为 2026-10-19 的 \"read-only current source inventory\" 历史快照（sourceRoot 指向 D:/xiangmu/NBshiyan-docs-s2-s6、productImplementation=false），task-contracts.json 是 handoff_contract.input_hashes 读取的源配置；maintain_docs.py build 不重写这两者，其中仍列已删的 adminPath.ts / tawk-admin.test.ts。review.py --json 实测 block=0（warn=28、info=1），两处残留不构成本次落地阻断，按 Chief 指示不修改、不手工删除，也不改写历史批次记录。",
-      "回归证据：固定副本上 tests/security-headers.test.ts、tests/consent-write.test.ts、tests/m4-t15-copy.test.ts 共 19 pass / 0 fail / 0 skip；#496 合并时 PR 五项检查全 success、指定 App APPROVED 属历史证据，不冒充当前 main 的新运行。本轮不重跑 e2e、不改产品源码或规范正文。",
-      "当前契约 hash=1aad3c32e902f99c471115a8fc54e63a7085ad5a1fd35b97d0059c463fb58a63，来自当前 main 的 maintain_docs.py status --task R4-T64765902 实时输出（stale=[]、runtimeDrift=[]）；旧 task-reviews 无本任务可用记录，按当前 hash 重新登记非空证据，不复用旧记录。",
-      "本轮为已合实现的文档契约复核与回填准备，目的是按项目流程登记 verify 后由 Chief 安排 --landed；不降低验收、不扩大范围、不新增需补测的产品行为。"
+      "不适用（无调用方模块删除）：产出是删除无调用方的 adminPath.ts 及其测试（图谱/任务/R4-T64765902.md:L23）；与作业批量单位无交集。",
+      "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+      "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-04T17:20:36.752233+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json",
+    "evidenceGroup": "G2",
+    "originalReviewer": "全栈工程师/安全工程师",
+    "reviewed": "2026-11-09T12:28:19.107808+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R4-T76958784": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "e35f6ad11eec6449f372f4cdca896c4faeb57d8826e14d3a558998cfaa9f7a9d",
+    "contractHash": "55acc87197641d2abf7457f887329a2c8cee12be38211cf5987bcf6cd9a2b41b",
     "evidence": [
-      "固定基线 main 49bc8e48（窗口放行时；其后 main 前进至 937a129b 仅含 #513 的 schema/recovery/composition，与本任务 4 个目标文件零重叠，实测 messages/en.json:390、messages/ru.json:390 位置未变）。任务：R4-T76958784 在隐私页写明聊天 cookie 的 7 天、30 天与 90 天设计默认。",
-      "提交链已查实：5ec8c10e（2026-10-26 04:47:41 -0700）首写 7/30/90/清理未启用四句；ec7f0b2e（同日 05:18:51 -0700，R4-T76958784-fix1）把 90 天设计默认那句定点删除、en/ru 改为 NBSP 精简句；cdce985b 之后仅把 e2e 负向断言改为 chatCookieRetention 变量，en/ru 与单测 chat 句子此后未再改。当前 main 为精简版，缺 90 天。",
-      "Chief 裁定选 1：验收标准 1（R4-T76958784.md:28）、M4-T15.md:36、12-UX.md:285 均要求 7 天闲置/30 天绝对/90 天设计默认/生产清理未启用四项同时出现；ec7f0b2e 未同步改任务卡与 12-UX 验收定义，属实现单方面偏离契约，按 AGENTS.md「不得降低验收标准迁就错误代码」以契约为准补回 90 天，不反向改验收定义。",
-      "本轮定点改 4 文件：messages/en.json:390 与 messages/ru.json:390 在精简句骨架上补回 90 天设计默认从句（保留 ec7f0b2e 的 NBSP \\u00A0 风格与「只保留 cookie 期限」结构）；tests/m4-t15-copy.test.ts:76/:80 的 deepEqual 同步；e2e/chat-consent-migration.spec.ts:88/:91/:116 的 en/ru toContainText 与 chatCookieRetention 常量同步，:93 outsideKnownRetention 的 split 因常量变化自动对齐，负向断言 :94-95 保留。未整体回退到 5ec8c10e 旧措辞，未删除 cdce985b 的断言结构。",
-      "验收 1：/en/privacy 与 /ru/privacy 的联系说明现同时含 7 天闲置、30 天绝对、90 天设计默认、自动清理未启用；Python 实测 en/ru 均命中 7/30/90 与未启用字样（True）。验收 2：询盘匿名化仍为最后活动后 2 年（en/ru retention.items.inquiries 实测 True，相关断言 :82-83 未动）。验收 3：正文仍不含 Tawk（Python 全量 JSON 实测 True；m4-t15-copy.test.ts:92 静态断言与 e2e :89/:118 未动）。",
-      "验收 4：tests/m4-t15-copy.test.ts 语言专家定稿用例在缺少聊天期限句时会 deepEqual 失败；e2e/chat-consent-migration.spec.ts 的 toContainText/负向断言在缺少该句时失败，并继续拒绝 Tawk。本机用 file:// tsx loader、cwd=工作树实跑 tests/m4-t15-copy.test.ts 得 7 tests / 7 pass / 0 fail / 0 skip（前两次为 cwd/loader 环境错误，非断言失败，已如实记录）。",
-      "验收 5：ru 译文沿用 5ec8c10e 口径并补回 90 天从句，按任务卡要求注明「待语言专家审」，写进 PR 描述与实施沉淀；本轮不改 ru 其它正文。验收 6：不新增后台登录，本窗口不碰鉴权代码。e2e 本机无 standalone 构建产物与测试库，Playwright 未本机实跑，结论以 CI 为准，不冒充已跑。",
-      "检查：JSON 解析 OK；4 个改动文件 CR=0；git diff --check exit 0；本轮类型检查因工作树无 node_modules 报 TS2307/TS2580 环境错误（与我改的字符串无关），不写成通过；相关单测 7/7 通过。本轮不改产品代码、不改生成器、不动其它任务状态。"
+      "不适用（隐私文案）：产出是隐私页四句（7 天闲置/30 天绝对/90 天设计默认/生产清理未启用，图谱/任务/R4-T76958784.md:L23）；改动条款是分析保留的\"删除行\"批次单位，不是聊天 90 天清理的启用状态，两者不冲突。",
+      "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+      "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-05T03:33:22.731062+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json",
+    "evidenceGroup": "G2",
+    "originalReviewer": "全栈工程师/安全工程师",
+    "reviewed": "2026-11-09T12:28:19.107808+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R4-T78812657": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "d15b3ff5bdad1dbb29aa939dce68c7251d32b8cbaf1e8d825188c2af2934dc9d",
+    "contractHash": "777799544614e42280b7957e9d957a50809b2d17dc61a19d63083fd31ad88e64",
     "evidence": [
-      "验收1/3 方案 A 固定：Jev 裁决 model=jev-1.14.0、pick=A、spec_change=no、adopt=red_line；本任务保留代码的 12 小时绝对截止、改文档贴合代码，未采用方案 B。实证：src/lib/server/config.ts:9 `ordinaryAbsoluteMs: 12 * 60 * 60 * 1000` 仍在；session-expiry.ts:15 `policyCapMs` 对未记住设备返回 ordinaryAbsoluteMs；session-expiry.ts:39-40 `publicAbsolute` 对普通会话仍 `return null`，不对外暴露绝对期限。代码自 eb803b6c 起零改动。",
-      "验收2 E-01 与 E-69：docs/PackJoyU-开发文档/03-质量/13-边界问题与异常处理.md 的 E-01 现写「未选时保留 2 小时活动滑动…另加创建后 12 小时绝对截止，续期不能越过该截止。选中后为 7 天闲置…30 天绝对上限」；E-69 同步为「或自创建达到 12 小时绝对截止」并加「服务端在写入 lastActivityAt 之前拒绝授权（到期时刻的等号即拒绝）」。改动由 eb803b6c 落地，已在 main。",
-      "验收2 09 数据模型：docs/PackJoyU-开发文档/02-设计/09-数据模型.md:16 的 AdminDeviceSession 行写明 `hardExpiresAt DateTime?（可空；普通会话为创建后12小时，记住设备为创建后30天）`，同格写「普通会话2h活动滑动，另加创建后12h绝对截止，记住会话7d活动闲置/创建后30d绝对」「hardExpiresAt 记下该绝对截止，续期不改」「对外 absoluteExpiresAt 只属于记住设备」。",
-      "验收2 19 节 M3-T1 与 M3-T15：docs/PackJoyU-开发文档/04-执行/19-模块任务拆分.md:28 与 :42 均已写「普通会话为2h滑动，另加创建后12h绝对截止；记住7d闲置/首次30d绝对；createdAt+12h的等号返回401且不更新lastActivityAt」。",
-      "验收2 en/ru adminSessions：messages/en.json:367 与 messages/ru.json:367 写明 2 小时不活动且不晚于登录后 12 小时、记住设备 7 天/30 天。注：两份 json 正文含不换行空格（NBSP, U+00A0），比对前需先归一化再匹配，否则会误判为缺 12 小时表述。",
-      "验收4 等号拒绝且早于写入：src/lib/server/admin/device-session.ts:103-105 用 `isStrictlyBefore` 严格小于判定 `enforcedAbsolute`、`effectiveDeadline` 与记住设备 `absoluteExpiresAt`，到期时刻本身返回 401；该判定在设备有效性阶段完成，早于 :281 的 `update({ data: { lastActivityAt: now } })`，因此被拒请求不会顺带续期。记住设备仍为 config.ts:7 的 7 天闲置与 :8 的 30 天绝对。",
-      "验收2 测试断言：tests/admin-session-activity.http.test.ts:108 断言 `initialHardExpiresAt(created,false,policy) - created === policy.ordinaryAbsoluteMs`；:240、:255、:339、:498 断言 `hardExpiresAt === createdAt + ordinaryAbsoluteMs`；:117-119 与 :140-141 核到期前 1ms 可访问、到期时刻拒绝。",
-      "真实 PostgreSQL 证据来自 CI，不是本机跑：该文件在 .github/workflows/ci.yml:111 门禁名单、:140 执行列表、:154 逐文件校验内。从 run 41878171304（head c4b281fb，run 级 completed/success）的具名日志取到 `tests/admin-session-activity.http.test.ts\tpass=8\tfail=0\tskip=0\ttodo=0\tcancelled=0`，8 项全通过、零跳过零失败。本机无 PostgreSQL，无法本地复跑该 DB 用例，不把 CI 结果说成本地实跑。",
-      "落地范围：eb803b6c（2026-10-26）只改 5 个文件——02-设计/09-数据模型.md(+3/-3)、03-质量/13-边界问题与异常处理.md(+2/-2)、04-执行/19-模块任务拆分.md(+2/-2)、messages/en.json(+1/-1)、messages/ru.json(+1/-1)，产品源码零改动，符合方案 A「保留代码、改文档」；该提交是 #498 merge commit 6ff4934c 的祖先，且在当前 main 428371bb 中。"
+      "不适用（会话绝对截止文档）：产出是把普通会话\"2h 滑动 + 创建后 12h 绝对截止\"写进文档/文案（图谱/任务/R4-T78812657.md:L23）；属会话期限与文案，和作业批量单位不同轴。",
+      "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+      "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-05T00:36:25.799113+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json",
+    "evidenceGroup": "G2",
+    "originalReviewer": "全栈工程师/安全工程师",
+    "reviewed": "2026-11-09T12:28:19.107808+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R5-T10248697": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "45f18f66df5987836193b99a09ce7e55db027241302531d0ef5f414748ec3554",
+    "contractHash": "6a89a698c4d418e7a515706e35171208e276044e3fee00d3e27ef2d2d0698281",
     "evidence": [
-      "仅复核已合实现的当前六条验收映射与文档收尾；关联#501，代码已由b2db0294合并且包含于最新main a9172b2f。独立收尾分支从该main建立，实际owner/settings/直接测试Git blob与d84f0056已审头及W4固定main哈希一致；不重写业务实现。",
-      "验收1/2：已归档fixed-day-boundaries.log 8pass，tests/analytics-day-boundaries.test.ts:54-80核Santiago09-05/09-06、Havana03-07/03-08有效左闭右开UTC边界、前日相接、前1ms及可重算起点，全部fail/skip/todo/cancelled=0。",
-      "验收3/6：同文件43-51纽约23/25小时边界保持；103-117查看者时区对照，119-170两种进程TZ下的重复午夜、缺午夜、LordHowe半小时与Kathmandu05:45期望均通过。生产函数170-177不消费browserTimezone；当前正式仓库行号已读，不复制fixed-main代码链接。",
-      "验收4：固定实际settings服务的内存repo补验fixed-settings-service.log 9pass，两时区日界前/等号/后1ms返回合法version/revision/backlog，并保持非法IANA、同值和冲突行为；观测sqlCalls=0。它不等于PG锁/事务或HTTP端点验证。settings.ts:176-213使用真实recomputableFrom及现有写入路径。",
-      "验收5：同一新回归在旧owner18ae999b真实抛invalid_date（before-gap.log 1fail、0skip），固定main同回归及完整直接文件8pass。原日志字节与W4结构化证据sha256核对后原样归档，未重写旧逻辑、重构stdout或把预期红当当前失败。",
-      "历史CI40333923945实际检出测试合并867dca9（d84f0056合入旧main6ff4934c），不是当前main；具名缺午夜/进程TZ记录已按原日志行核对归档。历史设置PG7pass0skip使用普通日期，不说成PG缺午夜覆盖；旧全量29skip和本轮未重跑PG/HTTP/build/生产作业等限制明确保留。",
-      "R5两个保护区已经填入正式仓库路径、实际行号、日界/残日/数据影响及证据层级；其定义、依赖M5-T9、原批次和其他任务状态未手改。当前仅注册R5契约证据，是否登记done仍必须通过官方--landed前置；收尾仅文档，不改实现/schema/来源任务，不自行合并或改主检出。"
+      "不适用（站点日界计算）：产出是\"跳过本地午夜时用该日最早存在的瞬间做左闭端\"（图谱/任务/R5-T10248697.md:L23），实现为 src/lib/analytics/day-boundaries.ts:170 siteDayUtcBounds、:190 siteDayContaining、:202 recomputableFrom；四处改动只规定\"聚合批次以站点自然日计数（maxBatchDays≤500）\"，不改变日界、DST 或 skipped-midnight 的算法，也不改变可重算起点。",
+      "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+      "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-03T16:28:20.215808+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json",
+    "evidenceGroup": "G2",
+    "originalReviewer": "全栈工程师/安全工程师",
+    "reviewed": "2026-11-09T12:28:19.107808+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R5-T59021355": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "02ced4a978b58e916945fe34f62a8c1852169537e354b05c1911a17d44eee804",
+    "contractHash": "6ee7be932b53ae0aef6e49d4077411b7ac667ea40365efd99f9d209836c3bea1",
     "evidence": [
-      "R5 实现已随 #519 合入 main（merge 53a773bc；本次登记基线 db770f3f = #522 合并后）：src/lib/server/admin/login.ts 的 authorizeLogin 在 mode 分支之后、查账号之前以 `if (recovery) return genericCredentialFailure(...)` 拦截非空 recoveryCode，返回与未知账号相同的通用失败，不核销恢复码、不 open AdminDeviceSession、不区分账号是否存在（验收 1/2/4）。",
-      "login.ts 内 `authorizeRecovery(` 调用 0 命中、`TODO(M3-T19)` 字面 0 命中；恢复码只经 M3-T19 的 /api/auth-admin/recovery/start 受限入口核销，本任务不重建受限会话、不新增后台 e2e 登录（验收 6）。",
-      "两条存量测试按裁定 B 只改断言层、不放宽判据、不删不跳过用例：tests/admin-enroll-hardening-347-348.test.ts 原 TODO(M3-T19) 静态断言改为守卫式（authorizeRecovery 已移除 + 非空 recovery 走 genericCredentialFailure）；tests/admin-login-challenge.test.ts 把「无 2FA + 非空 recoveryCode」期望由 totp_setup_required 改为通用 CredentialsSignin，其余两形态仍断言 totp_setup_required。",
-      "tests/admin-login-mode.db.test.ts 5 条旧「恢复码登录成功/核销/锁定/并发一次」用例整体翻转为「通用失败、恢复码哈希仍在、无设备行、failedLogins/totpLastStep/sv/passwordlessEnabled 不变」，并补验收 1（当前密码+合法 10 位码）、验收 2（同时带 6 位验证码）、验收 3（password 与 totp 模式仍可登录）的具名断言（验收 3/5）。",
-      "contracts/account.ts 保留 recoveryCode 字段（contracts-foundation.test.ts 大量 parse 断言），auth.ts 无需改动；改动落点收敛在 login.ts 与三条测试，符合任务卡 4 条有效路径的实际最小改动。",
-      "图谱/任务/R5-T59021355.md 的「代码位置」（5 行含路径:行号）与「实施沉淀」（6 条含 CRLF 噪声/DB skip 如实说明）两个保护区已随 #519 回填且无占位；本轮只核质量、不重写。",
-      "全栈/安全工程师对 #519 的独立复核已收齐：核心实现位于 checkPassword 之前、不查账号/不核销码/不建设备；test() 与 skip 数量不变、断言变强；两条路径外测试的登记归属已如实标注。",
-      "本机无 PostgreSQL，admin-login-mode.db.test.ts 的 DB 用例默认 skip，CI 用 M3T3_TEST_DATABASE_URL 专用库必跑；本机 pnpm test 的 Windows CRLF 噪声（sanity-import 等）在未改动 main 上同样红，不冒充本机全绿或已跑并发锁证据。",
-      "R5 是 batch-5-20261026 围栏派生的返工任务，task-contracts.json 无条目；本次 --landed 只登记 R5 一条：progress 只新增 R5-T59021355: done，任务卡 status todo→done，不改 batchRecords/repairTasks/dispatchBatches、不回退 M3-T16 done 与 40 条已清零复验结果，revalidation/needsReview 保持空。"
+      "不适用（登录恢复码语义）：产出是普通 Credentials 上非空 recoveryCode 与未知账号同失败、不核销恢复码（图谱/任务/R5-T59021355.md:L23）；属登录安全语义。",
+      "920db0f1 的四处改动只重写作业批量单位：08-后端架构.md:L62、09-数据模型.md:L73、09-数据模型.md:L86、18-部署与运维.md:L99；本卡全文不含 jobs/registry、cron、maxBatchDays、55s、租约、JobState、analytics-retention/analytics-aggregate（29 张卡逐卡检索，唯一 batch 命中为 source_batch 元数据），固定作业在 19-模块任务拆分 中分属 M5-T3/M5-T8/M5-T11/M4-T4/M4-T7/M4-T12/M6-T3，均不在本组。",
+      "结论：本卡契约不受该补丁影响，仍按原验收成立；本条是只读文档契约复核，不冒充代码验收或运行证据。"
     ],
-    "reviewed": "2026-11-05T07:47:43.312619+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g2-29.evidence.json",
+    "evidenceGroup": "G2",
+    "originalReviewer": "全栈工程师/安全工程师",
+    "reviewed": "2026-11-09T12:28:19.107808+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R7-T14077261": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "4ceab81810193068e42c4608b0eb4a44b939a27392cafc25553ef211620bc47e",
+    "contractHash": "85ada3292d388bf4b6e40b317d2c9bf26aabebdabcdc6c09e991d378da281be1",
     "evidence": [
-      "真实验收依据：run 42380725190（event pull_request，attempt 1，head e84105632cb4f693c718543cfc13f976b03ad432；测试合并提交 7b0d1003，树 0a7e34a0 = head 树）success；PG 门禁第 9 步 14:15:56→14:20:51Z、295s，文件级 `tests/analytics-aggregate.db.test.ts pass=12 fail=0 skip=0 todo=0 cancelled=0`。",
-      "三项映射按更正后取证件 db-ci-42380725190-20261107.md（8,201 B `E4AA2F88…`）/ .json（9,125 B `54471380…`）：本卡为第 10 条，源码 357–417；第 6 条是旧 E-82 用例，保留全表但不作本卡替代证据。",
-      "测试实现：用例由 `8c9fdd00` 新增（`currentDate=2026-01-15` 触发超范围日；自断言 skippedDates 含该日、同轮可重算日 >0、coverage=partial；预置 AnalyticsDailyRollup/AnalyticsRollupDay 与 watermark revision=3；真实入口 runAggregateOnce 后 written=false，预置聚合与 watermark 逐字段 deepEqual）；`f0cdc2ff` 只修两处预置 INSERT 的 `updatedAt`，采用 f0 内容时已含前者，不把用例原创归给夹具修复。",
-      "夹具修复：两处预置 raw INSERT 补 `updatedAt`（`@updatedAt` 客户端管理列、无 DB 默认、固定 UTC 值）；失败 run 42341518872 的 23502 NOT NULL 因此闭合；行为断言、既有 9 条与非 UTC 用例逐字未动。",
-      "证据边界（不造）：成功日志只有文件级门禁计数，`R7-T14077261`／`E-82`／`# Subtest:` 命中 0，无单用例 TAP 与耗时；`partial` 不冒称 `unavailable`。",
-      "本次 --landed 只登记本卡：任务卡代码位置与实施沉淀两保护区已回填（无占位）；不改产品源码、测试、CI、生成器、原 85 项契约、批次源记录或返工定义；第 7 批最新记录仍 open、第 8 批仍锁，不生成 clean/fixed。"
+      "不适用：本任务只在 tests/analytics-aggregate.db.test.ts 增加 E-82 超范围日用例，不改产品代码；批量单位条款不改变其测试义务。",
+      "其验收的 skippedDates 非空、预置超范围日聚合与 watermark 逐字段不变，与本次四处改动无交集。"
     ],
-    "reviewed": "2026-11-07T14:57:08.208607+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json",
+    "evidenceGroup": "G1",
+    "originalReviewer": "数据库审查工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R7-T21418022": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "d408013f8ab615bd1291f860a52cb915e8a092132e347581b57b312541adda6b",
+    "contractHash": "e18a9b8300fc7b607ec86562b42039f7b80f7c0dafa4ceb8ac298739898246b0",
     "evidence": [
-      "真实验收依据：run 42380725190（attempt 1，head e8410563；合并树 0a7e34a0 = head 树）success；PG 第 9 步 295s，`analytics-aggregate.db.test.ts pass=12 fail=0 skip=0`；本卡为更正后映射的第 12 条（新增写入用例）。",
-      "实现（`5c324c2e` 本体＝**3 文件 +162/−9**：`aggregate-repo.ts` +19/−8、`aggregate.ts` +9/−5、测试 +143/−0；`1149..e841` 的 12 文件 +453/−42 是累计范围、非本提交本体）：`aggregate-repo.ts:63-65` 三处读、`:123` completedAt、`:125` sourceMaxReceivedAt（可空、NULL 走 `Prisma.sql`NULL``）、`:126-127` now、`aggregate.ts:105-106` 汇总 INSERT createdAt/updatedAt，共九处统一改仓库既有 `utc()`（`::timestamptz AT TIME ZONE 'UTC'`）；不迁 schema、不强制会话 UTC、不 pin UTC，毫秒精度与 NULL 语义保留。",
-      "测试（第 12 条 `:554-657`；适配器 `:525-552`）：测试层透传适配器包住产品 `AggregateDb.$transaction`，同事务 SET LOCAL/SHOW/pg_backend_pid 断言、同一 tx 交回产品回调、options 原样透传、proof.calls===1；固定 now 两轮 deepEqual。**第 11 条 `:465-513` 只是非 NULL watermark 跨会话对照**，不覆盖 NULL；空事件日 `sourceMaxReceivedAt` NULL／非空日非 NULL 由第 12 条另证，不把旧段归到新增第 12 条。",
-      "审查链：产品代码独审 PASS、0 必要阻断（db-review-5c324c2e-20261107.md `992A1334…`）；审查方技术复判补齐——corrected A/B 与原件逐字相同（`af2c5531…`／`862d6e05…`），返回 `pick=A high 0.86`、`take(A)`、无 red_line；旧 0.98（PASS/BLOCK）作废。",
-      "证据边界（不造）：成功日志只有文件级计数（`R7-T21418022` 与 `# Subtest:` 命中 0），无单测 TAP/耗时；本机无 PG，驱动绑定机制未实证。",
-      "本次 --landed 只登记本卡：两保护区已回填（无占位）；不改产品源码、测试、CI、生成器、原 85 项契约、批次源记录或返工定义；第 7 批最新记录仍 open、第 8 批仍锁，不生成 clean/fixed。"
+      "不适用：本任务把 aggregate-repo.ts/aggregate.ts 的 9 个时间戳参数统一改为 utc() 绑定并新增第 12 条测试；不涉及批量单位、批次上限或 maxBatchDays 分支。",
+      "其改动点是时间参数绑定与跨会话一致性，本次四处源文未给它新增批量义务。"
     ],
-    "reviewed": "2026-11-07T14:57:26.439774+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json",
+    "evidenceGroup": "G1",
+    "originalReviewer": "数据库审查工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R7-T31416198": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "4592fdd01f99ae7f8e31ede4af7bee43a11eb8ee7f32f600b396489b2c69c3d0",
+    "contractHash": "61e02f5923718678dee5b34cc630a40c943bc01eb0e16aaac0664a908b209052",
     "evidence": [
-      "真实验收依据：run 42380725190（attempt 1，head e8410563；合并树 0a7e34a0 = head 树）success；PG 第 9 步 295s，`analytics-aggregate.db.test.ts pass=12 fail=0 skip=0`；本卡为更正后映射的第 11 条。",
-      "测试实现：`tests/analytics-aggregate.db.test.ts:419-514` 第 11 条——同一交互式事务内 `SET LOCAL TIME ZONE`→`SHOW TimeZone`（断言生效）→真实 `loadEventsAtSnapshot`；同一数据播种四类（起点含、起点前 1ms 排除、日末含、cutoff 后排除），UTC 基准恰命中 `tz-at-start` 与 `tz-at-end` 两条，非 UTC（Asia/Shanghai）与该两条基准 deepEqual（`:448-461`，`:461` 为一致性断言点）；`:465-513` 为非 NULL watermark 跨会话对照。`:515` 起属第 12 条区块，其 `:525-552` 适配器不归本条。",
-      "两阶段归属保留：该用例在失败 run 42341518872 真实暴露产品缺陷（Asia/Shanghai 丢日界起点事件），按口径保持失败上报、未改断言、未 pin UTC；产品修复独立成卡 R7-T21418022，本卡保留原测试契约。",
-      "本轮只补测试：保留产品原查询；时区设置与被测查询在同一连接/事务内完成，不对连接池做一次性 SET。",
-      "证据边界（不造）：成功日志只有文件级计数，`R7-T31416198` 与 `# Subtest:` 命中 0，无单测 TAP 或耗时。",
-      "本次 --landed 只登记本卡：两保护区已回填（无占位）；不改产品源码、测试、CI、生成器、原 85 项契约、批次源记录或返工定义；第 7 批最新记录仍 open、第 8 批仍锁。"
+      "不适用：本任务只补同一连接内非 UTC 会话的时间边界测试；批量单位条款不改变其测试义务或断言。"
     ],
-    "reviewed": "2026-11-07T15:00:20.420461+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json",
+    "evidenceGroup": "G1",
+    "originalReviewer": "数据库审查工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "RETENTION-CLEANUP": {
-    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
-    "contractHash": "5a65f8b8e6f472d36133f01660b8d796b370f61e0f61b2d033b687dfa06770bc",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "53d9aca476eef880089e06f1fb0e593cf8e9553cfa00df9a6dbcd0f1c58472b3",
     "evidence": [
-      "PR #479 状态 MERGED。合并提交 45ada7a22131646f3be96d56f5c5baa22ce4d7f5。mergedAt 2026-10-25T16:35:49Z。标题：RETENTION-CLEANUP 保留期清理任务。",
-      "CI rollup：build-and-audit SUCCESS 2026-10-25T16:04:36Z job 121217553501；gate SUCCESS 2026-10-25T16:05:16Z job 121218955899；ping SUCCESS 2026-10-25T16:05:02Z job 121218896227；e2e SUCCESS 2026-10-25T16:06:55Z job 121217553519；posix-storage-security SUCCESS 2026-10-25T15:59:54Z job 121217553263。rollup 里列出的检查结论都是 SUCCESS。"
+      "适用且仍满足：09 L73 把清理批量定为删除行（5,000行/DELETE批次、20,000行/轮，三表合计，每批独立事务）；main 042c7d24 的 retention-cleanup.ts:248-249 默认取 RETENTION_CLEANUP_BATCH_SIZE/MAX_PER_RUN，:220-231 drain 每批 min(batchSize, 剩余)，:331-338 三表共用同一 budget（removed 累计），deleteEventBatch:151、deleteDailyBatch:174、deleteRollupDayBatch:201 各自在 $transaction 内删除。",
+      "默认 dry-run 未变（retention-plan.ts:13-18 只有精确 delete 才删行）；deploy/cron.nbshiyan:10 仍为 03:30 调 /api/admin/cron/retention-cleanup。",
+      "范围注：该旧路由自己的预算是 runDeadlineMs 默认 270s（retention.ts:51）、maxDuration=300（route.ts:11），不属于 registry 的 55s 句；本补丁未改它，也未把它写成 55s。"
     ],
-    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g1-db.evidence.json",
+    "evidenceGroup": "G1",
+    "originalReviewer": "数据库审查工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "SEO-1": {
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "be2c4b7a8d0e854d81a32fe1b07f8074268136bb906624545ffcbcd7ed59c5fd",
+    "evidence": [
+      "任务职责：关于页 sitemap 条目、hreflang/x-default、图片与 lastModified（图谱/任务/SEO-1.md:31）。",
+      "不适用：条款只改固定作业批次单位，不涉及 sitemap、SEO 元数据或图片清单。",
+      "本窗未构建、未跑 sitemap 测试。"
+    ],
+    "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json",
+    "evidenceGroup": "G4",
+    "originalReviewer": "测试工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "SEO-2": {
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "226144fdf2a3c96eeee022ccc64d74f3dfb2d105082baa4eaf3c61f81757936f",
+    "evidence": [
+      "任务职责：静态 /og jpg 的 Cache-Control 与单测断言（图谱/任务/SEO-2.md:31、:40-44）。",
+      "不适用：缓存头规则不依赖作业批次单位；next.config.ts 未被本次补丁改动。",
+      "本窗未跑 og 缓存测试。"
+    ],
+    "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json",
+    "evidenceGroup": "G4",
+    "originalReviewer": "测试工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "SEO-4": {
-    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
-    "contractHash": "5c66c8769c4d8780e0d995aba5df182a14b5400352b9afae1e5b08c75d1f2b53",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "00b5fa6a8af9f5b798dbbdf5e970d2bce9831bff622cebcf653c147c2883b78a",
     "evidence": [
-      "PR #462 状态 MERGED。合并提交 42ca1d1403a78ea8683bb6640a34eb2c71f4d22a。mergedAt 2026-10-25T07:56:02Z。标题：SEO-4 生产环境只认 APP_ENV。",
-      "CI rollup：build-and-audit SUCCESS 2026-10-25T07:50:36Z job 121110668135；gate SUCCESS 2026-10-25T07:49:02Z job 121111259327；gate SUCCESS 2026-10-25T07:48:55Z job 121111241682；e2e SUCCESS 2026-10-25T07:52:04Z job 121110668105；posix-storage-security SUCCESS 2026-10-25T07:46:13Z job 121110668066。rollup 里列出的检查结论都是 SUCCESS。"
+      "任务职责：去掉 VERCEL_ENV 生产兜底，统一 APP_ENV 生产判定（图谱/任务/SEO-4.md:31、:40-50）。",
+      "不适用：生产判定与作业批次单位无关；相关源码在 main 存在且未被本补丁改动。",
+      "本窗未跑 app-env 测试。"
     ],
-    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json",
+    "evidenceGroup": "G4",
+    "originalReviewer": "测试工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "SEO-5": {
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "5ae9356ce1309e1cec4a5aa367bdd0f0584e6aed382c0a5c90eb598e5d1882b3",
+    "evidence": [
+      "任务职责：404 页 robots 只有一条 noindex、未发布语言行为（图谱/任务/SEO-5.md:31、:40-50）。",
+      "不适用：robots/meta 与作业批次无关；相关文件在 main 存在。",
+      "本窗未跑 404 robots 测试。"
+    ],
+    "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json",
+    "evidenceGroup": "G4",
+    "originalReviewer": "测试工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "SEO-6": {
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "53ebf4a8597ac3f54599d97d5b11476662bc0bf5dd6243a0869f6927cd1d9365",
+    "evidence": [
+      "任务职责：3D 城市场景由 GIF 改 video、播放/暂停与按需加载（图谱/任务/SEO-6.md:31、:40-44）。",
+      "不适用：媒体播放与作业批次无关；brandMedia/BrandScene 在 main 存在。",
+      "本窗未跑 e2e、未验证播放行为。"
+    ],
+    "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json",
+    "evidenceGroup": "G4",
+    "originalReviewer": "测试工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "SEO-7": {
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "6a5de7eebccdb0176016cc97a4c52b78d5b64f425c094a7b4b51ce44ab99e5d7",
+    "evidence": [
+      "任务职责：SEO 复核条目（图谱/任务/SEO-7.md:31）。",
+      "不适用：条款只改固定作业批次单位，不涉及 SEO 输出或站点元数据。",
+      "本窗未运行 SEO 检查。"
+    ],
+    "evidenceFile": "_run/revalidation-20261109/g4-18.evidence.json",
+    "evidenceGroup": "G4",
+    "originalReviewer": "测试工程师",
+    "reviewed": "2026-11-09T12:19:50.376393+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   }

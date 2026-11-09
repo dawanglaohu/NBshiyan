@@ -1,0 +1,158 @@
+{
+  "scope": "task-contract",
+  "note": "B9-BATCH-UNITS-REVAL-G1 (数据库审查工程师). Read-only revalidation of the shared-section patch m5t11-batch-units-20261109. Docs fixed at 920db0f12f3eb45534d347281ad3d82e0e69bd10; landed code read from Git object 042c7d24c0a6b879355fc6b4c7454543a91475fe. No status/verify/build/landed was run; no markers, source or branches changed. Contract hashes are the current values recorded in _run/revalidation.json and cross-checked against _run/patches/m5t11-batch-units-20261109.evidence.json (18/18 equal). Verdict pass means the item was checked and either still satisfies the changed clauses or is not applicable; see the evidence text for which.",
+  "sourceVersion": "a4d1bf677aaf639c469d031ae183af0348a42c812a8e5e48bc491916b1017eda",
+  "patch": "m5t11-batch-units-20261109",
+  "docsCommit": "920db0f12f3eb45534d347281ad3d82e0e69bd10",
+  "codeObject": "042c7d24c0a6b879355fc6b4c7454543a91475fe",
+  "tasks": {
+    "ANALYTICS-ROLLUP": {
+      "contractHash": "2f064b49a4eb8fb28a6a51a9a0534a116816faeb96105a760345bd06fe53c2b3",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务登记的是旧「统计按天汇总」写入入口（PR #477，合并 90b2658d）；main 042c7d24 上 src/app/api/admin/cron/analytics-rollup/route.ts:21-28 已退役为 410 route_retired，鉴权后不再执行聚合、数据库、审计或邮件；活动聚合作业由 M5-T8 的 registry 承载。",
+        "本次四处源文只改固定作业/分析保留的批量单位与时间预算，未给已退役路由新增义务；其历史验收文本（「已合入，本登记不重做」）与 status 未改。",
+        "交叉：活动聚合的 500 天单位核在 M5-T8 项；本项不重复计入，也不把退役入口当活动作业。"
+      ]
+    },
+    "M1-T2": {
+      "contractHash": "14b9d6b8c5337eaf5bc5d85afec8700f55d3de4acc4204a1e170f0223ee7abcc",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务交付共享 Zod schema/DTO（src/lib/contracts/，tests/contracts-foundation.test.ts）；08/09/18 的四处变更句是作业批量单位与时间预算的运维口径，不新增或修改任何字段、枚举、DTO 形状或请求约束。",
+        "09 进入其 sections 列表是因为 schema 镜像 09 字段表；本次 diff 只有 4 行运维句，未触及字段表。"
+      ]
+    },
+    "M1-T3": {
+      "contractHash": "a17618d7df552a00bed0b4ccc8d3f167dcf7b8d1361adbb2c40c85ba5c4933e9",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务交付品牌静态媒体与 logo master（public/brand/、docs/brand-media/static/）；批量单位条款不涉及素材制作、来源、署名或发布。",
+        "四处源文未改任何媒体/素材/发布要求，未给本任务增加新证据义务。"
+      ]
+    },
+    "M4-T1": {
+      "contractHash": "a924d04734b2532fe5646b8cb62dd898dc926642d8cd8377877cb9fd9804f812",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务交付聊天首消息与唯一通知出箱（conversation-service.ts、repo.ts、POST /api/chat/conversations）；main 042c7d24 的 composition.ts:192-193 只注册 analytics-aggregate，聊天通知作业尚未注册。",
+        "变更句「其他作业沿用各自既定的500工作单位限制」未给 M4 增加新义务，也未放宽任何限制；本补丁未改聊天任务卡或实现。"
+      ]
+    },
+    "M4-T8": {
+      "contractHash": "09d22100a837066d0448480b9c2fe3d8f8136d29ae5ca8b4677b2e00b1e78120",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务交付 ChatVisitorSession 与 POST /api/chat/session 的 cookie、7d/30d 期限与限流；批量单位条款与其交付面无交集。",
+        "09 L86 保留的「租约90s」是作业租约，不是 cookie 期限；本任务验收的 7d 闲置/30d 绝对未被改动。"
+      ]
+    },
+    "M4-T15": {
+      "contractHash": "080f9d6003fd86baf3f9a8d196e494f06ca59bc2237346938c3d493f90e700a7",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务交付 Tawk 移除、FloatingActions 联系入口与隐私说明（useTawk.ts、FloatingActions.tsx、CookieConsent.tsx）；变更句不涉及任何用户可见文案。",
+        "其验收里的聊天 cookie 7d/30d、咨询 90d 与「真实清理未启用」均未被触碰；09 L73「90d聊天清理启用需另有明确生产保留授权、未获授权保持dry-run」原句保留。"
+      ]
+    },
+    "M5-T1": {
+      "contractHash": "917330813673c84b9671286e5ad11afeb28836a3df037f12a60f79595c641214",
+      "verdict": "pass",
+      "evidence": [
+        "适用且仍满足：09 L86 仍要求租约90s；main 042c7d24 的 src/lib/server/jobs/types.ts:7 JOB_LEASE_MS=90_000 未变，lease-repo 的原子领取/续租/完成与代次语义未被本补丁触碰。",
+        "批量单位改由各作业自述；M5-T1 的交付面是 JobState 与租约原语，本身不含行数或天数上限，未被新增义务。",
+        "未运行数据库或测试，仅只读 Git 对象。"
+      ]
+    },
+    "M5-T2": {
+      "contractHash": "2c26ac31a45c32e81963f2211e9057eb96394cc0309953271bd88f9e11c20eb9",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务交付 POST /api/analytics/consent 与签名 cookie（consent.ts、route.ts）；批量单位条款与其交付面无交集，未改同意、验签或撤回语义。"
+      ]
+    },
+    "M5-T3": {
+      "contractHash": "949213d957f8ae56359d88609164da8b9c6934887b3c46822f3acdaf5ae39244",
+      "verdict": "pass",
+      "evidence": [
+        "适用且仍满足：08 jobs 段与 09 L86 把聚合批次定为站点自然日（maxBatchDays≤500）；main 042c7d24 的 aggregate.ts:216 注释明确「单位是站点自然日（不是事件数）」，:230-231 对 plan.siteDates.length>maxBatchDays 抛 AggregateBatchExceeded 且不写库。",
+        "aggregate-plan.ts:72-91 的 siteDates 由 siteLocalDate/lateArrivalSiteDates 生成，是站点本地日字符串，不是事件行。",
+        "500 的传入在 M5-T8 项核（registry.ts:259 maxBatchDays: JOB_MAX_BATCH）；本任务自身只提供可选上限，未被本补丁要求改成行数。"
+      ]
+    },
+    "M5-T5": {
+      "contractHash": "07e0a653173c61f8a0b970c05278c7c99ef2fb5f5df1fff2869bf8a8d72ca63f",
+      "verdict": "pass",
+      "evidence": [
+        "适用且仍满足：09 L73 与 08 jobs 段把分析保留批量定为删除行（5,000行/DELETE批次、20,000行/轮，三表合计）；main 042c7d24 的 retention-plan.ts:5-9 常量与注释一致（一次删除语句最多5,000行；一次运行最多20,000行，原始事件和汇总行合计）。",
+        "retention-plan.ts:97-111 deletionBatchSizes 按 batchSize/maxPerRun 切批；:232 候选上限复用 20,000，不产生无界查询。",
+        "计划器本身不执行删除；三表合计与每批独立事务由消费方核（RETENTION-CLEANUP 项；M5-T11 分支另行审查）。"
+      ]
+    },
+    "M5-T6": {
+      "contractHash": "2b8b53d95613cf8f177f1c10827dba11aa24b4c69917f553c64a74d5b7454ec0",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务交付事件准入与持久化（ingest.ts、event-repo.ts、POST /api/analytics/events）；变更句只改删除批次单位，不改变接收窗口、去重、白名单或限流。",
+        "其验收的 30 天保留是字段与准入规则，不受删除批量单位影响。"
+      ]
+    },
+    "M5-T7": {
+      "contractHash": "20e4d7eaf8a09b17835bac2b140210666564b5bb0ff91d4704ea6e8e15a04ca4",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务交付客户端同意 UI、页面生产者与隐私文案；其验收第 5 条的用户可见期限仍是聊天 7d/30d、咨询 90d、原始分析 30 天/聚合 13 个月，本次改动未改这些数字。",
+        "新增的 5,000/20,000 是内部作业批量，未出现在用户可见文案或验收断言；「默认 dry-run、实际清理须另行授权」的文案要求原样保留。"
+      ]
+    },
+    "M5-T8": {
+      "contractHash": "9d1af3f9226a7a4665d66152206027d5d00e87b67958d4efc8f285fe4461a838",
+      "verdict": "pass",
+      "evidence": [
+        "适用且仍满足：08 jobs 段与 18 固定作业策略的聚合单位为站点自然日；main 042c7d24 的 registry.ts:13 JOB_MAX_BATCH=500、:16 JOB_DEADLINE_MS=55_000、:259 maxBatchDays: JOB_MAX_BATCH、:350 预算取自 JOB_DEADLINE_MS；aggregate.ts:230-231 按站点日拒绝超限。",
+        "deploy/cron.nbshiyan:11 仍为 */5 调用 POST /api/admin/cron/operations，55s 为请求超时；本补丁未改 cron 或源码。",
+        "「其他作业沿用各自既定的500工作单位限制」：main 上目前只有聚合作业已注册（composition.ts:192-193），聊天/邮件/运维作业尚未注册，未被本补丁放宽。"
+      ]
+    },
+    "M5-T9": {
+      "contractHash": "76574a4989e04bf3cfe6854f5b450d6f13618e112a50fc13d03991822164a0af",
+      "verdict": "pass",
+      "evidence": [
+        "适用且仍满足：聚合批次的「站点自然日」由 main 042c7d24 的 day-boundaries.ts:170 siteDayUtcBounds、:181 siteLocalDate、:202 recomputableFrom 定义；本次改动只声明单位，不改 IANA/DST/日界算法。",
+        "aggregate-plan.ts:72-91 用这些函数生成 siteDates，单位与文档一致。"
+      ]
+    },
+    "R7-T14077261": {
+      "contractHash": "85ada3292d388bf4b6e40b317d2c9bf26aabebdabcdc6c09e991d378da281be1",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务只在 tests/analytics-aggregate.db.test.ts 增加 E-82 超范围日用例，不改产品代码；批量单位条款不改变其测试义务。",
+        "其验收的 skippedDates 非空、预置超范围日聚合与 watermark 逐字段不变，与本次四处改动无交集。"
+      ]
+    },
+    "R7-T21418022": {
+      "contractHash": "e18a9b8300fc7b607ec86562b42039f7b80f7c0dafa4ceb8ac298739898246b0",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务把 aggregate-repo.ts/aggregate.ts 的 9 个时间戳参数统一改为 utc() 绑定并新增第 12 条测试；不涉及批量单位、批次上限或 maxBatchDays 分支。",
+        "其改动点是时间参数绑定与跨会话一致性，本次四处源文未给它新增批量义务。"
+      ]
+    },
+    "R7-T31416198": {
+      "contractHash": "61e02f5923718678dee5b34cc630a40c943bc01eb0e16aaac0664a908b209052",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务只补同一连接内非 UTC 会话的时间边界测试；批量单位条款不改变其测试义务或断言。"
+      ]
+    },
+    "RETENTION-CLEANUP": {
+      "contractHash": "53d9aca476eef880089e06f1fb0e593cf8e9553cfa00df9a6dbcd0f1c58472b3",
+      "verdict": "pass",
+      "evidence": [
+        "适用且仍满足：09 L73 把清理批量定为删除行（5,000行/DELETE批次、20,000行/轮，三表合计，每批独立事务）；main 042c7d24 的 retention-cleanup.ts:248-249 默认取 RETENTION_CLEANUP_BATCH_SIZE/MAX_PER_RUN，:220-231 drain 每批 min(batchSize, 剩余)，:331-338 三表共用同一 budget（removed 累计），deleteEventBatch:151、deleteDailyBatch:174、deleteRollupDayBatch:201 各自在 $transaction 内删除。",
+        "默认 dry-run 未变（retention-plan.ts:13-18 只有精确 delete 才删行）；deploy/cron.nbshiyan:10 仍为 03:30 调 /api/admin/cron/retention-cleanup。",
+        "范围注：该旧路由自己的预算是 runDeadlineMs 默认 270s（retention.ts:51）、maxDuration=300（route.ts:11），不属于 registry 的 55s 句；本补丁未改它，也未把它写成 55s。"
+      ]
+    }
+  }
+}
