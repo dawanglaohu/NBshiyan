@@ -1,7 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { authenticator } from 'otplib';
 import { test, expect } from './fixtures';
-import { BASE } from '../playwright.config';
+import { BASE } from './base-url';
 
 // P1：/admin-enroll 首次绑定 2FA。每个用例新建一个未绑定的账号（scripts/create-admin.mjs，仅 E2E 测试库），
 // 每个账号的密码校验次数控制在共享限流（同一 IP+账号 10 分钟 5 次）以内。

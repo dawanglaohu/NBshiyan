@@ -16,6 +16,15 @@ const MAX_BATCH = 20;
 type Locale = 'en' | 'ru';
 
 let locale: Locale = 'en';
+type NavigationContext = { navigationId: string; path: string; locale: Locale };
+let navigation: NavigationContext | null = null;
+/** Last location seen by the page producer, kept even while collection is off. */
+let lastLocation: { pathname: string; locale: Locale } | null = null;
+/**
+ * In-memory page-visit generation for model-attempt dedupe. It is a lifecycle marker
+ * only: never sent, stored or used as an analytics identifier (E-42).
+ */
+let pageVisitSeq = 0;
 let collecting = false;
 let grantConfirmed = false;
 let generation = 0;
@@ -49,6 +58,7 @@ export function stopCollection(): void {
   queue = [];
   collecting = false;
   grantConfirmed = false;
+  navigation = null;
   flushAbort?.abort();
   flushAbort = null;
   syncMarks();
@@ -160,6 +170,7 @@ function emit(pathname: string, value: Locale): void {
     if (product.success) events.push(product.data);
   }
   if (events.length === 0) return;
+  navigation = { navigationId, path: path.data, locale: value };
   remember(events);
   scheduleFlush();
 }
@@ -170,7 +181,9 @@ function emit(pathname: string, value: Locale): void {
  * Later pathname changes emit only while collection is on.
  */
 export function noteNavigation(pathname: string, value: Locale): void {
+  pageVisitSeq += 1;
   locale = value;
+  lastLocation = { pathname: pathname || '/', locale: value };
   ensureOnlineListener();
   const first = !opened;
   opened = true;
@@ -184,6 +197,18 @@ export function noteNavigation(pathname: string, value: Locale): void {
   }
   if (!collecting) return;
   emit(pathname, value);
+}
+
+/**
+ * A grant confirmed after the document loaded has no navigation context, because this
+ * visit predates consent and must not be backfilled as a page_view (M5-T7). Create the
+ * context silently so later real model attempts bind to the page the visitor is on.
+ */
+function resumeNavigationAfterGrant(): void {
+  if (navigation || !lastLocation) return;
+  const path = SitePathSchema.safeParse(sitePath(lastLocation.locale, lastLocation.pathname));
+  if (!path.success) return;
+  navigation = { navigationId: crypto.randomUUID(), path: path.data, locale: lastLocation.locale };
 }
 
 async function postConsent(want: boolean, boundedRetry: boolean): Promise<void> {
@@ -202,6 +227,7 @@ async function postConsent(want: boolean, boundedRetry: boolean): Promise<void> 
   if (result.ok && result.data.analytics === true) {
     grantConfirmed = true;
     collecting = true;
+    resumeNavigationAfterGrant();
     syncMarks();
     return;
   }
@@ -242,3 +268,29 @@ export function publishConsentChoice(analytics: boolean): void {
 }
 
 syncMarks();
+
+/**
+ * True only after a signed consent grant is known and the local stop flags are clear.
+ * Producers call this before creating any identifier, so a visitor without analytics
+ * consent never gets a viewId, eventId or queued event (E-42).
+ */
+export function canCollectAnalytics(): boolean {
+  return collecting;
+}
+
+/** The navigation context of the last emitted page view in this document, when collecting. */
+export function currentNavigation(): NavigationContext | null {
+  return navigation;
+}
+
+/** Current in-memory page-visit generation; a lifecycle marker, not an identity. */
+export function currentPageVisitSeq(): number {
+  return pageVisitSeq;
+}
+
+/** Queue already-built model events through the same dedupe/flush path as page events. */
+export function enqueueAnalyticsEvents(events: AnalyticsEventDTO[]): void {
+  if (!collecting || events.length === 0) return;
+  remember(events);
+  scheduleFlush();
+}
