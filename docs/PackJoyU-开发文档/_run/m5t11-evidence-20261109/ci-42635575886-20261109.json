@@ -1,0 +1,60 @@
+{
+  "kind": "ci-run-evidence",
+  "task": "M5-T11",
+  "run": 42635575886,
+  "workflow": "CI",
+  "event": "pull_request",
+  "head": "0d28ed8c0f6e8cddb6449da2583daebdcb2b209c",
+  "tree": "62a04f0800355f4be8d2a28f9c2c917432d4364c",
+  "conclusion": "success",
+  "checkout": {
+    "repo": "dawanglaohu/NBShiyan",
+    "runner": "ubuntu-latest",
+    "run_head_sha": "0d28ed8c0f6e8cddb6449da2583daebdcb2b209c",
+    "checked_out_merge_commit": "aaf553be6a0356427d2a4017e45710ca959391e1",
+    "merge_parents": ["042c7d24c0a6b879355fc6b4c7454543a91475fe", "0d28ed8c0f6e8cddb6449da2583daebdcb2b209c"],
+    "merge_tree": "62a04f0800355f4be8d2a28f9c2c917432d4364c",
+    "head_tree": "62a04f0800355f4be8d2a28f9c2c917432d4364c",
+    "tree_equal": true,
+    "note": "pull_request 事件检出 refs/pull/545/merge 合成提交 aaf553be，与任务头 0d28ed8c 的 tree 相同：代码内容等价，但证据必须同时记录两个 SHA"
+  },
+  "jobs": [
+    { "name": "build-and-audit", "id": 129222703280, "started": "2026-11-09T14:31:52Z", "completed": "2026-11-09T14:38:32Z", "duration": "6m40s", "conclusion": "success" },
+    { "name": "e2e", "id": 129222702531, "started": "2026-11-09T14:31:52Z", "completed": "2026-11-09T15:03:54Z", "duration": "32m02s", "conclusion": "success" },
+    { "name": "mail-evidence", "id": 129222703161, "conclusion": "success" },
+    { "name": "posix-storage-security", "id": 129222703330, "conclusion": "success" }
+  ],
+  "postgres": {
+    "version": "17.11 (Debian 17.11-1.pgdg13+2)",
+    "evidence_line": "starting PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2) on x86_64-pc-linux-gnu",
+    "first_start_utc": "2026-11-09T14:32:04Z"
+  },
+  "m5_retention": {
+    "tests/analytics-retention.db.test.ts": { "pass": 41, "fail": 0, "skip": 0, "todo": 0, "cancelled": 0 },
+    "tests/analytics-retention-plan.test.ts": { "pass": 18, "fail": 0, "skip": 0, "todo": 0, "cancelled": 0 },
+    "M5T11_REQUIRE_DATABASE": "true",
+    "M5T11_TEST_DATABASE_URL": "localhost:5432/e2e（日志掩码，未回显口令）",
+    "gate_source": "e2e job step「Analytics, chat, and other PostgreSQL regressions」逐文件门禁输出"
+  },
+  "a3": {
+    "collection": { "all": 219, "main": 216, "errors": 2, "flow": 1, "disjoint": true, "complete": true },
+    "main_segment": { "collected": 216, "passed": 206, "skipped": 10, "failed": 0, "duration": "22.3m" },
+    "errors_segment": { "collected": 2, "passed": 2, "duration": "14.4s" },
+    "flow_segment": { "collected": 1, "passed": 1, "duration": "16.7s" },
+    "totals": { "collected": 219, "passed": 209, "skipped": 10, "failed": 0 }
+  },
+  "elapsed": {
+    "job": "e2e",
+    "actual": "32m02s",
+    "configured_timeout": "35m",
+    "note": "32m02s 只记该次 job 实耗，不构成 35 分钟预算的保证余量，也不外推到其它负载或其它头"
+  },
+  "first_run_history": { "run": 42624444676, "conclusion": "failure", "cause": "cron 选择器取到 04:30 retention 行", "status": "已修复，保留为历史" },
+  "not_proven": [
+    "35 分钟预算在更大负载下的余量",
+    "5,000 行/DELETE、20,000 行/轮的合成负载",
+    "commit/WAL 时序",
+    "生产真实删除（未授权，不属待补验收）"
+  ],
+  "log_source": "job 日志各下载一次：security-pr545-ci-success-20261109/e2e-job-129222702531.log、build-and-audit-job-129222703280.log"
+}

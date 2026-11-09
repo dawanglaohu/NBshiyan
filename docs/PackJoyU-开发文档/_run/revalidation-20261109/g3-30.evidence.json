@@ -1,0 +1,282 @@
+{
+  "scope": "task-contract",
+  "note": "B9-BATCH-UNITS-REVAL-G3 (前端工程师). Read-only revalidation of the shared-section patch m5t11-batch-units-20261109. Docs fixed at 920db0f12f3eb45534d347281ad3d82e0e69bd10; landed code read from Git object 042c7d24c0a6b879355fc6b4c7454543a91475fe. No status/verify/build/landed was run; no markers, source, task cards or branches changed; no database/service/browser/test was started. Contract hashes are the current values recorded in _run/revalidation.json and cross-checked against _run/patches/m5t11-batch-units-20261109.evidence.json (30/30 equal); all 30 previousStatus were done. Verdict pass means the item was checked and either still satisfies the changed clauses or is not applicable; the evidence text says which and why.",
+  "sourceVersion": "a4d1bf677aaf639c469d031ae183af0348a42c812a8e5e48bc491916b1017eda",
+  "patch": "m5t11-batch-units-20261109",
+  "docsCommit": "920db0f12f3eb45534d347281ad3d82e0e69bd10",
+  "docsTree": "69eefad05225e576bd4b3b3d2cc7e06b670590a9",
+  "codeObject": "042c7d24c0a6b879355fc6b4c7454543a91475fe",
+  "tasks": {
+    "CATALOG-MERGE": {
+      "contractHash": "a3dcb9306bab421aba552ec3fe9b98c2a70628767028f1a13bc754049a95309d",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（目录合并与白名单对齐）：交付面是 src/lib/catalog/catalog.ts:37 `isListedCatalogKey` 与同文件的合并/装饰逻辑、产品页 SSR 目录，以及 analytics 白名单对齐；四处改动只重写作业批量单位与时间预算，不改变 catalog key、可见集合、SSR 数据源或发布开关。",
+        "其分析相关义务是 event-repo/ingest 的 publishedSlugs 白名单，不是 retention 删除批次；09 L73 的 5,000/20,000 行批次未给白名单新增义务，本卡也不注册 job。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "CITY-STILL-WEBP": {
+      "contractHash": "ea4a2928af172fb359d5c5c8ceba7a6e9c4020f4d3add0c31955910ee3711371",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（首页静帧素材）：交付面是 src/lib/home/brandMedia.ts:11 `pauseStill` 与 1384w/2000w WebP、BrandScene 的 srcset 消费；批量单位条款不涉及图片格式、视口选择、缓存或暂停帧。",
+        "09/18 的改动句没有新增媒体发布、素材来源或浏览器验证义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "CLIENT-API-DEADLINE": {
+      "contractHash": "2f6459d5e59952bdc7ff1f75466e659cc235818941684487887b381caf5fe8ab",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（客户端正文读取截止）：交付面是 src/lib/client/api.ts:217 `readOrAbort` 与 :265 `readCapped`；api.ts:24 `CLIENT_DEADLINE_MS = 15_000` 是每次尝试的客户端截止，09 L86 的 55s 是服务端固定作业的时间预算，两者不是同一条链，也不存在换算关系。",
+        "本次只把 55s 明写为「时间预算，不等于行数上限」，未改客户端 deadline、abort 竞速或取消优先语义。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "FE-404-TITLE": {
+      "contractHash": "7d22bb6867d619804df21120b009bc766be797d9ea8aebf98a1fcd12b66b91e3",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（404 标题进 head）：交付面是 src/components/NotFoundTitle.tsx:19 与 not-found 路由 metadata、e2e/not-found-robots.spec.ts 的原始 HTML/document.title 断言；批量单位条款不涉及 title、robots、hydration 或软导航。",
+        "08 jobs 段与 09/18 两处保留句未新增前端 metadata 义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "FE-FAB-390": {
+      "contractHash": "4bd509ecc8755c9889f2b6e69e70c77d259aa471394ccd76546dfbc5533755d7",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（悬浮按钮 390 命中）：交付面是 src/app/globals.css:85 `.fab{pointer-events:none}.fab>*{pointer-events:auto}` 与 FloatingActions 的展开高度测量；批量单位条款不涉及点击命中、页脚遮挡或 scrollY。",
+        "本卡无作业注册、保留删除或 55s 预算义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "GIFT-CARD-ASSETS": {
+      "contractHash": "4dfdfec2249121ec6693c8c801de3c6cec7fc41d7e90891ce28efaa084c690b4",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（贺卡素材）：交付面是 src/data/products.ts:16 的 `gift-card.e5bf7ec9` 模型/海报映射与 OG 图、后台中文标签；批量单位条款不涉及 GLB/WebP/OG、immutable 文件名或后台文案。",
+        "本卡 notes 的「/models 一年 immutable」是缓存命名规则，与 5,000/20,000 行保留批次无关。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "GIFT-CARDS-RENAME": {
+      "contractHash": "33bb7eb89dee1d1fbeb0ef49070fa21be4dd253099ea7315fa727d9293e0f4ad",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（品类 slug/SEO）：交付面是 src/lib/seo/categoryMeta.ts:74 的 `custom-greeting-cards` slug 映射与 ru 元数据、products/og-versions；批量单位条款不涉及 slug、metadata、OG 或路由。",
+        "本卡无作业注册、保留删除或时间预算义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M1-T1": {
+      "contractHash": "6d09f8ed137ab8c7a5f8ae86c719fb24a0edb72577bdaf17aecf76440a7d1757",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（品牌 token/真实冒烟）：交付面是 src/styles/tokens.css:25 起的 `--pj-*` 核心变量与首页/产品页 computed style、e2e/brand-smoke.spec.ts；批量单位条款不涉及 token 值、层叠覆盖或已审文档基线。",
+        "本卡不注册作业、不定义 batch/保留/租约，55s 与 5,000/20,000 均不在其契约面。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M1-T4": {
+      "contractHash": "7cdeacdc54670d233b6e44e073cf34bbfec38c4a03e34932b3872addc71b84fc",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（首页视频/场景接线）：交付面是 src/components/layout/HeroVideo.tsx:15 `HeroVideo` 与 BrandScene 的视区预载/GIF/暂停接线；批量单位条款不涉及 autoplay、15s playing 观察上限、300px 预载或用户暂停。",
+        "HeroVideo 的 15 秒是播放就绪观察上限，与 09 L86 的 55s 作业时间预算不是同一概念，本次改动未触及前者。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M1-T5": {
+      "contractHash": "b6c122e70a0b09aaa98744377833b3753e2de9d8cb7723fc4797af436a457212",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（公司内容/图稿消费）：交付面是 src/lib/brand/company-media.ts:33 `RELEASED` 白名单与首页/about 的 CompanySummary 消费；批量单位条款不涉及事实对照、发布开关、图片 srcset 或 alt。",
+        "09/18 改动未触及聊天 90d 或分析 30d/13 个月的用户可见口径，也未改公司事实边界。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M1-T6": {
+      "contractHash": "7131454bbbbacb0f26041fce812e98d84ca678251a41432b1531ff416c6519eb",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（媒体发布集合/逐帧核验）：交付面是循环 GIF、同尺寸暂停帧与 docs/brand-media/animation/verify-media-integrity.py 的 SHA/解码/时间线核验（main 上源件存档于 docs/brand-media/static/held/，首页消费已由同组媒体任务接 MP4：src/lib/home/brandMedia.ts:13-14）；批量单位条款不涉及帧序、30.08s、无限循环或发布集合。",
+        "本卡无作业注册、聚合或保留删除义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M1-T7": {
+      "contractHash": "86856a9543a2c3dd114449c2f1dcb63a552936452d20087c083ebaa8620d43bd",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（UI primitives）：交付面是 src/components/ui/Button.tsx:25 `Button`、src/components/ui/index.ts:1 的统一出口与 tokens.css 的组件状态；批量单位条款不涉及原生语义、busy/焦点/错误或 token 源。",
+        "本卡明确不含 fetch、Prisma、作业、保留或批处理，四处改动未增加此类义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M1-T8": {
+      "contractHash": "b84311112beb9aea0bb3b04c239f4740706645b3c18f68659dd6a9faf0897759",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（客户端 fetch 适配）：交付面是 src/lib/client/api.ts:24 `CLIENT_DEADLINE_MS = 15_000`、:23 的「per attempt」注释与重试/限体策略；09 L86 的 55s 是服务端固定作业预算，本卡的 15s 与 30s 分别是客户端每次尝试截止和自动等待上限，本次改动未改这两个值。",
+        "cron 禁重试是对客户端重放策略的约束，不是作业批量单位；两者没有混写。",
+        "本卡无作业注册或保留删除义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M1-T9": {
+      "contractHash": "40c7aa73df6a3885b141f7c567ca248a9a82ada72a483768613d9dac246aa7d7",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（公司图稿源件/清单）：交付面是 docs/brand-content/company-visuals.json:91 `selectedInput` 与可编辑工程/Web PNG 的 SHA、双语 alt；批量单位条款不涉及素材来源、工程对象或页面消费。",
+        "本卡无作业注册、保留删除或时间预算义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M2-T1": {
+      "contractHash": "8d26981bf92a8cbf2127f182b6ae9f835ae353acf61a1d33dec5f4c6ae53d1dd",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（产品卡布局）：交付面是 src/components/three/ProductGallery.tsx:238/344 `product-viewport` 与 globals.css 的卡高/操作行；批量单位条款不涉及 560px 卡、clamp、SSR 目录或询盘控件。",
+        "本卡无作业注册、保留删除或 55s 预算义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M2-T2": {
+      "contractHash": "4cd57b0e62d0c5d58a2460794a6c1922960253ba090aee4300a4057761eff991",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（3D 指针/滚轮准入）：交付面是 src/lib/three/model-pointer.ts:43 `wheelAdmission` 与 ProductGallery 的 `wheelPermit`/退出路径；批量单位条款不涉及焦点/指针命中、滚轮拦截或相机缩放。",
+        "本卡无作业注册、保留删除或时间预算义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M2-T3": {
+      "contractHash": "baaed0cf851faa2017e6df96ccdfd99661cc4839826002f8c97eca0d15d59932",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（3D 键盘/触屏/复位）：交付面是 src/lib/three/model-accessibility.ts:83 `TOUCH_TARGET_PX` 与 GalleryScene 的 command/zoom 两条通道、44px 目标；批量单位条款不涉及双指夹紧、复位基准或键盘动作表。",
+        "本卡无作业注册、保留删除或 55s 预算义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M2-T4": {
+      "contractHash": "3f4a27ad18f168c073471cab6fc984b6efae7be06ae3636261e0e0ab69c0c4db",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（模型事件纯规则）：交付面是 src/lib/analytics/model-events.ts:27/40/49 的 viewId 生命周期与 success/failure 去重；它只产出待 M2-T7 消费的事件，不执行聚合作业或保留删除，09 L73/L86 的删除批次与 55s 预算不在其契约面。",
+        "其 durationMs 取注入单调时钟差（:176），与 55s 作业预算无换算关系；本卡也不读取同意状态或发请求。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M2-T6": {
+      "contractHash": "8baa9d7c8cce3a346252caa15c2c98fb0618c1bf4c6b4c05d04d29ae117a1aaa",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（模型回退/重试）：交付面是 src/lib/three/model-fallback.ts:15 `MAX_MODEL_RETRIES = 3` 与 ProductGallery 的海报/失败条；批量单位条款不涉及手动重试上限、WEBGL_UNAVAILABLE 或 context lost。",
+        "本卡明确只上报加载结果、不创建分析成功事件，也不执行作业或保留删除。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "R3-T09233008": {
+      "contractHash": "c2b5df862d1b89ebf52b335abb1711cbc3818d18faf77b9f18e0d0fc43165123",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（存储权限/符号链接验收）：交付面是 tests/prod-env-check.test.ts:11/18 的 POSIX/符号链接能力探测与 0600/0700、拒绝覆盖/逃逸断言，以及 storage-local/storage 测试；批量单位条款不涉及权限位、realpath 或 CI 存储作业。",
+        "本卡无作业注册、保留删除或 55s 预算义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "R3-T09598683": {
+      "contractHash": "e18dee81c7dc5391ec42c2f81a1b4f4bbe1759254f80c7478d6cbb3c18cc3027",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（首页铺满）：交付面是 src/app/globals.css:446 起 `main:has(> .hero)` 的 ≥1489px 铺满规则与 1240px 上限、e2e/brand-smoke.spec.ts 的宽度断言；批量单位条款不涉及视口宽度、gutter 或卡片列数。",
+        "本卡无作业注册、保留删除或时间预算义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "R3-T12074461": {
+      "contractHash": "9d9344b9612557684d49cef282eda6cbfae23c6a10ca3adf12f92559c8773e07",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（11 节文档目标值）：交付面仅是 docs/PackJoyU-开发文档/02-设计/11-UI.md:197 的 publicBrand 目标值、1489px 门槛与首页例外；本次补丁只改 08/09/18，不含 11 节。",
+        "本卡无作业注册、保留删除或 55s 预算义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "R3-T21757567": {
+      "contractHash": "ac47ae246756fddccd1107cb640a9da4c0d6f566b3badb37ee92d08871eff574",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（Python 解释器探测/导入断言）：交付面是 tests/sanity-import.test.ts:9/12/315 的 `SANITY_IMPORT_PYTHON` 探测与导入/占位/食品声称/内链保护；批量单位条款不涉及解释器版本、9009 别名或逐字节 import.ndjson。",
+        "本卡无作业注册、保留删除或时间预算义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "R3-T22883505": {
+      "contractHash": "99443df7ecaf778ad0cace5a607b2d6367821f9fa83c7f98c3f45696819880ff",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（standalone/密度实证）：交付面是 playwright.config.ts:9/11/12 的 standalone 服务与 e2e/brand-smoke.spec.ts 的密度测量；批量单位条款不涉及 server.js、PG17、densityProbe 或 14 次测量。",
+        "本卡无作业注册、保留删除或 55s 预算义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "R3-T56876634": {
+      "contractHash": "4c92a5fe7637af3b17843dded87a21981657e57a43d8439a62ba5bbe4e9fdaa0",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（图稿选定输入）：交付面是 docs/brand-content/company-visuals.json:91 `selectedInput` 的 path/sha256/use 与 tests/company-visuals-selected-input.test.ts 的字节回归；批量单位条款不涉及素材选定输入或事实边界。",
+        "本卡无作业注册、保留删除或时间预算义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "R3-T71889698": {
+      "contractHash": "4b0fdb868a1c223f98e01269601d43f96359ed4d11c9ea081d94f6ae09c84709",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（重置审计/并发预期）：交付面是 scripts/enroll-token-lib.mjs:63 `issuedAudit`（由 scripts/admin-reset-initial-password-lib.mjs:167 使用）与 tests/admin-reset-initial-password.db.test.ts:149/151 的审计多重集断言；批量单位条款不涉及密码重置、令牌签发审计或 sessionVersion。",
+        "本卡无作业注册、保留删除或 55s 预算义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "R3-T75625096": {
+      "contractHash": "5c8639b9f95424da559f206214c66d13f8657175d13747c2b4ab61db7a7a742b",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（后台密度修复）：交付面是 src/components/admin/settings/settings.css:2 `.st-page` 等后台工作面样式与 e2e/brand-smoke.spec.ts 的 densityProbe；批量单位条款不涉及填充率、leftGap 或后台工作面。",
+        "本卡无作业注册、保留删除或 55s 预算义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "R3-T86511435": {
+      "contractHash": "00651122fe7703ca4624509b4695803168365b85ce7d51ae7b3ddf300f95b5a6",
+      "verdict": "pass",
+      "evidence": [
+        "适用且仍满足（仅租约句）：09 L86 的「租约90s」原句保留；main 042c7d24 的 src/lib/server/jobs/types.ts:7 `JOB_LEASE_MS = 90_000` 未变，tests/job-leases.db.test.ts 仍断言同 key 并发只有一项成功、满 90s 新代次可领取、旧 owner/generation 完成被拒。",
+        "本卡不主张聚合「天」或保留「行」的批量上限，四处改动未给它新增 batch 义务；55s 是作业总预算，90s 是租约互斥窗口，两者并存且未被本补丁改写。",
+        "结论：契约仍满足；只读文档/契约复核，不冒充代码验收或运行证据（未跑 PG17）。"
+      ]
+    },
+    "R3-T87287564": {
+      "contractHash": "d7207fcf35344f9c94346b1de96db5543c726a911f8e0434d93fd9dae7a26eb8",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（文件身份比较）：交付面是 tests/lint-ru-yo.test.ts:6/40/92 的 `defaultFiles`/`fileId` 与 prod-mocks-strip 的斜杠身份比较；批量单位条款不涉及路径归一、俄文扫描或 mock 清单。",
+        "本卡无作业注册、保留删除或时间预算义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "R3-T92231765": {
+      "contractHash": "3e2dae43569dc5ecb687775f3e0b0b78884733c58d4b0c410a87d2ee17b6e26d",
+      "verdict": "pass",
+      "evidence": [
+        "不适用（CRLF/真 Bash 夹具）：交付面是 .gitattributes:3 `*.sh text eol=lf` 与 11 条源码断言/真 Bash 回归；批量单位条款不涉及换行归一、plan-check 或 smoke-lib.sh。",
+        "本卡无作业注册、保留删除或 55s 预算义务。",
+        "结论：契约不受该补丁影响；只读文档/契约复核，不冒充代码验收或运行证据。"
+      ]
+    }
+  }
+}
