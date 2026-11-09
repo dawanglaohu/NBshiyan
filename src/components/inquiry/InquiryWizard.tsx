@@ -46,11 +46,13 @@ type Result = { ok: true; ref: string } | { ok: false; code: string };
 export default function InquiryWizard() {
   const t = useTranslations('Inquiry');
   const names = useTranslations('Products.names');
+  const productCopy = useTranslations('Products');
   const locale = useLocale();
   const quote = useQuote();
   const [step, setStep] = useState(0);
   const [fromQuote, setFromQuote] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
+  const [entryProduct, setEntryProduct] = useState<string | null>(null);
   const overLimit = isOverQuoteLimit(selected.length);
   const [qty, setQty] = useState<string>('unsure');
   const [size, setSize] = useState('');
@@ -129,14 +131,31 @@ export default function InquiryWizard() {
   }, [wait]);
   useEffect(() => { setErrs((e) => revalidate(e, contact)); }, [contact]);
   const prefilled = useRef(false);
+  const entryPrefilled = useRef(false);
+  const productEntryChecked = useRef(false);
   const prevQuote = useRef<string[]>([]);
+
+  // M2-T5：产品卡入口带 product=<slug>。from=quote 仍走原清单流程；
+  // 否则有效 product 优先于陈旧本地清单；非法 product 不替换成别的产品。
+  useEffect(() => {
+    if (productEntryChecked.current) return;
+    productEntryChecked.current = true;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('from') === 'quote') return;
+    if (!params.has('product')) return;
+    entryPrefilled.current = true;
+    const slug = params.get('product');
+    if (!slug || !products.some((p) => p.slug === slug) || !names.has(slug)) return;
+    setEntryProduct(slug);
+    setSelected([slug]);
+  }, [names]);
 
   // 从询价清单进来时预填产品
   useEffect(() => {
     setFromQuote(new URLSearchParams(window.location.search).get('from') === 'quote');
   }, []);
   useEffect(() => {
-    if (!prefilled.current && quote.items.length) {
+    if (!prefilled.current && quote.items.length && !entryPrefilled.current) {
       prefilled.current = true;
       setSelected(quote.items.map((i) => i.slug));
     }
@@ -277,6 +296,10 @@ export default function InquiryWizard() {
 
   // 当帧就按当前输入重算（不用等 effect 同步 errs），改对的那一刻错误就消失
   const shownErrs = revalidate(errs, contact);
+  // 产品卡入口：名称与规格直接取卡片同源的 Products.names / Products.specs，只显示卡片上的前三条。
+  const entrySpecs = entryProduct && productCopy.has(`specs.${entryProduct}`)
+    ? (productCopy.raw(`specs.${entryProduct}`) as string[]).slice(0, 3)
+    : [];
   const invalidProps = (f: ContactField) => (shownErrs[f] ? { 'aria-invalid': true as const, 'aria-describedby': errorId(f) } : {});
   const fieldErr = (f: ContactField) => (shownErrs[f] ? <p id={errorId(f)} className="iq-err"><span aria-hidden="true">⚠ </span>{t(`validation.${shownErrs[f]!}`)}</p> : null);
 
@@ -295,6 +318,16 @@ export default function InquiryWizard() {
               ))}
             </div>
           </fieldset>
+          {entryProduct && selected.includes(entryProduct) && (
+            <div className="field iq-product-context" data-testid="inquiry-product-context">
+              <p className="iq-product-context-name">{names(entryProduct)}</p>
+              {entrySpecs.length > 0 && (
+                <ul className="iq-product-context-specs" data-testid="inquiry-product-specs">
+                  {entrySpecs.map((s) => <li key={s}>{s}</li>)}
+                </ul>
+              )}
+            </div>
+          )}
           <fieldset className="field"><legend>{t('quantity')}</legend>{chips('qty', QTY.map((q) => q.k), qty, setQty, (k) => t(`qty.${k}`))}</fieldset>
         </>
       )}

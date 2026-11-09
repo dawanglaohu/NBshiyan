@@ -11,11 +11,14 @@ import { LOGO_ID_RE } from '@/lib/server/uploads';
 import { DESIGN_ID_RE, liveDesignIds, designIdFromShareUrl, InquiryItemConfig } from '@/lib/server/designs';
 import { PublishedLocaleSchema } from '@/lib/server/published-locales';
 import { normalizeEmail, ShippingAddress, SAMPLE_MAX_ITEMS, SAMPLE_EMAIL_WINDOW_DAYS, SAMPLE_IP_LIMIT, sampleRecentResponse } from '@/lib/server/sample';
+import { products } from '@/data/products';
+import { listPublishedModels } from '@/lib/server/published-models';
 
 class LogoInvalid extends Error {}
 class SampleLimited extends Error {}
 
 const CART_MAX_ITEMS = 20;
+const STATIC_PRODUCT_SLUGS: ReadonlySet<string> = new Set(products.map((p) => p.slug));
 
 const Body = z.object({
   source: z.enum(['FORM', 'WIZARD', 'CART', 'CUSTOMIZER', 'SAMPLE']),
@@ -94,6 +97,19 @@ export async function POST(req: Request) {
   const designIds = [...new Set(b.items.flatMap((i) => (i.designId ? [i.designId] : [])))];
   const live = await liveDesignIds(designIds);
   if (live.size !== designIds.length) return NextResponse.json({ error: 'design_invalid' }, { status: 422 });
+
+  // M2-T5/Jev C：仅 WIZARD/CART 且无 designId 的条目做目录认可；designId 条目已过上面的 liveDesignIds。
+  // 目录 = 静态 12 个 product slug ∪ published READY 的 Model3D.productSlug；读取失败向上抛，绝不放行。
+  if (b.source === 'WIZARD' || b.source === 'CART') {
+    const needsCatalog = b.items.some((i) => !i.designId && !STATIC_PRODUCT_SLUGS.has(i.productSlug));
+    if (needsCatalog) {
+      const published = await listPublishedModels();
+      const accepted = new Set<string>([...STATIC_PRODUCT_SLUGS, ...published.map((m) => m.productSlug)]);
+      if (b.items.some((i) => !i.designId && !accepted.has(i.productSlug))) {
+        return NextResponse.json({ error: 'invalid' }, { status: 400 });
+      }
+    }
+  }
 
   // 国家代码同样只在请求经过认证的 nginx（X-Edge-Auth 正确）时才信任
   const ipCountry = trustedCountry(req.headers);
