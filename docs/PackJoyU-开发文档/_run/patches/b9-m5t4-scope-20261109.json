@@ -72298,7 +72298,7 @@
     "_run/task-contracts.json": "bb480e1fac74dbb438049bdf25cde822cc8dbd28df9ff1da3d3dc74f91190154"
   },
   "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836",
-  "status": "synced",
+  "status": "verified",
   "synced": "2026-11-09T23:15:20.690671+00:00",
   "task": "M5-T4",
   "verifiedTasks": [

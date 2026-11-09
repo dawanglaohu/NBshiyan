@@ -1,0 +1,25 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M5-T4": {
+      "contractHash": "bd655119bd29afd5c1b9d589e5b84784b1c8c0bf041931b880a9a993dd4c88ec",
+      "verdict": "pass",
+      "evidence": [
+        "固定头 802fbffbfede93bcfd8bdde2fac9cc2e1e5c1823 / tree d4cc6cbd312fcf7ed8a177da5640a348ec00e7d0 / 父 149cfcc7…，branch task/M5-T4，工作树 clean；M5-T4 卡 status todo。生产链 e44597c4（实现）→dec8d4f4（认证 R1）→149cfcc7（R2/R8 补测）→802fbffb（CI 接线）；当前契约 hash bd655119…，task-contracts 85 项。",
+        "契约未改：provides analytics-settings-api、requires M5-T9/M5-T8、supportPaths 11、outputPaths 3（route/composition/tests/analytics-settings.http.test.ts）、sections 12；卡的两条验收、字段/依赖/范围未改。原 scope 144 模板（_run/patches/b9-m5t4-scope-20261109.evidence.json 26,053 B 60E214F8…）与单任务 8 条输入（…m5t4-verify.json 2,615 B 45212F73…）保留；8209 的旧 4 条记录仍在 Git 历史。",
+        "验收 1：真 HTTP GET/PATCH 入口 route.ts:9/15（requireAdmin(ADMIN)→handler→createAdminServices）；GET 单语句双读 settings+backlog（settings-repo.ts:36）、读时 live/null 语义（settings.ts:196/100）、坏 settings 503、DTO 四字段；PATCH 同源→限流→2KB→strict→版本 CAS+审计+重算待办同事务（settings.ts:363/182）；作业在同一 RR 事务按完整值 CAS 删除待办后 complete（registry.ts:194/280/315），窗口按 planSnapshot（aggregate-plan.ts:108）只重算保留完整 30 天原始覆盖的区间，更早记 skippedRange/partial，无分页。",
+        "验收 2：不存在 IANA、旧 version、SALES/EDITOR/未登录均拒绝且原配置不变；不回退浏览器时区；GET 与作业共用同一可用 pending 判定；缺 settings 按默认 UTC/rev1；about/org 不变、10 节四字段 schema。测试覆盖：analytics-settings.http.test.ts:257（GET/PATCH、CAS、live、坏值、403/409/413/401）与 :373（R1 真 Auth.js 登录→route→requireAdmin→composition→PG）；analytics-settings.db.test.ts:350/374；jobs-runtime.http.test.ts:482/660/726。",
+        "证据分层（作者本地，未由本窗复跑）：e445 的 69 项 = 纯单测 14 + aggregate.db 18 + settings.db 9 + settings.http 6 + jobs-runtime 22；首跑 64/69 的 5 条均为测试代码问题，修正后 69/69、154,197.8886 ms、exit 0（backend-m5t4-implement 1B475C02…）。dec8d4f4 只复跑 analytics-settings.http.test.ts 10/10（原 6 + R1 新 4）exit 0、6,131.3833 ms，其余四个 DB 文件未复跑。",
+        "R2/R8（作者）：149cfcc7 只改 jobs-runtime.http.test.ts(+115)/settings-repo.ts 注释/卡；jobs run2 23/24、exit 1 已保留（not ok 8，deadline before claim），run3 34,749.4232 ms、run4 33,851.3232 ms（勘误 7778B616… 已换正），run1 24/24。R2 观测 CAS DELETE 命中 1 行后整组回滚；R8 释放锁后 1.5s 观察窗内 lastStatus/lastErrorCode 未变。tsc/eslint 各 8 B 仅 exit=0，命令范围来自作者回执（errata 四限定）。",
+        "非作者审查：scope 窄审 53C97493… 限定 PASS（语义/写域），其中 2 项机械记录必修属当时记录项，已由 38aa7e04 续接（144 模板＋旧 4 条引用）并经独立机械窄核 19536AEE…（2,876 B）闭合，非当前阻断；认证 R1 窄审 0C3C9BA6… 限定 PASS；R2/R8 窄审 B66ECEBD… R2 闭合、R8 条件闭合（提交前中止），无阻断；CI 接线窄审 59073643… 限定 PASS。以上均未重跑业务；96 条 revalidation 未代验。",
+        "闭合口径：R2 = CAS DELETE 命中 1 行后整组回滚、SiteSetting.value::text（jsonb 存储值文本）未变、无聚合/水位、JobState 保持 RUNNING；R8 = 真实 cron 入口 503 job_timeout，仅在可确认的提交前中止场景及释放锁后 1.5s 两字段观察窗内成立，非全字段相等/非 promise settle/非租约到期。R10（未知提交窗口）、socket HTTP/浏览器、真实新 CI 仍未证。",
+        "CI 接线 802fbffb：仅 .github/workflows/ci.yml +6/−0；Analytics, chat, and other PostgreSQL regressions 步骤三清单 23=22+1、新增 tests/analytics-settings.http.test.ts 各一次，M5T4_TEST_DATABASE_URL(e2e?schema=m5t4)/M5T4_REQUIRE_DATABASE=true；串行/双 reporter/四零/pass≥1/MISSING 门禁保留；只是静态与合成负控通过，真实 CI 未执行、23 文件未实跑。",
+        "task-reviews 当前条目替换说明：旧 scope 记录在 _run/patches/b9-m5t4-scope-20261109.m5t4-verify.json（45212F73…，8 条）与 Git 历史——16a989c3 为 7 条、38aa7e04 为 8 条（含旧记录续接）；8209 旧 4 条记录在 Git 历史。本记录只取代 current task-reviews 的 M5-T4 条目，不删除旧文件/旧复核；M5-T4 仍 todo、未 landed。",
+        "未证/不主张：R10 未知提交；socket 级 HTTP/浏览器；真实新 CI 与 23 文件执行；96 条 revalidation 未代跑、未清除；本窗未重跑 69/HTTP10/jobs24、未连 PG；tsc/eslint 8 B 日志只支撑 exit=0；任务卡仍 todo。",
+        "集成三方合并（非作者核，固定 Git 对象）：ours e539dcfa／main 025834fa／merge-base 8209b2de → merge 870dbd61（tree 25b7a052，parents e539dcfa＋025834fa）→ resync 1ddeedad（tree 5815666e）。逐文件：仅 M5 侧改动 23 件与 ours 逐字节相同、仅 main 侧 13 件与 theirs 相同、6,000+ 未触碰与 base 相同，0 缺失 0 不一致；契约 85 个仅 M3-T5（＝main）与 M5-T4（＝ours）变化，其余 83 个两边相同；复核 139 键仅此两条，M3 14 条／M5 11 条原文保留；composition.ts 两侧新增 4 行＋7 行全部保留（真合并，非整取一侧）；CI 三清单 25/25/25 逐项有序全等＝旧 22＋reentry＋confirm＋analytics-settings.http，M5T4_TEST_DATABASE_URL/M5T4_REQUIRE_DATABASE 在，四零门禁/串行/双 reporter 保留，未导入 M2 未合的五段流程。来源 testing-m5t4-main-integration-review-20261109。",
+        "resync 记录（非作者核）：revalidation 96→97，只新增 M3-T5、无删除；旧 96 条 patches 前缀逐字保留、每条恰追加 1 条、previousStatus 不变（三项 0 例外）；97 条 contractHash 与补丁 after、dispatch、144 证据模板四方一致。补丁 baseline/sourceContents/before(144/144)/head(8209b2de) 未改，sourceChanges 三份 after 等于当前实际文件（工具重放）。双比较口径：原 patch baseline 8209b2de→current 中 M3-T5 为 definition+effectivePaths+sections:10（before 5e2e4806→after f8049083），main 025834fa→current 仅 sections:10（4f4daf0b→378a9b0f）；95 条仅共享 10 节，M1-T9 为 providers。144 模板重生为全 pending（23,647 B），旧模板 26,053 B、旧 8 条输入 2,615 B、旧 revalidation 38,581 B 均保全于 preserved-before-resync。",
+        "边界：本轮只是契约/集成核验。97 条是待复验登记，未经业务复验；真实新 CI 未跑；R10、socket/浏览器、真实 40P01/多实例/Redis、生产 PG 等既有未证项不扩大、不改判；M5-T4 仍 todo，未 landed、未 push，本记录不构成实现通过或发布许可。"
+      ]
+    }
+  }
+}
