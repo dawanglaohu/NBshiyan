@@ -1033,15 +1033,18 @@
     "verdict": "pass"
   },
   "M4-T12": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "030a7f0e099e887bfe7dc3f809c5af48f266dd4ebe4843158041067490eebe85",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "2d4d26e605b4de2824dac72c7e19a52fae8081a8f4c16109f4187acf52f2d2c7",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M4-T12《注册既有邮件队列真实POST调度》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "补丁 m4t12-scope-20261109 只改两处源：_run/task-contracts.json 的 M4-T12.supportPaths 原4条保留并追加6条（src/lib/server/mail.ts、src/lib/server/mail/send.ts、src/lib/server/mail/queue-job.ts、tests/fixtures/mail-db.ts、src/lib/server/cron-alert.ts、.github/workflows/ci.yml）；provides/requires/stage/wiring/outputPaths/sections 逐字段未变，其余143个任务定义逐字未变（git diff 该文件 +7/−1）。",
+      "19-模块任务拆分.md 只改 M4-T12 行第2条，追加三句：终态写回在同一事务内以完整守卫（id/status/attempts/redactedAt=null）单条CAS完成且attempt取自本次领取、提交未确认不重放不计数；队列领取/处理受整轮预算约束、数据库收尾用独立短窗且不占告警截止；告警只在正常budget deadline内启动。原1)/2)条款与取值保留，diff +1/−1，其余94行逐字未变。",
+      "授权映射：终态单条CAS/attempt来源/未确认不重放、队列预算与独立短收尾、告警budget deadline 三项写入本行；GET/POST共享租约/JobState摘要、cron仅POST（不以GET预取触发）、原五计数stale/sent/failed/deferred/dropped 已在原1)/2)保留；未新增产品需求、未放宽或改写原验收标准。",
+      "sync 后 affected = M4-T12（definition、effectivePaths、task）+ M7-T10/M7-T4/M7-T8/M7-T9（仅上游契约哈希传播，定义未改）；五者均未落地，revalidation.json 仍为 {}，未手清任何待复验标记或 needsReview。",
+      "契约哈希：before 9b964e5cc997e3c966f2dd3c6ec96311fa2dc881dcbe7d29f319832a7da0e3b3 → after 2d4d26e605b4de2824dac72c7e19a52fae8081a8f4c16109f4187acf52f2d2c7；M4-T12 effectivePaths = outputPaths 1 + supportPaths 10 = 11 条；任务仍为 todo，不声称实现、落地或运行通过。",
+      "派生仅由正常生成器更新：M4-T12 任务笔记、docs-data.js、dispatch.json、build-manifest/build-state/review 与 evidence-template；未改 09/10/18 等共享章节、未改生成器、未改运行源码/tests/schema/CI内容/生产开关。源条款 diff 见 _run/patches/m4t12-scope-20261109.md。",
+      "命令与状态：begin exit 0；sync exit 0（输出 已同步，待真实复核：M4-T12, M7-T10, M7-T4, M7-T8, M7-T9）；status 显示 sourceVersion 70552b59…、stale=[]、runtimeDrift=[]、blockers=[]；本件即本次 verify 的单任务输入，完整 affected 模板保留在 _run/patches/m4t12-scope-20261109.evidence.json。未跑 PG/SMTP/HTTP/服务/生产操作，未 push/PR。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-11-09T21:30:08.516947+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },

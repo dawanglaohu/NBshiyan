@@ -2206,7 +2206,13 @@
         "src/lib/server/jobs/registry.ts",
         "src/lib/server/composition.ts",
         "deploy/cron.nbshiyan",
-        "tests/mail-queue-schedule.integration.test.ts"
+        "tests/mail-queue-schedule.integration.test.ts",
+        "src/lib/server/mail.ts",
+        "src/lib/server/mail/send.ts",
+        "src/lib/server/mail/queue-job.ts",
+        "tests/fixtures/mail-db.ts",
+        "src/lib/server/cron-alert.ts",
+        ".github/workflows/ci.yml"
       ],
       "outputPaths": [
         "src/app/api/admin/cron/mail-queue/route.ts"
