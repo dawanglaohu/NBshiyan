@@ -25,6 +25,20 @@
       "bytes": 10376,
       "sha256": "292A7FBEE275BF0A698C07F09F104F4F21B0297076D2B2AF3B4DAB0200B999FC",
       "source": "D:\\xiangmu\\.codex-plans\\NBshiyan-m5-t11\\testing-m5t11-ci-review-20261109\\testing-m5t11-ci-review-bded1728-20261109.md"
+    },
+    {
+      "name": "db-m5t11-contract-final-evidence-20261109.json",
+      "bytes": 9663,
+      "sha256": "5A269D2A1FF8D2358FEFDA2DC2B763AA4540CF3EE8C4D1C12AFD6CDD713B6509",
+      "source": "D:\\xiangmu\\.codex-plans\\NBshiyan-m5-t11\\db-m5t11-contract-final-evidence-20261109.json",
+      "role": "self-contract-final"
+    },
+    {
+      "name": "db-m5t11-contract-final-20261109.md",
+      "bytes": 11798,
+      "sha256": "55A6BF602A151C0AD2D545FC654B27EB2D01ABB20FC0FBD85C2D7F0A3A26EDB9",
+      "source": "D:\\xiangmu\\.codex-plans\\NBshiyan-m5-t11\\db-m5t11-contract-final-20261109.md",
+      "role": "self-contract-final"
     }
   ]
 }
