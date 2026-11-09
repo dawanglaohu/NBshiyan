@@ -1,7 +1,7 @@
 import { cpSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
-import { BASE, PORT } from './e2e/base-url';
+import { BASE, PORT } from './scripts/base-url';
 
 export { BASE };
 

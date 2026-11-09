@@ -1,0 +1,108 @@
+# 文档补丁 m2t7-build-context-20261109
+
+任务：M2-T7
+原分支：task/M2-T7
+原 PR：546
+依据：M2-T7 image-context repair: move shared BASE/PORT source from excluded e2e/base-url.ts to included scripts/base-url.ts; register scripts/base-url.ts as the exact new support path; keep config re-export, five spec imports, asset preparation and gates unchanged
+
+## 差异与复验范围
+
+- M2-T7：definition、effectivePaths
+- M2-T8：上游契约变化或本次审查目标
+- M3-T10：上游契约变化或本次审查目标
+- M3-T11：上游契约变化或本次审查目标
+- M3-T12：上游契约变化或本次审查目标
+- M3-T13：上游契约变化或本次审查目标
+- M3-T25：上游契约变化或本次审查目标
+- M3-T6：上游契约变化或本次审查目标
+- M3-T8：上游契约变化或本次审查目标
+- M3-T9：上游契约变化或本次审查目标
+- M6-T1：上游契约变化或本次审查目标
+- M6-T2：上游契约变化或本次审查目标
+- M6-T3：上游契约变化或本次审查目标
+- M6-T4：上游契约变化或本次审查目标
+- M6-T5：上游契约变化或本次审查目标
+- M6-T6：上游契约变化或本次审查目标
+- M6-T7：上游契约变化或本次审查目标
+- M7-T1：上游契约变化或本次审查目标
+- M7-T10：上游契约变化或本次审查目标
+- M7-T2：上游契约变化或本次审查目标
+- M7-T3：上游契约变化或本次审查目标
+- M7-T4：上游契约变化或本次审查目标
+- M7-T5：上游契约变化或本次审查目标
+- M7-T6：上游契约变化或本次审查目标
+- M7-T7：上游契约变化或本次审查目标
+- M7-T8：上游契约变化或本次审查目标
+- M7-T9：上游契约变化或本次审查目标
+
+### _run/task-contracts.json
+
+````diff
+--- before/_run/task-contracts.json
++++ after/_run/task-contracts.json
+@@ -609,6 +609,7 @@
+         "e2e/hotfix-login-empty.spec.ts",
+         "eslint.config.mjs",
+         "playwright.config.ts",
++        "scripts/base-url.ts",
+         "src/lib/client/analytics.ts"
+       ],
+       "outputPaths": [
+````
+
+新旧任务契约在同名 JSON 的 changes、源条款在 sourceChanges。只复验变化及其影响，不重新初始化分支。
+
+## 原任务续做
+
+# 继续原任务 M2-T7：把真实GLB生命周期接入分析采集
+沿用分支 task/M2-T7、现有工作树和原 PR；不要创建新任务或重新初始化分支。
+任务契约版本：7967be867d61f02caa023c778131710976060ba155e00f4834e0316000ab5944
+读取 _run/patches/ 中本次补丁的差异和复验清单，只处理列出的条目及其直接影响。没有差异说明时先核对现有 PR 的返工记录，不按完整实施流程重做。
+修正后的验收：
+1) 真浏览器产品卡发起GLB后POST /api/analytics/events分别保存产品访问、model_view_start及成功/失败
+仅进入产品路由且没有真实GLB加载尝试时无start
+可视区自动加载或主动操作确实发起GLB时均产生start，不要求额外激活点击
+未同意/拒绝分析时模型仍可用且无分析请求（E-42、E-46）。2) 分别注入GLB下载失败/WebGL不支持/context lost/poster或FoldBox，仅对应产品静态回退、重试及询盘可用
+poster/演示无GLB success
+同viewId最多一种终态，新实际重试按规则新viewId（E-103）。3) 成功/失败/超时两次尝试与切卡取消逐项核关联及真实durationMs，分母仅同意后真实start、timeout为failure、不补拒绝样本（E-63）
+平均耗时与samples、无样本null、零成功0%由 M6-T1 计算、M6-T6 输出、M7-T3 终验，不在本任务重复验收。
+有效范围：
+.github/workflows/ci.yml
+e2e/admin-device-session.spec.ts
+e2e/admin-enroll.spec.ts
+e2e/admin-login.spec.ts
+e2e/admin.spec.ts
+e2e/base-url.ts
+e2e/hotfix-login-empty.spec.ts
+e2e/model-events.spec.ts
+eslint.config.mjs
+playwright.config.ts
+scripts/base-url.ts
+src/app/
+src/app/admin-enroll/
+src/app/admin-login/
+src/app/admin-recovery/
+src/app/admin/account/
+src/app/admin/chat/
+src/app/admin/settings/
+src/app/admin/stats/
+src/app/admin/users/
+src/components/admin/AdminShell.tsx
+src/components/analytics/
+src/components/layout/SiteFooter.tsx
+src/components/layout/SiteHeader.tsx
+src/components/three/
+src/i18n/navigation.ts
+src/i18n/routing.ts
+src/lib/client/analytics.ts
+src/lib/contracts/analytics.ts
+src/lib/contracts/chat.ts
+src/lib/navigation/routes.ts
+保留已有代码和回填；修改后运行必要检查、追加提交并 push，继续原 PR 审查。
+## 自行裁决：交 Jev，不交用户
+实施、审查、查 bug、批次收口过程中出现的每一条「自行裁决」，以及验收冲突、文档缺口、栈外依赖、UI/UX 未定项，都先列出 2–5 个真实可行的选项；不能把你想要的答案当唯一候选。
+把原始需求、任务标题与验收、冲突和选项忠实译成英文写入 state.json（文档与回报仍用中文）；UI/UX 取舍使用 design，其余使用 adjudicate。
+运行 python "docs/PackJoyU-开发文档/_run/typesafe_ask.py" --log "docs/PackJoyU-开发文档/_run/judgments.jsonl" --label "M2-T7:resume" run adjudicate --state <state.json>；UI/UX 将 adjudicate 换成 design。若 language_warning 提示中文过多，重译后重跑。
+仅 status=ok 且 verdicts.adopt.action=take 才按 option 执行；confidence=low 仍用 Jev 的 option，记低置信风险。spec_change=yes 走文档补丁，outside_stack=yes 在回报点名，不自动扩权。
+adopt=red_line 仅涉及付费、不可逆删除、改变已定范围或对外承诺时请求用户授权；status=skipped/error 或缺有效 pick 时留下待 Jev 裁决，不得由人代答、判 pass、声称已落地或写 clean/fixed。
+回报逐条写：冲突 → 全部候选 → Jev line/model/采纳的 option → 代码或文档动作；没有写「无」。

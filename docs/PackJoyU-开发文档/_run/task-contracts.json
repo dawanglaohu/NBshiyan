@@ -609,6 +609,7 @@
         "e2e/hotfix-login-empty.spec.ts",
         "eslint.config.mjs",
         "playwright.config.ts",
+        "scripts/base-url.ts",
         "src/lib/client/analytics.ts"
       ],
       "outputPaths": [
