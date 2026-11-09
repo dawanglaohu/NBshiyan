@@ -743,16 +743,17 @@ describe('M5-T4 pending 分类与完整值 CAS 消费', { concurrency: false, sk
     const originalBacklog = (await readBacklog())!;
 
     // 表级锁让聚合的第一次读取真阻塞跨过截止；作业入口、预算与实现都走真实代码。
+    // 预算留足 claim 的时间，确保超时发生在聚合阶段而不是领取阶段。
     const holder = conn.$transaction(async (tx) => {
       await tx.$executeRawUnsafe('LOCK TABLE "AnalyticsEvent" IN ACCESS EXCLUSIVE MODE');
-      await sleep(3_000);
+      await sleep(6_000);
     }, { maxWait: 5_000, timeout: 20_000 });
-    await sleep(150);
+    await sleep(200);
     const res = await createOperationsHandler({
       services: createJobServices({ db: conn, clock: () => new Date(BASE) }).jobs,
       clock: () => new Date(BASE),
       secret: SECRET,
-      deadlineMs: 1_200,
+      deadlineMs: 4_000,
     })(post({ jobKey: 'analytics-aggregate' }));
     assert.equal(res.status, 503);
     assert.equal((await res.json() as { error: string }).error, 'job_timeout');
@@ -763,7 +764,7 @@ describe('M5-T4 pending 分类与完整值 CAS 消费', { concurrency: false, sk
     assert.equal(await readBacklog(), originalBacklog, '超时未执行 CAS，完整待办必须保留');
 
     await holder.catch(() => {});
-    await sleep(1_200);
+    await sleep(1_500);
     assert.deepEqual(await jobState(), atDeadline, '截止后不得晚写终态，也不得晚释放租约');
     assert.equal(await rollupCount(), 0);
     const daily = await conn.$queryRaw<{ c: bigint }[]>`SELECT COUNT(*)::bigint AS c FROM "AnalyticsDailyRollup"`;
