@@ -1,7 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { authenticator } from 'otplib';
 import { test, expect } from './fixtures';
-import { BASE } from '../playwright.config';
+import { BASE } from './base-url';
 
 const E2E_TOTP = 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP';
 

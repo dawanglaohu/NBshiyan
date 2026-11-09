@@ -602,7 +602,19 @@
         "eventKinds",
         "frontendRoutes"
       ],
-      "supportPaths": [],
+      "supportPaths": [
+        ".github/workflows/ci.yml",
+        "e2e/admin-device-session.spec.ts",
+        "e2e/admin-enroll.spec.ts",
+        "e2e/admin-login.spec.ts",
+        "e2e/admin.spec.ts",
+        "e2e/base-url.ts",
+        "e2e/hotfix-login-empty.spec.ts",
+        "eslint.config.mjs",
+        "playwright.config.ts",
+        "scripts/base-url.ts",
+        "src/lib/client/analytics.ts"
+      ],
       "outputPaths": [
         "src/components/three/",
         "src/components/analytics/",
@@ -915,7 +927,8 @@
         "src/lib/server/admin/audit.ts",
         "src/lib/server/composition.ts",
         "tests/admin-recovery-confirm.db.test.ts",
-        "tests/admin-recovery-reentry.http.test.ts"
+        "tests/admin-recovery-reentry.http.test.ts",
+        ".github/workflows/ci.yml"
       ],
       "outputPaths": [
         "src/lib/server/admin/recovery-enrollment.ts",
@@ -2848,7 +2861,13 @@
         "jobs",
         "container"
       ],
-      "supportPaths": [],
+      "supportPaths": [
+        "src/lib/server/analytics/aggregate.ts",
+        "tests/jobs-runtime.http.test.ts",
+        ".github/workflows/ci.yml",
+        "tests/cron-analytics-rollup.test.ts",
+        "e2e/analytics-job-runtime.spec.ts"
+      ],
       "outputPaths": [
         "src/lib/server/analytics/retention.ts",
         "src/lib/server/jobs/registry.ts",

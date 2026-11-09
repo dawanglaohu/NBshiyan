@@ -25,7 +25,11 @@ import { expect, test } from './fixtures';
 
 const CRON = readFileSync('deploy/cron.nbshiyan', 'utf8');
 const CRON_LINES = CRON.split(/\r?\n/);
-const OPERATION_LINE = CRON_LINES.find((line) => line.includes('/api/admin/cron/operations'));
+// 模板里可以有多条 operations 调度（aggregate 每 5 分钟、retention 每日 04:30）；
+// 按 jobKey 精确选聚合行并断言唯一，不取「第一条 operations 行」，避免行序漂移。
+const AGGREGATE_OPERATION_LINES = CRON_LINES.filter(
+  (line) => line.includes('/api/admin/cron/operations') && line.includes("jobKey:'analytics-aggregate'"),
+);
 
 const APP_BASE = process.env.M5T8_E2E_BASE_URL;
 const E2E_DB = process.env.M5T8_TEST_DATABASE_URL ?? process.env.DATABASE_URL;
@@ -46,12 +50,13 @@ function appUrl(path: string): string {
   return APP_BASE ? `${APP_BASE}${path}` : path;
 }
 
-test('cron 模板只注册 analytics-aggregate 并替换旧 rollup', () => {
-  expect(OPERATION_LINE, 'cron 必须有一条 operations 调度').toBeTruthy();
-  expect(OPERATION_LINE!).toMatch(/^\*\/5 \* \* \* \* /);
-  expect(OPERATION_LINE!).toContain("jobKey:'analytics-aggregate'");
-  expect(OPERATION_LINE!).toContain('AbortSignal.timeout(55000)');
-  expect(CRON_LINES.some((line) => line.includes('/api/admin/cron/analytics-rollup'))).toBe(false);
+test('cron 模板中 analytics-aggregate 调度唯一并替换旧 rollup', () => {
+  expect(AGGREGATE_OPERATION_LINES.length, 'cron 必须恰好一条 analytics-aggregate operations 调度').toBe(1);
+  const line = AGGREGATE_OPERATION_LINES[0]!;
+  expect(line).toMatch(/^\*\/5 \* \* \* \* /);
+  expect(line).toContain("jobKey:'analytics-aggregate'");
+  expect(line).toContain('AbortSignal.timeout(55000)');
+  expect(CRON_LINES.some((l) => l.includes('/api/admin/cron/analytics-rollup'))).toBe(false);
 });
 
 type JobStateRow = {

@@ -4,6 +4,7 @@ import { prisma } from './db';
 import { createActionGrantService, type ActionGrantService } from './admin/action-grant';
 import { createRecoveryAuthorizationService, type RecoveryAuthorizationService } from './admin/recovery-authorizations';
 import { createRecoveryStartService, type RecoveryStartService } from './admin/recovery-start';
+import { createRecoveryEnrollmentService, type RecoveryEnrollmentService } from './admin/recovery-enrollment';
 import { createAccountSecurityService, type AccountSecurityService } from './admin/account-security';
 import { createDeviceManagementService, type DeviceManagementService } from './admin/device-management';
 import { deviceServiceFor, type DeviceSessionService } from './admin/device-session';
@@ -19,6 +20,8 @@ import { createVisitorSessionService, type VisitorSessionService } from './chat/
 import { createConversationService, type ConversationService } from './chat/conversation-service';
 import type { ChatWriteDb } from './chat/repo';
 import { createAnalyticsAggregateJob, createJobRegistry, type JobRegistry } from './jobs/registry';
+import { createAnalyticsRetentionJob } from './analytics/retention';
+import { retentionCleanupMode } from './analytics/retention-plan';
 
 export type HttpServices = {
   config: ServerConfig;
@@ -32,6 +35,7 @@ export type AdminServices = HttpServices & {
   actionGrants: ActionGrantService;
   recoveryAuthorizations: RecoveryAuthorizationService;
   recoveryStart: RecoveryStartService;
+  recoveryEnrollment: RecoveryEnrollmentService;
   accountSecurity: AccountSecurityService;
   deviceManagement: DeviceManagementService;
 };
@@ -79,6 +83,11 @@ export function createAdminServices(deps: {
       actionGrants,
     }),
     recoveryStart: createRecoveryStartService({
+      db,
+      clock,
+      restrictedTtlMs: config.grant.restrictedTtlMs,
+    }),
+    recoveryEnrollment: createRecoveryEnrollmentService({
       db,
       clock,
       restrictedTtlMs: config.grant.restrictedTtlMs,
@@ -182,15 +191,22 @@ export type JobServices = {
 /**
  * 固定作业的生产组合点。只注册已经实现并接线的作业；尚未交付的模块不在这里
  * 注册空实现，也不导入未来服务。registry 本身只认固定 key 与已注册的实现。
+ *
+ * 分析保留的删除授权只来自容器已文档化的 `RETENTION_CLEANUP_MODE=delete`
+ * （同一开关旧清理链也在用）；未设即无生产保留授权，请求 dryRun:false 也只会
+ * 记一次拒绝、删 0 行。测试用 `deleteAuthorized` 显式注入，不读环境。
  */
 export function createJobServices(deps: {
   db?: PrismaClient;
   clock?: () => Date;
+  deleteAuthorized?: boolean;
 } = {}): JobServices {
   const db = deps.db ?? (prisma as PrismaClient);
+  const deleteAuthorized = deps.deleteAuthorized ?? retentionCleanupMode() === 'delete';
   return {
     jobs: createJobRegistry([
       createAnalyticsAggregateJob({ db, clock: deps.clock }),
+      createAnalyticsRetentionJob({ db, clock: deps.clock, deleteAuthorized }),
     ]),
   };
 }

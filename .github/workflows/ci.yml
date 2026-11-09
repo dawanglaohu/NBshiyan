@@ -385,6 +385,10 @@ jobs:
           # 测试内按进程号自建 schema 并在 finally 删除，不落到公共 public。
           M5T5_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
           M5T5_REQUIRE_DATABASE: 'true'
+          # M5-T11 保留作业真实库回归：专属变量 + require；缺地址必须失败，绝不回退通用 DATABASE_URL。
+          # 测试内按随机名自建 schema（先查存在性再 CREATE），只清理本进程创建的那一个。
+          M5T11_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
+          M5T11_REQUIRE_DATABASE: 'true'
         run: |
           set -o pipefail
           cat > /tmp/m3t2-file-gate.cjs <<'EOF'
@@ -414,9 +418,12 @@ jobs:
               'tests/admin-reauth.http.test.ts',
               'tests/admin-recovery-authorizations.http.test.ts',
               'tests/admin-recovery-start.db.test.ts',
+              'tests/admin-recovery-reentry.http.test.ts',
+              'tests/admin-recovery-confirm.db.test.ts',
               'tests/admin-account-mode-password.http.test.ts',
               'tests/admin-device-management.http.test.ts',
               'tests/analytics-retention-plan.test.ts',
+              'tests/analytics-retention.db.test.ts',
             ];
             for (const file of wanted) {
               const hit = [...counts.entries()].find(([name]) => name.replaceAll('\\', '/').endsWith(file));
@@ -460,9 +467,12 @@ jobs:
             tests/admin-reauth.http.test.ts \
             tests/admin-recovery-authorizations.http.test.ts \
             tests/admin-recovery-start.db.test.ts \
+            tests/admin-recovery-reentry.http.test.ts \
+            tests/admin-recovery-confirm.db.test.ts \
             tests/admin-account-mode-password.http.test.ts \
             tests/admin-device-management.http.test.ts \
             tests/analytics-retention-plan.test.ts \
+            tests/analytics-retention.db.test.ts \
             || { status=$?; cat /tmp/pg-regressions.tap /tmp/m3t2-file-gate.txt; exit "$status"; }
           grep -qx '# skipped 0' /tmp/pg-regressions.tap
           grep -qx '# fail 0' /tmp/pg-regressions.tap
@@ -492,9 +502,12 @@ jobs:
             'tests/admin-reauth.http.test.ts',
             'tests/admin-recovery-authorizations.http.test.ts',
             'tests/admin-recovery-start.db.test.ts',
+            'tests/admin-recovery-reentry.http.test.ts',
+            'tests/admin-recovery-confirm.db.test.ts',
             'tests/admin-account-mode-password.http.test.ts',
             'tests/admin-device-management.http.test.ts',
             'tests/analytics-retention-plan.test.ts',
+            'tests/analytics-retention.db.test.ts',
           ];
           let bad = false;
           for (const file of files) {
@@ -546,9 +559,9 @@ jobs:
           mkdir -p .next/standalone/.next
           cp -r .next/static .next/standalone/.next/static
           cp -r public .next/standalone/public
-      # 三段使用同一构建产物与 PG，各自重启 Playwright 管理的应用，隔离 memory 限流。
+      # 五段使用同一构建产物与 PG，各自重启 Playwright 管理的应用，隔离 memory 限流。
       # 建单源码预算 5/3/3，认证源码预算 29/7/7；不是服务器请求实测计数。
-      - name: 核对 A3 收集分区并准备执行器（220 + 2 + 1 = 223）
+      - name: 核对 A3 收集分区并准备执行器（202 + 14 + 14 + 2 + 1 = 233）
         id: e2e_partition
         shell: bash
         run: |
@@ -557,15 +570,19 @@ jobs:
           split_pattern='admin-legacy-inquiries-visual\.spec\.ts .* (E1 真实 400：|A1 仅本用例合成询盘：|三尺寸完整流程：)'
           error_pattern='admin-legacy-inquiries-visual\.spec\.ts .* (E1 真实 400：|A1 仅本用例合成询盘：)'
           flow_pattern='admin-legacy-inquiries-visual\.spec\.ts .* 三尺寸完整流程：'
+          # 同意写按客户端限流 20 次/10 分钟；同意密集的两组单独成段，各自用一个应用进程。
+          mapfile -t main_files < <(ls e2e/*.spec.ts | grep -v -E '/(model-events|analytics-consent|consent-writes)\.spec\.ts$')
           PLAYWRIGHT_JSON_OUTPUT_NAME=e2e-evidence/collection/all.json pnpm test:e2e --list --reporter=json
-          PLAYWRIGHT_JSON_OUTPUT_NAME=e2e-evidence/collection/main.json pnpm test:e2e --list --reporter=json --grep-invert "$split_pattern"
+          PLAYWRIGHT_JSON_OUTPUT_NAME=e2e-evidence/collection/main.json pnpm test:e2e --list --reporter=json "${main_files[@]}" --grep-invert "$split_pattern"
+          PLAYWRIGHT_JSON_OUTPUT_NAME=e2e-evidence/collection/model.json pnpm test:e2e e2e/model-events.spec.ts --list --reporter=json
+          PLAYWRIGHT_JSON_OUTPUT_NAME=e2e-evidence/collection/consent.json pnpm test:e2e e2e/analytics-consent.spec.ts e2e/consent-writes.spec.ts --list --reporter=json
           PLAYWRIGHT_JSON_OUTPUT_NAME=e2e-evidence/collection/errors.json pnpm test:e2e e2e/admin-legacy-inquiries-visual.spec.ts --list --reporter=json --grep "$error_pattern"
           PLAYWRIGHT_JSON_OUTPUT_NAME=e2e-evidence/collection/flow.json pnpm test:e2e e2e/admin-legacy-inquiries-visual.spec.ts --list --reporter=json --grep "$flow_pattern"
           node --input-type=module <<'EOF'
           import assert from 'node:assert/strict';
           import { readFileSync, writeFileSync } from 'node:fs';
           const groups = {};
-          for (const name of ['all', 'main', 'errors', 'flow']) {
+          for (const name of ['all', 'main', 'model', 'consent', 'errors', 'flow']) {
             const report = JSON.parse(readFileSync(`e2e-evidence/collection/${name}.json`, 'utf8'));
             assert.deepEqual(report.errors, [], `${name}: collection errors`);
             const rows = [];
@@ -579,9 +596,9 @@ jobs:
             groups[name] = rows;
             assert.equal(new Set(rows.map(row => row.key)).size, rows.length, `${name}: duplicate tests`);
           }
-          assert.deepEqual(Object.fromEntries(Object.entries(groups).map(([name, rows]) => [name, rows.length])), { all: 223, main: 220, errors: 2, flow: 1 });
-          const parts = [...groups.main, ...groups.errors, ...groups.flow].map(row => row.key);
-          assert.equal(new Set(parts).size, 223, 'Partitions overlap');
+          assert.deepEqual(Object.fromEntries(Object.entries(groups).map(([name, rows]) => [name, rows.length])), { all: 233, main: 202, model: 14, consent: 14, errors: 2, flow: 1 });
+          const parts = [...groups.main, ...groups.model, ...groups.consent, ...groups.errors, ...groups.flow].map(row => row.key);
+          assert.equal(new Set(parts).size, 233, 'Partitions overlap');
           assert.deepEqual(parts.sort(), groups.all.map(row => row.key).sort(), 'Partitions omit or change tests');
           const errors = [
             'E1 真实 400：搜索 101 字符 / 备注 5001 字符错误与纠正恢复',
@@ -592,7 +609,7 @@ jobs:
           assert.deepEqual(groups.flow.map(row => row.title), [flow]);
           for (const row of [...groups.errors, ...groups.flow]) assert.equal(row.file, 'admin-legacy-inquiries-visual.spec.ts');
           writeFileSync('e2e-evidence/collection/partition.json', JSON.stringify(groups, null, 2) + '\n');
-          console.log('A3_COLLECTION all=223 main=220 errors=2 flow=1 disjoint=true complete=true');
+          console.log('A3_COLLECTION all=233 main=202 model=14 consent=14 errors=2 flow=1 disjoint=true complete=true');
           EOF
           driver_dir=$(mktemp -d "${RUNNER_TEMP:?}/nbshiyan-e2e-a3.XXXXXXXX")
           cat > "$driver_dir/ports.cjs" <<'EOF'
@@ -612,8 +629,12 @@ jobs:
           #!/usr/bin/env bash
           set -Eeuo pipefail
           segment=${1:?SEGMENT_REQUIRED}
+          # 与收集步骤同一份文件清单：同意密集的两组各自成段，main 只跑其余文件。
+          mapfile -t main_files < <(ls e2e/*.spec.ts | grep -v -E '/(model-events|analytics-consent|consent-writes)\.spec\.ts$')
           case "$segment" in
-            main) args=(--grep-invert "$A3_SPLIT_PATTERN") ;;
+            main) args=("${main_files[@]}" --grep-invert "$A3_SPLIT_PATTERN") ;;
+            model) args=(e2e/model-events.spec.ts) ;;
+            consent) args=(e2e/analytics-consent.spec.ts e2e/consent-writes.spec.ts) ;;
             errors) args=(e2e/admin-legacy-inquiries-visual.spec.ts --grep "$A3_ERROR_PATTERN") ;;
             flow) args=(e2e/admin-legacy-inquiries-visual.spec.ts --grep "$A3_FLOW_PATTERN") ;;
             *) exit 1 ;;
@@ -671,13 +692,23 @@ jobs:
             printf 'A3_ERROR_PATTERN=%s\n' "$error_pattern"
             printf 'A3_FLOW_PATTERN=%s\n' "$flow_pattern"
           } >> "$GITHUB_ENV"
-      - name: Playwright A3 主段（220例，含同次 RUM 检查）
+      - name: Playwright A3 主段（202例，含同次 RUM 检查）
         id: e2e_main
         shell: bash
         run: bash "$A3_DRIVER_DIR/run.sh" main
+      - name: Playwright A3 模型事件段（14例，新应用进程）
+        id: e2e_model
+        if: ${{ !cancelled() && steps.e2e_partition.outcome == 'success' && steps.e2e_main.outputs.released == 'true' }}
+        shell: bash
+        run: bash "$A3_DRIVER_DIR/run.sh" model
+      - name: Playwright A3 同意写段（14例，新应用进程）
+        id: e2e_consent
+        if: ${{ !cancelled() && steps.e2e_partition.outcome == 'success' && steps.e2e_model.outputs.released == 'true' }}
+        shell: bash
+        run: bash "$A3_DRIVER_DIR/run.sh" consent
       - name: Playwright A3 E1 + A1（2例，新应用进程）
         id: e2e_errors
-        if: ${{ !cancelled() && steps.e2e_partition.outcome == 'success' && steps.e2e_main.outputs.released == 'true' }}
+        if: ${{ !cancelled() && steps.e2e_partition.outcome == 'success' && steps.e2e_consent.outputs.released == 'true' }}
         shell: bash
         run: bash "$A3_DRIVER_DIR/run.sh" errors
       - name: Playwright A3 三尺寸流程（1例，新应用进程）
@@ -685,18 +716,22 @@ jobs:
         if: ${{ !cancelled() && steps.e2e_partition.outcome == 'success' && steps.e2e_errors.outputs.released == 'true' }}
         shell: bash
         run: bash "$A3_DRIVER_DIR/run.sh" flow
-      - name: 汇总 A3 三段结果（失败或未执行均不通过）
+      - name: 汇总 A3 五段结果（失败或未执行均不通过）
         if: ${{ !cancelled() && steps.e2e_partition.outcome == 'success' }}
         shell: bash
         env:
           MAIN_OUTCOME: ${{ steps.e2e_main.outcome }}
+          MODEL_OUTCOME: ${{ steps.e2e_model.outcome }}
+          CONSENT_OUTCOME: ${{ steps.e2e_consent.outcome }}
           ERRORS_OUTCOME: ${{ steps.e2e_errors.outcome }}
           FLOW_OUTCOME: ${{ steps.e2e_flow.outcome }}
           MAIN_RELEASED: ${{ steps.e2e_main.outputs.released }}
+          MODEL_RELEASED: ${{ steps.e2e_model.outputs.released }}
+          CONSENT_RELEASED: ${{ steps.e2e_consent.outputs.released }}
           ERRORS_RELEASED: ${{ steps.e2e_errors.outputs.released }}
           FLOW_RELEASED: ${{ steps.e2e_flow.outputs.released }}
         run: |
-          for segment in MAIN ERRORS FLOW; do
+          for segment in MAIN MODEL CONSENT ERRORS FLOW; do
             outcome="${segment}_OUTCOME"
             released="${segment}_RELEASED"
             [[ ${!outcome} == success && ${!released} == true ]] || { echo "A3_SEGMENT_FAILED_OR_MISSING:$segment" >&2; exit 1; }

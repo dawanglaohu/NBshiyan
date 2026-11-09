@@ -1,7 +1,7 @@
 import { authenticator } from 'otplib';
 import { test, expect } from './fixtures';
 import { E2E_ADMIN } from './global-setup';
-import { BASE } from '../playwright.config';
+import { BASE } from './base-url';
 
 // 后台还没有登录页 UI，按接口走：绑定 2FA → Auth.js credentials 登录 → 访问 /api/admin/*
 test('后台登录：密码 + TOTP，登录前后 /api/admin 鉴权', async ({ request }) => {

@@ -13,6 +13,15 @@ import { controlCopy, createModelPointerState, reduceModelPointer, shouldAutoRot
 import { accessibilityCopy, keyToCameraCommand, TOUCH_TARGET_PX } from '@/lib/three/model-accessibility';
 import { fallbackCopy, retryAllowed, type ModelFailureReason, type ModelLoadResult } from '@/lib/three/model-fallback';
 import { detectWebGLSupport } from '@/lib/three/webgl-support';
+import {
+  MODEL_LOAD_TIMEOUT_MS,
+  cancelAllModelAttempts,
+  noteModelCancel,
+  noteModelFailure,
+  noteModelStart,
+  noteModelSuccess,
+  noteModelTimeout,
+} from '@/components/analytics/model-events-producer';
 import type { CameraAction } from './GalleryScene';
 
 /**
@@ -67,11 +76,36 @@ export default function ProductGallery({ items, labels, onModelResult }: { items
   // 每张卡的手动重试次数：只由按钮驱动，没有自动重试循环
   const [attempts, setAttempts] = useState<Record<string, number>>({});
   const reportedReady = useRef<Set<string>>(new Set());
+  /** 每次真实 GLB 尝试的超时定时器；成功、失败、取消、卸载都必须清掉。 */
+  const modelTimers = useRef<Map<string, number>>(new Map());
+  const clearModelTimer = useCallback((slug: string) => {
+    const timer = modelTimers.current.get(slug);
+    if (timer !== undefined) {
+      window.clearTimeout(timer);
+      modelTimers.current.delete(slug);
+    }
+  }, []);
   const onError = useCallback((slug: string, reason: ModelFailureReason = 'LOAD_ERROR') => {
+    clearModelTimer(slug);
+    noteModelFailure(slug, reason);
     setFailed((prev) => (prev.has(slug) ? prev : new Set(prev).add(slug)));
     setFailureReason((prev) => ({ ...prev, [slug]: reason }));
     onModelResult?.({ slug, status: 'failed', reason });
-  }, [onModelResult]);
+  }, [onModelResult, clearModelTimer]);
+  const onModelStart = useCallback((slug: string, attempt: number) => {
+    clearModelTimer(slug);
+    if (!noteModelStart(slug, attempt)) return;
+    const timer = window.setTimeout(() => {
+      modelTimers.current.delete(slug);
+      noteModelTimeout(slug);
+      onError(slug, 'TIMEOUT');
+    }, MODEL_LOAD_TIMEOUT_MS);
+    modelTimers.current.set(slug, timer);
+  }, [clearModelTimer, onError]);
+  const onModelLoaded = useCallback((slug: string) => {
+    clearModelTimer(slug);
+    noteModelSuccess(slug);
+  }, [clearModelTimer]);
   const [sceneDead, setSceneDead] = useState(false);
   // WebGL 探测在客户端挂载后跑一次；unknown 期间不挂载画布，避免直接吃浏览器错误
   const [webgl, setWebgl] = useState<'unknown' | 'ok' | 'unavailable'>('unknown');
@@ -154,12 +188,18 @@ export default function ProductGallery({ items, labels, onModelResult }: { items
     if (sceneReported.current) return;
     sceneReported.current = true;
     for (const p of items) {
-      if (p.model && visible.has(p.slug)) onModelResult?.({ slug: p.slug, status: 'failed', reason: 'WEBGL_UNAVAILABLE' });
+      if (!p.model) continue;
+      // 场景级故障当场结束未决真实尝试（含已滚出视口但计时器仍在跑的卡片）：
+      // 写 WEBGL_UNAVAILABLE 终态并清掉计时器，否则 30s 后会再补一条 TIMEOUT 并改掉可见的失败原因（E-103）。
+      clearModelTimer(p.slug);
+      noteModelFailure(p.slug, 'WEBGL_UNAVAILABLE');
+      if (visible.has(p.slug)) onModelResult?.({ slug: p.slug, status: 'failed', reason: 'WEBGL_UNAVAILABLE' });
     }
-  }, [sceneBlocked, items, visible, onModelResult]);
+  }, [sceneBlocked, items, visible, onModelResult, clearModelTimer]);
   const retry = useCallback((slug: string) => {
     const attempt = attempts[slug] ?? 0;
     if (!retryAllowed(attempt)) return;
+    clearModelTimer(slug);
     setAttempts((prev) => ({ ...prev, [slug]: attempt + 1 }));
     reportedReady.current.delete(slug);
     setFailed((prev) => { if (!prev.has(slug)) return prev; const next = new Set(prev); next.delete(slug); return next; });
@@ -175,10 +215,26 @@ export default function ProductGallery({ items, labels, onModelResult }: { items
       setWebgl(ok ? 'ok' : 'unavailable');
       if (!ok) onError(slug, 'WEBGL_UNAVAILABLE');
     }
-  }, [attempts, contextLost, sceneDead, webgl, onError]);
+  }, [attempts, contextLost, sceneDead, webgl, onError, clearModelTimer]);
   useEffect(() => {
     dispatch({ type: 'visible', slugs: [...visible] });
   }, [visible]);
+  // 切到只渲染程序化 FoldBox 的刀模视图：未决的真实 GLB 尝试按取消处理，不写终态。
+  useEffect(() => {
+    for (const [slug, view] of Object.entries(views)) {
+      if (view !== 'dieline') continue;
+      const item = items.find((p) => p.slug === slug);
+      if (item?.animationClips?.unfold) continue;
+      noteModelCancel(slug);
+      clearModelTimer(slug);
+    }
+  }, [views, items, clearModelTimer]);
+  // 页面卸载（路由离开）取消所有未决尝试并清定时器；不补写 failure。
+  useEffect(() => () => {
+    cancelAllModelAttempts();
+    for (const timer of modelTimers.current.values()) window.clearTimeout(timer);
+    modelTimers.current.clear();
+  }, []);
   useEffect(() => {
     const onUp = () => dispatch({ type: 'pointerup' });
     const onKey = (event: KeyboardEvent) => {
@@ -419,6 +475,8 @@ export default function ProductGallery({ items, labels, onModelResult }: { items
         onReady={onReady}
         onError={onError}
         onContextLost={onContextLost}
+        onModelStart={onModelStart}
+        onModelLoaded={onModelLoaded}
         items={items.map((p, i) => ({ slug: p.slug, model: p.model, visible: visible.has(p.slug), active: active === p.slug, directRotate: fine || mouse, spin: shouldAutoRotate(pointer, p.slug), zoomId: zoom?.slug === p.slug ? zoom.id : 0, zoomDelta: zoom?.slug === p.slug ? zoom.delta : 0, commandId: command?.slug === p.slug ? command.id : 0, command: command?.slug === p.slug ? command.action : undefined, view: VIEW_SLUGS.has(p.slug) ? views[p.slug] ?? 'closed' : undefined, animationClips: p.animationClips, fitArc: FIT_ARC.has(p.slug), dark: PREMIUM.has(p.slug), attempt: attempts[p.slug] ?? 0, track: tracks[i] })).filter((i) => !!i.model)}
       /></SceneErrorBoundary>)}
     </div>
