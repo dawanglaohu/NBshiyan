@@ -8,8 +8,8 @@
     "01-约束/05-技术栈.md": "fe2167b138db835e8c1afb339c57c8549630d0e856245a81af3e61e603992f92",
     "02-设计/06-系统架构与模块划分.md": "9abc025993a37242a78f700c223a7427c8132c602975d08f9d0d99c2f6a060a3",
     "02-设计/07-前端架构.md": "b8f216a72556d03da3e131f8daf2c68f9d93b9fafe56e4664fd2f2256ffe36c4",
-    "02-设计/08-后端架构.md": "61ab14d5236d6e563960b9c138604c5fe461940032989f19f2ed8044e3809732",
-    "02-设计/09-数据模型.md": "f93308d57d119b5e18143421232492e67061d0ae5610c08a4c883355432314ef",
+    "02-设计/08-后端架构.md": "2709bfa91c5a349b41d7283e219ccaac738bada1327245d132bb7588dbb0f81b",
+    "02-设计/09-数据模型.md": "03b14612071a4f27af15fea485aab2e21a409f5e32627be041085496964c56cc",
     "02-设计/10-接口约定.md": "4f4daf0bbf47021c01b5c4f8c14441c48bf0bfc1f371999aff4b8ad47130fa0b",
     "02-设计/11-UI.md": "a5b1e42cf27e69c00811242e486dd195159fc2ebe772503d5dfe02065379719e",
     "02-设计/12-UX.md": "d6f141caa0ce46219e00643e89e471be567e342e63c73df113f7e4a3d2421c7f",
@@ -18,8 +18,8 @@
     "03-质量/15-性能与容量假设.md": "be07b6be670db5589febf3b639182812510601a0e2b7754e1af1129dc23027fc",
     "03-质量/16-可观测性.md": "29ccdf00887dfe7397c73ad1eb8a14d73c7aea0011888f58587ba09efd561333",
     "03-质量/17-测试策略.md": "a847b502aab295aab64aa33a9a2e19bee77d5c822d41b4faee1c258a494ce94e",
-    "04-执行/18-部署与运维.md": "b391dee42ae92c77620336bd359af7f44399d4edf45216b31a6be6aff68dbd8f",
-    "04-执行/19-模块任务拆分.md": "6f44f980d1124052685f72da42da0df60f6a806c2220efb465ade54379d7ab1a",
+    "04-执行/18-部署与运维.md": "d4790993acb00bb0a8851375bc4a3c8df3b4b1c5143137152b0a4d155ee6e342",
+    "04-执行/19-模块任务拆分.md": "037a56dfc47492921d3ddb30a033e08100563ac138e6ffdc6c98364941828d9c",
     "04-执行/20-里程碑与交付顺序.md": "90bd0b9730dce571fbfb5597d9bc12f0362c187e308f677b15f0b4d85b16fb77",
     "04-执行/21-风险与未决事项.md": "1145375447465c85e857e6586a6a9bc26997bb8fbf077e615b4cff77fe168ad7",
     "04-执行/遗留issue-20261024.md": "e3745bb229fb119316a089f0467f13b09b26a7fce74d88de35cd6a2ec5e7ded9",
@@ -35,17 +35,17 @@
     "_run/batches/batch-5-20261026.md": "51c6425ebc631b859a733e4dcb939ab2ac2f73111f5107902d838aa70ad784fe",
     "_run/batches/batch-7-20261107-z-product-repair.md": "d9f61d7b16acbfefdc90f7f20f92e32f9bc31242f3b3cfb0842ed464d0753435",
     "_run/batches/batch-7-20261107.md": "aeacf1ad0959c2e9195f2ef4ff08581957cf544e3fbb5de907a3e8f07f5da260",
-    "_run/presentation.json": "3714e330d7f61b22eed90eae41da9a4a88fb8d0bf6c80033b0fb51769cfa9610",
-    "_run/task-contracts.json": "36c9f1c216c593485ec20ace1688d2ff873b290390041a6cf46fcfe8ba05d4c0"
+    "_run/presentation.json": "65ff64e42139bd1ce9157ec11e067fb273ec53c55c832683fb3a7355ae95c682",
+    "_run/task-contracts.json": "310e3290cbab3f5073b720b43c2194c4457e49d7c91e3f85832aabd00a48cd31"
   },
   "products": {
-    "_MOC.md": "bad21a630d8bcdff897cec8bf2adab686d552b327faab4a7e919e9659ac128fc",
-    "_run/dispatch.json": "dc79587064dd09ff3817d6423103f9ace79174649ce6c21c19e6f923008653d5",
-    "_run/review.json": "24fb349d3c74ad8ab4de1894d9b39c5dc54913f743f44892281ac90aff175154",
-    "_run/task-reviews.json": "176b16109061da4b2e5a05e3ca424771ff08f6f607e6bc1691376a171f6d6c74",
-    "docs-data.js": "51a3bfd928e1d4d2ad1342a59af5e1d9e86d9f68b2287d916a9ad94eace6bf09",
+    "_MOC.md": "9a97a99eecd6e59e4f9554bd6ef41912e6cd0b3965786bf729f88b178921655c",
+    "_run/dispatch.json": "e503e0f5da45c74a0a6abc56fdd634638f8b53fffa256ae7bef3f76e32b377ec",
+    "_run/review.json": "f4858c66ecacf9b3d1350b90bbdbe4857101bdfd0fbcfbcd0e3af199e5999aab",
+    "_run/task-reviews.json": "69ddafaaa169190a64652cffdbc77fd95b38df02d24dcb58e5bf964716ae51c3",
+    "docs-data.js": "1f1f21a5cd2788cc2c031e67b1440d4fd9aaf542d877dc543d3a1f66da823322",
     "index.html": "7fda3113b97fe22e225ace0a0558f6cd83712da9c6d043765516a883b3136276"
   },
   "schemaVersion": 1,
-  "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
+  "sourceVersion": "1fd5690c1063a25cbbdf848f624598690e8bf0869180d1aaf41310fac6fe35e0"
 }
