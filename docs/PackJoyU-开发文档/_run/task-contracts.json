@@ -600,6 +600,7 @@
         "frontendRoutes"
       ],
       "supportPaths": [
+        ".github/workflows/ci.yml",
         "eslint.config.mjs",
         "src/lib/client/analytics.ts"
       ],
