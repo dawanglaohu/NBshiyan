@@ -1,0 +1,17 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M5-T12": {
+      "contractHash": "160976ad5a9f3d8dbe2b32f64628f99268968e1abf54fde98acb7a68a98e23f7",
+      "verdict": "pass",
+      "evidence": [
+        "19 节新增 M5-T12 一行（M5-T11 后、M6-T1 前），依赖 M5-T3/M5-T11；卡片由生成器从该行派生，未手改 图谱/任务/M5-T12.md。",
+        "契约新增 M5-T12：provides analytics-anon-aggregate；10 outputPaths/6 supportPaths（含共享 src/lib/analytics/day-boundaries.ts 的 utcDatesCovered）/wiring [migrations]/integrationTask M6-T1；presentation taskPaths 9 条；有效范围=taskPaths+supportPaths+wiring 展开（17 条）。",
+        "09 节 L26 AnalyticsDaily 为替换而非新增同名行：durationMsSum BigInt、loadDurationSamples、pageViews Int?、sourceThrough DateTime?、行内 timezone/expiresAt、索引 [expiresAt]/[dimension, localDate]；紧随新增 AnalyticsAggregateDayState（timezone/索引）与 AnalyticsDayChange（utcDate 主键、version @default(0)、无 id）；R1 在三行行内均补“由 M5-T12 实施后生效；当前 schema 尚无此表”，ff2 原缺此标注已更正。",
+        "08/18/data-retention 同步四类数据表 20,000/5,000/1,000 与两元数据表各 500/合计 1,000 独立；03:30 旧三表、04:30 实施后唯一清理新三表、共用租约、不新增 cron；当前三表不存在，不写已上线。",
+        "M6-T1 依赖末尾追加 M5-T12、requires 追加 analytics-anon-aggregate；保留 M2-T4/M2-T7，不补 model-event-rules；输入/验收 1/2 按合稿追加；M6-T6/M7-T3 各加读取口径一句、不新增依赖。",
+        "M5-T12 仍 todo、未实施源码/测试/schema；真实 PG/性能/API/CI 未验；本 pass 仅为文档契约复核，不是业务或实现通过。"
+      ]
+    }
+  }
+}

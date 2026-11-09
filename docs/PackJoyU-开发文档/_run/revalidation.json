@@ -1,6 +1,6 @@
 {
   "ANALYTICS-ROLLUP": {
-    "contractHash": "f3a8315abcd6dcc19d726852d4675d54da0bd04f1d698c164631ea749b25314e",
+    "contractHash": "73996985efd0964e3deb065cf64cfa8505f346f71ddd710d51a2657c28224dd6",
     "patches": [
       {
         "changedFields": [
@@ -8,12 +8,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "BACKFILL-MJS": {
-    "contractHash": "9971d9144c724bed43770d68c18de336beb170be350c9e2333cca49c69aaf95c",
+    "contractHash": "90145bc6e803b6a4bdf2b06bc101bc6ff9d9523bcaa8cc3f85b0ba84e956d9f0",
     "patches": [
       {
         "changedFields": [
@@ -21,12 +28,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "BE-350A": {
-    "contractHash": "9a9af1373efb4eab2d7556bf11ce216da3ce2e9793df56920f7258b966184b0d",
+    "contractHash": "34f9cdc13cfc8f2708a02fd2ab89a5c41e8fb81b344156fa4c5cd70e24efbf18",
     "patches": [
       {
         "changedFields": [
@@ -34,12 +48,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "BE-I18N-P0": {
-    "contractHash": "0c286d1efe0028597d0a616f49b569f4a201090ec196588502422f474bb8d069",
+    "contractHash": "64f5dfc3ce9f025d65b9d2c93b924f6113e6fd8497e50940311d733530fbe1b6",
     "patches": [
       {
         "changedFields": [
@@ -47,12 +68,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "BE-RATELIMIT-P3": {
-    "contractHash": "308ac7a8bbba208e126ca1764aac963242d3db3bb99735b5638a687986ba662b",
+    "contractHash": "526034534cc0f667d57c2011f49d85e9e97234a62c24c46f8c3e6e0431b407a3",
     "patches": [
       {
         "changedFields": [
@@ -60,12 +88,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "BE-RESET-STDIN-TTY": {
-    "contractHash": "097c9d5cf7b92dc145f64f35e6aad7a72ac9bd55b8b726cdf69c8ada7f1fc8d8",
+    "contractHash": "e8343aceaa310ad86effb6a42aa8fe129385db9e967b97e798a8a01be75bf0e1",
     "patches": [
       {
         "changedFields": [
@@ -73,12 +108,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "BE-RESET-TTY": {
-    "contractHash": "948816939564222ec3d24823d0fe067732a7fba3609d8092d7d2cfd65aac845d",
+    "contractHash": "b34f6ded0c059c865b5576f703234956439a640c94a75c06382fc9b495117a9c",
     "patches": [
       {
         "changedFields": [
@@ -86,12 +128,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "CATALOG-MERGE": {
-    "contractHash": "5d18fe87d1b8c9e9e8ab779787f7d6cc52e98946d209b2d5091cbaf7d3884004",
+    "contractHash": "9b9861c9dd66200e4766880f73424d827cc1678ac260dfa53485878781087a34",
     "patches": [
       {
         "changedFields": [
@@ -99,12 +148,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "CI-DB-TESTS": {
-    "contractHash": "4a0c5f547e4b8d900dc3a33639cd11935bcd2b05f7bb48a00d54f95c50322594",
+    "contractHash": "458ab1bc45e615094be34995b20447ff61a0d7055b61d6b6be5bde1d76c52ed9",
     "patches": [
       {
         "changedFields": [
@@ -112,12 +168,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "CI-DEVICE-SERIAL": {
-    "contractHash": "eb62038bc8cd6876e58772713b8c66932fe7eec06e3eeed38b5db4b779f57faa",
+    "contractHash": "5bd491b4301d6329e7ef5969217dfaf3ed31817eb2e0d49a6313a0b38f15999a",
     "patches": [
       {
         "changedFields": [
@@ -125,12 +188,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "CITY-STILL-WEBP": {
-    "contractHash": "c1ef1b91f91a9bba9fa8e315d16980abbe9a89b42f0fd6d81343ceb913e25bfc",
+    "contractHash": "6a4c7631c1347f8a88885f985fc16df57ef3c65d734235538a5946b08f072b2a",
     "patches": [
       {
         "changedFields": [
@@ -138,12 +208,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "CLIENT-API-DEADLINE": {
-    "contractHash": "2ab6b85b5c5950755fcfe9538431e28e93ed9a7f6829e3db079d7038de36f03c",
+    "contractHash": "2d5498acb43eb601062661d0ef677172566aacf0e489560ede72e4c0ea1681bb",
     "patches": [
       {
         "changedFields": [
@@ -151,12 +228,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "DEP-AUDIT-1": {
-    "contractHash": "e3f8a4d02455d15f60bea918ceae3c03d702954b0174433189ce47ee6135cde4",
+    "contractHash": "9a85e4f21a46a3376d39ea5744f3a930f6fefd9b8376996f67a7f53414c75bce",
     "patches": [
       {
         "changedFields": [
@@ -164,12 +248,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "DEPLOY-FIX-1": {
-    "contractHash": "d9f2d5f7388c47ad0ef947d5bfe6cc6d5b3973a0afde71bf2ee34c0e7f272185",
+    "contractHash": "12a4fac674a67fd7c0333b73d628d332b41bd343108ba8087cdb7c0057ee2a9f",
     "patches": [
       {
         "changedFields": [
@@ -177,12 +268,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "DOCKER-UPLOADS-1": {
-    "contractHash": "25cd25a6a86a12b15345837179b907e45a7c81bd25d319171cabcc36cb674b5b",
+    "contractHash": "f61f82444fbf52a505a6307022a055a107cf1c0d356227d3e898030071ec3639",
     "patches": [
       {
         "changedFields": [
@@ -190,12 +288,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "E2E-CONSENT-FIX": {
-    "contractHash": "e439cee33099a34aa24f32807024746f2f35dda4671253a1d7adcfe4c3d0cbdb",
+    "contractHash": "2a82e0af60b5e807c7c7d5aeeb6814bad6c4f3ec954b3835e281c92cb4de3c7d",
     "patches": [
       {
         "changedFields": [
@@ -203,12 +308,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "FE-404-TITLE": {
-    "contractHash": "c2b85689c5e058a4ffdc2350cdba221b6ed8e060d1eff4e57e0427d0bd146454",
+    "contractHash": "fd4b1d2c5233f5730e07c3752dca2f3b5a065211cd49a0920e4fc1343000f146",
     "patches": [
       {
         "changedFields": [
@@ -216,12 +328,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "FE-FAB-390": {
-    "contractHash": "67a770a94db4268c4fb8faf7a7e664ea5c1c42da3038c5eed765d19b0aea3ed6",
+    "contractHash": "e038975e4c426a5c9aa8b299c6d7a24a46748b63d433541c27d3cc0238f17904",
     "patches": [
       {
         "changedFields": [
@@ -229,12 +348,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "GATE-HARDEN": {
-    "contractHash": "fb81e67aefff334a161076d942ece5140898a113005497238e529537022e7f7a",
+    "contractHash": "57b6fb17aaa983ae4b66479fbca03407744009b96522b90ab6bcca1f6d970cf9",
     "patches": [
       {
         "changedFields": [
@@ -242,12 +368,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "GATE-HARDEN-2": {
-    "contractHash": "d586c530af9979c6001d51686cf4781da66a9d78cc5224e5db6a42ac4f342f01",
+    "contractHash": "e612b5701e2e97776db38f4f98abbd833b23f3a74f02e77be4508d95cbf0bf9f",
     "patches": [
       {
         "changedFields": [
@@ -255,12 +388,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "GATE-PATHS-1": {
-    "contractHash": "38edba652c8777a2ad5014a51a1c610361878b1c0cf708680e70501a45299e48",
+    "contractHash": "cc75ef4b76e76f61c77bf7fcfa8120c242379a9577dc662cdd217ede25c8c6b7",
     "patches": [
       {
         "changedFields": [
@@ -268,12 +408,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "GATE-PATHS-2": {
-    "contractHash": "e2389f527294816f2d6064ac4c1409471e7daa910e869bb874e5c0a13d0e87fb",
+    "contractHash": "bd5df17d5f5c2cb6f09cc575bf14dc381531951b56d8364a93f9cc660459f204",
     "patches": [
       {
         "changedFields": [
@@ -281,12 +428,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "GIFT-CARD-ASSETS": {
-    "contractHash": "cb2a933e14338081d67a098cfb6de38b0c4996c01de7eccab3147f60b91a5aa2",
+    "contractHash": "0b0880ef950f537e1ce404362174b181a8c0293f330410a672be745df53fbb03",
     "patches": [
       {
         "changedFields": [
@@ -294,12 +448,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "GIFT-CARDS-RENAME": {
-    "contractHash": "a64fadf32c2eec6979538154a832fab31a1fcc4d7830ac948b56fc00fe34415f",
+    "contractHash": "f3e91fc218350fec6611305d7642a4b7eb004fbda5ac26b52be751e2e63d8fe0",
     "patches": [
       {
         "changedFields": [
@@ -307,12 +468,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "GUARD-503": {
-    "contractHash": "e72e05f3544543842487e0dddb94e5429ee78a7990def64a83ba04f7b16aae13",
+    "contractHash": "f5f22afc2096a6a1ca46f5d7b364894e29473831ac47bdfc64ad570602f0209c",
     "patches": [
       {
         "changedFields": [
@@ -320,12 +488,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "HOTFIX-LOGIN-EMPTY": {
-    "contractHash": "5619e906872d30c94a82474d81a7b88a1c834e67063a4728a14b6c436718ec95",
+    "contractHash": "2ff182e1ddfa649ed7b43b4a76fd7c960ceefc1569d3fe02926043b8238f92f2",
     "patches": [
       {
         "changedFields": [
@@ -333,12 +508,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M1-T1": {
-    "contractHash": "c516938c5709e215226bb3430bdb0fb4368eadb0ad10c4d14f9ce4871043f8ba",
+    "contractHash": "595045fe2f93995f2da330ec464ebc3417c46e13ba8b6ed7118b76970fb0aa1e",
     "patches": [
       {
         "changedFields": [
@@ -346,12 +528,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M1-T2": {
-    "contractHash": "4e13d4cb5ba5a1368565c71373d9f2ded69e7246303e7de9fa28b2de10c4322b",
+    "contractHash": "4cbb62fffb940319dd0b94c444bbef3da71d771fd8ff0c26700576dab61824c5",
     "patches": [
       {
         "changedFields": [
@@ -359,12 +548,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M1-T3": {
-    "contractHash": "41516737ee099abad62d1993b1885574b7490f64e268252d3a63b3b5444e1409",
+    "contractHash": "ff2569ba2c08915a67bc357f5d81dbe5cca1a50490fa1683425a701d68a9c7c7",
     "patches": [
       {
         "changedFields": [
@@ -372,12 +568,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M1-T4": {
-    "contractHash": "cf39b640235e1525b13d4798f0dc41a636358a626ead05821aee556e79c4d096",
+    "contractHash": "b43032c1639d45a80e4a4b119f00929f6eadf25c759f394a1f2ea5ce034c23de",
     "patches": [
       {
         "changedFields": [
@@ -385,12 +588,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M1-T5": {
-    "contractHash": "be104034bced41eaaf5f94c408e1e4c52966bcca3a9f782f8dab20b9ac37c8b5",
+    "contractHash": "b345256de5acd72c841f07ee2b561896c6ae331b637fa7bcd61b3dcd0e6cf095",
     "patches": [
       {
         "changedFields": [
@@ -398,12 +608,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M1-T6": {
-    "contractHash": "7c51a1a1194630ee68917cf23ce7f41d92f54ec3d802efde2b7be0be6f6a6a7c",
+    "contractHash": "e4b9e1ca40021807ac3985ba4030079ef1422b7999bb3c608541120b478308b5",
     "patches": [
       {
         "changedFields": [
@@ -411,12 +628,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M1-T7": {
-    "contractHash": "67dab3b439b3745a8b33d65a26df586e33aa26696f39fb1be3f43f5893c7cdbe",
+    "contractHash": "486962818ac0d1c0f9c3c936381593c08dfe4eaf28920fbca15fe2278038028e",
     "patches": [
       {
         "changedFields": [
@@ -424,12 +648,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M1-T8": {
-    "contractHash": "64de469dcd0f0f301382cb00c7678d32ccf6b5c6cdf2bafd0df602d6ff8afc72",
+    "contractHash": "1e5bd633c6917c4393253fb3b13bebb5e4b03c1fa6fbbffb2ffe1e4bd55c4331",
     "patches": [
       {
         "changedFields": [
@@ -437,12 +668,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M1-T9": {
-    "contractHash": "235b4c23afa1fc447215309359de81d5e2a64451e22e048561ac529d8a941dcd",
+    "contractHash": "c5dcfb1957c4f4686ef971c0cc3d8939feb9179814a62b1470bcc4c51e05c727",
     "patches": [
       {
         "changedFields": [
@@ -450,12 +688,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "providers"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M2-T1": {
-    "contractHash": "23e5dcb11fb6b0ff46130a4cdfd14815bb31f1fcea8a3ef3db00eac0ddd09143",
+    "contractHash": "adff7ab933bdcd631830248092d0da56367ec9c3f10a01fadf94e3bbf817fafb",
     "patches": [
       {
         "changedFields": [
@@ -463,12 +708,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M2-T2": {
-    "contractHash": "70fe3b068e443c0b386a0cadd5b78eb752945ed77751fdaf9787a2a10e687322",
+    "contractHash": "703b51629831f3cc6535428807593ac9c4213925f5fea1ea733c5e4def552910",
     "patches": [
       {
         "changedFields": [
@@ -476,12 +728,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M2-T3": {
-    "contractHash": "0ae5f824d63a1118c47035a470f113f85955cc3b72ee6da534a1188adb05d05f",
+    "contractHash": "e35fbda1ea09839e79c16a31e9240dd96a0ef20022721c0185283ed98b5cabf6",
     "patches": [
       {
         "changedFields": [
@@ -489,12 +748,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M2-T4": {
-    "contractHash": "2bf0a6a35b6e7981c126403441494527d59b4b63364d490a8c60d3a5b5b579e2",
+    "contractHash": "2c4e019b82c4115d2c71ff811aee277436a18e0e37a2de100534ddf2620a7257",
     "patches": [
       {
         "changedFields": [
@@ -502,12 +768,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M2-T6": {
-    "contractHash": "b8de5e00521aef3c6a27c660caf15de08bbc575d4e2120ee8613d2fb30e2f084",
+    "contractHash": "c896f237e62b7765fdc36066cd6e9a43ab443731e2b1f27917afddaa32ab157b",
     "patches": [
       {
         "changedFields": [
@@ -515,12 +788,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M3-T1": {
-    "contractHash": "3bf70dc4f34b0d3a9cb27593f77c7191d18c7aff5e240d85e51e1133c1d863d6",
+    "contractHash": "83f7f9b06daa280b14f12276ffd13dbac27924e675f40bcef12e671f021d78da",
     "patches": [
       {
         "changedFields": [
@@ -528,12 +808,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M3-T14": {
-    "contractHash": "a00ad8c3372761ccc0cd7c2678b4bf36d0e8f8193a0d4ff0e496580484b37147",
+    "contractHash": "ec2290306f215c32a03cae3e493c70f56008c9979cc92d15e7703d141b9f302f",
     "patches": [
       {
         "changedFields": [
@@ -541,12 +828,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M3-T15": {
-    "contractHash": "a390ee18d7fe302f8ecb651aefb548a6437c99db6a75bec52dee7404ecc154ff",
+    "contractHash": "3b06e2f2c35b3dba8cf0a91db1ad0b074fb94827dd03912f323f2344d86e6ba3",
     "patches": [
       {
         "changedFields": [
@@ -554,12 +848,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M3-T16": {
-    "contractHash": "333de5aa9ddcbdd5d2a50b7297cc0675038a5ea46a074a75379b81bda8e53ccf",
+    "contractHash": "fb0f2e3e8ccabc0f5fa366bd5e07f2de8d2ccac15f290df04e6a1f78f539b111",
     "patches": [
       {
         "changedFields": [
@@ -567,12 +868,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M3-T17": {
-    "contractHash": "33fc169337db26d16af15b14e5a3909b84787035e0c5104aa0d81c0058313ad4",
+    "contractHash": "506488a56a08c2d5e520d4bbe04ab0ab21f4f1b858a131996faaf34b08cc8bf1",
     "patches": [
       {
         "changedFields": [
@@ -580,12 +888,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M3-T18": {
-    "contractHash": "194ce485059235f0c9fc863a5b7f5ad8b3c3494414373f69f63ad38e7c33a2be",
+    "contractHash": "864facd8bfda85d9a75c1272148e8196b2f65ea3ff6d467cf9ddad07df3b3357",
     "patches": [
       {
         "changedFields": [
@@ -593,12 +908,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M3-T19": {
-    "contractHash": "0fd7595422d76138d76e35f23ac5553b70815637737a0f39de8fbb73532dccef",
+    "contractHash": "c95a51f944b917e852e8d6e56fbbaf8d109c12edce66e416a4fb8db995b4cf91",
     "patches": [
       {
         "changedFields": [
@@ -606,12 +928,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M3-T2": {
-    "contractHash": "7a6a1ea7931e17acb2fbf562f178ba3f7d09a212d3fe2bef2bda6add84d9cd02",
+    "contractHash": "b5f92e9ec930327b242a1f41bb565a3561d6f9274167a0e419ffa7e639485357",
     "patches": [
       {
         "changedFields": [
@@ -619,12 +948,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M3-T21": {
-    "contractHash": "a8aa597a4172dad4544a122f45f1ef6fc42e65e5dc060ce961b504347261f417",
+    "contractHash": "50feb2bd2fa570c1330b0440f60dc0a0c484689f38182ed8b55398d99fe3fb67",
     "patches": [
       {
         "changedFields": [
@@ -632,12 +968,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "providers"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M3-T22": {
-    "contractHash": "48da4869f72d71cad5d55538d60c637f612cd88237bffb1e11f632849ba45f4c",
+    "contractHash": "c3a0577e535093afe805041788272ac36e2c9173fb0ca576b315f3cdb6629aad",
     "patches": [
       {
         "changedFields": [
@@ -645,12 +988,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "providers"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M3-T23": {
-    "contractHash": "069eb1aa52ed7c978bf7880dfa909aced69c06c17e2ce51342812f08b875706c",
+    "contractHash": "36ed5fb2b1ce57d3fabf9ff337afa6d61ccd2908e71b3842ada08f92447c3a06",
     "patches": [
       {
         "changedFields": [
@@ -658,12 +1008,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "providers"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M3-T24": {
-    "contractHash": "6d02eda0c15844349718c616eb34d97c7a6f690b8d74863c29bf33395317e0f3",
+    "contractHash": "85ad018f8e87a5eb204ee2f64572755271c54ba1115cd81a1e57ad420bd9b36d",
     "patches": [
       {
         "changedFields": [
@@ -671,12 +1028,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "providers"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M3-T3": {
-    "contractHash": "7dd3646e6d1b6d0eccfe044a802bf4b27399fc9be686b15f2400b757c457f86a",
+    "contractHash": "83a18a1750ff77b226648f0f096419b1a7d96be325109fda384f0537ec57c0de",
     "patches": [
       {
         "changedFields": [
@@ -684,12 +1048,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M3-T4": {
-    "contractHash": "312c470cb5874f2be445bcd74a39394d9d29a4183e3989540bd98e3d8ce1dfcd",
+    "contractHash": "7521b1604b50f803f5ba1b9c72cfccad8ed71ce4d8d60f702e5992a946b1f66b",
     "patches": [
       {
         "changedFields": [
@@ -697,12 +1068,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M3-T7": {
-    "contractHash": "a51ba47e84457aee3cf66af2e36519ad9fe97b3c3d46123edf1d4b5dc6932645",
+    "contractHash": "4b8f736ee5ea607991797130996eb0622f614bfe3ae7907fc847d4428a573886",
     "patches": [
       {
         "changedFields": [
@@ -710,12 +1088,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M4-T1": {
-    "contractHash": "9d0633cc24749d40b45b371e54178d2b7fdd075f92a144862c406726c18d37e5",
+    "contractHash": "2379c7fcce4d5672e087e7eaedad1134dfbec336bfa24b9df4b414f425ba5ee1",
     "patches": [
       {
         "changedFields": [
@@ -723,12 +1108,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M4-T15": {
-    "contractHash": "3767ba8535d1dd8c536a05ffb53ffa881538517620474fea375369da1e90a376",
+    "contractHash": "d6c963ff4c7a9e2a9fa636a81bb30511ec412973a8d49b6f06c46c8dff10c00b",
     "patches": [
       {
         "changedFields": [
@@ -736,12 +1128,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M4-T8": {
-    "contractHash": "4f09aa20f21703dd812817ede23af01aa49b3ecbf0e0fe6f0d5741dd1053a6f7",
+    "contractHash": "f0aa2dd31e5288ca7126dd0066b438df5d97d5ebed027889ab14d716549befc9",
     "patches": [
       {
         "changedFields": [
@@ -749,12 +1148,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M5-T1": {
-    "contractHash": "e7d63387a140485d45e62eea549beeb821e6a512ccccf9868fa89436b2e2ad3a",
+    "contractHash": "d2d11b6a15e97be29abaa57fdcc7b3e7b9c83864f81f388e72fe1db335344c0b",
     "patches": [
       {
         "changedFields": [
@@ -762,12 +1168,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M5-T11": {
-    "contractHash": "a0c62b968f865201c85ee49b787f93c8de527dec14f4d3b6eb7148ff6332d0ae",
+    "contractHash": "04234d59d2b2f9da2331f974b6d74aa71de3e82e4c25868bb09150a938469939",
     "patches": [
       {
         "changedFields": [
@@ -775,12 +1188,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M5-T2": {
-    "contractHash": "1c940e4983035e1b547da70059e7d36d05ef72650c441109d8134c3cdff9d422",
+    "contractHash": "ed116613d1693b65eb9c7ee7b329dae93af611fd90ac517f07ee276ebc6a373c",
     "patches": [
       {
         "changedFields": [
@@ -788,12 +1208,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M5-T3": {
-    "contractHash": "cdb195ba1d4e6f972abf4a7a98c8555e22546c44be46a21e5fce2789d57f6e9b",
+    "contractHash": "449cc002e6a64d438b667c3e869c599deeccad0eac48317474d381af5c73d130",
     "patches": [
       {
         "changedFields": [
@@ -801,12 +1228,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M5-T5": {
-    "contractHash": "7995e17487ad7f6ed0ab2489f1b21a36db38ecf1c7d1a540b3abe817ec110c7a",
+    "contractHash": "9868fdebd57072ef6c8c7053d34a1d26f45de94358ba50b1db89048acb971b40",
     "patches": [
       {
         "changedFields": [
@@ -814,12 +1248,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M5-T6": {
-    "contractHash": "a884e8b63cebf02454f571b4b4c9251df741762ae08d99ed4598751643b5e7df",
+    "contractHash": "075da49ec595538ebc0ba203448e98797a80ad17ebd56a1cecd0002d5a0d07e1",
     "patches": [
       {
         "changedFields": [
@@ -827,12 +1268,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M5-T7": {
-    "contractHash": "c09b5277a21c2a57233020a3e997bac12110c47fdb1bfb879498b6ea27d5469e",
+    "contractHash": "68ba341a18efda2bfde0308bc45c310b1790ec40d9c2527114a48d5698dc4388",
     "patches": [
       {
         "changedFields": [
@@ -840,12 +1288,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M5-T8": {
-    "contractHash": "c622ca35d98d31cd01022bdb96b17db977ea77d18a73d9ebf6544ee3f608d8ed",
+    "contractHash": "2ac2a870cab97f930ecf7444578c2376caab71b45ecf9416a98b93a569c20e97",
     "patches": [
       {
         "changedFields": [
@@ -853,12 +1308,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "M5-T9": {
-    "contractHash": "222f7d91dc371e60f10afc583f17a9b66943bec3e0001ebd9058b3e89f4a20d3",
+    "contractHash": "0ed5be364db168c133e92d560557a9de28478fcb3bbb117c597b79e301c61cc0",
     "patches": [
       {
         "changedFields": [
@@ -866,12 +1328,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "MAIN-E2E-FIX": {
-    "contractHash": "dfb07c964394bdc8b257424d973270d9bd6816aaaef8549adb74f1ca2cfecd3c",
+    "contractHash": "d34c5f1727b79baffaf17772c5b39fa468f68f9f9be2d3c8daa22177e8c343d9",
     "patches": [
       {
         "changedFields": [
@@ -879,12 +1348,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "POST-LAUNCH-P3": {
-    "contractHash": "7e126bce21ff3cff55d1d56ec384710885608c0980f0ac96534bc2f355398e61",
+    "contractHash": "262bb3f2f10b1a64594634fef656ccd5dc6175b2bd4b09f9467dc8a9ee7bf43b",
     "patches": [
       {
         "changedFields": [
@@ -892,12 +1368,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "R3-T09233008": {
-    "contractHash": "d985e6c6015bf2fdba3d7df0660c00792db209ad89e11e69bfdefac60267352c",
+    "contractHash": "b521514e4111b373e732b47d23b61fd0d3b6c78e2dc15bd14c1a9d54743cc480",
     "patches": [
       {
         "changedFields": [
@@ -905,12 +1388,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "R3-T09598683": {
-    "contractHash": "95b197404972851863f0b2c3a14fcd7c910bcfbb3c1e854fc327acaaf1c7ed7f",
+    "contractHash": "fbc366dc6b5a2737347781fa2146d51f8f0f79de49a24cc4851f2e34bd40149b",
     "patches": [
       {
         "changedFields": [
@@ -918,12 +1408,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "R3-T12074461": {
-    "contractHash": "fcf4b077f1798f4ce149242475dfe4458ad66daba848cfc6d743a0eb0f95c4d8",
+    "contractHash": "733c0c21301c0d21b441d61dc2bf54708a5fb70737799a53520b51c00bfb1b1b",
     "patches": [
       {
         "changedFields": [
@@ -931,12 +1428,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "R3-T21757567": {
-    "contractHash": "3aa89b3a5e1b0b2584ef66770760c6eef9dde52a03469e1851d9893bbb81ecd4",
+    "contractHash": "7a31c6d1066e3eece66bb12ebab573263dc0097cf972446eb083c39f2357ab36",
     "patches": [
       {
         "changedFields": [
@@ -944,12 +1448,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "R3-T22883505": {
-    "contractHash": "b6e08ba8c2e7a4f9d84c8efcf0441293474cb673c74c1988d64e00800a692a81",
+    "contractHash": "35ce265b58056a6ba4c084ee915dac0d54fcdbffc3f1fa2890e8863351a896ca",
     "patches": [
       {
         "changedFields": [
@@ -957,12 +1468,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "R3-T56876634": {
-    "contractHash": "0abf413ac76d4ffe5f3d638463be924b866ca5239f7677d708cea19c10388fb7",
+    "contractHash": "e41d4f23f3681e0224eda67ad4bca197f06411be5586383e4e8a3cd5351a91fe",
     "patches": [
       {
         "changedFields": [
@@ -970,12 +1488,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "R3-T71889698": {
-    "contractHash": "de395ddfbeebb00bb8b96481cd6fc21aed2e4d432bb25e11e30996c3b30d36c4",
+    "contractHash": "a1cf2f91ac155b1c08b863d9f75c833cc424ac8c24b19d4a9b6cc779b4be4522",
     "patches": [
       {
         "changedFields": [
@@ -983,12 +1508,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "R3-T75625096": {
-    "contractHash": "b24348fd6d60b85ff753de1f5b3284b98a8d47a42e1b5b09ec2c14dd9cdf0733",
+    "contractHash": "91b6a823f44eea1aa1dd5b67443125e06a1cf5cf0deccd9f4c10b6d0b31bec65",
     "patches": [
       {
         "changedFields": [
@@ -996,12 +1528,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "R3-T86511435": {
-    "contractHash": "a2383c585ced06891cdeca248f830b24e14278a262170b505071ffcd83ae8228",
+    "contractHash": "64563ce6963efb635a30131535632a8eb881ca9d4e7d9e87e4391a98c41e0493",
     "patches": [
       {
         "changedFields": [
@@ -1009,12 +1548,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "R3-T87287564": {
-    "contractHash": "cd6ab493caa39a8a020a75f2e85ef0da2054ebed53972f67090fbe7d3e798fac",
+    "contractHash": "a3bb7e65d2ff320bedd0d465bc708f0bef933c5c1140abe50c3023a03f6ca767",
     "patches": [
       {
         "changedFields": [
@@ -1022,12 +1568,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "R3-T92231765": {
-    "contractHash": "9ca7ce33498b92e55a398b307df21f012a484740d6075d6605a71de154e3b210",
+    "contractHash": "2d3e52b34c027243332625a53121c53bbdac93fb5b9b6968a26349acb9d39048",
     "patches": [
       {
         "changedFields": [
@@ -1035,12 +1588,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "R4-T16305211": {
-    "contractHash": "de6d746d935e52767b1bbfbeb5808b23c046495b26f212a306843f98149d4211",
+    "contractHash": "41260e2d83dc4c861320bcb7f6c1d324cfa544428e058d5834a9748a99997a88",
     "patches": [
       {
         "changedFields": [
@@ -1048,12 +1608,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "R4-T64765902": {
-    "contractHash": "d68c612af87533c61fe2d87e551c0df63fc6a8fbbdc6005e20f6b3bef5403987",
+    "contractHash": "4295de67d51467f6a21f47ac30ca430d30f5af57e82259a272cc7ef729df4459",
     "patches": [
       {
         "changedFields": [
@@ -1061,12 +1628,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "R4-T76958784": {
-    "contractHash": "fe8343b2e83acf466b0cdb698647e676a94fad85d8466098b6b9a5ec366f0dd6",
+    "contractHash": "3bd25a25c4fcdfbfcc7ad1fa69cc5e8ba33ef36f8a38c4e74327a0c3abe99bb3",
     "patches": [
       {
         "changedFields": [
@@ -1074,12 +1648,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "R4-T78812657": {
-    "contractHash": "092a05f3ab428e6c5e1ee30d620d775cf7c91ffbca9e04126fc4cb2919e021ff",
+    "contractHash": "c530c8803c88ffcd151312ad848c999b4fecfb96fb8dac2556bf4c9bcf9c6c87",
     "patches": [
       {
         "changedFields": [
@@ -1087,12 +1668,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "R5-T10248697": {
-    "contractHash": "6e949abc4e2a8a57a316384358dab2de4fa122ba169e20a1c9822194016f3304",
+    "contractHash": "6dddf02c7e1778d90586fa1b85fff960410f054024b5666bf11e06a14d9d7ee6",
     "patches": [
       {
         "changedFields": [
@@ -1100,12 +1688,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "R5-T59021355": {
-    "contractHash": "2d1aed2864563d0d1e78c005ac1a4ccfa0a9b31e1fe630a0745893ae3f013d8d",
+    "contractHash": "ca1082e66b641ed05da058cf4a848a56e24834c1d7bc050007affcad0aae1dd0",
     "patches": [
       {
         "changedFields": [
@@ -1113,12 +1708,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "R7-T14077261": {
-    "contractHash": "22eeaa2c0991b1a652a6ed465a50a13893be5101d64067b41afcf5fd0760e593",
+    "contractHash": "5546b61019f3ef0886e7d79871ce9321754317f7b11b831c7f3316a62b960927",
     "patches": [
       {
         "changedFields": [
@@ -1126,12 +1728,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "R7-T21418022": {
-    "contractHash": "dfc74524936d0e528986b1141ae3fab47c5e6c8d43ffbaaaaa5945fb580cc668",
+    "contractHash": "ef57fc58cb983529d295fa50417c2134d9f98fcfaeb82e25a484d0fe527601a2",
     "patches": [
       {
         "changedFields": [
@@ -1139,12 +1748,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "R7-T31416198": {
-    "contractHash": "1702e7694cffe4f9138074da4cd8dab5802ea12cd41f4313dca649b6968a1c03",
+    "contractHash": "8a1466d60213f40afca9892602b3b4fd5961ae83596a3d6ee6d6ca8a7743f06b",
     "patches": [
       {
         "changedFields": [
@@ -1152,12 +1768,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "RETENTION-CLEANUP": {
-    "contractHash": "793b8141a3f90c9a9a8ab9e36bb3ef716a7b80bb7c20272a74c42be4e88586ad",
+    "contractHash": "ed7dfbba8089096735d5eab820a47c938bd53995827cc39c2c6a43688c44130d",
     "patches": [
       {
         "changedFields": [
@@ -1165,12 +1788,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "SEO-1": {
-    "contractHash": "08826f2489e05ce5990a5f4bc4e9bf67b6e7f9f57c3fc4c99a3e21cc33391d9f",
+    "contractHash": "b3ba51bab8aace9228f1ba60a2614db5cb306ea21a84011417bbcb4f1d8070d6",
     "patches": [
       {
         "changedFields": [
@@ -1178,12 +1808,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "SEO-2": {
-    "contractHash": "b7b5a3891721575069cfbd27681ecec83c4bcf413a37c312877ea017ed3532dc",
+    "contractHash": "cdfacbfe77561b351ce6b663b44bf9b510209b82278ccdaebefe3bc225a0090d",
     "patches": [
       {
         "changedFields": [
@@ -1191,12 +1828,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "SEO-4": {
-    "contractHash": "5f1d41a94391b11fea5be286ef5c4dc58923dfe7a70bef712a4e62714c09480f",
+    "contractHash": "7f05f19a48379983128bdb0e4d85f8d2bae7a20922e30663d39d83c4ff9215f0",
     "patches": [
       {
         "changedFields": [
@@ -1204,12 +1848,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "SEO-5": {
-    "contractHash": "0f358f37d3707c5e5b33bbe08b093183d473e001efbf31f7132a483a98361a85",
+    "contractHash": "dda12909a4d2756c80f785d3d4f6e2568be39c0ef5bba13cb9d3e63549f95210",
     "patches": [
       {
         "changedFields": [
@@ -1217,12 +1868,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "SEO-6": {
-    "contractHash": "f0c7756e8dfa112c287fd774ab0259d10d9312faaa3575e9c02f45483d277503",
+    "contractHash": "0647fa5f279048124c4ad7980e049a2b848830ec447cbb632f18a8693d2cb157",
     "patches": [
       {
         "changedFields": [
@@ -1230,12 +1888,19 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
   },
   "SEO-7": {
-    "contractHash": "e4c2b3a331969e0fb2f8c11637fc03274ea5ce3b4788ca5af30646bd9b378f59",
+    "contractHash": "25974b51027bcc88641af2cb07be262070bb35de54d5e4f87b32c1bb7dbbc86c",
     "patches": [
       {
         "changedFields": [
@@ -1243,6 +1908,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "966c628258089f393edeb50210ffeac3f4cab9ccd566e0703f18b42c02c2e8ea"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md"
+        ],
+        "patch": "b9-m5t12-registration-r1-20261109",
+        "sourceVersion": "c2c1845895ba18dca6471f87c773831318bf522575432307237baed10ebb9639"
       }
     ],
     "previousStatus": "done"
