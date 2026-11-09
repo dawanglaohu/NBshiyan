@@ -131,7 +131,11 @@ export function createMailQueueJob(deps: {
         }, { limit, budget, close });
       } catch (error) {
         if (isBudgetTimeoutError(error) || budgetExhausted(budget)) return { kind: 'timeout' };
-        return failedOutcome(await fail('internal_error'));
+        // P2-A：非预算失败先尝试一次预算内失败登记；未确认不宣称已写 FAILED、不重试。
+        // 然后传播原失败，由 executeJobRequest 映射 500 job_failed；不得返回 ran/FAILED 变 200。
+        const failed = await fail('internal_error');
+        if (failed === 'budget') return { kind: 'timeout' };
+        throw error;
       }
       return complete(counts);
     },

@@ -8,7 +8,7 @@ import { readFileSync } from 'node:fs';
 import { PrismaClient, type MailMessage } from '@prisma/client';
 import { JobCountsSchema } from '../src/lib/contracts/ops';
 import { createMailQueueJob, MAIL_QUEUE_KEY } from '../src/lib/server/mail/queue-job';
-import { createOperationsHandler } from '../src/lib/server/jobs/registry';
+import { createOperationsHandler, executeJobRequest } from '../src/lib/server/jobs/registry';
 import {
   deliver,
   processMailQueue,
@@ -22,6 +22,7 @@ import { smtpConfig, type SmtpConfig } from '../src/lib/server/mail/config';
 import type { MailSendAdapter, OutboundMail, SendOutcome } from '../src/lib/server/mail/adapter';
 import type { JobBudget } from '../src/lib/server/jobs/registry';
 import { MemoryStore, setRateLimitStore } from '../src/lib/server/ratelimit';
+import { createMailDb } from './fixtures/mail-db';
 
 const REQUIRE = process.env.M4T12_REQUIRE_DATABASE === 'true';
 const SCHEMA = 'm4t12';
@@ -416,5 +417,441 @@ describe('M4-T12 mail queue（真实 PG）', { concurrency: false, skip, timeout
     assert.equal(body.status, 'SUCCEEDED');
     assert.deepEqual(Object.keys(body.counts).sort(), ['deferred', 'dropped', 'failed', 'sent', 'stale']);
     assert.deepEqual(Object.values(body.counts), [0, 0, 0, 0, 0]);
+  });
+});
+
+// B1 分类回归：无库假 db，经 deliver/processMailQueue 公开入口；不连 PG、不发 SMTP。
+// 只断言 close_* 事件与 stage，不把未知写成已回滚。
+describe('B1 close classification（无库假 db）', { concurrency: false }, () => {
+  type CloseError = { code: string; meta?: { code?: string } };
+
+  function b1Row(over: Partial<MailRow> = {}): MailRow {
+    return {
+      id: 'b1-mail-1', inquiryId: 'inq-b1', messageId: '<b1@example.test>', sendKey: 'b1-key',
+      inReplyTo: null, references: null, toAddr: 'buyer@example.test', subject: 's', bodyHtml: 'h', bodyText: 'b',
+      errorCode: null, retryable: false, retryCount: 0, deliveryStatus: 'UNKNOWN', sentAt: null,
+      deferredUntil: new Date(NOW.getTime() + 86_400_000), createdAt: new Date(NOW.getTime() - 3_600_000),
+      lockedUntil: new Date(NOW.getTime() + 60_000), capDay: null, attempts: 1, redactedAt: null,
+      status: 'SENDING',
+      ...over,
+    } as MailRow;
+  }
+
+  async function withMailLogs<T>(fn: () => Promise<T>): Promise<{ value: T; logs: string[] }> {
+    const logs: string[] = [];
+    const origError = console.error;
+    const origWarn = console.warn;
+    const origInfo = console.info;
+    const push = (...args: unknown[]) => { logs.push(args.map((a) => String(a)).join(' ')); };
+    console.error = push as typeof console.error;
+    console.warn = push as typeof console.warn;
+    console.info = push as typeof console.info;
+    try {
+      return { value: await fn(), logs };
+    } finally {
+      console.error = origError;
+      console.warn = origWarn;
+      console.info = origInfo;
+    }
+  }
+
+  const closeLogs = (logs: string[]) => logs.filter((l) => l.includes('[mail] mail.close_'));
+  function expectClose(logs: string[], event: string, stage: string) {
+    // mailLog 的 SAFE_KEYS 不含 stage，日志只保留 event/mailId；callback/commit 由用例模式区分，不在此断言 stage。
+    const line = closeLogs(logs).find((l) => l.includes(event));
+    assert.ok(line, `expected ${event} (${stage}); got ${closeLogs(logs).join(' | ') || '(none)'}`);
+  }
+
+  function terminalDb(mode: 'success' | 'callback' | 'commit' | 'pre_tx', error?: CloseError, counter?: { tx: number }) {
+    const tx = {
+      $executeRawUnsafe: async () => 0,
+      mailMessage: {
+        updateMany: async () => {
+          if (mode === 'callback') throw Object.assign(new Error('injected callback'), error);
+          return { count: 1 };
+        },
+        findUnique: async () => null,
+      },
+    };
+    return {
+      mailMessage: { findUnique: async () => null },
+      inquiry: {},
+      async $transaction(fn: (tx: unknown) => Promise<unknown>) {
+        if (counter) counter.tx += 1;
+        if (mode === 'pre_tx') throw Object.assign(new Error('injected pre-tx'), error);
+        const value = await fn(tx);
+        if (mode === 'commit') throw Object.assign(new Error('injected commit'), error);
+        return value;
+      },
+    };
+  }
+
+  async function runTerminal(
+    mode: 'success' | 'callback' | 'commit' | 'pre_tx',
+    error?: CloseError,
+    opts: { closeMs?: number; counter?: { tx: number } } = {},
+  ) {
+    const adapter = fakeAdapter(OK);
+    const { budget } = budgetIn(400);
+    const close = closeIn(opts.closeMs ?? 2_000);
+    const { value, logs } = await withMailLogs(() => deliver(
+      { db: terminalDb(mode, error, opts.counter) as never, adapter: adapter.api, now: () => new Date(NOW) },
+      b1Row({ inquiryId: null }), cfg, 'tok0000000000001', () => new Date(NOW),
+      { attempts: 1, budget, close },
+    ));
+    return { value, logs, close };
+  }
+
+  test('B1-1 terminal 回调 P2028 → unconfirmed/callback', async () => {
+    const { value, logs } = await runTerminal('callback', { code: 'P2028' });
+    assert.equal(value.counted, null);
+    expectClose(logs, 'mail.close_unconfirmed', 'callback');
+  });
+
+  test('B1-2 terminal 回调 P1017 连接类 → unconfirmed/callback', async () => {
+    const { value, logs } = await runTerminal('callback', { code: 'P1017' });
+    assert.equal(value.counted, null);
+    expectClose(logs, 'mail.close_unconfirmed', 'callback');
+  });
+
+  test('B1-3 terminal 回调未识别错误 → unconfirmed/callback', async () => {
+    const { value, logs } = await runTerminal('callback', { code: 'E_UNEXPECTED' });
+    assert.equal(value.counted, null);
+    expectClose(logs, 'mail.close_unconfirmed', 'callback');
+  });
+
+  test('B1-4 terminal 回调 P2034 → rolled_back/callback', async () => {
+    const { value, logs } = await runTerminal('callback', { code: 'P2034' });
+    assert.equal(value.counted, null);
+    expectClose(logs, 'mail.close_rolled_back', 'callback');
+  });
+
+  test('B1-5 terminal 回调 P2010+40001 → rolled_back/callback', async () => {
+    const { value, logs } = await runTerminal('callback', { code: 'P2010', meta: { code: '40001' } });
+    assert.equal(value.counted, null);
+    expectClose(logs, 'mail.close_rolled_back', 'callback');
+  });
+
+  test('B1-6 terminal 提交阶段 P2028 → unconfirmed/commit', async () => {
+    const { value, logs } = await runTerminal('commit', { code: 'P2028' });
+    assert.equal(value.counted, null);
+    expectClose(logs, 'mail.close_unconfirmed', 'commit');
+  });
+
+  test('B1-7 terminal 提交阶段 P2034 → rolled_back/commit', async () => {
+    const { value, logs } = await runTerminal('commit', { code: 'P2034' });
+    assert.equal(value.counted, null);
+    expectClose(logs, 'mail.close_rolled_back', 'commit');
+  });
+
+  test('B1-8 terminal 本地校验失败（收尾窗不足）→ close_skipped、未调用 $transaction', async () => {
+    const counter = { tx: 0 };
+    const { value, logs } = await runTerminal('success', undefined, { closeMs: 10, counter });
+    assert.equal(value.counted, null);
+    assert.equal(counter.tx, 0, '本地校验失败不得调用 $transaction');
+    assert.ok(closeLogs(logs).some((l) => l.includes('mail.close_skipped')));
+    assert.ok(!closeLogs(logs).some((l) => l.includes('mail.close_unconfirmed') || l.includes('mail.close_rolled_back')));
+  });
+
+  test('B1-8b terminal $transaction 在回调前 reject 未知错误 → unconfirmed/callback（不降 skipped）', async () => {
+    const counter = { tx: 0 };
+    const { value, logs } = await runTerminal('pre_tx', { code: 'P1001' }, { counter });
+    assert.equal(value.counted, null);
+    assert.equal(counter.tx, 1, '$transaction 已调用');
+    expectClose(logs, 'mail.close_unconfirmed', 'callback');
+  });
+
+  test('B1-9 terminal 成功 → counted sent、无 close_*', async () => {
+    const { value, logs } = await runTerminal('success');
+    assert.equal(value.counted, 'sent');
+    assert.equal(closeLogs(logs).length, 0);
+  });
+
+  function queueDb(
+    mode: 'success' | 'callback' | 'commit' | 'pre_tx',
+    error: CloseError | undefined,
+    controller: AbortController,
+    stats?: { tx: number },
+  ) {
+    let calls = 0;
+    const inquiry = {
+      findFirst: async (args: { where?: Record<string, unknown> }) => {
+        if (args.where && 'AND' in args.where) return { id: 'inq-b1', replyToken: 'tok0000000000001', anonymizedAt: null };
+        if (args.where && 'replyToken' in args.where) return { id: 'inq-b1', ref: 'PJ-B1', locale: 'en' };
+        if (args.where && 'id' in args.where) return { contact: { email: 'buyer@example.test' } };
+        return null;
+      },
+    };
+    const txFor = (n: number) => ({
+      $executeRawUnsafe: async () => 0,
+      $queryRawUnsafe: async () => [{ ok: '1' }],
+      inquiry,
+      mailMessage: {
+        updateMany: async () => {
+          if (n === 5 && mode === 'callback') throw Object.assign(new Error('injected callback'), error);
+          return { count: n === 4 || n === 5 ? 1 : 0 };
+        },
+        findMany: async () => [b1Row()],
+        count: async () => 0,
+        findUnique: async () => ({ attempts: 1, lockedUntil: new Date(NOW.getTime() + 60_000) }),
+      },
+    });
+    return {
+      inquiry,
+      mailMessage: { findUnique: async () => null },
+      async $transaction(fn: (tx: unknown) => Promise<unknown>) {
+        calls += 1;
+        if (stats) stats.tx += 1;
+        const n = calls;
+        if (n === 5 && mode === 'pre_tx') throw Object.assign(new Error('injected pre-tx'), error);
+        const value = await fn(txFor(n));
+        if (n === 4) controller.abort();
+        if (n === 5 && mode === 'commit') throw Object.assign(new Error('injected commit'), error);
+        return value;
+      },
+    };
+  }
+
+  async function runQueue(
+    mode: 'success' | 'callback' | 'commit' | 'pre_tx',
+    error?: CloseError,
+    opts: { closeMs?: number; stats?: { tx: number } } = {},
+  ) {
+    const adapter = fakeAdapter(OK);
+    const controller = new AbortController();
+    const { budget } = budgetIn(60_000, controller);
+    const { value, logs } = await withMailLogs(() => processMailQueue(
+      { db: queueDb(mode, error, controller, opts.stats) as never, adapter: adapter.api, env: ENV, now: () => new Date(NOW) },
+      { limit: 10, budget, close: closeIn(opts.closeMs ?? 2_000) },
+    ));
+    return { value, logs };
+  }
+
+  test('B1-10 D回退成功 → deferred、无 close_*', async () => {
+    const { value, logs } = await runQueue('success');
+    assert.equal(value.deferred, 1);
+    assert.equal(closeLogs(logs).length, 0);
+  });
+
+  test('B1-11 D回退回调 P2028 → unconfirmed/callback、不计数', async () => {
+    const { value, logs } = await runQueue('callback', { code: 'P2028' });
+    assert.equal(value.deferred, 0);
+    expectClose(logs, 'mail.close_unconfirmed', 'callback');
+  });
+
+  test('B1-12 D回退回调 P1017 连接类 → unconfirmed/callback', async () => {
+    const { value, logs } = await runQueue('callback', { code: 'P1017' });
+    assert.equal(value.deferred, 0);
+    expectClose(logs, 'mail.close_unconfirmed', 'callback');
+  });
+
+  test('B1-13 D回退回调未识别错误 → unconfirmed/callback', async () => {
+    const { value, logs } = await runQueue('callback', { code: 'E_UNEXPECTED' });
+    assert.equal(value.deferred, 0);
+    expectClose(logs, 'mail.close_unconfirmed', 'callback');
+  });
+
+  test('B1-14 D回退回调 P2034 → rolled_back/callback', async () => {
+    const { value, logs } = await runQueue('callback', { code: 'P2034' });
+    assert.equal(value.deferred, 0);
+    expectClose(logs, 'mail.close_rolled_back', 'callback');
+  });
+
+  test('B1-15 D回退回调 P2010+40001 → rolled_back/callback', async () => {
+    const { value, logs } = await runQueue('callback', { code: 'P2010', meta: { code: '40001' } });
+    assert.equal(value.deferred, 0);
+    expectClose(logs, 'mail.close_rolled_back', 'callback');
+  });
+
+  test('B1-16 D回退提交阶段 P2028 → unconfirmed/commit', async () => {
+    const { value, logs } = await runQueue('commit', { code: 'P2028' });
+    assert.equal(value.deferred, 0);
+    expectClose(logs, 'mail.close_unconfirmed', 'commit');
+  });
+
+  test('B1-17 D回退提交阶段 P2034 → rolled_back/commit', async () => {
+    const { value, logs } = await runQueue('commit', { code: 'P2034' });
+    assert.equal(value.deferred, 0);
+    expectClose(logs, 'mail.close_rolled_back', 'commit');
+  });
+
+  test('B1-18 D回退 $transaction 在回调前 reject 未知错误 → unconfirmed/callback、不计数', async () => {
+    const stats = { tx: 0 };
+    const { value, logs } = await runQueue('pre_tx', { code: 'P1001' }, { stats });
+    assert.equal(value.deferred, 0);
+    assert.equal(stats.tx, 5, '$transaction 已调用');
+    expectClose(logs, 'mail.close_unconfirmed', 'callback');
+  });
+
+  test('B1-19 D回退本地校验失败（收尾窗不足）→ close_skipped、未开第 5 个事务', async () => {
+    const stats = { tx: 0 };
+    const { value, logs } = await runQueue('success', undefined, { closeMs: 10, stats });
+    assert.equal(value.deferred, 0);
+    assert.equal(stats.tx, 4, '本地校验失败不得开收尾事务');
+    assert.ok(closeLogs(logs).some((l) => l.includes('mail.close_skipped')));
+    assert.ok(!closeLogs(logs).some((l) => l.includes('mail.close_unconfirmed') || l.includes('mail.close_rolled_back')));
+  });
+});
+
+// P2-A 错误传播：无库假 db；四阶段非预算错误必须上抛并停止后续调用，预算分支保持原样。
+describe('P2 error propagation（无库假 db）', { concurrency: false }, () => {
+  type P2Db = {
+    mailMessage: {
+      create: (args: { data: Record<string, unknown> }) => Promise<Record<string, unknown>>;
+      findMany: (args?: unknown) => Promise<unknown[]>;
+      updateMany: (args: unknown) => Promise<{ count: number }>;
+    };
+    inquiry: { findFirst: (args: unknown) => Promise<unknown> };
+    $transaction: (fn: (tx: unknown) => Promise<unknown>, opts?: unknown) => Promise<unknown>;
+    $queryRaw: (...args: unknown[]) => Promise<unknown>;
+  };
+
+  function fixtureDb(inquiries: unknown[] = []) {
+    const fixture = createMailDb({ inquiries: inquiries as never });
+    const db = fixture.db as unknown as P2Db;
+    let txCalls = 0;
+    const origTx = db.$transaction.bind(db);
+    db.$transaction = async (fn, opts) => { txCalls += 1; return origTx(fn, opts); };
+    return { fixture, db, txCalls: () => txCalls };
+  }
+
+  async function seedDue(fixture: ReturnType<typeof createMailDb>, inquiryId: string | null, over: Record<string, unknown> = {}) {
+    return fixture.db.mailMessage.create({
+      data: {
+        direction: 'OUTBOUND', status: 'QUEUED', inquiryId,
+        fromAddr: 'no-reply@example.test', toAddr: 'buyer@example.test', subject: 's', bodyHtml: 'h', bodyText: 'b',
+        errorCode: 'daily_cap_deferred', retryable: false,
+        deferredUntil: new Date(NOW.getTime() - 3_600_000), createdAt: new Date(NOW.getTime() - 7_200_000),
+        ...over,
+      },
+    });
+  }
+
+  async function queueOnce(db: P2Db, adapter = fakeAdapter(OK).api) {
+    const { budget } = budgetIn(60_000);
+    return processMailQueue(
+      { db: db as never, adapter, env: ENV, now: () => new Date(NOW) },
+      { limit: 10, budget, close: closeIn(2_000) },
+    );
+  }
+
+  test('P2-1 stale 写错误 → 上抛并停止（只开 1 个事务）', async () => {
+    const { db, txCalls } = fixtureDb();
+    db.mailMessage.updateMany = async () => { throw Object.assign(new Error('injected stale'), { code: 'P1017' }); };
+    await assert.rejects(queueOnce(db), /injected stale/);
+    assert.equal(txCalls(), 1);
+  });
+
+  test('P2-2 due 读错误 → 上抛并停止（只开 2 个事务）', async () => {
+    const { db, txCalls } = fixtureDb();
+    db.mailMessage.findMany = async () => { throw Object.assign(new Error('injected due'), { code: 'P1017' }); };
+    await assert.rejects(queueOnce(db), /injected due/);
+    assert.equal(txCalls(), 2);
+  });
+
+  test('P2-3 收件人读错误 → 上抛并停止（只开 3 个事务）', async () => {
+    const inq = { id: 'inq1', replyToken: 'tok0000000000001', anonymizedAt: null, ref: 'PJ', locale: 'en', contact: { email: 'buyer@example.test' } };
+    const { fixture, db, txCalls } = fixtureDb([inq]);
+    await seedDue(fixture, 'inq1');
+    db.inquiry.findFirst = async () => { throw Object.assign(new Error('injected recipient'), { code: 'P1017' }); };
+    await assert.rejects(queueOnce(db), /injected recipient/);
+    assert.equal(txCalls(), 3);
+  });
+
+  test('P2-4 dropped 写错误 → 上抛并停止（只开 4 个事务）', async () => {
+    const { fixture, db, txCalls } = fixtureDb();
+    await seedDue(fixture, 'missing-inquiry');
+    let updates = 0;
+    db.mailMessage.updateMany = async () => {
+      updates += 1;
+      if (updates === 2) throw Object.assign(new Error('injected dropped'), { code: 'P1017' });
+      return { count: 0 };
+    };
+    await assert.rejects(queueOnce(db), /injected dropped/);
+    assert.equal(txCalls(), 4);
+  });
+
+  test('P2-5 预算分支不抛、零计数（未开事务）', async () => {
+    const { db, txCalls } = fixtureDb();
+    const controller = new AbortController();
+    controller.abort();
+    const { budget } = budgetIn(60_000, controller);
+    const out = await processMailQueue(
+      { db: db as never, adapter: fakeAdapter(OK).api, env: ENV, now: () => new Date(NOW) },
+      { limit: 10, budget },
+    );
+    assert.deepEqual(out, { stale: 0, sent: 0, failed: 0, deferred: 0, dropped: 0 });
+    assert.equal(txCalls(), 0);
+  });
+
+  test('P2-6 due 非预算错误 → createMailQueueJob→executeJobRequest failed→handler 500 job_failed', async () => {
+    const { db } = fixtureDb();
+    db.mailMessage.findMany = async () => { throw Object.assign(new Error('injected due'), { code: 'P1017' }); };
+    const adapter = fakeAdapter(OK);
+    const job = createMailQueueJob({ db: db as never, clock: () => new Date(), getAdapter: async () => adapter.api, env: ENV, limit: 10 });
+    const services = {
+      has: (k: string) => k === MAIL_QUEUE_KEY,
+      keys: () => [MAIL_QUEUE_KEY],
+      run: (_k: string, ctx: never) => job.run(ctx),
+    };
+    const outcome = await executeJobRequest({ services: services as never, clock: () => new Date(), deadlineMs: 5_000 }, MAIL_QUEUE_KEY);
+    assert.equal(outcome.kind, 'failed');
+    const handler = createOperationsHandler({ services: services as never, clock: () => new Date(), secret: 'c'.repeat(40) });
+    const res = await handler(new Request('http://127.0.0.1:3000/api/admin/cron/operations', {
+      method: 'POST',
+      headers: { authorization: `Bearer ${'c'.repeat(40)}`, 'content-type': 'application/json' },
+      body: JSON.stringify({ jobKey: 'mail-queue' }),
+    }));
+    assert.equal(res.status, 500);
+    assert.deepEqual(await res.json(), { error: 'job_failed' });
+  });
+
+  test('P2-7 失败登记未确认 → 仍传播原错误→500，不重试', async () => {
+    const { db } = fixtureDb();
+    db.mailMessage.findMany = async () => { throw Object.assign(new Error('injected due'), { code: 'P1017' }); };
+    let rawCalls = 0;
+    const origRaw = db.$queryRaw.bind(db);
+    db.$queryRaw = async (...args: unknown[]) => {
+      rawCalls += 1;
+      if (rawCalls > 2) throw Object.assign(new Error('fail registration unconfirmed'), { code: 'P1017' });
+      return origRaw(...args);
+    };
+    const adapter = fakeAdapter(OK);
+    const job = createMailQueueJob({ db: db as never, clock: () => new Date(), getAdapter: async () => adapter.api, env: ENV, limit: 10 });
+    const services = {
+      has: (k: string) => k === MAIL_QUEUE_KEY,
+      keys: () => [MAIL_QUEUE_KEY],
+      run: (_k: string, ctx: never) => job.run(ctx),
+    };
+    const handler = createOperationsHandler({ services: services as never, clock: () => new Date(), secret: 'c'.repeat(40) });
+    const res = await handler(new Request('http://127.0.0.1:3000/api/admin/cron/operations', {
+      method: 'POST',
+      headers: { authorization: `Bearer ${'c'.repeat(40)}`, 'content-type': 'application/json' },
+      body: JSON.stringify({ jobKey: 'mail-queue' }),
+    }));
+    assert.equal(res.status, 500);
+    assert.deepEqual(await res.json(), { error: 'job_failed' });
+    assert.ok(rawCalls >= 3, 'claim 后失败登记被尝试一次且未确认');
+  });
+
+  test('P2-8 早行已 SENT 保留：第二行收件人读失败不撤回/重发', async () => {
+    const inq = { id: 'inq1', replyToken: 'tok0000000000001', anonymizedAt: null, ref: 'PJ', locale: 'en', contact: { email: 'buyer@example.test' } };
+    const { fixture, db } = fixtureDb([inq]);
+    const first = await seedDue(fixture, 'inq1');
+    const second = await seedDue(fixture, 'inq1');
+    const adapter = fakeAdapter(OK);
+    let inqCalls = 0;
+    const origFindFirst = db.inquiry.findFirst.bind(db.inquiry);
+    db.inquiry.findFirst = async (args: unknown) => {
+      inqCalls += 1;
+      if (inqCalls === 4) throw Object.assign(new Error('injected recipient'), { code: 'P1017' });
+      return origFindFirst(args as never);
+    };
+    await assert.rejects(queueOnce(db, adapter.api), /injected recipient/);
+    const firstRow = fixture.mails.find((r) => r.id === first.id);
+    const secondRow = fixture.mails.find((r) => r.id === second.id);
+    assert.equal(firstRow?.status, 'SENT');
+    assert.equal(adapter.sent.length, 1);
+    assert.equal(secondRow?.status, 'QUEUED');
   });
 });

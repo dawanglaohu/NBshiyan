@@ -235,6 +235,7 @@ async function terminalTx(
 }
 
 function isKnownCommitRollback(error: unknown): boolean {
+  // 只读本次操作抛出的顶层结构化字段（code/meta.code），不遍历 cause 或 message。
   if (!error || typeof error !== 'object') return false;
   const e = error as { code?: unknown; meta?: { code?: unknown } };
   if (e.code === 'P2034') return true;
@@ -274,8 +275,10 @@ async function closeTerminal(
     }, { maxWait: Math.max(1, maxWait), timeout: Math.max(1, timeout) });
     return { kind: 'ok', counted: value.counted, written: value.written, upgraded: value.upgraded };
   } catch (error) {
-    // 回调内抛出 = 已知回滚；回调完成后 reject 只有可确认的 SQLSTATE/P2034 才算已知回滚，其余保守未知。
-    const known = !callbackDone || isKnownCommitRollback(error);
+    // 只按本次操作的结构化错误分类：P2034/P2010+meta.code 确认回滚；
+    // 其余（含 $transaction 在回调开始前超时/断连）一律 unconfirmed。
+    // stage=callback 只表示尚未完成提交，不证明回调已开始或事务未发起。
+    const known = isKnownCommitRollback(error);
     mailLog('error', known ? 'mail.close_rolled_back' : 'mail.close_unconfirmed', {
       mailId: row.id, stage: callbackDone ? 'commit' : 'callback',
     });
@@ -577,7 +580,8 @@ async function closeDeferred(
     mailLog('info', 'mail.close_unobserved', { mailId: row.id, observed: value });
     return 'conflict';
   } catch (error) {
-    const known = !callbackDone || isKnownCommitRollback(error);
+    // 只按本次操作的结构化错误分类；$transaction 在回调开始前超时/断连也属未知，不能降成 skipped。
+    const known = isKnownCommitRollback(error);
     mailLog('error', known ? 'mail.close_rolled_back' : 'mail.close_unconfirmed', {
       mailId: row.id, stage: callbackDone ? 'commit' : 'callback',
     });
@@ -609,7 +613,7 @@ export async function processMailQueue(
   const swept = await runBudgeted(deps, budget, sweep);
   if (swept.kind === 'ok') out.stale = swept.value.count;
   else if (swept.kind === 'budget') return out; // 本轮清理都开不了事务：直接结束（摘要仍会写）
-  // 未知错误：跳过本轮 stale，继续处理 due（旧实现也不因单步失败中断）。
+  else throw swept.error; // 非预算写失败：不当作零行/已回滚，向上传播并停止本轮后续操作
 
   const c = smtpConfig(env);
   if (!c.ok) return out;
@@ -619,7 +623,8 @@ export async function processMailQueue(
     where: { direction: 'OUTBOUND', status: 'QUEUED', errorCode: 'daily_cap_deferred', deferredUntil: { lte: now() } },
     orderBy: { createdAt: 'asc' }, take: limit,
   }) as Promise<MailRow[]>);
-  if (dueResult.kind !== 'ok') return out;
+  if (dueResult.kind === 'budget') return out;
+  if (dueResult.kind === 'error') throw dueResult.error;
   const due = dueResult.value;
 
   for (const row of due) {
@@ -628,7 +633,7 @@ export async function processMailQueue(
       ? await runBudgeted(deps, budget, (q) => findInquiryRecipient(q as unknown as Pick<PrismaClient, 'inquiry'>, row.inquiryId!, {}))
       : { kind: 'ok' as const, value: 'not_found' as const };
     if (rcptResult.kind === 'budget') break;
-    if (rcptResult.kind === 'error') break;
+    if (rcptResult.kind === 'error') throw rcptResult.error;
     const rcpt = rcptResult.value;
     if (typeof rcpt === 'string') {
       // 询盘已匿名化 / 不存在：不再发送。只有确认写的 count===1 才计 dropped；未领取，不占收尾窗。
@@ -637,7 +642,8 @@ export async function processMailQueue(
         data: { status: 'FAILED', errorCode: 'unknown', retryable: false },
       }));
       if (dropped.kind === 'budget') break;
-      if (dropped.kind === 'ok' && dropped.value.count === 1) out.dropped++;
+      if (dropped.kind === 'error') throw dropped.error;
+      if (dropped.value.count === 1) out.dropped++;
       else mailLog('info', 'mail.terminal_conflict', { mailId: row.id, observed: 'dropped_not_written' });
       continue;
     }
