@@ -29,8 +29,9 @@ async function readValue(query: SettingsQuery, key: string): Promise<unknown | n
 }
 
 /**
- * 单语句同快照读取 settings 与重算待办。作业与 GET 共用：
- * 两条 SELECT 在 RepeatableRead 下各自取快照，不能拿来声称同快照。
+ * 单语句同快照读取 settings 与重算待办。作业与 GET 共用。
+ * 读取入口没有事务隔离前提，不能把两条 SELECT 当成同一快照；PostgreSQL RepeatableRead
+ * 事务内的多条 SELECT 可以共用快照，但这里不依赖那个前提，仍用一条语句。
  */
 export async function readSettingsAndBacklog(query: SettingsQuery): Promise<{
   settings: unknown | null;

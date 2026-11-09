@@ -656,6 +656,120 @@ describe('M5-T4 pending 分类与完整值 CAS 消费', { concurrency: false, sk
     assert.equal(stored.timezone, 'Asia/Tokyo');
     assert.notEqual((await jobState()).lastStatus, 'SUCCEEDED');
   });
+
+  test('R2 聚合与待办 CAS 之后提交失败：DELETE 已执行但整组回滚，待办完整保留、无水位、JobState 不 SUCCEEDED', async () => {
+    await reset();
+    const conn = requireDb();
+    const day = '2026-02-24';
+    await seedSettings(settingsJson());
+    await seedBacklog(backlogJson());
+    await conn.$executeRaw`
+      INSERT INTO "AnalyticsEvent" (
+        "eventId", "semanticKey", "payloadHash", "browserHash", "kind", "locale",
+        "productSlug", "path", "occurredAt", "receivedAt"
+      ) VALUES (
+        ${`r2-${process.pid}`}, ${`r2-sk-${process.pid}`}, ${'p'.repeat(64)}, ${'bh-r2'},
+        ${'page_view'}::"AnalyticsEventKind", ${'en'}, ${null}, ${'/en'},
+        ${`${day}T01:00:00.000Z`}::timestamptz AT TIME ZONE 'UTC',
+        ${`${day}T02:00:00.000Z`}::timestamptz AT TIME ZONE 'UTC'
+      )
+    `;
+    const originalBacklog = (await readBacklog())!;
+
+    // 记录事务内 CAS DELETE 实际执行与命中行数；不改 Prisma 行为，只在测试注入的客户端上旁路观测。
+    const casDeletes: number[] = [];
+    const observedDb = new Proxy(conn, {
+      get(target, prop) {
+        if (prop === '$transaction') {
+          return (fn: (tx: Prisma.TransactionClient) => Promise<unknown>, options?: { maxWait?: number; timeout?: number }) =>
+            target.$transaction((tx) => {
+              const wrapped = new Proxy(tx, {
+                get(txTarget, txProp) {
+                  const value = Reflect.get(txTarget, txProp, txTarget) as unknown;
+                  if (typeof value !== 'function') return value;
+                  if (txProp === '$executeRaw') {
+                    return async (strings: TemplateStringsArray, ...values: unknown[]) => {
+                      const removed = await (value as (...args: unknown[]) => Promise<number>).call(txTarget, strings, ...values);
+                      if (strings.join('?').includes('DELETE FROM "SiteSetting"')) casDeletes.push(Number(removed));
+                      return removed;
+                    };
+                  }
+                  return (value as (...args: unknown[]) => unknown).bind(txTarget);
+                },
+              });
+              return fn(wrapped as Prisma.TransactionClient);
+            }, options);
+        }
+        const value = Reflect.get(target, prop, target) as unknown;
+        return typeof value === 'function' ? (value as (...args: unknown[]) => unknown).bind(target) : value;
+      },
+    }) as PrismaClient;
+
+    // 前两次取时（claim）用基准时刻，之后（CAS 后的 complete）跳 120s，使租约在提交事务内过期。
+    let calls = 0;
+    const base = BASE.getTime();
+    const advancing = () => new Date(base + (calls++ >= 2 ? 120_000 : 0));
+    const outcome = await createAnalyticsAggregateJob({ db: observedDb, clock: advancing }).run({
+      now: new Date(BASE),
+      deadlineAt: new Date(Date.now() + 30_000),
+      signal: new AbortController().signal,
+    });
+    assert.notEqual(outcome.kind === 'ran' ? outcome.status : 'RUNNING', 'SUCCEEDED');
+    assert.deepEqual(casDeletes, [1], 'CAS DELETE 必须在提交失败前执行并命中完整待办');
+    assert.equal(await readBacklog(), originalBacklog, '失败回滚后完整六字段待办必须原样保留');
+    assert.equal(await rollupCount(), 0, '聚合水位不得留下');
+    const daily = await conn.$queryRaw<{ c: bigint }[]>`SELECT COUNT(*)::bigint AS c FROM "AnalyticsDailyRollup"`;
+    assert.equal(Number(daily[0]!.c), 0, '日聚合行不得留下');
+    assert.equal((await jobState()).lastStatus, 'RUNNING', '终态未持久化：保持已领取的 RUNNING，不冒 SUCCEEDED');
+  });
+
+  test('R8 planned 待办 + 有界锁阻塞：真实入口 503 job_timeout，收束后无部分聚合、待办完整、无迟到成功', async () => {
+    await reset();
+    const conn = requireDb();
+    const day = '2026-02-24';
+    await seedSettings(settingsJson());
+    await seedBacklog(backlogJson());
+    await conn.$executeRaw`
+      INSERT INTO "AnalyticsEvent" (
+        "eventId", "semanticKey", "payloadHash", "browserHash", "kind", "locale",
+        "productSlug", "path", "occurredAt", "receivedAt"
+      ) VALUES (
+        ${`r8-${process.pid}`}, ${`r8-sk-${process.pid}`}, ${'p'.repeat(64)}, ${'bh-r8'},
+        ${'page_view'}::"AnalyticsEventKind", ${'en'}, ${null}, ${'/en'},
+        ${`${day}T01:00:00.000Z`}::timestamptz AT TIME ZONE 'UTC',
+        ${`${day}T02:00:00.000Z`}::timestamptz AT TIME ZONE 'UTC'
+      )
+    `;
+    const originalBacklog = (await readBacklog())!;
+
+    // 表级锁让聚合的第一次读取真阻塞跨过截止；作业入口、预算与实现都走真实代码。
+    const holder = conn.$transaction(async (tx) => {
+      await tx.$executeRawUnsafe('LOCK TABLE "AnalyticsEvent" IN ACCESS EXCLUSIVE MODE');
+      await sleep(3_000);
+    }, { maxWait: 5_000, timeout: 20_000 });
+    await sleep(150);
+    const res = await createOperationsHandler({
+      services: createJobServices({ db: conn, clock: () => new Date(BASE) }).jobs,
+      clock: () => new Date(BASE),
+      secret: SECRET,
+      deadlineMs: 1_200,
+    })(post({ jobKey: 'analytics-aggregate' }));
+    assert.equal(res.status, 503);
+    assert.equal((await res.json() as { error: string }).error, 'job_timeout');
+
+    const atDeadline = await jobState();
+    assert.equal(atDeadline.lastStatus, 'RUNNING', '预算耗尽后停在已领取的 RUNNING，等租约到期');
+    assert.equal(await rollupCount(), 0, '阻塞中的聚合不得提交水位');
+    assert.equal(await readBacklog(), originalBacklog, '超时未执行 CAS，完整待办必须保留');
+
+    await holder.catch(() => {});
+    await sleep(1_200);
+    assert.deepEqual(await jobState(), atDeadline, '截止后不得晚写终态，也不得晚释放租约');
+    assert.equal(await rollupCount(), 0);
+    const daily = await conn.$queryRaw<{ c: bigint }[]>`SELECT COUNT(*)::bigint AS c FROM "AnalyticsDailyRollup"`;
+    assert.equal(Number(daily[0]!.c), 0);
+    assert.equal(await readBacklog(), originalBacklog);
+  });
 });
 
 
