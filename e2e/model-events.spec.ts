@@ -1,6 +1,7 @@
 import { PrismaClient, type AnalyticsEventKind } from '@prisma/client';
 import type { Page, Response } from '@playwright/test';
 import { expect, test } from './fixtures';
+import { BASE } from './base-url';
 
 /**
  * M2-T7：真实 GLB 生命周期接入分析采集。
@@ -66,6 +67,24 @@ type ConsentWatch = {
   dispose: () => void;
 };
 
+const CONSENT_PATH = '/api/analytics/consent';
+const CONSENT_ORIGIN = new URL(BASE).origin;
+
+/**
+ * 只认本次测试服务上精确的 `POST /api/analytics/consent`：
+ * 其它 origin、同名后缀（如 consent-other）和 GET 响应都不算一次同意写。
+ */
+function isConsentWrite(response: Response): boolean {
+  try {
+    const url = new URL(response.url());
+    return response.request().method() === 'POST'
+      && url.origin === CONSENT_ORIGIN
+      && url.pathname === CONSENT_PATH;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * 同意写响应记录器：必须在触发点击之前装好，否则快速响应会被漏掉。
  * 监听只收集状态与 Retry-After，不抛错（事件回调里抛错会变成未处理异常）；
@@ -75,7 +94,7 @@ function watchConsent(page: Page): ConsentWatch {
   const responses: ConsentResponse[] = [];
   const onResponse = (response: Response) => {
     try {
-      if (!response.url().includes('/api/analytics/consent')) return;
+      if (!isConsentWrite(response)) return;
       responses.push({ status: response.status(), retryAfter: response.headers()['retry-after'] ?? null });
     } catch {
       // 响应对象已被释放时不打断用例；缺失会由断言超时暴露。
@@ -122,8 +141,17 @@ async function expectGranted(page: Page, watch: ConsentWatch): Promise<void> {
   }
 }
 
-/** 拒绝路径：写请求本身必须 2xx，但不要求 cookie 或采集标记。 */
-function expectNoConsentFailure(watch: ConsentWatch, action: string): void {
+/**
+ * 拒绝路径：本次动作必须产生一条真实、匹配的同意写响应且为 2xx。
+ * 无响应、无关响应、延迟失败都算失败；不把“客户端把重复选择合并成不发请求”当无条件成功——
+ * 若某用例确实预期不新发写请求，须显式断言“没有新响应”，不能拿空数组当 2xx 通过。
+ */
+async function expectNoConsentFailure(page: Page, watch: ConsentWatch, action: string): Promise<void> {
+  try {
+    await expect.poll(() => watch.responses.length, { timeout: 20_000 }).toBeGreaterThan(0);
+  } catch {
+    throw new Error(`${action} consent write failed: no POST ${CONSENT_PATH} response observed | ${await consentState(page)}`);
+  }
   const failure = firstConsentFailure(watch.responses);
   if (failure) throw new Error(`${action} consent write failed: ${describeConsent([failure])}`);
 }
@@ -139,7 +167,7 @@ async function writeConsent(
   try {
     await click();
     if (options.grant) await expectGranted(page, watch);
-    else expectNoConsentFailure(watch, action);
+    else await expectNoConsentFailure(page, watch, action);
   } finally {
     watch.dispose();
   }
@@ -226,7 +254,7 @@ async function rejectOnCurrentPage(page: Page): Promise<void> {
     await expect(banner).toBeVisible({ timeout: 15_000 });
     await banner.getByRole('button', { name: 'Reject all' }).click();
     await expect(banner).toBeHidden();
-    expectNoConsentFailure(watch, 'reject');
+    await expectNoConsentFailure(page, watch, 'reject');
   } finally {
     watch.dispose();
   }
