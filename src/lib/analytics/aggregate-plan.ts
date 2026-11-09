@@ -22,10 +22,13 @@ export const LATE_ARRIVAL_MS = 48 * 60 * 60 * 1000;
 /** 覆盖度状态。`complete` 表示本轮所有目标日都可整日重算。 */
 export type CoverageState = 'complete' | 'partial' | 'unavailable';
 
+/** 因超出完整原始覆盖而无法重算的连续区间；不逐日枚举、不塞进 skippedDates。 */
+export type SkippedRange = { from: string; to: string; dayCount: number };
+
 export type SnapshotPlan = {
   /** 本轮快照时间点：只统计 receivedAt ≤ cutoff 的事件。 */
   cutoff: Date;
-  /** 需要重算的站点自然日（升序、去重）。 */
+  /** 需要重算的站点自然日（升序、去重、不晚于当前日）。 */
   siteDates: string[];
   /** 因超出完整原始覆盖而无法全部重算时的覆盖度。 */
   coverage: CoverageState;
@@ -33,7 +36,39 @@ export type SnapshotPlan = {
   earliestRecomputableDate: string;
   /** 因超出覆盖范围而被跳过的目标日。 */
   skippedDates: string[];
+  /** 重算起点早于完整原始覆盖时，被跳过的连续区间；无则为 null。 */
+  skippedRange: SkippedRange | null;
 };
+
+function pad2(value: number): string {
+  return String(value).padStart(2, '0');
+}
+
+function localDateOrdinal(date: string): number {
+  const [year, month, day] = date.split('-').map(Number);
+  return Date.UTC(year, month - 1, day);
+}
+
+/** 站点自然日标签加减（UTC 日序，不受 DST 23/25h 影响）。 */
+export function shiftLocalDate(date: string, days: number): string {
+  const [year, month, day] = date.split('-').map(Number);
+  const shifted = new Date(Date.UTC(year, month - 1, day + days));
+  return `${shifted.getUTCFullYear()}-${pad2(shifted.getUTCMonth() + 1)}-${pad2(shifted.getUTCDate())}`;
+}
+
+/** 闭区间日数；`to < from` 时为 0。 */
+export function localDateDayCount(from: string, to: string): number {
+  const diff = localDateOrdinal(to) - localDateOrdinal(from);
+  return diff < 0 ? 0 : Math.round(diff / 86_400_000) + 1;
+}
+
+/** 闭区间枚举（升序）；`to < from` 时为空。 */
+export function localDateRange(from: string, to: string): string[] {
+  const count = localDateDayCount(from, to);
+  const out: string[] = [];
+  for (let index = 0; index < count; index += 1) out.push(shiftLocalDate(from, index));
+  return out;
+}
 
 /**
  * 48h 迟到可能影响的站点自然日。
@@ -68,21 +103,48 @@ export function isDateRecomputable(siteDate: string, siteTimezone: string, earli
  * @param now 本轮开始时间
  * @param siteTimezone 站点 IANA 时区（取自当前 settings revision，提交前还需重查）
  * @param currentDate 当前站点自然日
+ * @param rebuildFrom 可选：时区切换后的重算起点（UTC 瞬时，调用方已排除未来）
  */
-export function planSnapshot(input: { now: Date; siteTimezone: string; currentDate: string }): SnapshotPlan {
-  const { now, siteTimezone, currentDate } = input;
+export function planSnapshot(input: {
+  now: Date;
+  siteTimezone: string;
+  currentDate: string;
+  rebuildFrom?: string;
+}): SnapshotPlan {
+  const { now, siteTimezone, currentDate, rebuildFrom } = input;
   const earliest = recomputableFrom(now, siteTimezone);
+  const earliestDate = siteLocalDate(new Date(earliest), siteTimezone);
+  // 上界是「此刻的站点日」，不是调用方传入的候选日：候选日可能是更早的旧日。
+  const upperDate = siteLocalDate(now, siteTimezone);
 
-  const candidates = new Set<string>([currentDate, ...lateArrivalSiteDates(now, siteTimezone)]);
+  const candidates = new Set<string>();
+  let skippedRange: SkippedRange | null = null;
+  if (rebuildFrom === undefined) {
+    candidates.add(currentDate);
+    for (const date of lateArrivalSiteDates(now, siteTimezone)) candidates.add(date);
+  } else {
+    // floor 是日界瞬时，必须先映射成站点日；不能取 ISO 前 10 位。
+    const floorDate = siteLocalDate(new Date(rebuildFrom), siteTimezone);
+    const windowStart = floorDate > earliestDate ? floorDate : earliestDate;
+    // 窗口 = [max(floor, earliest), 当前站点日]：floor 之前的迟到日不属于新 revision 的重算范围。
+    for (const date of localDateRange(windowStart, upperDate)) candidates.add(date);
+    if (floorDate < windowStart) {
+      const to = shiftLocalDate(windowStart, -1);
+      skippedRange = { from: floorDate, to, dayCount: localDateDayCount(floorDate, to) };
+    }
+  }
+
   const siteDates: string[] = [];
   const skippedDates: string[] = [];
   for (const date of [...candidates].sort()) {
+    // 上界先定死：不枚举当前站点日之后的日子。
+    if (date > upperDate) continue;
     if (isDateRecomputable(date, siteTimezone, earliest)) siteDates.push(date);
     else skippedDates.push(date);
   }
 
   const coverage: CoverageState =
-    siteDates.length === 0 ? 'unavailable' : skippedDates.length > 0 ? 'partial' : 'complete';
+    siteDates.length === 0 ? 'unavailable' : skippedRange !== null || skippedDates.length > 0 ? 'partial' : 'complete';
 
   return {
     // cutoff 取「此刻」：receivedAt 晚于它的新事件必须留给下一轮，
@@ -92,6 +154,7 @@ export function planSnapshot(input: { now: Date; siteTimezone: string; currentDa
     coverage,
     earliestRecomputableDate: earliest,
     skippedDates,
+    skippedRange,
   };
 }
 

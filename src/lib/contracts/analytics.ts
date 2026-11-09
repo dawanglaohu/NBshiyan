@@ -120,6 +120,7 @@ export const AnalyticsSettingsDTOSchema = z.object({
   version: NonNegativeIntSchema,
   timezone: TimezoneSchema,
   timezoneRevision: PositiveIntSchema,
+  /** 读时无可用 pending（无行/损坏/不匹配/无 pending）时为 null；null 不证明重建完成，也不证明无需重算。 */
   recomputableFrom: UtcDateTimeSchema.nullable(),
 }).strict();
 export type AnalyticsSettingsDTO = z.infer<typeof AnalyticsSettingsDTOSchema>;

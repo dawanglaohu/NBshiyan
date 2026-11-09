@@ -2,11 +2,19 @@ import { after, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { PrismaClient } from '@prisma/client';
-import { siteDayContaining, siteLocalDate } from '../src/lib/analytics/day-boundaries';
+import { recomputableFrom, siteDayContaining, siteLocalDate } from '../src/lib/analytics/day-boundaries';
 import { AppError } from '../src/lib/server/http/errors';
 import { ANALYTICS_SETTINGS_KEY } from '../src/lib/server/jobs/types';
-import { ANALYTICS_RECOMPUTE_KEY, ANALYTICS_TIMEZONE_CHANGE_ACTION } from '../src/lib/server/analytics/settings-repo';
-import { createAnalyticsSettingsService, type AnalyticsSettingsService } from '../src/lib/server/analytics/settings';
+import {
+  ANALYTICS_RECOMPUTE_KEY,
+  ANALYTICS_TIMEZONE_CHANGE_ACTION,
+  readSettingsAndBacklog,
+} from '../src/lib/server/analytics/settings-repo';
+import {
+  createAnalyticsSettingsService,
+  parseRecomputeBacklogStrict,
+  type AnalyticsSettingsService,
+} from '../src/lib/server/analytics/settings';
 
 const base = process.env.DATABASE_URL;
 const SCHEMA = `m5t9_${process.pid}`;
@@ -337,5 +345,62 @@ describe('版本化站点时区', { concurrency: false, skip }, () => {
     assert.doesNotMatch(serviceSource, /AnalyticsEvent|AnalyticsDaily|process\.env|NextResponse|queryRawUnsafe/);
     assert.match(repo, /LOCK TABLE "SiteSetting" IN SHARE ROW EXCLUSIVE MODE/);
     assert.match(repo, /FOR UPDATE/);
+  });
+
+  test('M5-T4 单语句双读：settings 与待办同次返回，缺行都是 null', async () => {
+    await reset();
+    assert.ok(db);
+    assert.deepEqual(await readSettingsAndBacklog(db), { settings: null, backlog: null });
+    await db.$executeRaw`
+      INSERT INTO "SiteSetting" ("key", "value") VALUES
+        (${ANALYTICS_SETTINGS_KEY}, ${JSON.stringify({
+          version: 0, timezone: 'UTC', timezoneRevision: 1,
+          changedAt: '2026-06-15T12:00:00.000Z', updatedBy: null,
+        })}::jsonb),
+        (${ANALYTICS_RECOMPUTE_KEY}, ${JSON.stringify({
+          timezoneRevision: 1, timezone: 'UTC', recomputableFrom: '2026-05-16T00:00:00.000Z',
+          requestedAt: '2026-06-15T12:00:00.000Z', updatedBy: 'admin-a', status: 'pending',
+        })}::jsonb)
+    `;
+    const both = await readSettingsAndBacklog(db);
+    assert.equal((both.settings as { timezone: string }).timezone, 'UTC');
+    assert.equal((both.backlog as { status: string }).status, 'pending');
+    await db.$executeRaw`DELETE FROM "SiteSetting" WHERE "key" = ${ANALYTICS_RECOMPUTE_KEY}`;
+    const onlySettings = await readSettingsAndBacklog(db);
+    assert.ok(onlySettings.settings);
+    assert.equal(onlySettings.backlog, null);
+  });
+
+  test('M5-T4 GET 与作业共用 live 判定：推进时钟 live 前进而待办不变；坏待办 strict=corrupt、GET=null', async () => {
+    await reset();
+    assert.ok(db);
+    let current = new Date(NOW);
+    const api = createAnalyticsSettingsService({ db, clock: () => current });
+    await api.update({ userId: 'admin-a' }, { timezone: 'Asia/Shanghai', expectedVersion: 0 });
+    const backlogBefore = await db.$queryRaw<{ value: string }[]>`
+      SELECT "value"::text AS "value" FROM "SiteSetting" WHERE "key" = ${ANALYTICS_RECOMPUTE_KEY}
+    `;
+    const first = await api.read({ userId: 'admin-a' });
+    assert.equal(first.recomputableFrom, recomputableFrom(current, 'Asia/Shanghai'));
+
+    current = new Date(current.getTime() + 20 * 60 * 60 * 1000);
+    const second = await api.read({ userId: 'admin-a' });
+    assert.equal(second.recomputableFrom, recomputableFrom(current, 'Asia/Shanghai'));
+    assert.notEqual(second.recomputableFrom, first.recomputableFrom, '读时 live 必须随时钟前进');
+    const backlogAfter = await db.$queryRaw<{ value: string }[]>`
+      SELECT "value"::text AS "value" FROM "SiteSetting" WHERE "key" = ${ANALYTICS_RECOMPUTE_KEY}
+    `;
+    assert.deepEqual(backlogAfter, backlogBefore, 'GET 只读，不得改写待办');
+
+    await db.$executeRaw`
+      UPDATE "SiteSetting" SET "value" = ${JSON.stringify({ timezoneRevision: 2, timezone: 'Asia/Shanghai' })}::jsonb
+      WHERE "key" = ${ANALYTICS_RECOMPUTE_KEY}
+    `;
+    const corrupt = (await db.$queryRaw<{ value: unknown }[]>`
+      SELECT "value" FROM "SiteSetting" WHERE "key" = ${ANALYTICS_RECOMPUTE_KEY}
+    `)[0]!.value;
+    assert.equal(parseRecomputeBacklogStrict(corrupt), 'corrupt');
+    const read = await api.read({ userId: 'admin-a' });
+    assert.equal(read.recomputableFrom, null, '坏待办只说明读时无可用 pending');
   });
 });

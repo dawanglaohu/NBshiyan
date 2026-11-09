@@ -9,11 +9,18 @@ import { request as httpRequest } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, type Prisma } from '@prisma/client';
 import { createOperationsHandler, JobDeadlineExceeded, JOB_DEADLINE_MS, JOB_MAX_BATCH, createAnalyticsAggregateJob } from '../src/lib/server/jobs/registry';
 import { createJobServices } from '../src/lib/server/composition';
 import { AGGREGATE_JOB_KEY } from '../src/lib/server/analytics/aggregate-repo';
 import { runAggregateOnce } from '../src/lib/server/analytics/aggregate';
+import {
+  createAnalyticsSettingsService,
+  parseAnalyticsSettingsValue,
+  parseRecomputeBacklogStrict,
+} from '../src/lib/server/analytics/settings';
+import { ANALYTICS_RECOMPUTE_KEY, readSettingsAndBacklog } from '../src/lib/server/analytics/settings-repo';
+import { ANALYTICS_SETTINGS_KEY } from '../src/lib/server/jobs/types';
 import { createEventsPost } from '../src/app/api/analytics/events/post';
 import { createAnalyticsConsentService } from '../src/lib/server/analytics/consent';
 import { CONSENT_VERSION } from '../src/lib/consent';
@@ -331,7 +338,7 @@ describe('M5-T8 jobs runtime + cron operations route', { concurrency: false, ski
     const job = createAnalyticsAggregateJob({
       db: conn,
       clock: () => new Date(NOW),
-      settingsReader: () => {
+      reader: () => {
         throw new Error('settings_read_failed');
       },
     });
@@ -468,9 +475,189 @@ describe('M5-T8 jobs runtime + cron operations route', { concurrency: false, ski
 });
 
 // ---------------------------------------------------------------------------
-// M5-T8 B5 业务链：事件只经真实事件 HTTP 入口写入，聚合作业跑同一产品实现。
-// 时钟由依赖注入控制（不改系统时钟、不加生产测试开关），不直接向库里造事件。
+// M5-T4：pending 分类（absent/corrupt/stale/future/planned）、同一 RR 事务内的
+// 完整值 CAS 消费，以及读取后并发 PATCH 的版本回滚。全部真 Prisma + 真 JobState。
 // ---------------------------------------------------------------------------
+
+describe('M5-T4 pending 分类与完整值 CAS 消费', { concurrency: false, skip, timeout: 120_000 }, () => {
+  const BASE = new Date('2026-03-01T10:00:00.000Z');
+  const settingsJson = (over: Record<string, unknown> = {}) => JSON.stringify({
+    version: 0, timezone: 'UTC', timezoneRevision: 1,
+    changedAt: BASE.toISOString(), updatedBy: null, ...over,
+  });
+  const backlogJson = (over: Record<string, unknown> = {}) => JSON.stringify({
+    timezoneRevision: 1, timezone: 'UTC', recomputableFrom: '2026-02-24T00:00:00.000Z',
+    requestedAt: BASE.toISOString(), updatedBy: 'admin-a', status: 'pending', ...over,
+  });
+
+  async function reset() {
+    const conn = requireDb();
+    for (const table of ['AnalyticsEvent', 'AnalyticsDailyRollup', 'AnalyticsRollupDay', 'JobState', 'SiteSetting']) {
+      await conn.$executeRawUnsafe(`DELETE FROM "${table}"`);
+    }
+    await conn.$executeRawUnsafe(`DELETE FROM "User" WHERE "id" = 'm5t4-admin'`);
+  }
+
+  async function seedSettings(value: string) {
+    await requireDb().$executeRaw`
+      INSERT INTO "SiteSetting" ("key", "value") VALUES (${ANALYTICS_SETTINGS_KEY}, ${value}::jsonb)
+    `;
+  }
+
+  async function seedBacklog(value: string) {
+    await requireDb().$executeRaw`
+      INSERT INTO "SiteSetting" ("key", "value") VALUES (${ANALYTICS_RECOMPUTE_KEY}, ${value}::jsonb)
+    `;
+  }
+
+  async function readBacklog(): Promise<string | null> {
+    const rows = await requireDb().$queryRaw<{ value: string }[]>`
+      SELECT "value"::text AS "value" FROM "SiteSetting" WHERE "key" = ${ANALYTICS_RECOMPUTE_KEY}
+    `;
+    return rows[0]?.value ?? null;
+  }
+
+  async function jobState(): Promise<{ lastStatus: string; lastErrorCode: string | null }> {
+    const rows = await requireDb().$queryRaw<{ lastStatus: string; lastErrorCode: string | null }[]>`
+      SELECT "lastStatus"::text AS "lastStatus", "lastErrorCode" FROM "JobState" WHERE "key" = ${AGGREGATE_JOB_KEY}
+    `;
+    assert.equal(rows.length, 1);
+    return rows[0]!;
+  }
+
+  async function rollupCount(): Promise<number> {
+    const rows = await requireDb().$queryRaw<{ c: bigint }[]>`SELECT COUNT(*)::bigint AS c FROM "AnalyticsRollupDay"`;
+    return Number(rows[0]!.c);
+  }
+
+  function runJob(extra: Partial<Parameters<typeof createAnalyticsAggregateJob>[0]> = {}) {
+    const job = createAnalyticsAggregateJob({ db: requireDb(), clock: () => new Date(BASE), ...extra });
+    return job.run({ now: new Date(BASE), deadlineAt: new Date(Date.now() + 30_000), signal: new AbortController().signal });
+  }
+
+  async function captureLogs<T>(run: () => Promise<T>): Promise<{ value: T; logs: string[] }> {
+    const logs: string[] = [];
+    const original = console.error;
+    console.error = (...args: unknown[]) => {
+      logs.push(args.map((arg) => (typeof arg === 'string' ? arg : JSON.stringify(arg))).join(' '));
+    };
+    try {
+      return { value: await run(), logs };
+    } finally {
+      console.error = original;
+    }
+  }
+
+  after(async () => {
+    if (!db) return;
+    await reset();
+  });
+
+  test('R1 planned：backlog 在同一事务内按完整值删除，JobState SUCCEEDED，重复跑不再消费', async () => {
+    await reset();
+    await seedSettings(settingsJson());
+    await seedBacklog(backlogJson());
+    const outcome = await runJob();
+    assert.equal(outcome.kind, 'ran');
+    if (outcome.kind !== 'ran') assert.fail('job did not run');
+    assert.equal(outcome.status, 'SUCCEEDED');
+    assert.equal(await readBacklog(), null, 'CAS 命中后待办消失');
+    assert.equal((await jobState()).lastStatus, 'SUCCEEDED');
+    const again = await runJob();
+    assert.equal(again.kind, 'ran');
+    if (again.kind !== 'ran') assert.fail('job did not rerun');
+    assert.equal(again.status, 'SUCCEEDED');
+    assert.equal(await readBacklog(), null);
+  });
+
+  test('R4 读后外部改写同 revision 字段：CAS 0 行只记 consume_miss，待办不删，聚合仍 SUCCEEDED', async () => {
+    await reset();
+    await seedSettings(settingsJson());
+    await seedBacklog(backlogJson());
+    const conn = requireDb();
+    const reader = async (tx: Prisma.TransactionClient) => {
+      const raw = await readSettingsAndBacklog(tx);
+      const settings = parseAnalyticsSettingsValue(raw.settings);
+      const backlog = parseRecomputeBacklogStrict(raw.backlog);
+      await conn.$executeRaw`
+        UPDATE "SiteSetting" SET "value" = jsonb_set("value", '{note}', '"external"')
+        WHERE "key" = ${ANALYTICS_RECOMPUTE_KEY}
+      `;
+      return { settings, backlog };
+    };
+    const { value: outcome, logs } = await captureLogs(() => runJob({ reader }));
+    assert.equal(outcome.kind, 'ran');
+    if (outcome.kind !== 'ran') assert.fail('job did not run');
+    assert.equal(outcome.status, 'SUCCEEDED');
+    const stored = JSON.parse((await readBacklog())!) as { note?: string; status?: string };
+    assert.equal(stored.note, 'external', '外部改写后的待办不得被删除');
+    assert.equal(stored.status, 'pending');
+    assert.ok(logs.some((line) => line.includes('analytics.recompute_consume_miss')), JSON.stringify(logs));
+  });
+
+  test('R5 坏 JSON/缺字段：不消费、待办保留、正常 SUCCEEDED 并记录 corrupt', async () => {
+    await reset();
+    await seedBacklog(JSON.stringify({ timezoneRevision: 1, timezone: 'UTC' }));
+    const { value: outcome, logs } = await captureLogs(() => runJob());
+    assert.equal(outcome.kind, 'ran');
+    if (outcome.kind !== 'ran') assert.fail('job did not run');
+    assert.equal(outcome.status, 'SUCCEEDED');
+    assert.ok(await readBacklog(), '坏待办不得被删除');
+    assert.ok(logs.some((line) => line.includes('analytics.recompute_backlog_unusable') && line.includes('corrupt')), JSON.stringify(logs));
+  });
+
+  test('R6 stale revision：不消费、待办保留并记录 stale', async () => {
+    await reset();
+    await seedBacklog(backlogJson({ timezoneRevision: 2 }));
+    const { value: outcome, logs } = await captureLogs(() => runJob());
+    assert.equal(outcome.kind, 'ran');
+    if (outcome.kind !== 'ran') assert.fail('job did not run');
+    assert.equal(outcome.status, 'SUCCEEDED');
+    assert.ok(await readBacklog());
+    assert.ok(logs.some((line) => line.includes('analytics.recompute_backlog_unusable') && line.includes('stale')), JSON.stringify(logs));
+  });
+
+  test('R7 future floor：不消费、不属于本轮计划，待办保留并记录 floor_future', async () => {
+    await reset();
+    await seedBacklog(backlogJson({ recomputableFrom: '2026-03-02T00:00:00.000Z' }));
+    const { value: outcome, logs } = await captureLogs(() => runJob());
+    assert.equal(outcome.kind, 'ran');
+    if (outcome.kind !== 'ran') assert.fail('job did not run');
+    assert.equal(outcome.status, 'SUCCEEDED');
+    assert.deepEqual(JSON.parse((await readBacklog())!), {
+      timezoneRevision: 1, timezone: 'UTC', recomputableFrom: '2026-03-02T00:00:00.000Z',
+      requestedAt: BASE.toISOString(), updatedBy: 'admin-a', status: 'pending',
+    }, '未来 floor 不得被消费');
+    assert.ok(logs.some((line) => line.includes('analytics.recompute_floor_future')), JSON.stringify(logs));
+  });
+
+  test('R3 读取后并发 PATCH：complete 版本守卫失败，聚合整组回滚，新待办保留', async () => {
+    await reset();
+    const conn = requireDb();
+    await conn.user.create({
+      data: { id: 'm5t4-admin', email: 'm5t4-admin@example.com', name: 'M5', passwordHash: 'x', role: 'ADMIN' },
+    });
+    await seedSettings(settingsJson());
+    await seedBacklog(backlogJson());
+    const reader = async (tx: Prisma.TransactionClient) => {
+      const raw = await readSettingsAndBacklog(tx);
+      const settings = parseAnalyticsSettingsValue(raw.settings);
+      const backlog = parseRecomputeBacklogStrict(raw.backlog);
+      // 读取后、提交前，另一个真实 PATCH 把 revision+1 并写入新待办。
+      await createAnalyticsSettingsService({ db: conn, clock: () => new Date(BASE) })
+        .update({ userId: 'm5t4-admin' }, { timezone: 'Asia/Tokyo', expectedVersion: 0 });
+      return { settings, backlog };
+    };
+    const outcome = await runJob({ reader });
+    assert.notEqual(outcome.kind === 'ran' ? outcome.status : 'RUNNING', 'SUCCEEDED');
+    assert.equal(await rollupCount(), 0, '版本冲突不得留下聚合行');
+    const stored = JSON.parse((await readBacklog())!) as { timezoneRevision: number; timezone: string };
+    assert.equal(stored.timezoneRevision, 2);
+    assert.equal(stored.timezone, 'Asia/Tokyo');
+    assert.notEqual((await jobState()).lastStatus, 'SUCCEEDED');
+  });
+});
+
 
 const CONSENT_SECRET = Buffer.from('b'.repeat(32));
 const EDGE_AUTH = 'e'.repeat(32);
@@ -678,3 +865,4 @@ describe('M5-T8 B5 事件入口 → 聚合作业（E-44 去重 / E-60 时间边�
     assert.deepEqual(await pageViewRollup('2026-06-15'), { count: 3, uniqueBrowsers: 1 });
   });
 });
+
