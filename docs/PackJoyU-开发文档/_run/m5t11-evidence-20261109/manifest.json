@@ -39,6 +39,19 @@
       "sha256": "55A6BF602A151C0AD2D545FC654B27EB2D01ABB20FC0FBD85C2D7F0A3A26EDB9",
       "source": "D:\\xiangmu\\.codex-plans\\NBshiyan-m5-t11\\db-m5t11-contract-final-20261109.md",
       "role": "self-contract-final"
+    },
+    {
+      "name": "db-m5t11-contract-current-evidence-20261109.json",
+      "bytes": 13102,
+      "sha256": "F115BD0EF2F2CEE0036C9656E0DD3A3C32CE440536F040E70C193CCE0CBF9E3D",
+      "source": "docs/PackJoyU-开发文档/_run/m5t11-evidence-20261109/db-m5t11-contract-current-evidence-20261109.json",
+      "role": "self-contract-current",
+      "composed_from": [
+        "db-m5t11-contract-final-evidence-20261109.json",
+        "m5t11-ci-cron-selector-20261109.evidence.json"
+      ],
+      "items": 18
     }
-  ]
+  ],
+  "currentEvidence": "db-m5t11-contract-current-evidence-20261109.json"
 }
