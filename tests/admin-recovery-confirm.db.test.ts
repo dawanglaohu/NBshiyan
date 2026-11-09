@@ -568,7 +568,7 @@ describe('POST /api/auth-admin/recovery/confirm (DB)', { concurrency: 1, skip },
     assert.equal(body.recoveryCodes.length, 10);
   });
 
-  test('R14 start and confirm interleave without a lock cycle (no 5xx, state consistent)', { timeout: 240_000 }, async () => {
+  test('R14 start and confirm controlled interleaving keeps terminal state consistent (no 5xx)', { timeout: 240_000 }, async () => {
     const code1 = newCode();
     const code2 = newCode();
     const { user } = await makeAccount({
@@ -579,21 +579,16 @@ describe('POST /api/auth-admin/recovery/confirm (DB)', { concurrency: 1, skip },
     const totp = await codeFor(pending);
     const before = await db.user.findUniqueOrThrow({ where: { id: user.id } });
     const { repo, entered, release } = gatedRepo();
-    let settled = false;
     const confirmPromise = handleRecoveryConfirm(
       withCookie(request('/api/auth-admin/recovery/confirm', { totp }), token),
       { recoveryEnrollment: createRecoveryEnrollmentService({ db, repo }), apiCounter: counter },
-    ).then((response) => {
-      settled = true;
-      return response;
-    });
+    );
     await entered;
-    // confirm 已按 User→session 持 User 锁；start 必须排在 User 行后面，而不是持 User 等 session。
+    // gate 把 confirm 停在 User 锁之后；start 在同一时刻发起，release 后两者真实并发收尾。
+    // 本用例只断言终态一致与无 5xx；锁序证据归 R13 的调用序与 SQL 静态核对。
     const startPromise = handleRecoveryStart(startRequest(user.email, code2), {
       recoveryStart: startService, apiCounter: counter,
     });
-    await sleep(300);
-    assert.equal(settled, false, 'start waits on the User row held by confirm');
     release();
     const [confirmResponse, startResponse] = await Promise.all([confirmPromise, startPromise]);
     assert.equal(confirmResponse.status, 200);
@@ -676,7 +671,7 @@ describe('POST /api/auth-admin/recovery/confirm (DB)', { concurrency: 1, skip },
     assert.equal(accountAfter.recoveryCodes.length, 10);
   });
 
-  test('R17 pending expiry crossed while waiting for the session lock is refused at equality', { timeout: 180_000 }, async () => {
+  test('R17 clock advances after the session lock returns: equality expiry is refused and persisted', { timeout: 180_000 }, async () => {
     const code = newCode();
     const { user } = await makeAccount({ recoveryCodes: [await hashSecret(code)] });
     const token = await restrictedToken(user, code);
@@ -690,7 +685,7 @@ describe('POST /api/auth-admin/recovery/confirm (DB)', { concurrency: 1, skip },
       ...real,
       async lockRecoverySession(tx, tokenHash) {
         const locked = await real.lockRecoverySession(tx, tokenHash);
-        nowMs = until.getTime(); // 等锁期间跨过 pendingUntil 等号
+        nowMs = until.getTime(); // 已取到 session 锁后再推 clock：验证取时点在锁返回之后，不是真实锁等待
         return locked;
       },
     };

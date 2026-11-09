@@ -155,8 +155,6 @@ async function sessionRow(userId: string) {
   return db.adminRecoverySession.findFirstOrThrow({ where: { userId } });
 }
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
 /** 记录锁序：hint 无锁且最先，随后必须是 User 再 session。 */
 function spyRepo(calls: string[]): RecoveryRepo {
   const real = createRecoveryRepo();
@@ -293,7 +291,7 @@ describe('POST /api/auth-admin/recovery/enroll (DB)', { concurrency: 1, skip }, 
     assert.deepEqual(calls.slice(0, 3), ['hint', 'user', 'session']);
   });
 
-  test('R12 start and enroll interleave without a lock cycle (no 5xx, state consistent)', { timeout: 240_000 }, async () => {
+  test('R12 start and enroll controlled interleaving keeps terminal state consistent (no 5xx)', { timeout: 240_000 }, async () => {
     const code1 = newCode();
     const code2 = newCode();
     const { user } = await makeAccount({
@@ -302,21 +300,16 @@ describe('POST /api/auth-admin/recovery/enroll (DB)', { concurrency: 1, skip }, 
     const token = await restrictedToken(user, code1);
     const before = await db.user.findUniqueOrThrow({ where: { id: user.id } });
     const { repo, entered, release } = gatedRepo();
-    let settled = false;
     const enrollPromise = handleRecoveryEnroll(enrollRequest(token), {
       recoveryEnrollment: createRecoveryEnrollmentService({ db, repo }),
       apiCounter: counter,
-    }).then((response) => {
-      settled = true;
-      return response;
     });
     await entered;
-    // enroll 已按 User→session 持 User 锁；start 必须排在 User 行后面，而不是持 User 等 session。
+    // gate 把 enroll 停在 User 锁之后；start 在同一时刻发起，release 后两者真实并发收尾。
+    // 本用例只断言终态一致与无 5xx；锁序证据归 R11/R13 的调用序与 SQL 静态核对。
     const startPromise = handleRecoveryStart(startRequest(user.email, code2), {
       recoveryStart: startService, apiCounter: counter,
     });
-    await sleep(300);
-    assert.equal(settled, false, 'start waits on the User row held by enroll');
     release();
     const [enrollResponse, startResponse] = await Promise.all([enrollPromise, startPromise]);
     assert.equal(enrollResponse.status, 200);
