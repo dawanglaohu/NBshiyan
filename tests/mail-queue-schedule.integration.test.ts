@@ -418,10 +418,82 @@ describe('M4-T12 mail queue（真实 PG）', { concurrency: false, skip, timeout
     assert.deepEqual(Object.keys(body.counts).sort(), ['deferred', 'dropped', 'failed', 'sent', 'stale']);
     assert.deepEqual(Object.values(body.counts), [0, 0, 0, 0, 0]);
   });
+
+  test('16. P2 真实 PG due 读错误（SELECT 1/0）→ handler 500 job_failed、JobState FAILED、SMTP 0', async () => {
+    const inq = await seedInquiry();
+    const mail = await seedDue(inq.id);
+    const adapter = fakeAdapter(OK);
+    let txCalls = 0;
+    let dueAttempts = 0;
+    const proxy = new Proxy(requireDb(), {
+      get(target, prop) {
+        if (prop === '$transaction') {
+          return async (fn: (tx: unknown) => Promise<unknown>, options?: unknown) => {
+            txCalls += 1;
+            const n = txCalls;
+            return target.$transaction(async (tx) => {
+              if (n !== 3) return fn(tx);
+              const wrapped = new Proxy(tx, {
+                get(t, p) {
+                  if (p === 'mailMessage') {
+                    const mm = t.mailMessage;
+                    return new Proxy(mm, {
+                      get(m, mp) {
+                        if (mp === 'findMany') {
+                          return async () => {
+                            dueAttempts += 1;
+                            await t.$queryRawUnsafe('SELECT 1/0');
+                            return [];
+                          };
+                        }
+                        const v = Reflect.get(m, mp) as unknown;
+                        return typeof v === 'function' ? (v as (...a: unknown[]) => unknown).bind(m) : v;
+                      },
+                    });
+                  }
+                  const v = Reflect.get(t, p) as unknown;
+                  return typeof v === 'function' ? (v as (...a: unknown[]) => unknown).bind(t) : v;
+                },
+              });
+              return fn(wrapped);
+            }, options as never);
+          };
+        }
+        const value = Reflect.get(target, prop, target) as unknown;
+        return typeof value === 'function' ? (value as (...a: unknown[]) => unknown).bind(target) : value;
+      },
+    }) as PrismaClient;
+    try {
+      const job = createMailQueueJob({ db: proxy, clock: () => new Date(NOW), getAdapter: async () => adapter.api, env: ENV, limit: 10 });
+      const services = {
+        has: (k: string) => k === MAIL_QUEUE_KEY,
+        keys: () => [MAIL_QUEUE_KEY],
+        run: (_k: string, ctx: never) => job.run(ctx),
+      };
+      const handler = createOperationsHandler({ services: services as never, clock: () => new Date(NOW), secret: 'c'.repeat(40) });
+      const res = await handler(new Request('http://127.0.0.1:3000/api/admin/cron/operations', {
+        method: 'POST',
+        headers: { authorization: `Bearer ${'c'.repeat(40)}`, 'content-type': 'application/json' },
+        body: JSON.stringify({ jobKey: 'mail-queue' }),
+      }));
+      assert.equal(res.status, 500);
+      assert.deepEqual(await res.json(), { error: 'job_failed' });
+      const state = await requireDb().jobState.findUniqueOrThrow({ where: { key: MAIL_QUEUE_KEY } });
+      assert.notEqual(state.lastStatus, 'SUCCEEDED');
+      assert.equal(state.lastStatus, 'FAILED');
+      assert.equal(state.lastErrorCode, 'internal_error');
+      assert.equal(adapter.sent.length, 0, 'due 读失败前不得进 SMTP');
+      assert.equal(dueAttempts, 1, 'due 读只执行一次，不重试');
+      assert.equal(txCalls, 4, 'claim/stale/due/失败登记各一次');
+      assert.equal((await row(mail.id)).status, 'QUEUED', 'due 读失败未领取/未改行');
+    } finally {
+      await reset();
+    }
+  });
 });
 
 // B1 分类回归：无库假 db，经 deliver/processMailQueue 公开入口；不连 PG、不发 SMTP。
-// 只断言 close_* 事件与 stage，不把未知写成已回滚。
+// 只断言 close_* 事件，不把未知写成已回滚；内部 stage 被 mailLog 过滤，不用日志证明阶段。
 describe('B1 close classification（无库假 db）', { concurrency: false }, () => {
   type CloseError = { code: string; meta?: { code?: string } };
 
