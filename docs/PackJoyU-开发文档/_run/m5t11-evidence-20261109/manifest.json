@@ -51,6 +51,16 @@
         "m5t11-ci-cron-selector-20261109.evidence.json"
       ],
       "items": 18
+    },
+    {
+      "name": "ci-42635575886-20261109.json",
+      "bytes": 3347,
+      "sha256": "43BB0DCB7C6624EC1F8857CD8E6EE48B991C9ACD8A0FD15377C23D260E294D9C",
+      "source": "docs/PackJoyU-开发文档/_run/m5t11-evidence-20261109/ci-42635575886-20261109.json",
+      "role": "ci-run-evidence",
+      "run": 42635575886,
+      "run_head": "0d28ed8c0f6e8cddb6449da2583daebdcb2b209c",
+      "checked_out": "aaf553be6a0356427d2a4017e45710ca959391e1"
     }
   ],
   "currentEvidence": "db-m5t11-contract-current-evidence-20261109.json"

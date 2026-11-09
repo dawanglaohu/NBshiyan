@@ -1241,7 +1241,7 @@
       "边界：未改生产 cron、业务源码、CI workflow、A3 计数或原任务验收；未 push/rerun/merge/landed；未启停 3230 或 PG；未跑 41+68 或整套 e2e。测试文件哈希：tests/cron-analytics-rollup.test.ts 5,085 B 8E2F19CAC0F0B679DCD094B7F47ABB66CF67F2D0D7D11B92F0929F531D73BD62；e2e/analytics-job-runtime.spec.ts 24,655 B FCD9810487F9B5A780A070CB37B9CAD758169C12362223A995DB40214353E5AD。",
       "派生：sync 生成 docs-data.js、_run/{dispatch,review,build-manifest,build-state}.json 与新 patch 三件；affected=M5-T11,M7-T10,M7-T3,M7-T8,M7-T9，新哈希 4e76e24b…/29c4c15e…/3a04bd9f…/d8bdb1fb…/a3ba1faf…；revalidation 仍为 {}（未手清）。本补丁只登记 M5-T11 支持路径，不代表 selector 修复已由远端 CI 通过。"
     ],
-    "reviewed": "2026-11-09T14:22:50.105783+00:00",
+    "reviewed": "2026-11-09T15:36:33.355438+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
