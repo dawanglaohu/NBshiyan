@@ -601,7 +601,14 @@
       ],
       "supportPaths": [
         ".github/workflows/ci.yml",
+        "e2e/admin-device-session.spec.ts",
+        "e2e/admin-enroll.spec.ts",
+        "e2e/admin-login.spec.ts",
+        "e2e/admin.spec.ts",
+        "e2e/base-url.ts",
+        "e2e/hotfix-login-empty.spec.ts",
         "eslint.config.mjs",
+        "playwright.config.ts",
         "src/lib/client/analytics.ts"
       ],
       "outputPaths": [

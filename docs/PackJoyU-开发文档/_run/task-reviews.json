@@ -425,16 +425,19 @@
   },
   "M2-T7": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "72d520ff53f03b8312ef08ac4852ffc8701fea6be37e7a97a4201352265d6d62",
+    "contractHash": "9ee20338a655fd900ab17fde6cbd2369404bc6fa874a56b0751d395dcc42ea0c",
     "evidence": [
-      "task-contracts.json M2-T7.supportPaths 现为 [.github/workflows/ci.yml, eslint.config.mjs, src/lib/client/analytics.ts]；provides/requires/stage/wiring/outputPaths/sections 未改",
-      "补丁 m2t7-ci-wiring-20261109 sync：27 个契约受影响；M2-T7 为 definition/effectivePaths，其余 26 个（M2-T8、M3-T6/T8/T9/T10/T11/T12/T13/T25、M6-T1..T7、M7-T1..T10）全部 HASH_ONLY，无字段变化",
-      "本补丁只登记 CI 支持路径，未改 ci.yml 计数：全量 --list 收集被 5 个 spec 的顶层 import '../playwright.config' 阻断，playwright.config.ts:22 的 prepareStandaloneAssets() 在 .next/standalone/server.js 缺失时抛错，收集 0 tests / 5 errors",
-      "新文件 e2e/model-events.spec.ts 用临时 collection 配置（同 testDir/projects/use，去掉构建资产准备、globalSetup 与 webServer）实际收集 14 条，全部 [chromium]，标题不含 A3 分区串",
-      "e2e 目录对 main 042c7d24 的差量只有 e2e/model-events.spec.ts 新增 597 行；推算 233/230/2/1 只是推导，不写入 ci.yml、不当作实测",
-      "未安装、未构建、未改 node_modules/.next、未启停服务；.next/standalone/server.js 仍不存在，BUILD_ID 仍 _QaApQh5XsL8VhTA2Swov"
+      "task-contracts.json M2-T7.supportPaths 新增 .github/workflows/ci.yml、e2e/base-url.ts、playwright.config.ts、e2e/admin-device-session.spec.ts、e2e/admin-enroll.spec.ts、e2e/admin-login.spec.ts、e2e/admin.spec.ts、e2e/hotfix-login-empty.spec.ts；provides/requires/stage/wiring/outputPaths 未改",
+      "补丁 m2t7-collection-d sync：27 个契约受影响；M2-T7 为 definition/effectivePaths，其余 26 个全部 HASH_ONLY",
+      "D 实现：新增 e2e/base-url.ts（PORT=Number(process.env.E2E_PORT ?? 3100)、BASE=http://localhost:${PORT}）；playwright.config.ts 改为 import { BASE, PORT } 并 export { BASE }；5 个 spec 各只改 1 行 import 为 ./base-url，无其他测试标题/断言改动",
+      "BASE 语义实测：默认 PORT=3100/BASE=http://localhost:3100；E2E_PORT=3555 时 PORT=3555/BASE=http://localhost:3555；仓库内无第二处 export const BASE",
+      "真实配置的 prepareStandaloneAssets()、server.js 存在检查、.next/static 与 public 复制、webServer 启动与 globalSetup 顺序原样保留；普通真实配置 --list 仍可能需要构建，未声称已消除",
+      "规划集合配置实收四份 JSON：all 233（39 文件）、main 230、errors 2、flow 1；errors/flow 标题与既有断言完全一致；model-events.spec.ts 14 条逐条具名；互斥并集校验通过",
+      "ci.yml 仅改 5 处计数：步骤名 230+2+1=233、assert {all:233,main:230,errors:2,flow:1}、并集 233、日志行、主段步骤名 230 例；断言、时限、四 job 均未放宽",
+      "lint 新模块/真实配置/5 个 spec：0 error、0 warning；未安装、未构建、未改 node_modules/.next；.next BUILD_ID 仍 _QaApQh5XsL8VhTA2Swov，PID 22924 启动时间未变",
+      "边界：pnpm exec 因依赖漂移不可用，本单用 node CLI 直接运行，不代表默认入口已恢复；本 verify 仅表示范围与接线复核"
     ],
-    "reviewed": "2026-11-09T16:16:08.654732+00:00",
+    "reviewed": "2026-11-09T16:31:52.735610+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
