@@ -459,6 +459,17 @@
         "deploy/cron.nbshiyan",
         "tests/analytics-retention.db.test.ts"
       ],
+      "M5-T12": [
+        "src/lib/analytics/daily-aggregate.ts",
+        "src/lib/server/analytics/aggregate.ts",
+        "src/lib/server/analytics/aggregate-repo.ts",
+        "src/lib/server/analytics/aggregate-day-state.ts",
+        "src/lib/server/analytics/ingest.ts",
+        "src/lib/server/analytics/retention-plan.ts",
+        "tests/analytics-daily.test.ts",
+        "tests/analytics-daily.db.test.ts",
+        "tests/analytics-day-state.db.test.ts"
+      ],
       "M6-T1": [
         "src/lib/server/ops/stats-query.ts",
         "src/lib/server/ops/source-dto.ts",
