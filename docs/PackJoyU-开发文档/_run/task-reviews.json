@@ -937,9 +937,14 @@
       "证据强度与审查链：73dd217c 的 16/16 新真库＋6/6 start 回归、847c305c 的 23/23 均为作者本地证据，未由本窗复跑；DB R1 窄审（2B2B1416…）PASS 两处产品缺陷；DB R2 差量窄核（db-m3t5-evidence-r2-check-20261109.md 5,440 B E84BE41A…）限定 PASS、无断言削弱；CI 接线窄审（testing-m3t5-ci-wiring-review-20261109.md）限定 PASS。R2 提交 3fcb 仅 3 文件 +12/−24，git diff --quiet 847c305c HEAD -- src 与 git diff --quiet 2e7d00de HEAD -- .github/workflows/ci.yml 均 exit 0。",
       "CI 接线 2e7d00de：1 file +6/−0，仅 .github/workflows/ci.yml；三清单 24=22+2、有序全等，admin-recovery-reentry.http.test.ts 与 admin-recovery-confirm.db.test.ts 各一次并紧邻 admin-recovery-start.db.test.ts；复用 M3T3_TEST_DATABASE_URL(schema=m3t3)/M3T3_REQUIRE_DATABASE=true，保留 --test-concurrency=1、四条 TAP 零计数 grep、pass>=1、失败回显与 reporter 双路。独立窄审 PASS；但真实 CI 未执行、24 文件未实际跑、ESM 汇总门禁本机未执行（只静态核对），均按未证保留。",
       "sanity-import 3 条红：为 Windows 文本模式 CRLF 与 LF 提交物做字节比较失败，不是生成物过期；强制 LF 对照三处输出与提交物 sha256 全同（frontend-m3t5-sanity-baseline 报告 711AE44B…），与 73dd217c 引入无关，不作业务回归依据，也不在 Windows 重新生成提交。",
-      "未证与限制（不删旧项）：真实 40P01/锁等待、多实例/慢机 Prisma 5s 事务上限、Redis 限流、socket 级 HTTP/浏览器/E2E、真实 CI run 与 24 文件执行、ESM 汇总门禁本机执行、23 项复跑、生产 PG 版本/时区与密钥轮换；tsc/eslint 两份 8 B 日志同哈希 2095D530…，只够支撑作者 exit 0 声明，不能当两条独立命令证据；R12/R14 不是 ABBA 回归，R17 不是真实锁等待。本记录写域仅本证据文件、task-reviews.json 与 build 正常派生，不改 task-contracts.json、生成器或任务状态；源码/测试/.github 相对 3fcb7e95 不改。"
+      "未证与限制（不删旧项）：真实 40P01/锁等待、多实例/慢机 Prisma 5s 事务上限、Redis 限流、socket 级 HTTP/浏览器/E2E、真实 CI run 与 24 文件执行、ESM 汇总门禁本机执行、23 项复跑、生产 PG 版本/时区与密钥轮换；tsc/eslint 两份 8 B 日志同哈希 2095D530…，只够支撑作者 exit 0 声明，不能当两条独立命令证据；R12/R14 不是 ABBA 回归，R17 不是真实锁等待。本记录写域仅本证据文件、task-reviews.json 与 build 正常派生，不改 task-contracts.json、生成器或任务状态；源码/测试/.github 相对 3fcb7e95 不改。",
+      "真实 CI（非作者观察，2026-11-09）：run 42696242970 attempt 1 completed/success；实际 checkout 合并提交 35b001989575710c81d67eb87dd55d2012481396（tree 95a4d43a…，parents 8209b2de…＋5a925108…）；四个 job 全 success（mail-evidence 218s、posix-storage-security 28s、build-and-audit 362s、e2e 2050s）；该 head 上只有这 1 个 run，无 rerun。来源 testing-m3t5-ci-42696242970-20261109。",
+      "e2e 的 24 文件 PG 门禁（step 9）：24 文件合计 pass=282、fail/skip/todo/cancelled 全 0、每文件 pass≥1；const wanted、runner 命令行与汇总 files 三份清单 24=24 逐项有序全等，日志无 MISSING/MISSING_COUNT；新增 admin-recovery-reentry.http.test.ts pass=8、admin-recovery-confirm.db.test.ts pass=15（合计 23，其余 22 文件 259）。",
+      "CI 证据边界：A3 只核 step 15/16/17/18 的 step 级 success，未逐例 219；成功路径不打印 TAP 汇总行，四条零计数与 pass>=1 只由 step 退出码 0 间接证明；mail-evidence、build-and-audit、posix-storage-security 三 job 内部断言未逐条复核；40P01/真实锁等待未在本 run 触发。",
+      "登记窄审：testing-m3t5-contract-record-review-20261109 对 5a925108（6 files +44/−22，全部在 docs/PackJoyU-开发文档/）限定 PASS，确认 9 条证据覆盖三条验收、旧 scope/历史保留、契约/卡/生成器/review.json 不变、manifest 6/6 复算一致；真实 CI 由本条上方 10–12 补。",
+      "落地记录范围：本次只新增本证据文件、更新 task-reviews 当前条目（原 9 条逐字保留）、任务卡 code/notes 最小补记（`AnalyticsRecoverySession`→`AdminRecoverySession`、补真实 CI 一段），并由 build_docs --landed 写 status/progress 及正常派生；不改三条验收/契约/生产 src/tests/CI；远端 main 尚未合并、PR #547 仍 Draft，本地标记只表示本分支准备落地，旧证据文件未覆盖。"
     ],
-    "reviewed": "2026-11-09T20:31:15.523651+00:00",
+    "reviewed": "2026-11-09T21:36:20.578911+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
