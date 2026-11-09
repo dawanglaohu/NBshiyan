@@ -924,7 +924,8 @@
         "src/lib/server/admin/audit.ts",
         "src/lib/server/composition.ts",
         "tests/admin-recovery-confirm.db.test.ts",
-        "tests/admin-recovery-reentry.http.test.ts"
+        "tests/admin-recovery-reentry.http.test.ts",
+        ".github/workflows/ci.yml"
       ],
       "outputPaths": [
         "src/lib/server/admin/recovery-enrollment.ts",
