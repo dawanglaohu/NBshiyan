@@ -389,6 +389,9 @@ jobs:
           # 测试内按随机名自建 schema（先查存在性再 CREATE），只清理本进程创建的那一个。
           M5T11_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
           M5T11_REQUIRE_DATABASE: 'true'
+          # M5-T4 设置/重算 HTTP 真库回归：专属变量 + require；缺地址必须失败，不静默 skip。
+          M5T4_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e?schema=m5t4
+          M5T4_REQUIRE_DATABASE: 'true'
         run: |
           set -o pipefail
           cat > /tmp/m3t2-file-gate.cjs <<'EOF'
@@ -401,6 +404,7 @@ jobs:
             }
             const wanted = [
               'tests/analytics-settings.db.test.ts',
+              'tests/analytics-settings.http.test.ts',
               'tests/analytics-ingest.http.db.test.ts',
               'tests/analytics-aggregate.db.test.ts',
               'tests/jobs-runtime.http.test.ts',
@@ -448,6 +452,7 @@ jobs:
             --test-reporter-destination=/tmp/pg-regressions.tap \
             --test-reporter-destination=/tmp/m3t2-file-gate.txt \
             tests/analytics-settings.db.test.ts \
+            tests/analytics-settings.http.test.ts \
             tests/analytics-ingest.http.db.test.ts \
             tests/analytics-aggregate.db.test.ts \
             tests/jobs-runtime.http.test.ts \
@@ -481,6 +486,7 @@ jobs:
           process.stdout.write(gate.endsWith('\n') ? gate : `${gate}\n`);
           const files = [
             'tests/analytics-settings.db.test.ts',
+            'tests/analytics-settings.http.test.ts',
             'tests/analytics-ingest.http.db.test.ts',
             'tests/analytics-aggregate.db.test.ts',
             'tests/jobs-runtime.http.test.ts',
