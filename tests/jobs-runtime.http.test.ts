@@ -980,4 +980,3 @@ describe('M5-T8 B5 事件入口 → 聚合作业（E-44 去重 / E-60 时间边�
     assert.deepEqual(await pageViewRollup('2026-06-15'), { count: 3, uniqueBrowsers: 1 });
   });
 });
-
