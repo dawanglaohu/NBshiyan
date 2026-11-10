@@ -1,6 +1,6 @@
 {
   "ANALYTICS-ROLLUP": {
-    "contractHash": "73996985efd0964e3deb065cf64cfa8505f346f71ddd710d51a2657c28224dd6",
+    "contractHash": "b0124d798477a4f159fe5c675da4c39cfc8e0b8b739fff8653eb5c73164c1944",
     "patches": [
       {
         "changedFields": [
@@ -50,12 +50,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "BACKFILL-MJS": {
-    "contractHash": "90145bc6e803b6a4bdf2b06bc101bc6ff9d9523bcaa8cc3f85b0ba84e956d9f0",
+    "contractHash": "1b3b56231cfb143ce7b3289fa0a852fec34b35c80455cef0906a2c2ebae1cd23",
     "patches": [
       {
         "changedFields": [
@@ -105,12 +112,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "BE-350A": {
-    "contractHash": "34f9cdc13cfc8f2708a02fd2ab89a5c41e8fb81b344156fa4c5cd70e24efbf18",
+    "contractHash": "de9b5e54874d99158680aeef17b07e976b86d6c5c151223ff743ecf6ae5a9ac4",
     "patches": [
       {
         "changedFields": [
@@ -160,12 +174,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "BE-I18N-P0": {
-    "contractHash": "64f5dfc3ce9f025d65b9d2c93b924f6113e6fd8497e50940311d733530fbe1b6",
+    "contractHash": "fbff683d445d1a77a3fc624ef1fefe34ae36393b0c90c9be1d16d676f3d418ca",
     "patches": [
       {
         "changedFields": [
@@ -215,12 +236,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "BE-RATELIMIT-P3": {
-    "contractHash": "526034534cc0f667d57c2011f49d85e9e97234a62c24c46f8c3e6e0431b407a3",
+    "contractHash": "40c3b82ef2205a4673716e4671b69beab79aa6c4f5fc5df1839d9cdbd3cb91f3",
     "patches": [
       {
         "changedFields": [
@@ -270,12 +298,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "BE-RESET-STDIN-TTY": {
-    "contractHash": "e8343aceaa310ad86effb6a42aa8fe129385db9e967b97e798a8a01be75bf0e1",
+    "contractHash": "127601ab4f5f759f1649941c887b4f5811b15377aab5deaa5c3bd19175138939",
     "patches": [
       {
         "changedFields": [
@@ -325,12 +360,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "BE-RESET-TTY": {
-    "contractHash": "b34f6ded0c059c865b5576f703234956439a640c94a75c06382fc9b495117a9c",
+    "contractHash": "4cb7171fd4565b65571cdeb222fff3e7ca214ddaf72c50512398336e4d1a4f32",
     "patches": [
       {
         "changedFields": [
@@ -380,12 +422,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "CATALOG-MERGE": {
-    "contractHash": "9b9861c9dd66200e4766880f73424d827cc1678ac260dfa53485878781087a34",
+    "contractHash": "b7cc786a00015cbdb38f56d00980302dc99e6fda7a3ad59da352412e73a4826a",
     "patches": [
       {
         "changedFields": [
@@ -435,12 +484,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "CI-DB-TESTS": {
-    "contractHash": "458ab1bc45e615094be34995b20447ff61a0d7055b61d6b6be5bde1d76c52ed9",
+    "contractHash": "263a7e6da580813bb2a3177595f78c062f8c8b06b6198a2bbdfcdba95fd988d9",
     "patches": [
       {
         "changedFields": [
@@ -490,12 +546,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "CI-DEVICE-SERIAL": {
-    "contractHash": "5bd491b4301d6329e7ef5969217dfaf3ed31817eb2e0d49a6313a0b38f15999a",
+    "contractHash": "e1bc1642ff585c7debec0844db93f7b8c0aac5d6cb361486ee35ca0844eea16f",
     "patches": [
       {
         "changedFields": [
@@ -545,12 +608,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "CITY-STILL-WEBP": {
-    "contractHash": "6a4c7631c1347f8a88885f985fc16df57ef3c65d734235538a5946b08f072b2a",
+    "contractHash": "c74a829bfba40ae1bb912813354566a7e0ff9dbd10668803c55111fa221f8163",
     "patches": [
       {
         "changedFields": [
@@ -600,12 +670,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "CLIENT-API-DEADLINE": {
-    "contractHash": "2d5498acb43eb601062661d0ef677172566aacf0e489560ede72e4c0ea1681bb",
+    "contractHash": "9b756ea296f7ef0ee9ed5c2ba93ee2a0962049c91323ed1a2ccf8d28dbbf399c",
     "patches": [
       {
         "changedFields": [
@@ -655,12 +732,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "DEP-AUDIT-1": {
-    "contractHash": "9a85e4f21a46a3376d39ea5744f3a930f6fefd9b8376996f67a7f53414c75bce",
+    "contractHash": "c6332b5051f07b2944e7ebece552821714f1183e2c3c7b741bdea01e43de4f6a",
     "patches": [
       {
         "changedFields": [
@@ -710,12 +794,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "DEPLOY-FIX-1": {
-    "contractHash": "12a4fac674a67fd7c0333b73d628d332b41bd343108ba8087cdb7c0057ee2a9f",
+    "contractHash": "6c6c0297d83dad9f127d0dbadd37c8f002d0c87cf875db693bc98c7399bb0b11",
     "patches": [
       {
         "changedFields": [
@@ -765,12 +856,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "DOCKER-UPLOADS-1": {
-    "contractHash": "f61f82444fbf52a505a6307022a055a107cf1c0d356227d3e898030071ec3639",
+    "contractHash": "2b836af2c778e8c3c646759401f2dfce78a40c5b081a81c8f889cea2e476e590",
     "patches": [
       {
         "changedFields": [
@@ -820,12 +918,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "E2E-CONSENT-FIX": {
-    "contractHash": "2a82e0af60b5e807c7c7d5aeeb6814bad6c4f3ec954b3835e281c92cb4de3c7d",
+    "contractHash": "cb2305988af332b82a2d2a65bb95b349bbf80d20ab1b11c3c9524d79fb17fe20",
     "patches": [
       {
         "changedFields": [
@@ -875,12 +980,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "FE-404-TITLE": {
-    "contractHash": "fd4b1d2c5233f5730e07c3752dca2f3b5a065211cd49a0920e4fc1343000f146",
+    "contractHash": "41c6b188362f21c15df49a9f66b8a158478081423f26da3e53cf5671f297f4ed",
     "patches": [
       {
         "changedFields": [
@@ -930,12 +1042,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "FE-FAB-390": {
-    "contractHash": "e038975e4c426a5c9aa8b299c6d7a24a46748b63d433541c27d3cc0238f17904",
+    "contractHash": "f4670c49894f64e82afe45b7c4be8e788097994fcc5f10a226f93ea8e6e6f844",
     "patches": [
       {
         "changedFields": [
@@ -985,12 +1104,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "GATE-HARDEN": {
-    "contractHash": "57b6fb17aaa983ae4b66479fbca03407744009b96522b90ab6bcca1f6d970cf9",
+    "contractHash": "d86684eef5d938311f845d6ceb31fed347e856d86e23c08dc83f9cafbafe7f71",
     "patches": [
       {
         "changedFields": [
@@ -1040,12 +1166,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "GATE-HARDEN-2": {
-    "contractHash": "e612b5701e2e97776db38f4f98abbd833b23f3a74f02e77be4508d95cbf0bf9f",
+    "contractHash": "8b935a87719f63e37163e3a39bb50cd3636191c925a657a48ff9d586b2ae778f",
     "patches": [
       {
         "changedFields": [
@@ -1095,12 +1228,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "GATE-PATHS-1": {
-    "contractHash": "cc75ef4b76e76f61c77bf7fcfa8120c242379a9577dc662cdd217ede25c8c6b7",
+    "contractHash": "cf530ffb4c6bfb6a0243ac20ed1d73540fd8db135772fd53fca1466ccf78800c",
     "patches": [
       {
         "changedFields": [
@@ -1150,12 +1290,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "GATE-PATHS-2": {
-    "contractHash": "bd5df17d5f5c2cb6f09cc575bf14dc381531951b56d8364a93f9cc660459f204",
+    "contractHash": "eb9aa3cc0151c5484d38c99e305d560b7052a52bee0857215334501e82c2da31",
     "patches": [
       {
         "changedFields": [
@@ -1205,12 +1352,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "GIFT-CARD-ASSETS": {
-    "contractHash": "0b0880ef950f537e1ce404362174b181a8c0293f330410a672be745df53fbb03",
+    "contractHash": "8b11faed4234d58ac98617336407e1351d33ad2b2703488333334770da0c2ffc",
     "patches": [
       {
         "changedFields": [
@@ -1260,12 +1414,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "GIFT-CARDS-RENAME": {
-    "contractHash": "f3e91fc218350fec6611305d7642a4b7eb004fbda5ac26b52be751e2e63d8fe0",
+    "contractHash": "a45f4fbc3080451f926ef65268aafcf9cb0d7bd3715768396d86dc988254f0af",
     "patches": [
       {
         "changedFields": [
@@ -1315,12 +1476,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "GUARD-503": {
-    "contractHash": "f5f22afc2096a6a1ca46f5d7b364894e29473831ac47bdfc64ad570602f0209c",
+    "contractHash": "2f4dde09c8312b4f6e6fdb49f2db60328d46082136075ffcd2ef6cde13318666",
     "patches": [
       {
         "changedFields": [
@@ -1370,12 +1538,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "HOTFIX-LOGIN-EMPTY": {
-    "contractHash": "2ff182e1ddfa649ed7b43b4a76fd7c960ceefc1569d3fe02926043b8238f92f2",
+    "contractHash": "367d60eca412e1745e42189193c3f58416ddb5c2414a9c42e4f753965d78cc92",
     "patches": [
       {
         "changedFields": [
@@ -1425,12 +1600,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M1-T1": {
-    "contractHash": "595045fe2f93995f2da330ec464ebc3417c46e13ba8b6ed7118b76970fb0aa1e",
+    "contractHash": "58ab6051a52c83bd48d7f90f5d0c68d0b70f56eacf6bc0e67b8393b0eafbdd10",
     "patches": [
       {
         "changedFields": [
@@ -1480,12 +1662,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M1-T2": {
-    "contractHash": "4cbb62fffb940319dd0b94c444bbef3da71d771fd8ff0c26700576dab61824c5",
+    "contractHash": "5669de9e34f6bd4e36a1ce4974bd5fb02cec92d8562e11d3eb469873dbfce977",
     "patches": [
       {
         "changedFields": [
@@ -1535,12 +1724,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M1-T3": {
-    "contractHash": "ff2569ba2c08915a67bc357f5d81dbe5cca1a50490fa1683425a701d68a9c7c7",
+    "contractHash": "a99695721638489cb3b07e43a11e892afe4453aeb11d0d7c57735df1a1d52076",
     "patches": [
       {
         "changedFields": [
@@ -1590,12 +1786,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M1-T4": {
-    "contractHash": "b43032c1639d45a80e4a4b119f00929f6eadf25c759f394a1f2ea5ce034c23de",
+    "contractHash": "c5ec23ea420d179f733ab69f9d4ca7f4d79f1f415f2d397403372a5fce12878d",
     "patches": [
       {
         "changedFields": [
@@ -1645,12 +1848,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M1-T5": {
-    "contractHash": "b345256de5acd72c841f07ee2b561896c6ae331b637fa7bcd61b3dcd0e6cf095",
+    "contractHash": "ce0a45a9c550e5d50731d1b69d6e7af381a8895f77f7909d8c4178c0667961cf",
     "patches": [
       {
         "changedFields": [
@@ -1700,12 +1910,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M1-T6": {
-    "contractHash": "e4b9e1ca40021807ac3985ba4030079ef1422b7999bb3c608541120b478308b5",
+    "contractHash": "9e8afd54797eec5e68831cb054dc34a7d8c66c2dd91d9eea9b4c30c3008ea64d",
     "patches": [
       {
         "changedFields": [
@@ -1755,12 +1972,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M1-T7": {
-    "contractHash": "486962818ac0d1c0f9c3c936381593c08dfe4eaf28920fbca15fe2278038028e",
+    "contractHash": "9a86d0d6f1d7fda9c06503e6db28611f0179fb4e5acf0027b94cba5d482e118d",
     "patches": [
       {
         "changedFields": [
@@ -1810,12 +2034,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M1-T8": {
-    "contractHash": "1e5bd633c6917c4393253fb3b13bebb5e4b03c1fa6fbbffb2ffe1e4bd55c4331",
+    "contractHash": "3fc80905e52240f1a3e48bd6eb0c6175bbbd5ed0e06201bf91ced8b42af7de06",
     "patches": [
       {
         "changedFields": [
@@ -1865,12 +2096,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M1-T9": {
-    "contractHash": "c5dcfb1957c4f4686ef971c0cc3d8939feb9179814a62b1470bcc4c51e05c727",
+    "contractHash": "b9a6eb911e07cbf60e5967504191ec24b58366d0413801bd1b7386fa5432fdc6",
     "patches": [
       {
         "changedFields": [
@@ -1920,12 +2158,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M2-T1": {
-    "contractHash": "adff7ab933bdcd631830248092d0da56367ec9c3f10a01fadf94e3bbf817fafb",
+    "contractHash": "d5016e4f69bc1ed37e49cdff6c5c2eba91d4f5235cee22e3c9df4ede9f49bba2",
     "patches": [
       {
         "changedFields": [
@@ -1975,12 +2220,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M2-T2": {
-    "contractHash": "703b51629831f3cc6535428807593ac9c4213925f5fea1ea733c5e4def552910",
+    "contractHash": "49035ffd06bc31b4b8915fe74c39c40687d2632bf35db8aa01a7d681cb222c67",
     "patches": [
       {
         "changedFields": [
@@ -2030,12 +2282,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M2-T3": {
-    "contractHash": "e35fbda1ea09839e79c16a31e9240dd96a0ef20022721c0185283ed98b5cabf6",
+    "contractHash": "bc44fd485e585c66869c6669a308de23051bc09540c07661dc826d51057ab2c7",
     "patches": [
       {
         "changedFields": [
@@ -2085,12 +2344,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M2-T4": {
-    "contractHash": "2c4e019b82c4115d2c71ff811aee277436a18e0e37a2de100534ddf2620a7257",
+    "contractHash": "2fb18887f546fe9ec71c075f80c5f854c7ab5ff2d3e03760790c8ae9925597e8",
     "patches": [
       {
         "changedFields": [
@@ -2140,12 +2406,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M2-T6": {
-    "contractHash": "c896f237e62b7765fdc36066cd6e9a43ab443731e2b1f27917afddaa32ab157b",
+    "contractHash": "8e26da83b90127e00380900f4259715e9407df0e6aa8f3ccbafbaa2d10b4ae4d",
     "patches": [
       {
         "changedFields": [
@@ -2195,12 +2468,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M2-T7": {
-    "contractHash": "e718ac22ae396c6ee5c8ead67f85243d327cb18338475fcd981b66eadae361ad",
+    "contractHash": "dcc347c62769544bf40d019ec94abd26215c32b684bf91f42cc2933573c4f868",
     "patches": [
       {
         "changedFields": [
@@ -2221,12 +2501,22 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "definition",
+          "effectivePaths",
+          "sections:02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md",
+          "task"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M3-T1": {
-    "contractHash": "83f7f9b06daa280b14f12276ffd13dbac27924e675f40bcef12e671f021d78da",
+    "contractHash": "91b1a3536015a9d3f3e68492954445a17deba89e0b2dd5933a852a4e3ffbbb5d",
     "patches": [
       {
         "changedFields": [
@@ -2276,12 +2566,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M3-T14": {
-    "contractHash": "ec2290306f215c32a03cae3e493c70f56008c9979cc92d15e7703d141b9f302f",
+    "contractHash": "3aeb9e7a41371c6baa41960f254a14eafb691d1b34a7fd1c733982bedbfa07ad",
     "patches": [
       {
         "changedFields": [
@@ -2331,12 +2628,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M3-T15": {
-    "contractHash": "3b06e2f2c35b3dba8cf0a91db1ad0b074fb94827dd03912f323f2344d86e6ba3",
+    "contractHash": "d0b000ed2433ebc92903c3726e8b8cd4fdea21a5bade861b4dcbb06bfc6c8133",
     "patches": [
       {
         "changedFields": [
@@ -2386,12 +2690,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M3-T16": {
-    "contractHash": "fb0f2e3e8ccabc0f5fa366bd5e07f2de8d2ccac15f290df04e6a1f78f539b111",
+    "contractHash": "60c74582f7b9a17eb6431a25168aad80cf2373e1aa8a7d44672a185832ea1ce8",
     "patches": [
       {
         "changedFields": [
@@ -2441,12 +2752,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M3-T17": {
-    "contractHash": "506488a56a08c2d5e520d4bbe04ab0ab21f4f1b858a131996faaf34b08cc8bf1",
+    "contractHash": "b6800d93e2ed568db29982a688a1b4e70cc65c41593ee14e05470bd990ad5144",
     "patches": [
       {
         "changedFields": [
@@ -2496,12 +2814,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M3-T18": {
-    "contractHash": "864facd8bfda85d9a75c1272148e8196b2f65ea3ff6d467cf9ddad07df3b3357",
+    "contractHash": "0f58add2dd20c164d285033a5aa344e78cdec0032de34409cf8ce1b6800bdffe",
     "patches": [
       {
         "changedFields": [
@@ -2551,12 +2876,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M3-T19": {
-    "contractHash": "c95a51f944b917e852e8d6e56fbbaf8d109c12edce66e416a4fb8db995b4cf91",
+    "contractHash": "1e6e962b49fc398faacf2ee0463d8694859fc85cdaa77d84fcf2f1f3698813a1",
     "patches": [
       {
         "changedFields": [
@@ -2606,12 +2938,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M3-T2": {
-    "contractHash": "b5f92e9ec930327b242a1f41bb565a3561d6f9274167a0e419ffa7e639485357",
+    "contractHash": "a148143cd36d10bd88adb6e8f9aba7a31bc2e9bc8a3a79bda61ba2e2a2748c6c",
     "patches": [
       {
         "changedFields": [
@@ -2661,12 +3000,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M3-T21": {
-    "contractHash": "50feb2bd2fa570c1330b0440f60dc0a0c484689f38182ed8b55398d99fe3fb67",
+    "contractHash": "3761d65d5b8e0380ce592ea1a24700ea2b4a4dd7d0380bb60d862106027c92b2",
     "patches": [
       {
         "changedFields": [
@@ -2716,12 +3062,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M3-T22": {
-    "contractHash": "c3a0577e535093afe805041788272ac36e2c9173fb0ca576b315f3cdb6629aad",
+    "contractHash": "851bf474b45e4a470088cf1fa641a1663cfaa904e469f87bb7781ae176852255",
     "patches": [
       {
         "changedFields": [
@@ -2771,12 +3124,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M3-T23": {
-    "contractHash": "36ed5fb2b1ce57d3fabf9ff337afa6d61ccd2908e71b3842ada08f92447c3a06",
+    "contractHash": "d7f1112382048ddee373c3c2415f1d46e89f05cdfcaa3818b94cda0aa2b19458",
     "patches": [
       {
         "changedFields": [
@@ -2826,12 +3186,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M3-T24": {
-    "contractHash": "85ad018f8e87a5eb204ee2f64572755271c54ba1115cd81a1e57ad420bd9b36d",
+    "contractHash": "e7bce150a01794d33475375918f57cf60e20e1103058726767ea88d9bc7a5691",
     "patches": [
       {
         "changedFields": [
@@ -2881,12 +3248,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M3-T3": {
-    "contractHash": "83a18a1750ff77b226648f0f096419b1a7d96be325109fda384f0537ec57c0de",
+    "contractHash": "9b03547a675a2ed32e983ea33e5950c714d348e54029a848cb734d3cf667d114",
     "patches": [
       {
         "changedFields": [
@@ -2936,12 +3310,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M3-T4": {
-    "contractHash": "7521b1604b50f803f5ba1b9c72cfccad8ed71ce4d8d60f702e5992a946b1f66b",
+    "contractHash": "071c268edab03a56dbf122eadf2ebc752b0e2389fd28f8dacaa96cb19dda5ef2",
     "patches": [
       {
         "changedFields": [
@@ -2991,12 +3372,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M3-T5": {
-    "contractHash": "5c9f16b9f51fed7a99911a4d8b48ecaa68ac62be8a0c4ab352d1260d8d4b5514",
+    "contractHash": "3cf07177727bb285f7aa4b933b0cf6f95976ce0fa6b4a7c206b01c891b34bb0f",
     "patches": [
       {
         "changedFields": [
@@ -3033,12 +3421,21 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "definition",
+          "effectivePaths",
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M3-T7": {
-    "contractHash": "4b8f736ee5ea607991797130996eb0622f614bfe3ae7907fc847d4428a573886",
+    "contractHash": "8992dad90aef3d34c6a2b2bba03b0610613bc456618d8d79b782317567da085c",
     "patches": [
       {
         "changedFields": [
@@ -3088,12 +3485,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M4-T1": {
-    "contractHash": "2379c7fcce4d5672e087e7eaedad1134dfbec336bfa24b9df4b414f425ba5ee1",
+    "contractHash": "6b2a478ba0eeb334ecd0a2db8c5c708cde3fd91e90e111d57a4d18ec18e434e3",
     "patches": [
       {
         "changedFields": [
@@ -3143,12 +3547,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M4-T15": {
-    "contractHash": "d6c963ff4c7a9e2a9fa636a81bb30511ec412973a8d49b6f06c46c8dff10c00b",
+    "contractHash": "f2909d6c81cf347960cd2bc33d3d583dd0d6eca4306d8ad8ecdbe9dc2cea2dc3",
     "patches": [
       {
         "changedFields": [
@@ -3198,12 +3609,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M4-T8": {
-    "contractHash": "f0aa2dd31e5288ca7126dd0066b438df5d97d5ebed027889ab14d716549befc9",
+    "contractHash": "d96521e811b988d8c9fb2b65cc02d10dfea89424e8f585e98a2f14768ba1bd9e",
     "patches": [
       {
         "changedFields": [
@@ -3253,12 +3671,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M5-T1": {
-    "contractHash": "d2d11b6a15e97be29abaa57fdcc7b3e7b9c83864f81f388e72fe1db335344c0b",
+    "contractHash": "3fb7fa1dfc4279b12f8d05c419274fac143ed5527c0db0f04d44530f7cb9ec9c",
     "patches": [
       {
         "changedFields": [
@@ -3308,12 +3733,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M5-T11": {
-    "contractHash": "04234d59d2b2f9da2331f974b6d74aa71de3e82e4c25868bb09150a938469939",
+    "contractHash": "f1083e99e2ef5bad1dce52b522de6b11ad2765f849f3ac56b9165aa6d8dac053",
     "patches": [
       {
         "changedFields": [
@@ -3363,12 +3795,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M5-T2": {
-    "contractHash": "ed116613d1693b65eb9c7ee7b329dae93af611fd90ac517f07ee276ebc6a373c",
+    "contractHash": "ee7ced602720896a4435a7e169db3d37a1fbf8dd444bb99c6a135676eba68bd8",
     "patches": [
       {
         "changedFields": [
@@ -3418,12 +3857,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M5-T3": {
-    "contractHash": "449cc002e6a64d438b667c3e869c599deeccad0eac48317474d381af5c73d130",
+    "contractHash": "5666e5745da8fead93c602ab3ac4a1b220c4a6b117e1b7c373534d382ff699e5",
     "patches": [
       {
         "changedFields": [
@@ -3473,12 +3919,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M5-T5": {
-    "contractHash": "9868fdebd57072ef6c8c7053d34a1d26f45de94358ba50b1db89048acb971b40",
+    "contractHash": "3c22a77f2259eb01f5df4742d88887c7ad2d516d61fcaf50e68adff9bedf060a",
     "patches": [
       {
         "changedFields": [
@@ -3528,12 +3981,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M5-T6": {
-    "contractHash": "075da49ec595538ebc0ba203448e98797a80ad17ebd56a1cecd0002d5a0d07e1",
+    "contractHash": "a9b9f0eca7c176a65f8574e08cf4fa25261caf7bb1c408bbd18ff3b6bf1032eb",
     "patches": [
       {
         "changedFields": [
@@ -3583,12 +4043,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M5-T7": {
-    "contractHash": "68ba341a18efda2bfde0308bc45c310b1790ec40d9c2527114a48d5698dc4388",
+    "contractHash": "2752b8e8c37f9e13931dbf1707d01bcd6c5af4059e5d247b07c32e9461064599",
     "patches": [
       {
         "changedFields": [
@@ -3638,12 +4105,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M5-T8": {
-    "contractHash": "2ac2a870cab97f930ecf7444578c2376caab71b45ecf9416a98b93a569c20e97",
+    "contractHash": "f447f9629446b6ea00b471bcfcc12acd6d0ac5f59e4bd1630a9006c3e7cbf9ac",
     "patches": [
       {
         "changedFields": [
@@ -3693,12 +4167,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "M5-T9": {
-    "contractHash": "0ed5be364db168c133e92d560557a9de28478fcb3bbb117c597b79e301c61cc0",
+    "contractHash": "1af57cae92abe5ca88e4d8d6f28b3316acae240d120df2096cc8e6e743001849",
     "patches": [
       {
         "changedFields": [
@@ -3748,12 +4229,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "MAIN-E2E-FIX": {
-    "contractHash": "d34c5f1727b79baffaf17772c5b39fa468f68f9f9be2d3c8daa22177e8c343d9",
+    "contractHash": "848f35d03a1fe639badfe8993328ea692af53477a0cc96521ff15e68d35efeb9",
     "patches": [
       {
         "changedFields": [
@@ -3803,12 +4291,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "POST-LAUNCH-P3": {
-    "contractHash": "262bb3f2f10b1a64594634fef656ccd5dc6175b2bd4b09f9467dc8a9ee7bf43b",
+    "contractHash": "84275c637d3d9ebf15553ddb4ac13f9328afe346f6b402acd8b8b75e8510630a",
     "patches": [
       {
         "changedFields": [
@@ -3858,12 +4353,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "R3-T09233008": {
-    "contractHash": "b521514e4111b373e732b47d23b61fd0d3b6c78e2dc15bd14c1a9d54743cc480",
+    "contractHash": "9983b29438a04557279c652b4571fb4b5597b3102cfa6906f5e682071d3b0a5f",
     "patches": [
       {
         "changedFields": [
@@ -3913,12 +4415,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "R3-T09598683": {
-    "contractHash": "fbc366dc6b5a2737347781fa2146d51f8f0f79de49a24cc4851f2e34bd40149b",
+    "contractHash": "134e7c28cb8980cde77a1c7cbb83c7609445fba1cbe977934d4004963ce97157",
     "patches": [
       {
         "changedFields": [
@@ -3968,12 +4477,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "R3-T12074461": {
-    "contractHash": "733c0c21301c0d21b441d61dc2bf54708a5fb70737799a53520b51c00bfb1b1b",
+    "contractHash": "72b3bfc8620b4a1cd20d8f0d9ec5ca6ee74b0a1227eba8f37a4432050a0cacfe",
     "patches": [
       {
         "changedFields": [
@@ -4023,12 +4539,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "R3-T21757567": {
-    "contractHash": "7a31c6d1066e3eece66bb12ebab573263dc0097cf972446eb083c39f2357ab36",
+    "contractHash": "273abb08ceff2900c305773903a6867a5fc2946983f405350b6893b305788f5a",
     "patches": [
       {
         "changedFields": [
@@ -4078,12 +4601,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "R3-T22883505": {
-    "contractHash": "35ce265b58056a6ba4c084ee915dac0d54fcdbffc3f1fa2890e8863351a896ca",
+    "contractHash": "14e62e7a00726d24b13ce2a456ef8ba3d0202ef5a0539801e9cdc7197b0f58a4",
     "patches": [
       {
         "changedFields": [
@@ -4133,12 +4663,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "R3-T56876634": {
-    "contractHash": "e41d4f23f3681e0224eda67ad4bca197f06411be5586383e4e8a3cd5351a91fe",
+    "contractHash": "0b3536119b2adeb1945ca99beb570282b936a046b891ea08c2a67d620042f539",
     "patches": [
       {
         "changedFields": [
@@ -4188,12 +4725,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "R3-T71889698": {
-    "contractHash": "a1cf2f91ac155b1c08b863d9f75c833cc424ac8c24b19d4a9b6cc779b4be4522",
+    "contractHash": "26f30605af5e504010c4a1fd30c09d83cc24b5558037344a09a4d65111417329",
     "patches": [
       {
         "changedFields": [
@@ -4243,12 +4787,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "R3-T75625096": {
-    "contractHash": "91b6a823f44eea1aa1dd5b67443125e06a1cf5cf0deccd9f4c10b6d0b31bec65",
+    "contractHash": "9e6b63fa389071bfea8545f527ef5fc5430fcb399939a3d8de44fd7a34fa8ed4",
     "patches": [
       {
         "changedFields": [
@@ -4298,12 +4849,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "R3-T86511435": {
-    "contractHash": "64563ce6963efb635a30131535632a8eb881ca9d4e7d9e87e4391a98c41e0493",
+    "contractHash": "84b822659577bf18f7572d45a6bfa7fff19a2dfbd53a009cf1da7f7847d190d8",
     "patches": [
       {
         "changedFields": [
@@ -4353,12 +4911,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "R3-T87287564": {
-    "contractHash": "a3bb7e65d2ff320bedd0d465bc708f0bef933c5c1140abe50c3023a03f6ca767",
+    "contractHash": "fea4251d56a1de609db0b571692704cba440eb222523c625efde75e677f5951f",
     "patches": [
       {
         "changedFields": [
@@ -4408,12 +4973,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "R3-T92231765": {
-    "contractHash": "2d3e52b34c027243332625a53121c53bbdac93fb5b9b6968a26349acb9d39048",
+    "contractHash": "f7659711c25a9be958de7f8f06de241d755ab3008d3bb50c4ec6185b90a2ec46",
     "patches": [
       {
         "changedFields": [
@@ -4463,12 +5035,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "R4-T16305211": {
-    "contractHash": "41260e2d83dc4c861320bcb7f6c1d324cfa544428e058d5834a9748a99997a88",
+    "contractHash": "f1089a0e6e42bb49a25351573d8a577de986484dcbb18e210781220598f75aa7",
     "patches": [
       {
         "changedFields": [
@@ -4518,12 +5097,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "R4-T64765902": {
-    "contractHash": "4295de67d51467f6a21f47ac30ca430d30f5af57e82259a272cc7ef729df4459",
+    "contractHash": "11f41f734c38cdb2f5384ef98da6dad9575969a422265338a1ee81e7c5309698",
     "patches": [
       {
         "changedFields": [
@@ -4573,12 +5159,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "R4-T76958784": {
-    "contractHash": "3bd25a25c4fcdfbfcc7ad1fa69cc5e8ba33ef36f8a38c4e74327a0c3abe99bb3",
+    "contractHash": "83f5c89b9eaf8da742fbbaa03a40e11eb1ae3ef1afbd10309e6f95565658c27a",
     "patches": [
       {
         "changedFields": [
@@ -4628,12 +5221,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "R4-T78812657": {
-    "contractHash": "c530c8803c88ffcd151312ad848c999b4fecfb96fb8dac2556bf4c9bcf9c6c87",
+    "contractHash": "3fcd71218a668e66fefb66badf51b4f11f30d85c47daf3ee3fa2131f1af7d830",
     "patches": [
       {
         "changedFields": [
@@ -4683,12 +5283,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "R5-T10248697": {
-    "contractHash": "6dddf02c7e1778d90586fa1b85fff960410f054024b5666bf11e06a14d9d7ee6",
+    "contractHash": "51b6d846ccdd284cae3dbc5407e38b5eb05823e72fb83ef4706d5a91ac8bc435",
     "patches": [
       {
         "changedFields": [
@@ -4738,12 +5345,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "R5-T59021355": {
-    "contractHash": "ca1082e66b641ed05da058cf4a848a56e24834c1d7bc050007affcad0aae1dd0",
+    "contractHash": "bc5fa687f5602e38f9670af42bb735d434e5197ddd5aa6aac975069678ef286a",
     "patches": [
       {
         "changedFields": [
@@ -4793,12 +5407,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "R7-T14077261": {
-    "contractHash": "5546b61019f3ef0886e7d79871ce9321754317f7b11b831c7f3316a62b960927",
+    "contractHash": "36f2b5859a70d8a14a2a5f1d90299c6bd882c0aaa3920f78179c179ceb455af1",
     "patches": [
       {
         "changedFields": [
@@ -4848,12 +5469,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "R7-T21418022": {
-    "contractHash": "ef57fc58cb983529d295fa50417c2134d9f98fcfaeb82e25a484d0fe527601a2",
+    "contractHash": "cb68a151b78000ea3025cbd5b9fd30bd3fc37aa959ae067767f50e24e363e54f",
     "patches": [
       {
         "changedFields": [
@@ -4903,12 +5531,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "R7-T31416198": {
-    "contractHash": "8a1466d60213f40afca9892602b3b4fd5961ae83596a3d6ee6d6ca8a7743f06b",
+    "contractHash": "39f2a7992d8065bf91b61386b5f5321406158b47a696d81b4b61bf712f6f66f4",
     "patches": [
       {
         "changedFields": [
@@ -4958,12 +5593,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "RETENTION-CLEANUP": {
-    "contractHash": "ed7dfbba8089096735d5eab820a47c938bd53995827cc39c2c6a43688c44130d",
+    "contractHash": "4528df41440af7abef09c64724859be9bbe2592952289e84670ac129013c591c",
     "patches": [
       {
         "changedFields": [
@@ -5013,12 +5655,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "SEO-1": {
-    "contractHash": "b3ba51bab8aace9228f1ba60a2614db5cb306ea21a84011417bbcb4f1d8070d6",
+    "contractHash": "c837abb2541ef4471a9119728c9fc65302164748315a5ccd34043eae10d2e8d4",
     "patches": [
       {
         "changedFields": [
@@ -5068,12 +5717,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "SEO-2": {
-    "contractHash": "cdfacbfe77561b351ce6b663b44bf9b510209b82278ccdaebefe3bc225a0090d",
+    "contractHash": "0fb6d157ef18ad990a5e3f41b7fa0dc4c556a802e2ee13e8271b532978b6ff7d",
     "patches": [
       {
         "changedFields": [
@@ -5123,12 +5779,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "SEO-4": {
-    "contractHash": "7f05f19a48379983128bdb0e4d85f8d2bae7a20922e30663d39d83c4ff9215f0",
+    "contractHash": "e9662abe9b9ac04a8cc2450ab791f9f21bd95f3f4a7ee86b5f1ac1f1edf4ec87",
     "patches": [
       {
         "changedFields": [
@@ -5178,12 +5841,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "SEO-5": {
-    "contractHash": "dda12909a4d2756c80f785d3d4f6e2568be39c0ef5bba13cb9d3e63549f95210",
+    "contractHash": "f5fb3a1dea6cfe75ee793f2a76791f15aac5e43d1f343557ed71cae4427172f8",
     "patches": [
       {
         "changedFields": [
@@ -5233,12 +5903,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "SEO-6": {
-    "contractHash": "0647fa5f279048124c4ad7980e049a2b848830ec447cbb632f18a8693d2cb157",
+    "contractHash": "bd95e72dca7d56ed0fbc972be56bd30bd13e6dfa8fdbcc95f4756d33bae7189c",
     "patches": [
       {
         "changedFields": [
@@ -5288,12 +5965,19 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
   },
   "SEO-7": {
-    "contractHash": "25974b51027bcc88641af2cb07be262070bb35de54d5e4f87b32c1bb7dbbc86c",
+    "contractHash": "880daaa74f34c1d85d0e29145211d5deb2aa019b603ae08cf01a02ea982ee28b",
     "patches": [
       {
         "changedFields": [
@@ -5343,6 +6027,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,02-设计/10-接口约定.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "cd7ad9a0fef85a26d3227a749ff91664fe1a1492e51f47d3527fe2ae9f3d8462"
       }
     ],
     "previousStatus": "done"
