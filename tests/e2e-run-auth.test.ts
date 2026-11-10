@@ -8,7 +8,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import type { APIRequestContext } from '@playwright/test';
 import { AccountDTOSchema, type AccountDTO } from '../src/lib/contracts/account';
-import { createRunAuthPool, cleanupRunAuth, publishRunAuth, readRunAuth, loadRunAuth, initializeRunAuth, RUN_AUTH_SLOTS, RunAuthError, privatePermissions, type PermissionPolicy, type RunAuthSlot } from '../e2e/run-auth';
+import { createRunAuthPool, cleanupRunAuth, publishRunAuth, readRunAuth, loadRunAuth, initializeRunAuth, RUN_AUTH_SLOTS, RunAuthError, privatePermissions, windowsPermission, type PermissionPolicy, type RunAuthSlot } from '../e2e/run-auth';
 import { MemoryStore } from '../src/lib/server/ratelimit';
 
 const ORIGIN = 'http://localhost:3100';
@@ -211,6 +211,44 @@ test('run-auth 29 compressed login-IP hits pass; duplicate initialization goes o
   assert.equal(await store.hit('unit-auth-budget', 30, 600_000), false);
   await assert.rejects(() => initializeRunAuth(ORIGIN, requestFactory(member('content-admin').account).factory, { E2E_RUN_AUTH_DIRECTORY: 'already' }), /ALREADY_INITIALIZED/);
   assert.equal(Object.keys(RUN_AUTH_SLOTS).length + 22, 29);
+});
+
+test('run-auth ACL diagnostics keep bounded categories and never mask or leak the original failure', () => {
+  type Exec = NonNullable<Parameters<typeof windowsPermission>[3]>;
+  const call = (exec: Exec) => () => windowsPermission('synthetic-target', true, false, exec);
+  const capture = (fn: () => void): RunAuthError => {
+    try { fn(); } catch (error) { assert.ok(error instanceof RunAuthError); return error; }
+    assert.fail('expected RunAuthError');
+  };
+  const exec = (body: () => string): Exec => body as unknown as Exec;
+  assert.doesNotThrow(call(exec(() => 'PRIVATE_OK\n')));
+  const output = capture(call(exec(() => 'PRIVATE_OK\nraw-private-marker')));
+  assert.equal(output.code, 'PERMISSIONS');
+  assert.equal(output.message, 'E2E_RUN_AUTH_PERMISSIONS');
+  assert.deepEqual(output.diagnostic, { category: 'output', stderr: 'unknown' });
+  const wrongAcl = capture(call(exec(() => {
+    throw Object.assign(new Error('raw-private-marker'), { status: 1, stderr: 'private owner raw-private-marker' });
+  })));
+  assert.equal(wrongAcl.message, 'E2E_RUN_AUTH_PERMISSIONS');
+  assert.deepEqual(wrongAcl.diagnostic, { category: 'nonzero', stderr: 'private_owner' });
+  assert.equal(JSON.stringify(wrongAcl.diagnostic).includes('raw-private-marker'), false);
+  const timeout = capture(call(exec(() => {
+    throw Object.assign(new Error('raw-private-marker'), { code: 'ETIMEDOUT', status: null, signal: 'SIGTERM', killed: true });
+  })));
+  assert.deepEqual(timeout.diagnostic, { category: 'timeout', stderr: 'unknown' });
+  const spawn = capture(call(exec(() => {
+    throw Object.assign(new Error('raw-private-marker'), { code: 'ENOENT', status: null });
+  })));
+  assert.deepEqual(spawn.diagnostic, { category: 'spawn', stderr: 'unknown' });
+  const diagnosticFailure = capture(call(exec(() => {
+    const error: Record<string, unknown> = {};
+    Object.defineProperty(error, 'code', { get() { throw new Error('raw-private-marker'); } });
+    Object.defineProperty(error, 'stderr', { get() { throw new Error('raw-private-marker'); } });
+    throw error;
+  })));
+  assert.equal(diagnosticFailure.message, 'E2E_RUN_AUTH_PERMISSIONS');
+  assert.deepEqual(diagnosticFailure.diagnostic, { category: 'unknown', stderr: 'unknown' });
+  assert.equal(JSON.stringify(diagnosticFailure.diagnostic).includes('raw-private-marker'), false);
 });
 
 test('run-auth initialization uses one normalized email for seed, credentials and strict account validation', async () => {

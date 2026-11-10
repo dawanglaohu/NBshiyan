@@ -39,29 +39,72 @@ export type RunAuthHandle = { directory: string; parent: string; nonce: string; 
 export type PermissionPolicy = { secure: (target: string, directory: boolean) => void; check: (target: string, directory: boolean) => void };
 
 /** Errors contain a controlled category only, never filesystem, HTTP or credential details. */
+export type WindowsPermissionCategory = 'timeout' | 'spawn' | 'nonzero' | 'output' | 'unknown';
+export type WindowsPermissionStderr = 'private_owner' | 'private_rules' | 'private_access' | 'other' | 'unknown';
+export type WindowsPermissionDiagnostic = { category: WindowsPermissionCategory; stderr: WindowsPermissionStderr };
+
 export class RunAuthError extends Error {
-  constructor(readonly code: string) { super(`E2E_RUN_AUTH_${code}`); this.name = 'RunAuthError'; }
+  constructor(readonly code: string, readonly diagnostic?: WindowsPermissionDiagnostic) { super(`E2E_RUN_AUTH_${code}`); this.name = 'RunAuthError'; }
 }
-function fail(code: string): never { throw new RunAuthError(code); }
+function fail(code: string, diagnostic?: WindowsPermissionDiagnostic): never { throw new RunAuthError(code, diagnostic); }
 const sha = (value: string | Buffer) => createHash('sha256').update(value).digest('hex');
 const fileFor = (slot: RunAuthSlot) => `state-${slot}.json`;
 const marker = (handle: RunAuthHandle) => JSON.stringify({ nonce: handle.nonce, origin: handle.origin, source: handle.source });
 const sourceOf = (env: Environment) => env.GITHUB_SHA || execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
 const beneath = (target: string, root: string) => { const rel = path.relative(root, target); return rel === '' || (!path.isAbsolute(rel) && rel !== '..' && !rel.startsWith(`..${path.sep}`)); };
 
-function windowsPermission(target: string, directory: boolean, secure: boolean) {
+type PermissionExec = (file: string, args: string[], options: {
+  encoding: 'utf8'; timeout: number; windowsHide: boolean; env: NodeJS.ProcessEnv; stdio: ['ignore', 'pipe', 'pipe'];
+}) => string | Buffer;
+
+const SPAWN_CODES = new Set(['ENOENT', 'EACCES', 'EPERM']);
+
+function stderrCategory(stderr: string): WindowsPermissionStderr {
+  if (stderr.includes('private owner')) return 'private_owner';
+  if (stderr.includes('private rules')) return 'private_rules';
+  if (stderr.includes('private access')) return 'private_access';
+  return stderr ? 'other' : 'unknown';
+}
+
+function safeText(value: unknown): string | null { return typeof value === 'string' ? value : null; }
+
+/** Classify only fields that are structurally known; raw message/stderr/script/path never leave this function. */
+export function classifyWindowsPermissionFailure(error: unknown): WindowsPermissionDiagnostic {
+  try {
+    if (!error || typeof error !== 'object') return { category: 'unknown', stderr: 'unknown' };
+    const record = error as Record<string, unknown>;
+    const code = safeText(record.code);
+    const status = typeof record.status === 'number' && Number.isInteger(record.status) && record.status >= 0 && record.status <= 255
+      ? record.status : null;
+    const stderr = stderrCategory(safeText(record.stderr) ?? '');
+    if (code === 'ETIMEDOUT') return { category: 'timeout', stderr };
+    if (status !== null && status !== 0) return { category: 'nonzero', stderr };
+    if (code !== null && SPAWN_CODES.has(code)) return { category: 'spawn', stderr };
+    return { category: 'unknown', stderr };
+  } catch {
+    return { category: 'unknown', stderr: 'unknown' };
+  }
+}
+
+export function windowsPermission(target: string, directory: boolean, secure: boolean,
+                                  exec: PermissionExec = (file, args, options) => execFileSync(file, args, options)) {
   // Set and then inspect the actual NTFS owner/ACL; chmod on Windows cannot prove privacy.
   const script = `$ErrorActionPreference='Stop'; $p=$env:E2E_RUN_AUTH_ACL_PATH; $dir=$env:E2E_RUN_AUTH_ACL_DIR -eq '1'; $sid=[Security.Principal.WindowsIdentity]::GetCurrent().User; $system=[Security.Principal.SecurityIdentifier]::new('S-1-5-18');
 if($env:E2E_RUN_AUTH_ACL_SECURE -eq '1') { $acl=if($dir){[Security.AccessControl.DirectorySecurity]::new()}else{[Security.AccessControl.FileSecurity]::new()}; $acl.SetOwner($sid); $acl.SetAccessRuleProtection($true,$false); $inherit=if($dir){[Security.AccessControl.InheritanceFlags]'ContainerInherit,ObjectInherit'}else{[Security.AccessControl.InheritanceFlags]::None}; foreach($id in @($sid,$system)){$rule=[Security.AccessControl.FileSystemAccessRule]::new($id,[Security.AccessControl.FileSystemRights]::FullControl,$inherit,[Security.AccessControl.PropagationFlags]::None,[Security.AccessControl.AccessControlType]::Allow);$acl.AddAccessRule($rule)}; Set-Acl -LiteralPath $p -AclObject $acl }
 $actual=Get-Acl -LiteralPath $p; if(!$actual.AreAccessRulesProtected -or $actual.GetOwner([Security.Principal.SecurityIdentifier]).Value -ne $sid.Value){throw 'private owner'}; $rules=@($actual.GetAccessRules($true,$true,[Security.Principal.SecurityIdentifier])); if($rules.Count -ne 2){throw 'private rules'}; foreach($r in $rules){if($r.IdentityReference.Value -notin @($sid.Value,$system.Value) -or $r.AccessControlType -ne 'Allow' -or $r.FileSystemRights -ne 'FullControl' -or $r.IsInherited){throw 'private access'}}; 'PRIVATE_OK'`;
   try {
-    const result = execFileSync(path.join(process.env.SystemRoot || 'C:\\Windows', 'System32/WindowsPowerShell/v1.0/powershell.exe'), ['-NoProfile', '-NonInteractive', '-Command', script], {
+    const result = exec(path.join(process.env.SystemRoot || 'C:\\Windows', 'System32/WindowsPowerShell/v1.0/powershell.exe'), ['-NoProfile', '-NonInteractive', '-Command', script], {
       encoding: 'utf8', timeout: 15_000, windowsHide: true,
       env: { ...process.env, E2E_RUN_AUTH_ACL_PATH: target, E2E_RUN_AUTH_ACL_DIR: directory ? '1' : '0', E2E_RUN_AUTH_ACL_SECURE: secure ? '1' : '0' },
       stdio: ['ignore', 'pipe', 'pipe'],
     });
-    if (result.trim() !== 'PRIVATE_OK') fail('PERMISSIONS');
-  } catch { fail('PERMISSIONS'); }
+    if (String(result).trim() !== 'PRIVATE_OK') fail('PERMISSIONS', { category: 'output', stderr: 'unknown' });
+  } catch (error) {
+    if (error instanceof RunAuthError) throw error;
+    let diagnostic: WindowsPermissionDiagnostic = { category: 'unknown', stderr: 'unknown' };
+    try { diagnostic = classifyWindowsPermissionFailure(error); } catch { /* keep the closed default */ }
+    fail('PERMISSIONS', diagnostic);
+  }
 }
 export const privatePermissions: PermissionPolicy = {
   secure(target, directory) {
