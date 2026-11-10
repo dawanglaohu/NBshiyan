@@ -2557,6 +2557,60 @@
         18
       ]
     },
+    "M5-T12": {
+      "provides": [
+        "analytics-anon-aggregate"
+      ],
+      "requires": [
+        {
+          "task": "M5-T3",
+          "capability": "analytics-aggregate"
+        },
+        {
+          "task": "M5-T11",
+          "capability": "analytics-retention"
+        }
+      ],
+      "stage": "primitive",
+      "wiring": [
+        "migrations"
+      ],
+      "supportPaths": [
+        ".github/workflows/ci.yml",
+        "docs/data-retention.md",
+        "src/lib/analytics/day-boundaries.ts",
+        "src/lib/server/analytics/retention.ts",
+        "tests/analytics-retention.db.test.ts",
+        "tests/analytics-aggregate.db.test.ts"
+      ],
+      "outputPaths": [
+        "prisma/schema.prisma",
+        "src/lib/analytics/daily-aggregate.ts",
+        "src/lib/server/analytics/aggregate.ts",
+        "src/lib/server/analytics/aggregate-repo.ts",
+        "src/lib/server/analytics/aggregate-day-state.ts",
+        "src/lib/server/analytics/ingest.ts",
+        "src/lib/server/analytics/retention-plan.ts",
+        "tests/analytics-daily.test.ts",
+        "tests/analytics-daily.db.test.ts",
+        "tests/analytics-day-state.db.test.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ],
+      "integrationTask": "M6-T1"
+    },
     "M5-T5": {
       "provides": [
         "analytics-retention-plan"
@@ -2905,6 +2959,10 @@
         {
           "task": "M2-T7",
           "capability": "model-events"
+        },
+        {
+          "task": "M5-T12",
+          "capability": "analytics-anon-aggregate"
         }
       ],
       "stage": "primitive",

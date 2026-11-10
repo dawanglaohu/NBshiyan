@@ -1,0 +1,13 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M6-T6": {
+      "contractHash": "90b9c530eb8a087201bea63981bed55543b354c597d6527efb02069321eb3005",
+      "verdict": "pass",
+      "evidence": [
+        "19 行验收 3 追加读取口径一句：新旧聚合按阶段合并不双计、product pageViews no_data、0% 按 start 分母、分类按 site 行+day-state+live marker（缺键按 0 比较）、旧 revision 行内时区、覆盖起点前 no_data/partial；未新增依赖。",
+        "未实施/未跑 HTTP；仅契约复核。"
+      ]
+    }
+  }
+}

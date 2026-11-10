@@ -1,0 +1,13 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M7-T3": {
+      "contractHash": "d97fa5eaca45b86ac6023e287feb32369d7d62159a83a33720efe9e596659c0a",
+      "verdict": "pass",
+      "evidence": [
+        "19 行验收 2 追加终验读取口径一句（新旧聚合不双计、product pageViews no_data、0% 按 start 分母、live/consumed 缺键按 0 比较、旧 revision 行内时区）；未新增依赖。",
+        "未实施/未跑；仅契约复核。"
+      ]
+    }
+  }
+}
