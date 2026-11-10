@@ -1,9 +1,9 @@
 import { cpSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
+import { BASE, PORT } from './scripts/base-url';
 
-const PORT = Number(process.env.E2E_PORT ?? 3100);
-export const BASE = `http://localhost:${PORT}`;
+export { BASE };
 
 /** 真实构建产物：next build 只产出 server.js 与被 trace 的依赖，static 与 public 要另行就位 */
 const STANDALONE_DIR = path.join('.next', 'standalone');

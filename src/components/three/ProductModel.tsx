@@ -54,9 +54,16 @@ function useLodUpgradeRedraw() {
   }, [gl, invalidate]);
 }
 
-function Gltf({ url, view, clip, onBounds }: { url: string; view?: BoxView; clip?: string; onBounds?: (b: ModelBounds) => void }) {
+function Gltf({ url, view, clip, onBounds, onLoaded }: { url: string; view?: BoxView; clip?: string; onBounds?: (b: ModelBounds) => void; onLoaded?: () => void }) {
   const gl = useThree((s) => s.gl);
   const root = useRef<Group>(null);
+  // 真实 GLB 解析完成（组件真正挂载）才算一次成功；poster/FoldBox 不会走到这里。
+  const loadedRef = useRef(false);
+  useEffect(() => {
+    if (loadedRef.current) return;
+    loadedRef.current = true;
+    onLoaded?.();
+  }, [onLoaded]);
   // Draco 解码器和渐进式加载：先出轻量版本，细节后台静默替换
   const { scene, animations } = useGLTF(url, '/draco/', false, (loader) => {
     useNeedleProgressive(loader as never, gl);
@@ -131,26 +138,34 @@ function PlaceholderBox() {
 /**
  * view：合盖 / 开盖 / 展开刀模。没有真实模型时用程序化的 FoldBox 演示。
  */
-export default function ProductModel({ src, onReady, slug, view, animationClips, onBounds, attempt = 0 }: { src?: string; onReady: () => void; slug?: string; view?: BoxView; animationClips?: AnimationClips; onBounds?: (b: ModelBounds) => void; attempt?: number }) {
+export default function ProductModel({ src, onReady, onLoadStart, onLoadSuccess, slug, view, animationClips, onBounds, attempt = 0 }: { src?: string; onReady: () => void; onLoadStart?: () => void; onLoadSuccess?: () => void; slug?: string; view?: BoxView; animationClips?: AnimationClips; onBounds?: (b: ModelBounds) => void; attempt?: number }) {
   const [url, setUrl] = useState<string>();
   const [loadError, setLoadError] = useState<Error>();
+  // 同一次 attempt 只报一次 start；Suspense 重挂或父级重渲染都不重复计数（E-63）。
+  const startedFor = useRef<string | null>(null);
   // 抛给外层 SceneErrorBoundary，卡片退回静态图
   if (loadError) throw loadError;
   useEffect(() => {
     let cancelled = false;
     const loadSrc = src ? retrySrc(src, attempt) : undefined;
     if (!loadSrc) { onReady(); return; }
+    // 刀模视图在没有 unfold 片段时只渲染程序化 FoldBox，不会发起真实 GLB 加载。
+    const rendersGlb = !(view === 'dieline' && !animationClips?.unfold);
+    if (rendersGlb && startedFor.current !== loadSrc) {
+      startedFor.current = loadSrc;
+      onLoadStart?.();
+    }
     import('./modelCache')
       .then(({ cachedModelUrl }) => cachedModelUrl(loadSrc))
       .then((next) => { if (!cancelled) setUrl(next); })
       .catch((e) => { if (!cancelled) setLoadError(e instanceof Error ? e : new Error(String(e))); });
     return () => { cancelled = true; };
-  }, [src, attempt, onReady]);
+  }, [src, attempt, onReady, onLoadStart, view, animationClips]);
   useEffect(() => { if (url) onReady(); }, [url, onReady]);
   // 当前 GLB 只有 'Open' 片段、没有展开刀模片段：刀模视图继续用 FoldBox 演示
   if (!src || (view === 'dieline' && !animationClips?.unfold)) {
     if (view && slug) { const c = PALETTE[slug] ?? { color: '#c9a77c' }; return <FoldBox view={view} color={c.color} lidColor={c.lid} />; }
     return <PlaceholderBox />;
   }
-  return url ? <Gltf url={url} view={view} clip={animationClips?.open} onBounds={onBounds} /> : null;
+  return url ? <Gltf url={url} view={view} clip={animationClips?.open} onBounds={onBounds} onLoaded={onLoadSuccess} /> : null;
 }

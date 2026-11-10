@@ -612,15 +612,27 @@
     "verdict": "pass"
   },
   "M2-T7": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "4fec0c9170e417c9de6b859c3e0dc55f6ed85b824438d6d3ad0184880e95eaac",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "7967be867d61f02caa023c778131710976060ba155e00f4834e0316000ab5944",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M2-T7《把真实GLB生命周期接入分析采集》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "固定头窄审：4ea27c83b158e81b0487d9f7001e238ec5c48af6 → 6e08ad6b45890614b61b0faf91e6ab49a5786f64（tree c9c835c56e333fadf323b9e1d9177425113f8ad9，父 4ea27c83），13 文件 +36,811/−165；代码只有 scripts/base-url.ts（新增 3 行）、e2e/base-url.ts（改为 re-export，2/3）、playwright.config.ts（仅 :4 import，1/1）；CI、.dockerignore、checker、五个 spec、src 业务事件与 tests 均未改。",
+      "支持路径增量最小：_run/task-contracts.json 仅 +1 行，M2-T7.supportPaths 10→11 项，唯一新增 scripts/base-url.ts，outputPaths 未变；契约 c445090a750b…→7967be867d61f02caa023c778131710976060ba155e00f4834e0316000ab5944，changedFields 仅 definition、effectivePaths，14 个共享章节逐文件 digest 未变（含 02-设计/09-数据模型.md、02-设计/10-接口约定.md）。",
+      "真实消费者已核：scripts/base-url.ts 只被 playwright.config.ts:4 与 e2e/base-url.ts:2 引用；src/ 与 Dockerfile 均不引用，launch-runbook.md:118 明确 E2E_PORT 只在 CI 与脚本使用，故发布镜像不消费该端口；文件必须留在构建上下文只是因根配置被 scripts/check-image-context.ts 扫描。base-url 注释已按此最小更正，未改任何运行逻辑。",
+      "BASE 唯一来源与启动门禁不变量：PORT/BASE 唯一定义在 scripts/base-url.ts:2-3；e2e/base-url.ts 仅 re-export；playwright.config.ts:6 仍 export { BASE }；prepareStandaloneAssets()、server.js 存在性检查、static/public 复制、webServer（PRIVACY_HASH_SECRET/APP_ORIGIN/PORT/HOSTNAME/E2E_SITE_REVALIDATE）、globalSetup 全部未动（config 差量 1 行）；五个 spec 未改且仍 import './base-url'。",
+      "checker 红→绿可复算：修复前本人在 4ea27c83 实跑 node --import tsx scripts/check-image-context.ts → exit 1，报 playwright.config.ts: ./e2e/base-url -> e2e/base-url.ts（被 .dockerignore 排除），日志 882 B 8C5BD9B3F3A951CA8C11C26262B7A8F92AE4881398BDDC0FEC523A1359BB874C；本头实跑 → exit 0，输出「已检查 487 个构建上下文源文件，没有引用被 .dockerignore 排除的路径」；node --import tsx --test tests/image-context.test.ts → 8 tests / 8 pass / 0 fail。",
+      "M1 分区实现（.github/workflows/ci.yml）：A3 由三段扩为五段 main/model/consent/errors/flow，各段仍由 run.sh 单独起 Playwright 管理的应用进程，共用同一构建产物与 PG；main 与收集步骤用同一份 `ls e2e/*.spec.ts | grep -v -E '/(model-events|analytics-consent|consent-writes)\\.spec\\.ts$'` 文件清单，model/consent 用显式文件参数；端口释放(ports.cjs 前后)、standalone-server.log 归属、main 段 RUM 检查、test/capture/log/release 五路结果、INT/TERM 取消处理、汇总段失败或未执行即红全部保留。",
+      "六列表实收（本头、纯 collection 配置，不建 server、不造假 server.js、不跑用例）：all=233 tests/39 files、main=202/36、model=14/1、consent=14/2、errors=2/1、flow=1/1；把实收 JSON 喂给从 ci.yml 抽出的断言脚本，输出 A3_COLLECTION all=233 main=202 model=14 consent=14 errors=2 flow=1 disjoint=true complete=true（exit 0），即五个分区互斥、并集逐键等于 all。候选分配 203/13 未采用，按实收修正为 202/14；该结果只证收集与分区，不证执行或通过。",
+      "响应诊断（e2e/model-events.spec.ts）：watchConsent 在点击之前装 page.on('response')，只记录 status 与 Retry-After、不在事件回调抛错，finally 必 dispose；非 2xx 由 expectGranted/expectNoConsentFailure 直接报 status 与 Retry-After；cookie（存在/v1+长度）与 data-analytics-collecting 分开报告，避免把两者混成「未就绪」。覆盖 acceptAnalytics、acceptOnCurrentPage、rejectOnCurrentPage、未同意用例的拒绝、F1 同页拒绝再接受、F1 在途导航、R2 撤回再授权；原生 20s 轮询与全部生命周期、真实 POST+DB、未同意零采集断言均未改。",
+      "最小充分检查：从 ci.yml 抽出的 8 个 shell 片段 bash -n 全 OK（WSL bash 5.0.17）；yaml.safe_load 解析通过（jobs 4 个、e2e 22 步）；node --check ports.cjs exit 0；eslint --no-cache e2e/model-events.spec.ts scripts/base-url.ts playwright.config.ts exit 0；tsc --noEmit --incremental false exit 0（tsconfig 明确排除 e2e/config，这两个文件没有 e2e tsc 覆盖；collection 载入与 eslint 解析只证明可解析/可收集，不是类型通过，不冒充 tsc 覆盖）；git diff --check exit 0。",
+      "明示未验边界：真实 CI run、Docker build、e2e 实际执行（含 model 段 14/14 与 consent 段 14/14）、旧 429 是否消失、最终演示媒体均未验证；本记录只覆盖契约支持路径与上述实现差量，不把任务写成 done，不声称业务实现通过。旧 12 条复核证据仍绑 c445090a…，由本记录续接为新的契约版本。",
+      "CI 42689471221（event pull_request；head 69bba4e7d2d82e23552cbaf8e72f6ff2310cd227、base 8209b2de65ac83ef6fe61f57b716e123a10aecfd）：四 job success（posix-storage-security 42s、build-and-audit 6m25s、mail-evidence 4m30s、e2e 34m38s）；checkout merge 4668978064e8533d3023b3b0a4ebdbe2be1d8348，日志为 'HEAD is now at 4668978 Merge 69bba4e7… into 8209b2de…'。A3 实收 233＝223 passed＋10 skipped＋0 failed：main 202＝192+10、model 14/14、consent 14/14、errors E1+A1 2/2、flow 三尺寸 1/1；均取自保存的 run-42689471221.json 与 job-e2e.log，未重跑、未拿 step 绿编造逐例。",
+      "同一 e2e 保存日志（UTF-16）的两个 PG 相关步骤按文件打印：`Analytics, chat, and other PostgreSQL regressions` **22 行/pass 合计 259**；`Device session protocol and PostgreSQL regressions` **3 行/pass 合计 25**（5+12+8）；两步合计 **25 行/pass 284**。25 行逐行 fail=skip=todo=cancelled=0 且 pass>0，两步均 success。统计只由保存日志的逐行 gate 输出求和，未回读原始 TAP（本地未保存），不另造逐例断言；checkout/PG 统计未重跑。",
+      "媒体已发布：assets 分支 packjoyu-m2-assets 追加 m2t7-model-events-69bba4e7-1495x780.gif，commit cf5a06e4286c04af43e9d2c452684066f16aaf84（parent 606473fc…，blob 7aa16f06…，fast-forward 无 force）；本地/远端均 452,567 B、SHA256 E798D2040BD0D6994DFA11D2BDB7F4A209BD67C95E6856D4FC9BDA975BC5C38B；GIF 1200×626、12.0s、120 编码帧、5 源帧；采集为同 69bba4e7 build/BUILD_ID fcrHupb1n43OC0ABHG9a-/origin http://localhost:3100、ego Chromium 156 非 CI；采集服务 PID 18052。PR #546 正文已更新，head 前后均 69bba4e7、Draft/open。",
+      "媒体边界如实保留：五帧 00 产品页(拒绝)、01 设置对话框(拒绝)、03 模型就绪(接受)、04 Home(最终拒绝后)、05 返回(拒绝)；同意共 4 轮（第 4 轮响应状态未记录），最终拒绝；Home/返回发生在最后一次拒绝之后，不声称返回产生分析事件；toast 未入画；首帧与旧 4ea _probe.png 逐字节相同是静态 poster/同资源解释，不单独证 head，canvas 亦不单独证 head，头绑定以服务/BUILD_ID/记录为准；不证 DB 落库；13:46 服务恢复是后事，不改采集 PID 18052；13:05 chunk 一致未证、13:46 才 MATCH，未倒填。",
+      "任务卡只更新 code/notes：e2e/model-events.spec.ts 14 处行号按固定代码重定位（157→268、202→313、229→340、254→365、309→420、332→443、355→466、393→509、429→544、456→576、475→595、514→634、540→660、568→697）；原 Windows 本机限制改为历史说明（CI Linux 默认入口已覆盖），新增落地登记；三条验收、E-63 下游 M6-T1/M6-T6/M7-T3 分工、task-contracts/19 定义均未改；src/tests/.github/playwright.config.ts/scripts 相对 69bba 运行内容零差量（git diff 空）。",
+      "证据保全：本记录在原 10 条之后追加 6 条（本条为第 16 条），原 10 条逐字保留；旧 12 条（契约 c445090a…）仍在 git 历史 a07d13ac，未被覆盖；媒体/服务/CI 原始回执与日志未改；本落地登记只新增本记录与任务卡 code/notes，不改 PR/assets/服务/源码/CI。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-11-09T22:16:09.698373+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -926,15 +938,25 @@
     "verdict": "pass"
   },
   "M3-T5": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "a1c8326bf51715b63c3dc5fc29493999a4bb448f445b668760df43af086d851e",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "7d62e9ddcd24229afd0cd95f7e276e499464c516940077fd69d884e4351e62de",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M3-T5《接通受限重入绑定与最终一次确认》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "固定对象：头 3fcb7e95b70a421356be72c09ab67ce3fdf157c0 / tree 884839e13662e2d2543f06f9078ae502d432376f / 父 2e7d00de…，工作树 clean；提交链 73dd217c（实现）→847c305c（R1 产品修复）→2e7d00de（CI 接线）→3fcb7e95（R2 证据措辞），均在 task/M3-T5，未 push/PR/landed，任务卡 status 仍 todo。当前契约 hash 7d62e9dd…；status ready=true、stale=[]、runtimeDrift=[]。",
+      "契约范围：provides=limited-recovery-completion，requires=M3-T19/M3-T2，supportPaths 6 项（recovery-repo.ts、audit.ts、composition.ts、两个新测试、ci.yml），outputPaths 3 项（recovery-enrollment.ts 与 enroll/confirm 两条 route），sections 12 节；本轮不改 task-contracts.json、生成器或任务状态。原补丁 m3-t5-ci-support-path 的 7 条 scope 记录（contractHash 同为 7d62e9dd…，_run/patches/m3-t5-ci-support-path.evidence.json 01F42D2D…）与 2026-10-22 旧记录保留在补丁文件/Git 历史；本记录只取代 task-reviews 当前条目，不删除补丁记录、证据文件与各轮报告。",
+      "验收 1 / E-08+E-14：enroll 首次加密 pending 并 CAS（recovery-repo.ts:313 setPendingSecret）；同受限 cookie 重入返回同 otpauthUri/原 expiresAt、不旋转不续时（R1/R2，tests/admin-recovery-reentry.http.test.ts:198 起）；等号到期返回 401 recovery_expired 且不改旧 secret/password，撤销先提交后抛（R3；recovery-enrollment.ts:86 段）；错码/重复/两并发 confirm 在锁后复核 token/sv/secret/step、最多一次提交（R5/R7/R9/R10；recovery-repo.ts:334/349/372），失败前旧 password+TOTP 仍可登录（R4）。锁序 hint→User→session：recovery-enrollment.ts:91/98/100（enroll）、:156/166/168（confirm），recovery-repo.ts:283/303/292；start 仍 User→session（recovery-start.ts:66/92）。R11/R13 的 spy 调用序＋SQL 静态是锁序证据；R12/R14 只作受控交错与终态一致，不称 ABBA/锁等待。原 DB 独审（db-m3t5-r1-review-20261109.md 9,473 B 2B2B1416…）对锁序与锁内 hash/陈旧 now 两处缺陷判 PASS。",
+      "验收 2 / E-15：confirm 成功链同一事务——completeRecoverySession CAS（recovery-repo.ts:349）→ 单条 User CAS commitRecoveredFactors（recovery-repo.ts:372：totpSecret=pending、totpLastStep=step、10 个新恢复码 hash、sessionVersion+1，仅 passwordResetSource=SERVER_OWNER 时 COALESCE(pendingPasswordHash,passwordHash)）→ 撤 <committedSv 设备（reason recovery_confirm）→ 撤其他未完成受限会话 → recovery.completed 审计；恢复码只在 200 返回一次，成功才 recoveryClearCookie（recovery-enrollment.ts:345/378）。HTTP 只收 totp，password/newPassword/passwordHash 任一为 400（R10，tests/admin-recovery-confirm.db.test.ts:496）。R6/R8a/R8b（设备行 revokedAt 非空后再 401，:428）/R9（totpLastStep 与同码登录失败）覆盖；R11（:507）验证 SERVER_OWNER 预授权 hash 改密一次、旧密码失败，非 SERVER_OWNER 路径 passwordHash 前后相等（:317/:375）。",
+      "验收 3：断言复用 T19 已签发受限 cookie（start 夹具），不重做签发；R1/R2 的 enroll 200 后 otpauthUri 非空、expiresAt 为 UTC，同 cookie 重发两字段逐字相等且 DB pending 密文/pendingUntil 不变；R3 等号 401；R5 错 totp 401 且无 completed/recoveryCodes、五次后同凭据不再 200；成功 confirm 200、completed=true、recoveryCodes 非空数组、Set-Cookie 清除同一受限 cookie、completedAt 非空、sv 只 +1；R7 两并发恰一 200、另一 401 无 recoveryCodes、重复仍 401 且 sv/码 hash 不再变；成功后旧设备访问 401；R9 下一未用时间步新验证器可登录、旧验证器码不可；R10 额外字段 400。作者 23/23 TAP（847c305c，188,790.7558 ms，db-tests.log 55578727…）逐条对应；非作者 R1 窄审 §4 抽检确认差分未触碰这些语义，R2 窄核（3fcb，3 文件 +12/−24）确认只删无效 settled/sleep 断言、无终态断言被削弱。",
+      "证据强度与审查链：73dd217c 的 16/16 新真库＋6/6 start 回归、847c305c 的 23/23 均为作者本地证据，未由本窗复跑；DB R1 窄审（2B2B1416…）PASS 两处产品缺陷；DB R2 差量窄核（db-m3t5-evidence-r2-check-20261109.md 5,440 B E84BE41A…）限定 PASS、无断言削弱；CI 接线窄审（testing-m3t5-ci-wiring-review-20261109.md）限定 PASS。R2 提交 3fcb 仅 3 文件 +12/−24，git diff --quiet 847c305c HEAD -- src 与 git diff --quiet 2e7d00de HEAD -- .github/workflows/ci.yml 均 exit 0。",
+      "CI 接线 2e7d00de：1 file +6/−0，仅 .github/workflows/ci.yml；三清单 24=22+2、有序全等，admin-recovery-reentry.http.test.ts 与 admin-recovery-confirm.db.test.ts 各一次并紧邻 admin-recovery-start.db.test.ts；复用 M3T3_TEST_DATABASE_URL(schema=m3t3)/M3T3_REQUIRE_DATABASE=true，保留 --test-concurrency=1、四条 TAP 零计数 grep、pass>=1、失败回显与 reporter 双路。独立窄审 PASS；但真实 CI 未执行、24 文件未实际跑、ESM 汇总门禁本机未执行（只静态核对），均按未证保留。",
+      "sanity-import 3 条红：为 Windows 文本模式 CRLF 与 LF 提交物做字节比较失败，不是生成物过期；强制 LF 对照三处输出与提交物 sha256 全同（frontend-m3t5-sanity-baseline 报告 711AE44B…），与 73dd217c 引入无关，不作业务回归依据，也不在 Windows 重新生成提交。",
+      "未证与限制（不删旧项）：真实 40P01/锁等待、多实例/慢机 Prisma 5s 事务上限、Redis 限流、socket 级 HTTP/浏览器/E2E、真实 CI run 与 24 文件执行、ESM 汇总门禁本机执行、23 项复跑、生产 PG 版本/时区与密钥轮换；tsc/eslint 两份 8 B 日志同哈希 2095D530…，只够支撑作者 exit 0 声明，不能当两条独立命令证据；R12/R14 不是 ABBA 回归，R17 不是真实锁等待。本记录写域仅本证据文件、task-reviews.json 与 build 正常派生，不改 task-contracts.json、生成器或任务状态；源码/测试/.github 相对 3fcb7e95 不改。",
+      "真实 CI（非作者观察，2026-11-09）：run 42696242970 attempt 1 completed/success；实际 checkout 合并提交 35b001989575710c81d67eb87dd55d2012481396（tree 95a4d43a…，parents 8209b2de…＋5a925108…）；四个 job 全 success（mail-evidence 218s、posix-storage-security 28s、build-and-audit 362s、e2e 2050s）；该 head 上只有这 1 个 run，无 rerun。来源 testing-m3t5-ci-42696242970-20261109。",
+      "e2e 的 24 文件 PG 门禁（step 9）：24 文件合计 pass=282、fail/skip/todo/cancelled 全 0、每文件 pass≥1；const wanted、runner 命令行与汇总 files 三份清单 24=24 逐项有序全等，日志无 MISSING/MISSING_COUNT；新增 admin-recovery-reentry.http.test.ts pass=8、admin-recovery-confirm.db.test.ts pass=15（合计 23，其余 22 文件 259）。",
+      "CI 证据边界：A3 只核 step 15/16/17/18 的 step 级 success，未逐例 219；成功路径不打印 TAP 汇总行，四条零计数与 pass>=1 只由 step 退出码 0 间接证明；mail-evidence、build-and-audit、posix-storage-security 三 job 内部断言未逐条复核；40P01/真实锁等待未在本 run 触发。",
+      "登记窄审：testing-m3t5-contract-record-review-20261109 对 5a925108（6 files +44/−22，全部在 docs/PackJoyU-开发文档/）限定 PASS，确认 9 条证据覆盖三条验收、旧 scope/历史保留、契约/卡/生成器/review.json 不变、manifest 6/6 复算一致；真实 CI 由本条上方 10–12 补。",
+      "落地记录范围：本次只新增本证据文件、更新 task-reviews 当前条目（原 9 条逐字保留）、任务卡 code/notes 最小补记（`AnalyticsRecoverySession`→`AdminRecoverySession`、补真实 CI 一段），并由 build_docs --landed 写 status/progress 及正常派生；不改三条验收/契约/生产 src/tests/CI；远端 main 尚未合并、PR #547 仍 Draft，本地标记只表示本分支准备落地，旧证据文件未覆盖。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-11-09T21:36:20.578911+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },

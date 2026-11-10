@@ -1,7 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { authenticator } from 'otplib';
 import { test, expect } from './fixtures';
-import { BASE } from '../playwright.config';
+import { BASE } from './base-url';
 import { E2E_TOTP } from './shared-admin';
 
 // 自定义 /admin-login。未登录只打开页面，不计登录。有两步验证的账号提交 2 次。

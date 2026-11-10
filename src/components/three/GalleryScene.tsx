@@ -180,7 +180,7 @@ const FOV = 40;
  * - 模型水平居中、底面落在 y=0；near/far 跟着模型尺寸走，OrbitControls 的缩放范围也按取景距离换算；
  * - 接触阴影按开盖全过程的底面尺寸缩放，开盖后盖子的阴影也不会被切。
  */
-function FramedGltf({ item: i, env, onReady, onError }: { item: SceneItem; env: Texture; onReady: (slug: string) => void; onError?: (slug: string, reason?: ModelFailureReason) => void }) {
+function FramedGltf({ item: i, env, onReady, onError, onModelStart, onModelLoaded }: { item: SceneItem; env: Texture; onReady: (slug: string) => void; onError?: (slug: string, reason?: ModelFailureReason) => void; onModelStart?: (slug: string, attempt: number) => void; onModelLoaded?: (slug: string) => void }) {
   const [b, setB] = useState<ModelBounds>();
   const onBounds = useCallback((nb: ModelBounds) => setB(nb), []);
   const camera = useThree((s) => s.camera) as PCam;
@@ -281,7 +281,7 @@ function FramedGltf({ item: i, env, onReady, onError }: { item: SceneItem; env: 
         <SceneErrorBoundary onError={() => onError?.(i.slug, 'LOAD_ERROR')}>
           {/* 包围盒算出来之前先隐藏，避免第一帧按默认相机露出半个模型 */}
           <group position={offset} visible={!!b}>
-            <ProductModel src={i.model} slug={i.slug} view={i.view} animationClips={i.animationClips} attempt={i.attempt ?? 0} onReady={() => onReady(i.slug)} onBounds={onBounds} />
+            <ProductModel src={i.model} slug={i.slug} view={i.view} animationClips={i.animationClips} attempt={i.attempt ?? 0} onReady={() => onReady(i.slug)} onLoadStart={() => onModelStart?.(i.slug, i.attempt ?? 0)} onLoadSuccess={() => onModelLoaded?.(i.slug)} onBounds={onBounds} />
           </group>
         </SceneErrorBoundary>
         <Environment map={env} environmentIntensity={1} />
@@ -296,7 +296,7 @@ function FramedGltf({ item: i, env, onReady, onError }: { item: SceneItem; env: 
   );
 }
 
-export default function GalleryScene({ items, eventSource, onReady, onError, onContextLost }: { items: SceneItem[]; eventSource: RefObject<HTMLElement | null>; onReady: (slug: string) => void; onError?: (slug: string, reason?: ModelFailureReason) => void; onContextLost?: () => void }) {
+export default function GalleryScene({ items, eventSource, onReady, onError, onContextLost, onModelStart, onModelLoaded }: { items: SceneItem[]; eventSource: RefObject<HTMLElement | null>; onReady: (slug: string) => void; onError?: (slug: string, reason?: ModelFailureReason) => void; onContextLost?: () => void; onModelStart?: (slug: string, attempt: number) => void; onModelLoaded?: (slug: string) => void }) {
   return (
     <Canvas
       className="three-canvas"
@@ -315,13 +315,13 @@ export default function GalleryScene({ items, eventSource, onReady, onError, onC
         <View key={`${i.slug}:${i.attempt ?? 0}`} track={i.track as RefObject<HTMLElement>}>
           <PerspectiveCamera makeDefault position={[2.4, 1.6, 2.6]} fov={40} />
           <StudioLights dark={i.dark} />
-          {usesGltf(i) ? <FramedGltf item={i} env={env} onReady={onReady} onError={onError} /> : (<>
+          {usesGltf(i) ? <FramedGltf item={i} env={env} onReady={onReady} onError={onError} onModelStart={onModelStart} onModelLoaded={onModelLoaded} /> : (<>
           <Suspense fallback={null}>
             {/* 程序化 FoldBox / 占位盒：沿用 Bounds 自动取景 */}
               <SceneErrorBoundary onError={() => onError?.(i.slug, 'LOAD_ERROR')}>
               <Bounds fit clip observe margin={1.2}>
                 <Center top>
-                  <ProductModel src={i.model} slug={i.slug} view={i.view} animationClips={i.animationClips} attempt={i.attempt ?? 0} onReady={() => onReady(i.slug)} />
+                  <ProductModel src={i.model} slug={i.slug} view={i.view} animationClips={i.animationClips} attempt={i.attempt ?? 0} onReady={() => onReady(i.slug)} onLoadStart={() => onModelStart?.(i.slug, i.attempt ?? 0)} onLoadSuccess={() => onModelLoaded?.(i.slug)} />
                 </Center>
               </Bounds>
               </SceneErrorBoundary>
