@@ -1,0 +1,93 @@
+{
+  "scope": "task-contract",
+  "object": {
+    "head": "96c090fcbf69156c5d9bd92b104f173b578a6ab7",
+    "tree": "6d088605e58ec6f6a53c7ebab63bed8670b7926a",
+    "parents": [
+      "320d500ddd725a89549686c5d08c010e6950c283",
+      "5ebeb6f6936f62245b176854c2b3aadec64d432c"
+    ],
+    "sourceVersion": "16e824ed6aa025ea4d5620349398942f0a4ce4d4b8336545d3dc8785f8dddc8c",
+    "correction": "R1：tasks 恰为 7 个 T5 关联键（M2-T5 及其下游 6 键）；R0 证据 JSON 的 8 键（多含 M4-T12）作废、不得用于登记。",
+    "excluded": {
+      "M4-T12": {
+        "reason": "main 侧契约（M4-T12）hash 与现有 review 记录一致，已 current；不属于本次 T5 关联七键，不重登记。",
+        "contractHash": "40cee552c2fd8aaf2e93767a808d8f51cc56bca3682ffa28231cee8506718e40",
+        "recordReviewed": "2026-11-10T11:33:15.026693+00:00",
+        "recordVerdict": "pass",
+        "evidence": [
+          "固定 96c090fc/tree 6d088605：M4-T12 契约条目与 5eb 逐值相等（定义/effectivePaths 27 项全同），当前 hash 40cee552c2fd8aaf2e93767a808d8f51cc56bca3682ffa28231cee8506718e40 与 main 相同、与 320d 5ddfd8cd… 不同。",
+          "review 记录 40cee552…（2026-11-10T11:33:15Z pass）与当前 hash 相等 → readiness=true；19 的 M4-T12 前置 M5-T1、M5-T8 在合并树中未变。该记录已是 current，若本次一并登记会把 reviewed 改为本次时刻（hash 与结论不变）。",
+          "本证据只登记 task-contract 语义；M4-T12 的代码/CI/收尾不在此范围。"
+        ]
+      }
+    },
+    "note": "Verify-ready for the designated seven T5-related keys only. contractHash values are 96c090 dispatch.tasks[].contractHash. All seven records are stale before registration; verify rewrites them and leaves the other 134 records untouched. M4-T12 is current and is not re-registered."
+  },
+  "tasks": {
+    "M2-T5": {
+      "contractHash": "5ba4f3fc58dc3c674290a75aad34c8d1126a5788ed9e24d81c6abeb088cad551",
+      "verdict": "pass",
+      "evidence": [
+        "固定 96c090fc/tree 6d088605（双亲 320d＋5eb）：M2-T5 契约条目与 320d 逐值相等（supportPaths 8、requires/provides/stage/wiring/outputPaths/sections 全同），effectivePaths 27 项与 320d 逐项相同；合并未改 T5 契约定义。",
+        "当前 hash 5ba4f3fc58dc3c674290a75aad34c8d1126a5788ed9e24d81c6abeb088cad551 与 320d 相同、与 main 98ad48bd… 不同；相对 main 的差异由 T5 的 supportPaths 8 与有效范围解释，提示词同变属内嵌契约版本与笔记派生。",
+        "任务笔记 9,324 B 与已通过候选逐字节相同（sha256 b26dbeaa2d7a6a8affa668a50e4e1e68ff074ed23e127e32e22cac4cf68d72e3），front matter status: todo；笔记正文 8,496→9,324 B 后 hash 仍 5ba4f3fc，实证笔记正文不进 hash。",
+        "review 记录仍 e68e61d7…（2026-11-10T10:14:46Z pass），相对现值 stale；本证据只登记 task-contract 语义，不宣称实现、CI 或 GIF 通过。"
+      ]
+    },
+    "M2-T8": {
+      "contractHash": "9c21fc1da07f424341001dc4df43f657cd9501606069d492720dba95ef0634f6",
+      "verdict": "pass",
+      "evidence": [
+        "固定 96c090fc/tree 6d088605：M2-T8 契约条目与 320d 及 5eb 均逐值相等，合并两侧都未改其定义/有效范围（effectivePaths 不变）。",
+        "当前 hash 9c21fc1da07f424341001dc4df43f657cd9501606069d492720dba95ef0634f6 与 320d 相同、与 main 2a57e6d0… 不同；04-执行/19 的 M2-T8 前置列含 M2-T5，按 handoff_contract.py 的 hash=digest({context,providers}) 由祖先链 M2-T5 的 context 基线传播，未新增义务。",
+        "review 记录仍 d16525d8…（2026-11-10T10:14:46Z pass）stale；readiness=false 原因为任务契约待语义复核，非实现失败；任务 status: todo。"
+      ]
+    },
+    "M7-T1": {
+      "contractHash": "cdc14b8c19dfa0d0c599218a6da17c6f91f8bfaa8b59b92e0a39d046e932dbd0",
+      "verdict": "pass",
+      "evidence": [
+        "固定 96c090fc/tree 6d088605：M7-T1 契约条目与 320d、5eb 均逐值相等，effectivePaths 不变。",
+        "当前 hash cdc14b8c19dfa0d0c599218a6da17c6f91f8bfaa8b59b92e0a39d046e932dbd0 与 320d 相同、与 main 410541d6… 不同；19 的 M7-T1 前置列含 M1-T5、M2-T5、M2-T8，providers 链经 M2-T8→M2-T5 传播，未新增义务。",
+        "review 记录仍 00a953b9…（2026-11-10T10:14:46Z pass）stale；readiness=false 待语义复核；任务 status: todo。"
+      ]
+    },
+    "M7-T4": {
+      "contractHash": "a3157a777e544eab4bcfadad906fa9184e5ed3fd557d379e99735ab18192bce3",
+      "verdict": "pass",
+      "evidence": [
+        "固定 96c090fc/tree 6d088605：M7-T4 契约条目与 320d、5eb 均逐值相等（定义/有效范围未变）；当前 hash a3157a777e544eab4bcfadad906fa9184e5ed3fd557d379e99735ab18192bce3 与两侧都不同（320d 8c896c4b…、5eb f449b15d…）。",
+        "19 的 M7-T4 前置列 = M7-T1、M4-T6、M4-T7、M4-T14、M4-T12、M4-T13；祖先链同时含 M2-T5（M7-T1→M2-T8→M2-T5）与 M4-T12，providers 变化来自两侧合并，新值由 digest({context,providers}) 解释。",
+        "review 记录 f449b15d…（2026-11-10T11:32:51Z pass）合并后 stale（该记录在 main 上曾与 main 值相等）；readiness=false 待语义复核；既有“疑似接线任务未列注册点”WARN 在 320d 已存在、非本次引入；任务 status: todo。"
+      ]
+    },
+    "M7-T8": {
+      "contractHash": "9073a103ee2cb39481640c6c70069857684df3b314e636b560763ba91cc39f9a",
+      "verdict": "pass",
+      "evidence": [
+        "固定 96c090fc/tree 6d088605：M7-T8 契约条目与 320d、5eb 均逐值相等；当前 hash 9073a103ee2cb39481640c6c70069857684df3b314e636b560763ba91cc39f9a 与两侧都不同（320d 244c8f00…、5eb 8927c5b2…）。",
+        "19 的 M7-T8 前置列 = M7-T4、M7-T2、M7-T5、M7-T3、M7-T7；经 M7-T4 传递含 M2-T5 与 M4-T12，新值由 providers 传播解释。",
+        "review 记录 8927c5b2…（2026-11-10T11:32:51Z pass）stale；readiness=false 待语义复核；任务 status: todo。"
+      ]
+    },
+    "M7-T9": {
+      "contractHash": "227b9d9d3b2426953b46fa0b5d4c3409b0160c5c45925ac0068178f98cab3257",
+      "verdict": "pass",
+      "evidence": [
+        "固定 96c090fc/tree 6d088605：M7-T9 契约条目与 320d、5eb 均逐值相等；当前 hash 227b9d9d3b2426953b46fa0b5d4c3409b0160c5c45925ac0068178f98cab3257 与两侧都不同（320d a4090923…、5eb 69cd34cb…）。",
+        "19 的 M7-T9 前置列 = M7-T8、M3-T21、M3-T22、M3-T23、M3-T24、M3-T25；经 M7-T8→M7-T4 传递含 M2-T5 与 M4-T12。",
+        "review 记录 69cd34cb…（2026-11-10T11:32:51Z pass）stale；readiness=false 待语义复核；既有 H12 WARN（事件、接口、页面）在 320d 已存在；任务 status: todo。"
+      ]
+    },
+    "M7-T10": {
+      "contractHash": "882fd96b913bfaceb011485d3a59a1b83f2dd6ca6cdc3a86a34d44d84c261449",
+      "verdict": "pass",
+      "evidence": [
+        "固定 96c090fc/tree 6d088605：M7-T10 契约条目与 320d、5eb 均逐值相等；当前 hash 882fd96b913bfaceb011485d3a59a1b83f2dd6ca6cdc3a86a34d44d84c261449 与两侧都不同（320d 22099400…、5eb 3f6776ad…）。",
+        "19 的 M7-T10 前置列含 M7-T9，经 M7-T9→M7-T8→M7-T4 传递同时含 M2-T5 与 M4-T12，新值由 providers 传播解释。",
+        "review 记录 3f6776ad…（2026-11-10T11:32:51Z pass）stale；readiness=false 待语义复核；任务 status: todo。"
+      ]
+    }
+  }
+}
