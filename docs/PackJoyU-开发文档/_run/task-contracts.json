@@ -2225,7 +2225,10 @@
         "src/lib/server/mail/queue-job.ts",
         "tests/fixtures/mail-db.ts",
         "src/lib/server/cron-alert.ts",
-        ".github/workflows/ci.yml"
+        ".github/workflows/ci.yml",
+        "tests/evidence/local-smtp.mjs",
+        "tests/evidence/mail-cron-tick.sh",
+        "tests/evidence/mail-cron-phase.mjs"
       ],
       "outputPaths": [
         "src/app/api/admin/cron/mail-queue/route.ts"
