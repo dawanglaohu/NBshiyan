@@ -7,9 +7,9 @@ import net from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
+import { createRequire } from 'node:module';
 import tls from 'node:tls';
 import { pathToFileURL } from 'node:url';
-import nodemailer from 'nodemailer';
 
 // Isolated Linux CI SMTP preflight. Credentials and SMTP payload are never logged.
 const HOST = 'smtp.evidence.test';
@@ -411,6 +411,7 @@ function observingTransportFactory(create, observation) {
 }
 
 async function probe() {
+  const nodemailer = (await import('nodemailer')).default;
   const { root } = rootInfo();
   await requireOfflineNamespace();
   const project = fs.realpathSync(arg('project') || process.cwd());
@@ -538,6 +539,82 @@ function exec() {
   process.exitCode = result.status || 0;
 }
 
+const ARTIFACT_ENTRIES = ['next/dist/server/next', 'next/dist/server/lib/start-server', 'next/dist/server/render', 'next/dist/server/next-server'];
+const ARTIFACT_REQUESTS = ['styled-jsx/package.json', 'styled-jsx', 'styled-jsx/style', '@next/env', '@swc/helpers/_/_interop_require_default', 'react-dom/server.browser', 'react'];
+function verifyArtifact() {
+  const report = (value, code = 0) => { console.log(JSON.stringify(value)); process.exitCode = code; };
+  try {
+    if (process.env.NODE_PATH) fail('NODE_PATH_PRESENT');
+    const appArg = arg('app');
+    if (!appArg) fail('APP_REQUIRED');
+    const app = fs.realpathSync(appArg);
+    if (!fs.lstatSync(app).isDirectory() || fs.lstatSync(app).isSymbolicLink()) fail('APP_NOT_PLAIN_DIRECTORY');
+    const server = path.join(app, 'server.js');
+    const serverStat = fs.lstatSync(server);
+    if (!serverStat.isFile() || serverStat.isSymbolicLink() || serverStat.nlink !== 1 || fs.realpathSync(server) !== server) fail('SERVER_NOT_PLAIN');
+    const loader = createRequire(server);
+    const inside = (file) => {
+      const relative = path.relative(app, file);
+      return relative === '' || (!path.isAbsolute(relative) && relative !== '..' && !relative.startsWith(`..${path.sep}`));
+    };
+    const plainInside = (file, outsideCode = 'RESOLVED_OUTSIDE_ARTIFACT', plainCode = 'RESOLVED_NOT_PLAIN') => {
+      if (!inside(file)) fail(outsideCode);
+      let current = app;
+      for (const segment of path.relative(app, file).split(path.sep).filter(Boolean)) {
+        current = path.join(current, segment);
+        const stat = fs.lstatSync(current);
+        if (path.resolve(current) === path.resolve(file)) {
+          if (!stat.isFile() || stat.isSymbolicLink() || stat.nlink !== 1) fail(plainCode);
+        } else if (!stat.isDirectory() || stat.isSymbolicLink()) fail(plainCode);
+      }
+      return file;
+    };
+    const resolve = (from, request) => {
+      let file;
+      try { file = from.resolve(request); } catch (error) {
+        if (error && (error.code === 'MODULE_NOT_FOUND' || error.code === 'ERR_MODULE_NOT_FOUND')) fail('ARTIFACT_CLOSURE_MISSING');
+        fail('ARTIFACT_RESOLVE_UNEXPECTED');
+      }
+      return plainInside(fs.realpathSync(file));
+    };
+    const expectedMissing = arg('expect-missing');
+    if (expectedMissing) {
+      let resolved = false;
+      try { loader.resolve(expectedMissing); resolved = true; } catch (error) {
+        if (!error || error.code !== 'MODULE_NOT_FOUND') fail('NEGATIVE_CONTROL_UNEXPECTED');
+      }
+      if (resolved) fail('NEGATIVE_CONTROL_RESOLVED');
+      report({ artifactClosure: 'NEGATIVE_CONFIRMED', nodePath: false });
+      return;
+    }
+    const resolved = ARTIFACT_REQUESTS.map((request) => resolve(loader, request));
+    const styleLoader = createRequire(resolved[2]);
+    for (const request of ['client-only', 'react']) resolved.push(resolve(styleLoader, request));
+    const cache = loader.cache;
+    // The validator itself must not preload any artifact or project module; only builtins belong here.
+    if (Object.keys(cache).some((file) => !file.startsWith('node:'))) fail('VALIDATOR_CACHE_PRESENT');
+    const before = new Set(Object.keys(cache));
+    for (const entry of ARTIFACT_ENTRIES) {
+      try { loader(entry); } catch (error) {
+        if (error && (error.code === 'MODULE_NOT_FOUND' || error.code === 'ERR_MODULE_NOT_FOUND')) fail('ARTIFACT_CLOSURE_MISSING');
+        fail('ARTIFACT_LOAD_UNEXPECTED');
+      }
+    }
+    let loadedInside = 0;
+    for (const file of Object.keys(cache)) {
+      if (before.has(file)) continue;
+      plainInside(fs.realpathSync(file), 'LOADED_OUTSIDE_ARTIFACT', 'LOADED_NOT_PLAIN');
+      loadedInside++;
+    }
+    const builtins = Array.isArray(process.moduleLoadList) ? process.moduleLoadList.filter((line) => String(line).startsWith('NativeModule ')).length : 0;
+    report({ artifactClosure: 'PASS', resolved: resolved.length, loadedEntries: ARTIFACT_ENTRIES.length, loadedInside, builtins, nodePath: false });
+  } catch (error) {
+    // Controlled failure channel only: no raw message, path, stack or secret is printed.
+    const code = /^[A-Z0-9_]{1,60}$/.test(error?.code || '') ? error.code : 'ARTIFACT_CLOSURE_INTERNAL';
+    report({ artifactClosure: 'FAIL', code, nodePath: Boolean(process.env.NODE_PATH) }, 1);
+  }
+}
+
 async function serve() {
   const { root } = rootInfo(); await requireOfflineNamespace();
   const sink = await startSink(root, { control: true });
@@ -655,6 +732,7 @@ try {
   else if (mode === 'probe') await probe();
   else if (mode === 'serve') await serve();
   else if (mode === 'exec') { await requireOfflineNamespace(); exec(); }
+  else if (mode === 'verify-artifact') verifyArtifact();
   else if (mode === 'cleanup') cleanup();
   else fail('UNKNOWN_MODE');
 } catch (error) {

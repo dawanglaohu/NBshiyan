@@ -59,7 +59,9 @@ async function sinkStats() {
 }
 
 function appEnv() {
-  return { ...process.env, PORT: '3100', HOSTNAME: '127.0.0.1', E2E_SITE_REVALIDATE: '1', AUTH_URL: BASE_URL, APP_ORIGIN: BASE_URL };
+  const env = { ...process.env, PORT: '3100', HOSTNAME: '127.0.0.1', E2E_SITE_REVALIDATE: '1', AUTH_URL: BASE_URL, APP_ORIGIN: BASE_URL };
+  delete env.NODE_PATH;
+  return env;
 }
 
 async function startApp() {

@@ -998,7 +998,7 @@ jobs:
           import { createHash, randomBytes } from 'node:crypto';
           import fs from 'node:fs';
           import path from 'node:path';
-          import { spawn, execFileSync } from 'node:child_process';
+          import { spawn, spawnSync, execFileSync } from 'node:child_process';
 
           // Inline CI preparation only: no SMTP/PG/HTTP service is started and no business credentials are inherited.
           const project = fs.realpathSync(process.cwd());
@@ -1131,6 +1131,33 @@ jobs:
               };
               addTree(generatedRoot, generatedTarget); addTree(runtimeRoot, path.join(stagedPrismaRoot, 'runtime'));
               if (fs.lstatSync(nativeSource).isDirectory()) addTree(nativeSource, nativeTarget); else { elfX64(nativeSource); addFile(nativeSource, nativeTarget); }
+              // Materializing next removed its sibling closure; copy the exact packages the four runtime entrypoints resolve.
+              const nextRuntimeEntry = sourceFile(sourceLoader.resolve('next/package.json'));
+              const nextRuntimeLoader = createRequire(nextRuntimeEntry);
+              const packageRoot = (request) => {
+                try { return sourceDirectory(path.dirname(sourceFile(nextRuntimeLoader.resolve(`${request}/package.json`)))); }
+                catch {
+                  let directory = sourceDirectory(path.dirname(sourceFile(nextRuntimeLoader.resolve(request))));
+                  while (!fs.existsSync(path.join(directory, 'package.json'))) {
+                    const parent = path.dirname(directory); assert.notEqual(parent, directory); directory = sourceDirectory(parent);
+                  }
+                  return directory;
+                }
+              };
+              const styledJsxRoot = packageRoot('styled-jsx');
+              const styledJsxLoader = createRequire(path.join(styledJsxRoot, 'package.json'));
+              const clientOnlyRoot = (() => {
+                let directory = sourceDirectory(path.dirname(sourceFile(styledJsxLoader.resolve('client-only'))));
+                while (!fs.existsSync(path.join(directory, 'package.json'))) {
+                  const parent = path.dirname(directory); assert.notEqual(parent, directory); directory = sourceDirectory(parent);
+                }
+                return directory;
+              })();
+              addTree(styledJsxRoot, path.join(app, 'node_modules/styled-jsx'));
+              addTree(clientOnlyRoot, path.join(app, 'node_modules/styled-jsx/node_modules/client-only'));
+              addTree(packageRoot('@next/env'), path.join(app, 'node_modules/@next/env'));
+              addTree(packageRoot('@swc/helpers'), path.join(app, 'node_modules/@swc/helpers'));
+              addTree(packageRoot('react-dom'), path.join(app, 'node_modules/react-dom'));
               // Validate every existing target before any supplement write; differing bytes are never overwritten.
               for (const [to, item] of plan) if (fs.existsSync(to)) assert.equal(sha(fs.readFileSync(stagedFile(to))), item.digest);
               for (const [to, item] of plan) {
@@ -1145,6 +1172,13 @@ jobs:
               assert.equal(stagedFile(createRequire(stagedGenerated).resolve('#main-entry-point')), path.join(generatedTarget, path.basename(generatedMain)));
               assert.equal(stagedFile(createRequire(stagedGenerated).resolve('@prisma/client/runtime/library.js')), path.join(stagedPrismaRoot, 'runtime/library.js'));
               const stagedNative = stagedFile(createRequire(stagedArgonEntry).resolve(nativeRequest)); elfX64(stagedNative);
+              const stagedHook = stagedFile(path.join(app, 'node_modules/next/dist/server/require-hook.js'));
+              const stagedHookLoader = createRequire(stagedHook);
+              for (const request of ['styled-jsx/package.json', 'styled-jsx', 'styled-jsx/style', '@next/env', '@swc/helpers/_/_interop_require_default', 'react-dom/server.browser', 'react']) {
+                assert.ok(inside(stagedFile(stagedHookLoader.resolve(request)), app));
+              }
+              const stagedStyleLoader = createRequire(stagedFile(stagedHookLoader.resolve('styled-jsx/style')));
+              for (const request of ['client-only', 'react']) assert.ok(inside(stagedFile(stagedStyleLoader.resolve(request)), app));
               assert.ok(fs.existsSync(path.join(generatedTarget, path.basename(engine))));
               identity();
             } catch { throw new Error('MAIL_DEPENDENCY_CLOSURE_REJECTED'); }
@@ -1182,6 +1216,15 @@ jobs:
             assert.equal(required.config.env.APP_ENV_AT_BUILD, 'test');
             const output = path.join(root, mode);
             fs.mkdirSync(output, { mode: 0o700 });
+            const verifyArtifact = (app, expected, extra = []) => {
+              const env = { ...process.env }; delete env.NODE_PATH;
+              const result = spawnSync(process.execPath, [path.join(project, 'tests/evidence/local-smtp.mjs'), 'verify-artifact', '--app', app, ...extra], { env, encoding: 'utf8', timeout: 180_000 });
+              if (result.error || result.signal || !Number.isInteger(result.status) || result.status !== 0) throw new Error('ARTIFACT_CLOSURE_GATE_FAILED');
+              let parsed;
+              try { parsed = JSON.parse(String(result.stdout).trim()); } catch { throw new Error('ARTIFACT_CLOSURE_GATE_FAILED'); }
+              if (!parsed || parsed.artifactClosure !== expected) throw new Error('ARTIFACT_CLOSURE_GATE_FAILED');
+              console.log(String(result.stdout).trim());
+            };
             // Materialize traced links only from this prepared source tree; the immutable inventory records every packaged byte.
             const copy = (from, to) => fs.cpSync(from, to, { recursive: true, dereference: true, filter: (file) => {
               const real = fs.realpathSync(file);
@@ -1191,7 +1234,9 @@ jobs:
             copy(path.join(next, 'standalone'), path.join(output, 'app'));
             copy(path.join(next, 'static'), path.join(output, 'app/.next/static'));
             copy(path.join(project, 'public'), path.join(output, 'app/public'));
+            verifyArtifact(path.join(output, 'app'), 'NEGATIVE_CONFIRMED', ['--expect-missing', 'styled-jsx/package.json']);
             supplementRuntime(path.join(output, 'app'));
+            verifyArtifact(path.join(output, 'app'), 'PASS');
             const buildId = fs.readFileSync(path.join(next, 'BUILD_ID'), 'utf8').trim();
             const stagedConfig = JSON.parse(fs.readFileSync(path.join(output, 'app/.next/required-server-files.json'), 'utf8'));
             assert.equal(stagedConfig.config.env.NEXT_PUBLIC_ADMIN_MAIL, mode);
@@ -1500,7 +1545,9 @@ jobs:
             const outputDirectory = path.join(project, 'test-results/mail-evidence-preflight');
             assert.equal(process.argv[3], outputDirectory); privateDirectory(outputDirectory);
             const loader = createRequire(path.join(active, 'server.js')), checks = [], entries = {};
-            for (const [dependencyId, request] of Object.entries({ PRISMA_CLIENT: '@prisma/client', ARGON2: '@node-rs/argon2', NEXT: 'next' })) {
+            for (const [dependencyId, request] of Object.entries({ PRISMA_CLIENT: '@prisma/client', ARGON2: '@node-rs/argon2', NEXT: 'next',
+              STYLED_JSX_PACKAGE: 'styled-jsx/package.json', STYLED_JSX_STYLE: 'styled-jsx/style', NEXT_ENV: '@next/env',
+              SWC_HELPERS_INTEROP: '@swc/helpers/_/_interop_require_default', REACT_DOM_SERVER_BROWSER: 'react-dom/server.browser' })) {
               const result = probe(active, loader, request, dependencyId);
               checks.push(result.record); if (result.file) entries[dependencyId] = result.file;
             }
@@ -1509,6 +1556,9 @@ jobs:
               checks.push(generated.record);
               checks.push(generated.file ? probe(active, createRequire(generated.file), '#main-entry-point', 'PRISMA_GENERATED_MAIN').record : unavailable('PRISMA_GENERATED_MAIN'));
             } else checks.push(unavailable('PRISMA_GENERATED'), unavailable('PRISMA_GENERATED_MAIN'));
+            if (entries.STYLED_JSX_STYLE) {
+              for (const [dependencyId, request] of [['STYLED_JSX_CLIENT_ONLY', 'client-only'], ['STYLED_JSX_REACT', 'react']]) checks.push(probe(active, createRequire(entries.STYLED_JSX_STYLE), request, dependencyId).record);
+            } else checks.push(unavailable('STYLED_JSX_CLIENT_ONLY'), unavailable('STYLED_JSX_REACT'));
             const nativeChecksApplicable = process.arch === 'x64';
             // GNU and musl are alternatives; missing one is evidence, not a demand to install both.
             if (nativeChecksApplicable) for (const [dependencyId, request] of [
