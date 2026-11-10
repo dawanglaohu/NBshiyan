@@ -513,6 +513,7 @@
         "e2e/product-cards.spec.ts",
         "e2e/run-auth.ts",
         "playwright.config.ts",
+        "scripts/e2e-edge-auth.ts",
         "tests/e2e-run-auth.test.ts"
       ],
       "outputPaths": [

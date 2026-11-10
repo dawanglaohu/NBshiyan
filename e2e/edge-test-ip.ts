@@ -1,3 +1,5 @@
+import { E2E_EDGE_AUTH_SECRET } from '../scripts/e2e-edge-auth';
+
 /**
  * e2e 专用受限入口：应用只认 `X-Edge-Auth` + `CF-Connecting-IP`（src/lib/edge/client-ip.ts），
  * 密钥须 ≥ 32 字节。这里给每个询盘调用点分配一个**显式常量** IP：
@@ -6,14 +8,8 @@
  * 不关限流、不改产品额度、不读 X-Forwarded-For；密钥是 CI/本地 e2e 假值，不是生产密钥。
  */
 
-/** 与 playwright.config.ts 的 webServer env 同源；CI 可用 E2E_EDGE_AUTH_SECRET 覆盖。 */
-export const E2E_EDGE_AUTH_SECRET =
-  process.env.E2E_EDGE_AUTH_SECRET ?? 'ci-e2e-only-edge-auth-not-for-production-0001';
-
-// client-ip.ts 对 <32 字节的密钥 fail-closed；这里提前失败，避免“客户端照发头、服务端静默退回 untrusted”。
-if (new TextEncoder().encode(E2E_EDGE_AUTH_SECRET).length < 32) {
-  throw new Error('E2E_EDGE_AUTH_SECRET must be at least 32 bytes; client-ip would treat every request as untrusted');
-}
+/** 与 playwright.config.ts 的 webServer env 同源；密钥与最小长度校验的唯一来源在 scripts/e2e-edge-auth.ts（镜像上下文内）。 */
+export { E2E_EDGE_AUTH_SECRET };
 
 /**
  * 198.18.0.0/15 benchmark 段；key 是询盘调用点，value 必须全局唯一。
