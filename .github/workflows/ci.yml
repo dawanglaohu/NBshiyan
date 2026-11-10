@@ -239,7 +239,7 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     # 浏览器依赖安装、构建和完整测试共享此作业总预算；各用例超时与验收门禁保持不变。
-    timeout-minutes: 35
+    timeout-minutes: 45
     services:
       postgres:
         image: postgres:17
@@ -366,6 +366,12 @@ jobs:
       # describe 级 skip 的汇总是 tests 0 / skipped 0，汇总门禁看不见。本步骤命令行列出的每个测试文件都要 pass >= 1，fail、skip、todo、cancelled 为 0。
       # passed、failed、skipped、todo、cancelled 缺任何一个，或不是非负整数，按文件门禁失败，不用 0 填充。
       # M3-T2 用 schema=m3t2 隔离。M3T2_REQUIRE_DATABASE 只在本步骤打开。缺地址时 admin-login-mode 与 admin-enroll-current-state 直接抛错。单元测试 job 不设它，pnpm test 继续跳过。
+      # M4-T12 专用空库：只建库（ON_ERROR_STOP、失败即停、无 drop/重试）；schema 与表由测试自身 CREATE SCHEMA + prisma db push 建立。
+      - name: Create M4-T12 dedicated PostgreSQL database
+        run: |
+          docker exec "${{ job.services.postgres.id }}" \
+            psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
+            -c 'CREATE DATABASE "b9_m4t12_20261109"'
       - name: Analytics, chat, and other PostgreSQL regressions
         env:
           ADMIN_RESET_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
@@ -389,6 +395,9 @@ jobs:
           # 测试内按随机名自建 schema（先查存在性再 CREATE），只清理本进程创建的那一个。
           M5T11_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
           M5T11_REQUIRE_DATABASE: 'true'
+          # M4-T12 队列/预算真实 PG：专属库名 + schema=m4t12；测试自备 schema/表，缺库即失败，不回退 e2e。
+          M4T12_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/b9_m4t12_20261109?schema=m4t12
+          M4T12_REQUIRE_DATABASE: 'true'
         run: |
           set -o pipefail
           cat > /tmp/m3t2-file-gate.cjs <<'EOF'
@@ -424,6 +433,7 @@ jobs:
               'tests/admin-device-management.http.test.ts',
               'tests/analytics-retention-plan.test.ts',
               'tests/analytics-retention.db.test.ts',
+              'tests/mail-queue-schedule.integration.test.ts',
             ];
             for (const file of wanted) {
               const hit = [...counts.entries()].find(([name]) => name.replaceAll('\\', '/').endsWith(file));
@@ -473,6 +483,7 @@ jobs:
             tests/admin-device-management.http.test.ts \
             tests/analytics-retention-plan.test.ts \
             tests/analytics-retention.db.test.ts \
+            tests/mail-queue-schedule.integration.test.ts \
             || { status=$?; cat /tmp/pg-regressions.tap /tmp/m3t2-file-gate.txt; exit "$status"; }
           grep -qx '# skipped 0' /tmp/pg-regressions.tap
           grep -qx '# fail 0' /tmp/pg-regressions.tap
@@ -508,6 +519,7 @@ jobs:
             'tests/admin-device-management.http.test.ts',
             'tests/analytics-retention-plan.test.ts',
             'tests/analytics-retention.db.test.ts',
+            'tests/mail-queue-schedule.integration.test.ts',
           ];
           let bad = false;
           for (const file of files) {
@@ -897,6 +909,77 @@ jobs:
         with: { version: 10 }
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: pnpm }
+      - name: Supply pinned BusyBox with crond for cron evidence
+        shell: bash
+        timeout-minutes: 5
+        run: |
+          set -Eeuo pipefail
+          bb=/usr/bin/busybox
+          deb=/tmp/busybox-static_1.36.1-6ubuntu3.1_amd64.deb
+          url=https://archive.ubuntu.com/ubuntu/pool/main/b/busybox/busybox-static_1.36.1-6ubuntu3.1_amd64.deb
+          sha256=944b2728f53ceb3916cec2c962873c9951e612408099601751db2a0a5d81e0ed
+          bb_sha256=dbac288c29ba568459550a2da9e7ae0ded6b1fc728ee9fad3044c44e62d6ac14
+          # A dynamic `busybox` package or any installed provider of it would make dpkg refuse
+          # to unpack busybox-static. Stop before the download instead of degrading.
+          if dpkg-query -W -f='${Status}' busybox 2>/dev/null | grep -q 'install ok installed'; then
+            echo 'BUSYBOX_PACKAGE_CONFLICT' >&2
+            exit 1
+          fi
+          if ! providers_raw=$(dpkg-query -W -f='${Package}\t${Status}\t${Provides}\n' '*' 2>/dev/null); then
+            echo 'BUSYBOX_PROVIDER_SCAN_FAILED' >&2
+            exit 1
+          fi
+          if ! providers=$(printf '%s\n' "$providers_raw" \
+            | awk -F'\t' '$2 == "install ok installed" && NF > 2 && $1 != "busybox-static" && $3 ~ /(^|[, ])busybox([, ]|$|=)/ { print $1 }' \
+            | sort -u); then
+            echo 'BUSYBOX_PROVIDER_SCAN_FAILED' >&2
+            exit 1
+          fi
+          if [ -n "$providers" ]; then
+            echo "BUSYBOX_PROVIDER_CONFLICT $(printf '%s' "$providers" | tr '\n' ' ')" >&2
+            exit 1
+          fi
+          # dpkg must own the file it installs: an unowned or foreign-owned target is a stop.
+          if [ -e "$bb" ] || [ -L "$bb" ]; then
+            if ! target_owner=$(dpkg -S "$bb" 2>/dev/null); then
+              echo 'BUSYBOX_UNMANAGED_TARGET_PRESENT' >&2
+              exit 1
+            fi
+            case "$target_owner" in
+              'busybox-static: '*) echo "BUSYBOX_TARGET_ALREADY_MANAGED $target_owner" >&2 ;;
+              *) echo "BUSYBOX_TARGET_OWNED_BY_OTHER_PACKAGE $target_owner" >&2; exit 1 ;;
+            esac
+          fi
+          curl -fsSL --retry 3 --retry-delay 2 -o "$deb" "$url"
+          [ "$(stat -c %s "$deb")" = 1008874 ] || { echo 'BUSYBOX_DEB_SIZE_MISMATCH' >&2; exit 1; }
+          printf '%s  %s\n' "$sha256" "$deb" | sha256sum -c -
+          sudo dpkg -i "$deb"
+          [ "$(dpkg-query -W -f='${Status}' busybox-static 2>/dev/null)" = 'install ok installed' ] || { echo 'BUSYBOX_STATIC_NOT_INSTALLED' >&2; exit 1; }
+          [ "$(dpkg-query -W -f='${Version}' busybox-static)" = '1:1.36.1-6ubuntu3.1' ] || { echo 'BUSYBOX_VERSION_MISMATCH' >&2; exit 1; }
+          # local-smtp's pick() resolves /usr/bin first: prove this exact file is package-owned,
+          # a plain root-owned 0755 file, and byte-identical to the reviewed deb payload.
+          dpkg -L busybox-static | grep -qx "$bb" || { echo 'BUSYBOX_PACKAGE_PATH_MISSING' >&2; exit 1; }
+          dpkg -S "$bb" 2>/dev/null | grep -q '^busybox-static: ' || { echo 'BUSYBOX_PATH_NOT_OWNED_BY_PACKAGE' >&2; exit 1; }
+          { [ -f "$bb" ] && [ ! -L "$bb" ]; } || { echo 'BUSYBOX_NOT_REGULAR_FILE' >&2; exit 1; }
+          IFS=' ' read -r bb_uid bb_mode <<<"$(stat -c '%u %a' "$bb")"
+          [ "$bb_uid" = 0 ] || { echo 'BUSYBOX_OWNER_NOT_ROOT' >&2; exit 1; }
+          [ "$bb_mode" = 755 ] || { echo 'BUSYBOX_MODE_NOT_0755' >&2; exit 1; }
+          printf '%s  %s\n' "$bb_sha256" "$bb" | sha256sum -c - || { echo 'BUSYBOX_BINARY_SHA_MISMATCH' >&2; exit 1; }
+          resolved=$(command -v busybox || true)
+          if [ "$resolved" != "$bb" ]; then
+            echo "BUSYBOX_PATH_NOTE command -v busybox -> ${resolved:-<none>}; the step uses $bb" >&2
+          fi
+          "$bb" --list > /tmp/busybox-applets.txt
+          grep -qx crond /tmp/busybox-applets.txt
+          help=$("$bb" crond --help 2>&1)
+          grep -Fq -- '[-fbS]' <<<"$help"
+          grep -Fq -- '[-l N]' <<<"$help"
+          grep -Fq -- '[-L LOGFILE]' <<<"$help"
+          grep -Fq -- '[-c DIR]' <<<"$help"
+          grep -Eq -- '[[:space:]]-f[[:space:]]+Foreground' <<<"$help"
+          banner=$("$bb" 2>&1 | sed -n '1p')
+          case "$banner" in 'BusyBox v1.36.1'*) ;; *) echo "BUSYBOX_VERSION_BANNER_MISMATCH $banner" >&2; exit 1;; esac
+          echo "BUSYBOX_CROND_READY $banner"
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
       - name: Prepare real http and off artifacts without business credentials
@@ -915,7 +998,7 @@ jobs:
           import { createHash, randomBytes } from 'node:crypto';
           import fs from 'node:fs';
           import path from 'node:path';
-          import { spawn, execFileSync } from 'node:child_process';
+          import { spawn, spawnSync, execFileSync } from 'node:child_process';
 
           // Inline CI preparation only: no SMTP/PG/HTTP service is started and no business credentials are inherited.
           const project = fs.realpathSync(process.cwd());
@@ -1048,6 +1131,33 @@ jobs:
               };
               addTree(generatedRoot, generatedTarget); addTree(runtimeRoot, path.join(stagedPrismaRoot, 'runtime'));
               if (fs.lstatSync(nativeSource).isDirectory()) addTree(nativeSource, nativeTarget); else { elfX64(nativeSource); addFile(nativeSource, nativeTarget); }
+              // Materializing next removed its sibling closure; copy the exact packages the four runtime entrypoints resolve.
+              const nextRuntimeEntry = sourceFile(sourceLoader.resolve('next/package.json'));
+              const nextRuntimeLoader = createRequire(nextRuntimeEntry);
+              const packageRoot = (request) => {
+                try { return sourceDirectory(path.dirname(sourceFile(nextRuntimeLoader.resolve(`${request}/package.json`)))); }
+                catch {
+                  let directory = sourceDirectory(path.dirname(sourceFile(nextRuntimeLoader.resolve(request))));
+                  while (!fs.existsSync(path.join(directory, 'package.json'))) {
+                    const parent = path.dirname(directory); assert.notEqual(parent, directory); directory = sourceDirectory(parent);
+                  }
+                  return directory;
+                }
+              };
+              const styledJsxRoot = packageRoot('styled-jsx');
+              const styledJsxLoader = createRequire(path.join(styledJsxRoot, 'package.json'));
+              const clientOnlyRoot = (() => {
+                let directory = sourceDirectory(path.dirname(sourceFile(styledJsxLoader.resolve('client-only'))));
+                while (!fs.existsSync(path.join(directory, 'package.json'))) {
+                  const parent = path.dirname(directory); assert.notEqual(parent, directory); directory = sourceDirectory(parent);
+                }
+                return directory;
+              })();
+              addTree(styledJsxRoot, path.join(app, 'node_modules/styled-jsx'));
+              addTree(clientOnlyRoot, path.join(app, 'node_modules/styled-jsx/node_modules/client-only'));
+              addTree(packageRoot('@next/env'), path.join(app, 'node_modules/@next/env'));
+              addTree(packageRoot('@swc/helpers'), path.join(app, 'node_modules/@swc/helpers'));
+              addTree(packageRoot('react-dom'), path.join(app, 'node_modules/react-dom'));
               // Validate every existing target before any supplement write; differing bytes are never overwritten.
               for (const [to, item] of plan) if (fs.existsSync(to)) assert.equal(sha(fs.readFileSync(stagedFile(to))), item.digest);
               for (const [to, item] of plan) {
@@ -1062,6 +1172,13 @@ jobs:
               assert.equal(stagedFile(createRequire(stagedGenerated).resolve('#main-entry-point')), path.join(generatedTarget, path.basename(generatedMain)));
               assert.equal(stagedFile(createRequire(stagedGenerated).resolve('@prisma/client/runtime/library.js')), path.join(stagedPrismaRoot, 'runtime/library.js'));
               const stagedNative = stagedFile(createRequire(stagedArgonEntry).resolve(nativeRequest)); elfX64(stagedNative);
+              const stagedHook = stagedFile(path.join(app, 'node_modules/next/dist/server/require-hook.js'));
+              const stagedHookLoader = createRequire(stagedHook);
+              for (const request of ['styled-jsx/package.json', 'styled-jsx', 'styled-jsx/style', '@next/env', '@swc/helpers/_/_interop_require_default', 'react-dom/server.browser', 'react']) {
+                assert.ok(inside(stagedFile(stagedHookLoader.resolve(request)), app));
+              }
+              const stagedStyleLoader = createRequire(stagedFile(stagedHookLoader.resolve('styled-jsx/style')));
+              for (const request of ['client-only', 'react']) assert.ok(inside(stagedFile(stagedStyleLoader.resolve(request)), app));
               assert.ok(fs.existsSync(path.join(generatedTarget, path.basename(engine))));
               identity();
             } catch { throw new Error('MAIL_DEPENDENCY_CLOSURE_REJECTED'); }
@@ -1099,6 +1216,18 @@ jobs:
             assert.equal(required.config.env.APP_ENV_AT_BUILD, 'test');
             const output = path.join(root, mode);
             fs.mkdirSync(output, { mode: 0o700 });
+            const verifyArtifact = (app, expected, extra = []) => {
+              const env = { ...process.env }; delete env.NODE_PATH;
+              const result = spawnSync(process.execPath, [path.join(project, 'tests/evidence/local-smtp.mjs'), 'verify-artifact', '--app', app, ...extra], { env, encoding: 'utf8', timeout: 180_000 });
+              if (result.error || result.signal || !Number.isInteger(result.status) || result.status !== 0) throw new Error('ARTIFACT_CLOSURE_GATE_FAILED');
+              let parsed;
+              try { parsed = JSON.parse(String(result.stdout).trim()); } catch { throw new Error('ARTIFACT_CLOSURE_GATE_FAILED'); }
+              if (!parsed || parsed.artifactClosure !== expected || parsed.nodePath !== false) throw new Error('ARTIFACT_CLOSURE_GATE_FAILED');
+              if (expected === 'PASS') {
+                if (parsed.resolved !== 9 || parsed.loadedEntries !== 4 || !Number.isInteger(parsed.loadedInside) || parsed.loadedInside <= 0) throw new Error('ARTIFACT_CLOSURE_GATE_FAILED');
+              } else if (expected !== 'NEGATIVE_CONFIRMED') throw new Error('ARTIFACT_CLOSURE_GATE_FAILED');
+              console.log(String(result.stdout).trim());
+            };
             // Materialize traced links only from this prepared source tree; the immutable inventory records every packaged byte.
             const copy = (from, to) => fs.cpSync(from, to, { recursive: true, dereference: true, filter: (file) => {
               const real = fs.realpathSync(file);
@@ -1108,7 +1237,9 @@ jobs:
             copy(path.join(next, 'standalone'), path.join(output, 'app'));
             copy(path.join(next, 'static'), path.join(output, 'app/.next/static'));
             copy(path.join(project, 'public'), path.join(output, 'app/public'));
+            verifyArtifact(path.join(output, 'app'), 'NEGATIVE_CONFIRMED', ['--expect-missing', 'styled-jsx/package.json']);
             supplementRuntime(path.join(output, 'app'));
+            verifyArtifact(path.join(output, 'app'), 'PASS');
             const buildId = fs.readFileSync(path.join(next, 'BUILD_ID'), 'utf8').trim();
             const stagedConfig = JSON.parse(fs.readFileSync(path.join(output, 'app/.next/required-server-files.json'), 'utf8'));
             assert.equal(stagedConfig.config.env.NEXT_PUBLIC_ADMIN_MAIL, mode);
@@ -1128,7 +1259,7 @@ jobs:
           console.log(JSON.stringify({ preparedRealModes: ['http', 'off'], source, modeManifests: modes, businessCredentialsUsed: false }));
           PREPARE
       - name: Isolated TLS SMTP integration
-        timeout-minutes: 20
+        timeout-minutes: 27
         shell: bash
         run: |
           set -- integration "$GITHUB_WORKSPACE" "$GITHUB_WORKSPACE/tests/evidence/local-smtp.mjs"
@@ -1417,7 +1548,9 @@ jobs:
             const outputDirectory = path.join(project, 'test-results/mail-evidence-preflight');
             assert.equal(process.argv[3], outputDirectory); privateDirectory(outputDirectory);
             const loader = createRequire(path.join(active, 'server.js')), checks = [], entries = {};
-            for (const [dependencyId, request] of Object.entries({ PRISMA_CLIENT: '@prisma/client', ARGON2: '@node-rs/argon2', NEXT: 'next' })) {
+            for (const [dependencyId, request] of Object.entries({ PRISMA_CLIENT: '@prisma/client', ARGON2: '@node-rs/argon2', NEXT: 'next',
+              STYLED_JSX_PACKAGE: 'styled-jsx/package.json', STYLED_JSX_STYLE: 'styled-jsx/style', NEXT_ENV: '@next/env',
+              SWC_HELPERS_INTEROP: '@swc/helpers/_/_interop_require_default', REACT_DOM_SERVER_BROWSER: 'react-dom/server.browser' })) {
               const result = probe(active, loader, request, dependencyId);
               checks.push(result.record); if (result.file) entries[dependencyId] = result.file;
             }
@@ -1426,6 +1559,9 @@ jobs:
               checks.push(generated.record);
               checks.push(generated.file ? probe(active, createRequire(generated.file), '#main-entry-point', 'PRISMA_GENERATED_MAIN').record : unavailable('PRISMA_GENERATED_MAIN'));
             } else checks.push(unavailable('PRISMA_GENERATED'), unavailable('PRISMA_GENERATED_MAIN'));
+            if (entries.STYLED_JSX_STYLE) {
+              for (const [dependencyId, request] of [['STYLED_JSX_CLIENT_ONLY', 'client-only'], ['STYLED_JSX_REACT', 'react']]) checks.push(probe(active, createRequire(entries.STYLED_JSX_STYLE), request, dependencyId).record);
+            } else checks.push(unavailable('STYLED_JSX_CLIENT_ONLY'), unavailable('STYLED_JSX_REACT'));
             const nativeChecksApplicable = process.arch === 'x64';
             // GNU and musl are alternatives; missing one is evidence, not a demand to install both.
             if (nativeChecksApplicable) for (const [dependencyId, request] of [
@@ -1458,11 +1594,14 @@ jobs:
           activate_build off
           probe_modules off
           node "$smtp_script" exec --root "$root" --mode off -- pnpm exec playwright test --config tests/evidence/mail-evidence.config.ts
+          # P2: the namespace setup already started the root tick; phase seeds one due row,
+          # restarts the http-real artifact, arms one tick and asserts SENT / JobState / sink.
+          node "$smtp_script" exec --root "$root" --mode http-real -- node tests/evidence/mail-cron-phase.mjs --report "$report_dir/admin-legacy-inquiries-mail-cron.json"
           DRIVER
           chmod 600 "$root/driver.sh"
           # PID 1 owns the lifetime. Parent stdin EOF, a deadline, signal or driver failure ends that PID namespace.
           # Kernel namespace teardown also covers detached PostgreSQL daemons; traps remain for graceful file cleanup only.
-          namespace_budget=18m
+          namespace_budget=23m
           [[ "$mode" == preflight-only ]] && namespace_budget=3m
           timeout --signal=TERM --kill-after=10s "$namespace_budget" node "$smtp_script" namespace-launch --root "$root" --project "$project" --scenario "$mode" --report-dir "$report_dir"
       - name: Cleanup owned private fixture

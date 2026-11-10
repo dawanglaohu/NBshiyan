@@ -7,9 +7,9 @@ import net from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
+import { createRequire } from 'node:module';
 import tls from 'node:tls';
 import { pathToFileURL } from 'node:url';
-import nodemailer from 'nodemailer';
 
 // Isolated Linux CI SMTP preflight. Credentials and SMTP payload are never logged.
 const HOST = 'smtp.evidence.test';
@@ -28,6 +28,14 @@ const fail = (code) => { throw Object.assign(new Error(code), { code }); };
 const safeCode = (error) => /^[A-Z0-9_]{1,60}$/.test(error?.code || '') ? error.code : 'SMTP_EVIDENCE_FAILED';
 const same = (a, b) => { const x = Buffer.from(a || ''), y = Buffer.from(b || ''); return x.length === y.length && timingSafeEqual(x, y); };
 const writeNew = (file, value) => fs.writeFileSync(file, value, { mode: 0o600, flag: 'wx' });
+
+// Shared app-identity validation: the namespace setup and any future privileged
+// UID-0 negative control must reject non-positive or non-integer IDs before any
+// mount, spool or crond work. This is also exercised by self-check without root.
+function positiveIds(uid, gid) {
+  if (!Number.isInteger(uid) || !Number.isInteger(gid) || uid <= 0 || gid <= 0) fail('PRIVATE_UID_GID_REJECTED');
+  return { uid, gid };
+}
 
 function rootInfo({ create = false } = {}) {
   if (process.platform !== 'linux' || process.env.CI !== 'true' || process.env.GITHUB_ACTIONS !== 'true') fail('LINUX_CI_REQUIRED');
@@ -125,16 +133,52 @@ async function pidInit() {
 async function namespaceLaunch() {
   const { root, owner } = rootInfo();
   if (fs.readlinkSync('/proc/self/ns/net') !== owner.hostNetNamespace || fs.readlinkSync('/proc/self/ns/pid') !== owner.hostPidNamespace) fail('RUNNER_NAMESPACE_MISMATCH');
-  const uid = process.getuid(), gid = process.getgid();
+  const { uid, gid } = positiveIds(process.getuid(), process.getgid());
   const scenario = arg('scenario');
   if (!['preflight-only', 'integration'].includes(scenario || '')) fail('NAMESPACE_SCENARIO_REJECTED');
   const budget = scenario === 'preflight-only' ? 170 : 1550;
   const setup = `set -Eeuo pipefail
+case "$2" in ''|*[!0-9]*) echo MAIL_CRON_UID_REJECTED >&2; exit 70;; esac
+case "$3" in ''|*[!0-9]*) echo MAIL_CRON_GID_REJECTED >&2; exit 70;; esac
+[ "$2" -gt 0 ] && [ "$3" -gt 0 ] || { echo MAIL_CRON_UID_GID_REJECTED >&2; exit 70; }
 mount --make-rprivate /
 ip link set lo up
 sysctl -q -w net.ipv4.ip_unprivileged_port_start=0
 mount --bind "$1/hosts" /etc/hosts
 mount -t tmpfs -o mode=1777,nosuid,nodev,size=2G tmpfs /tmp
+umask 077
+pick() { for d in /usr/bin /bin /usr/sbin /sbin; do [ -x "$d/$1" ] && { printf '%s' "$d/$1"; return 0; }; done; return 1; }
+STAT=$(pick stat) || { echo STAT_MISSING >&2; exit 78; }
+INSTALL=$(pick install) || { echo INSTALL_MISSING >&2; exit 78; }
+BB=$(pick busybox) || { echo BUSYBOX_CROND_UNAVAILABLE >&2; exit 78; }
+SETPRIV=$(pick setpriv) || { echo SETPRIV_MISSING >&2; exit 78; }
+SLEEP=$(pick sleep) || { echo SLEEP_MISSING >&2; exit 78; }
+SH_BIN=/bin/sh
+for b in "$STAT" "$INSTALL" "$BB" "$SETPRIV" "$SLEEP" "$SH_BIN"; do
+  [ -x "$b" ] || { echo ROOT_BIN_NOT_EXECUTABLE >&2; exit 72; }
+  meta=$("$STAT" -L -c '%u %a' "$b") || { echo ROOT_BIN_STAT_FAILED >&2; exit 72; }
+  b_uid=\${meta%% *}
+  b_mode=\${meta##* }
+  [ "$b_uid" = 0 ] || { echo ROOT_BIN_OWNER_REJECTED >&2; exit 72; }
+  [ $((0$b_mode & 022)) -eq 0 ] || { echo ROOT_BIN_WRITABLE_REJECTED >&2; exit 72; }
+done
+proj="\${11}"
+case "$proj" in /*) ;; *) echo MAIL_CRON_PROJECT_REJECTED >&2; exit 71;; esac
+src="$proj/tests/evidence/mail-cron-tick.sh"
+[ -f "$src" ] && [ ! -L "$src" ] || { echo MAIL_CRON_TICK_SOURCE_REJECTED >&2; exit 71; }
+"$INSTALL" -d -m 0700 -o 0 -g 0 /tmp/mail-cron
+"$INSTALL" -d -m 0700 -o 0 -g 0 /tmp/mail-cron/spool
+"$INSTALL" -d -m 0700 -o "$2" -g "$3" /tmp/mail-cron-state
+"$INSTALL" -m 0700 -o 0 -g 0 "$src" /tmp/mail-cron/tick.sh
+printf '%s\\t%s\\t%s\\t%s\\n' "$2" "$3" "$9" "$SETPRIV" > /tmp/mail-cron/run.conf
+chmod 600 /tmp/mail-cron/run.conf
+printf '* * * * * %s /tmp/mail-cron/tick.sh\\n' "$SH_BIN" > /tmp/mail-cron/spool/root
+chmod 600 /tmp/mail-cron/spool/root
+"$BB" crond -f -c /tmp/mail-cron/spool -L /tmp/mail-cron/crond.log -l 0 </dev/null >/dev/null 2>&1 &
+crond_pid=$!
+"$SLEEP" 1
+kill -0 "$crond_pid" || { echo CROND_START_FAILED >&2; exit 78; }
+printf 'MAIL_CRON_SETUP uid=%s gid=%s crond_pid=%s\\n' "$2" "$3" "$crond_pid" >&2
 exec setpriv --reuid="$2" --regid="$3" --init-groups --no-new-privs env HOME="$4" CI=true GITHUB_ACTIONS=true RUNNER_TEMP="$5" PATH="$6" PLAYWRIGHT_BROWSERS_PATH="$7" GITHUB_SHA="$8" "$9" "\${10}" pid-init --root "$1" --project "\${11}" --driver "$1/driver.sh" --scenario "\${12}" --report-dir "\${13}" --budget-seconds "\${14}"`;
   const command = ['-n', '--preserve-env=NEXT_PUBLIC_TURNSTILE_SITE_KEY,TURNSTILE_SECRET_KEY,TURNSTILE_VERIFY_URL,NEXT_PUBLIC_TAWK_PROPERTY_ID,NEXT_PUBLIC_TAWK_WIDGET_ID',
     'unshare', '--mount', '--net', '--pid', '--mount-proc', '--fork', '--kill-child=SIGKILL', 'bash', '-c', setup, 'smtp-namespace',
@@ -172,6 +216,7 @@ function prepare() {
     pgPass: randomBytes(24).toString('hex'), controlKey: randomBytes(24).toString('hex'),
     recipient: `fixture-${owner.nonce}@customer.example.test`,
     authSecret: randomBytes(32).toString('hex'), totpKey: randomBytes(32).toString('base64'), privacySecret: randomBytes(32).toString('hex'),
+    cronSecret: randomBytes(32).toString('hex'),
   };
   writeNew(path.join(root, 'private.json'), JSON.stringify(privateData));
   writeNew(path.join(root, 'pg.pass'), privateData.pgPass + '\n');
@@ -366,6 +411,7 @@ function observingTransportFactory(create, observation) {
 }
 
 async function probe() {
+  const nodemailer = (await import('nodemailer')).default;
   const { root } = rootInfo();
   await requireOfflineNamespace();
   const project = fs.realpathSync(arg('project') || process.cwd());
@@ -479,7 +525,7 @@ function exec() {
   if (!['postgres', 'http-real', 'http-disabled', 'off'].includes(stage) || cut < 0 || !args[cut + 1]) fail('EXEC_ARGUMENT_REJECTED');
   const env = { ...process.env, POSTGRES_PASSWORD: secret.pgPass, PGPASSWORD: secret.pgPass, POSTGRES_DB: 'mail_evidence', PGDATA: '/tmp/mail-evidence-pg',
     DATABASE_URL: `postgresql://postgres:${secret.pgPass}@127.0.0.1:5432/mail_evidence`,
-    CI: 'true', AUTH_SECRET: secret.authSecret, ADMIN_TOTP_KEY: secret.totpKey, PRIVACY_HASH_SECRET: secret.privacySecret,
+    CI: 'true', AUTH_SECRET: secret.authSecret, ADMIN_TOTP_KEY: secret.totpKey, PRIVACY_HASH_SECRET: secret.privacySecret, CRON_SECRET: secret.cronSecret,
     AUTH_URL: 'http://localhost:3100', AUTH_TRUST_HOST: 'true', APP_ORIGIN: 'http://localhost:3100', NEXT_PUBLIC_SITE_URL: 'http://localhost:3100', NEXT_PUBLIC_ADMIN_API: 'http', APP_ENV: 'test',
     NEXT_PUBLIC_ADMIN_MAIL: stage === 'off' ? 'off' : 'http', MAIL_SEND_ADAPTER: 'smtp', SMTP_HOST: HOST, SMTP_PORT: '465', SMTP_USER: secret.smtpUser,
     SMTP_PASS: stage === 'http-disabled' ? undefined : secret.smtpPass, MAIL_FROM: 'Evidence <sender@example.test>', REPLY_DOMAIN: 'reply.example.test',
@@ -491,6 +537,82 @@ function exec() {
   const result = spawnSync(args[cut + 1], args.slice(cut + 2), { env, stdio: 'inherit' });
   if (result.error || result.signal) fail('CHILD_INTERRUPTED');
   process.exitCode = result.status || 0;
+}
+
+const ARTIFACT_ENTRIES = ['next/dist/server/next', 'next/dist/server/lib/start-server', 'next/dist/server/render', 'next/dist/server/next-server'];
+const ARTIFACT_REQUESTS = ['styled-jsx/package.json', 'styled-jsx', 'styled-jsx/style', '@next/env', '@swc/helpers/_/_interop_require_default', 'react-dom/server.browser', 'react'];
+function verifyArtifact() {
+  const report = (value, code = 0) => { console.log(JSON.stringify(value)); process.exitCode = code; };
+  try {
+    if (process.env.NODE_PATH) fail('NODE_PATH_PRESENT');
+    const appArg = arg('app');
+    if (!appArg) fail('APP_REQUIRED');
+    const app = fs.realpathSync(appArg);
+    if (!fs.lstatSync(app).isDirectory() || fs.lstatSync(app).isSymbolicLink()) fail('APP_NOT_PLAIN_DIRECTORY');
+    const server = path.join(app, 'server.js');
+    const serverStat = fs.lstatSync(server);
+    if (!serverStat.isFile() || serverStat.isSymbolicLink() || serverStat.nlink !== 1 || fs.realpathSync(server) !== server) fail('SERVER_NOT_PLAIN');
+    const loader = createRequire(server);
+    const inside = (file) => {
+      const relative = path.relative(app, file);
+      return relative === '' || (!path.isAbsolute(relative) && relative !== '..' && !relative.startsWith(`..${path.sep}`));
+    };
+    const plainInside = (file, outsideCode = 'RESOLVED_OUTSIDE_ARTIFACT', plainCode = 'RESOLVED_NOT_PLAIN') => {
+      if (!inside(file)) fail(outsideCode);
+      let current = app;
+      for (const segment of path.relative(app, file).split(path.sep).filter(Boolean)) {
+        current = path.join(current, segment);
+        const stat = fs.lstatSync(current);
+        if (path.resolve(current) === path.resolve(file)) {
+          if (!stat.isFile() || stat.isSymbolicLink() || stat.nlink !== 1) fail(plainCode);
+        } else if (!stat.isDirectory() || stat.isSymbolicLink()) fail(plainCode);
+      }
+      return file;
+    };
+    const resolve = (from, request) => {
+      let file;
+      try { file = from.resolve(request); } catch (error) {
+        if (error && (error.code === 'MODULE_NOT_FOUND' || error.code === 'ERR_MODULE_NOT_FOUND')) fail('ARTIFACT_CLOSURE_MISSING');
+        fail('ARTIFACT_RESOLVE_UNEXPECTED');
+      }
+      return plainInside(fs.realpathSync(file));
+    };
+    const expectedMissing = arg('expect-missing');
+    if (expectedMissing) {
+      let resolved = false;
+      try { loader.resolve(expectedMissing); resolved = true; } catch (error) {
+        if (!error || error.code !== 'MODULE_NOT_FOUND') fail('NEGATIVE_CONTROL_UNEXPECTED');
+      }
+      if (resolved) fail('NEGATIVE_CONTROL_RESOLVED');
+      report({ artifactClosure: 'NEGATIVE_CONFIRMED', nodePath: false });
+      return;
+    }
+    const resolved = ARTIFACT_REQUESTS.map((request) => resolve(loader, request));
+    const styleLoader = createRequire(resolved[2]);
+    for (const request of ['client-only', 'react']) resolved.push(resolve(styleLoader, request));
+    const cache = loader.cache;
+    // The validator itself must not preload any artifact or project module; only builtins belong here.
+    if (Object.keys(cache).some((file) => !file.startsWith('node:'))) fail('VALIDATOR_CACHE_PRESENT');
+    const before = new Set(Object.keys(cache));
+    for (const entry of ARTIFACT_ENTRIES) {
+      try { loader(entry); } catch (error) {
+        if (error && (error.code === 'MODULE_NOT_FOUND' || error.code === 'ERR_MODULE_NOT_FOUND')) fail('ARTIFACT_CLOSURE_MISSING');
+        fail('ARTIFACT_LOAD_UNEXPECTED');
+      }
+    }
+    let loadedInside = 0;
+    for (const file of Object.keys(cache)) {
+      if (before.has(file)) continue;
+      plainInside(fs.realpathSync(file), 'LOADED_OUTSIDE_ARTIFACT', 'LOADED_NOT_PLAIN');
+      loadedInside++;
+    }
+    const builtins = Array.isArray(process.moduleLoadList) ? process.moduleLoadList.filter((line) => String(line).startsWith('NativeModule ')).length : 0;
+    report({ artifactClosure: 'PASS', resolved: resolved.length, loadedEntries: ARTIFACT_ENTRIES.length, loadedInside, builtins, nodePath: false });
+  } catch (error) {
+    // Controlled failure channel only: no raw message, path, stack or secret is printed.
+    const code = /^[A-Z0-9_]{1,60}$/.test(error?.code || '') ? error.code : 'ARTIFACT_CLOSURE_INTERNAL';
+    report({ artifactClosure: 'FAIL', code, nodePath: Boolean(process.env.NODE_PATH) }, 1);
+  }
 }
 
 async function serve() {
@@ -541,6 +663,10 @@ async function selfCheck() {
   const good = { owner, netNamespace: 'net:[101]', pidNamespace: 'pid:[201]', devices: 'Inter-| Receive\n lo: 0 0 0 0', ipv4Routes: 'Iface Destination\nlo 00000000', ipv6Routes: '00000000000000000000000000000000 lo' };
   assert.equal(namespaceFacts(good).differsFromRunnerNetNamespace, true);
   for (const mutation of [{ netNamespace: owner.hostNetNamespace }, { pidNamespace: owner.hostPidNamespace }, { devices: good.devices + '\neth0: 0 0' }, { ipv4Routes: 'Iface Destination\neth0 00000000' }]) assert.throws(() => namespaceFacts({ ...good, ...mutation }));
+  assert.deepEqual(positiveIds(1000, 1000), { uid: 1000, gid: 1000 });
+  for (const [uid, gid] of [[0, 1000], [1000, 0], [-1, 1000], [1.5, 1000]]) {
+    assert.throws(() => positiveIds(uid, gid), /PRIVATE_UID_GID_REJECTED/);
+  }
   const before = { connections465: 0, tlsAttempts465: 0, certificateAlerts465: 0, authenticated: 0, received: 0 };
   const connected = { ...before, connections465: 1, tlsAttempts465: 1 };
   const rejected = { ok: false, reason: 'smtp_tls', code: 'UNABLE_TO_VERIFY_LEAF_SIGNATURE' };
@@ -592,7 +718,7 @@ async function selfCheck() {
   preflightReport = originalProgress;
   for (const event of ['deadline', 'parent-eof', 'signal']) assert.notEqual(initExit(event).code, 0);
   assert.notEqual(initExit('driver-exit', 1).code, 0); assert.equal(initExit('driver-exit', 0).code, 0);
-  console.log(JSON.stringify({ offlineSelfCheck: true, namespaceRejectionControls: 4, rogueRejectionControls: 8, transparentTransportControls: 2, failureReportControls: 1,
+  console.log(JSON.stringify({ offlineSelfCheck: true, namespaceRejectionControls: 4, uidGidControls: 4, rogueRejectionControls: 8, transparentTransportControls: 2, failureReportControls: 1,
     lifecycleDecisionControls: 5, networkStarted: false, opensslExecuted: false }));
 }
 
@@ -606,6 +732,7 @@ try {
   else if (mode === 'probe') await probe();
   else if (mode === 'serve') await serve();
   else if (mode === 'exec') { await requireOfflineNamespace(); exec(); }
+  else if (mode === 'verify-artifact') verifyArtifact();
   else if (mode === 'cleanup') cleanup();
   else fail('UNKNOWN_MODE');
 } catch (error) {

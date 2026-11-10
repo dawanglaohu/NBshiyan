@@ -22,6 +22,12 @@ import type { ChatWriteDb } from './chat/repo';
 import { createAnalyticsAggregateJob, createJobRegistry, type JobRegistry } from './jobs/registry';
 import { createAnalyticsRetentionJob } from './analytics/retention';
 import { retentionCleanupMode } from './analytics/retention-plan';
+import { createMailQueueJob } from './mail/queue-job';
+import { defaultAdapter } from './mail/http';
+import { sendAdminAlert } from './mail';
+import { audit, auditInTx } from './admin/audit';
+import type { AlertFn, AuditFn, AuditInTxFn } from './mail/send';
+import type { MailSendAdapter } from './mail/adapter';
 
 export type HttpServices = {
   config: ServerConfig;
@@ -200,13 +206,32 @@ export function createJobServices(deps: {
   db?: PrismaClient;
   clock?: () => Date;
   deleteAuthorized?: boolean;
+  /** 邮件队列测试注入点；生产默认用真实 adapter/告警/审计。 */
+  mail?: {
+    getAdapter?: () => Promise<MailSendAdapter | null>;
+    alert?: AlertFn;
+    audit?: AuditFn;
+    auditInTx?: AuditInTxFn;
+    limit?: number;
+  };
 } = {}): JobServices {
   const db = deps.db ?? (prisma as PrismaClient);
   const deleteAuthorized = deps.deleteAuthorized ?? retentionCleanupMode() === 'delete';
+  const mail = deps.mail ?? {};
+  const mailJob = createMailQueueJob({
+    db,
+    ...(deps.clock ? { clock: deps.clock } : {}),
+    getAdapter: mail.getAdapter ?? defaultAdapter,
+    alert: mail.alert ?? sendAdminAlert,
+    audit: mail.audit ?? audit,
+    auditInTx: mail.auditInTx ?? auditInTx,
+    ...(mail.limit !== undefined ? { limit: mail.limit } : {}),
+  });
   return {
     jobs: createJobRegistry([
       createAnalyticsAggregateJob({ db, clock: deps.clock }),
       createAnalyticsRetentionJob({ db, clock: deps.clock, deleteAuthorized }),
+      mailJob,
     ]),
   };
 }
