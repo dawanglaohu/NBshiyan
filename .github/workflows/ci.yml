@@ -909,6 +909,33 @@ jobs:
         with: { version: 10 }
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: pnpm }
+      - name: Supply pinned BusyBox with crond for cron evidence
+        shell: bash
+        timeout-minutes: 5
+        run: |
+          set -Eeuo pipefail
+          if dpkg-query -W -f='${Status}' busybox 2>/dev/null | grep -q 'install ok installed'; then
+            echo 'BUSYBOX_PACKAGE_CONFLICT' >&2
+            exit 1
+          fi
+          deb=/tmp/busybox-static_1.36.1-6ubuntu3.1_amd64.deb
+          url=https://archive.ubuntu.com/ubuntu/pool/main/b/busybox/busybox-static_1.36.1-6ubuntu3.1_amd64.deb
+          sha256=944b2728f53ceb3916cec2c962873c9951e612408099601751db2a0a5d81e0ed
+          curl -fsSL --retry 3 --retry-delay 2 -o "$deb" "$url"
+          [ "$(stat -c %s "$deb")" = 1008874 ] || { echo 'BUSYBOX_DEB_SIZE_MISMATCH' >&2; exit 1; }
+          printf '%s  %s\n' "$sha256" "$deb" | sha256sum -c -
+          sudo dpkg -i "$deb"
+          [ "$(dpkg-query -W -f='${Version}' busybox-static)" = '1:1.36.1-6ubuntu3.1' ] || { echo 'BUSYBOX_VERSION_MISMATCH' >&2; exit 1; }
+          command -v busybox
+          busybox --list > /tmp/busybox-applets.txt
+          grep -qx crond /tmp/busybox-applets.txt
+          help=$(busybox crond --help 2>&1)
+          grep -Fq -- '[-fbS]' <<<"$help"
+          grep -Fq -- '[-l N]' <<<"$help"
+          grep -Fq -- '[-L LOGFILE]' <<<"$help"
+          grep -Fq -- '[-c DIR]' <<<"$help"
+          grep -Eq -- '[[:space:]]-f[[:space:]]+Foreground' <<<"$help"
+          echo "BUSYBOX_CROND_READY $(busybox | sed -n '1p')"
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
       - name: Prepare real http and off artifacts without business credentials
