@@ -914,28 +914,72 @@ jobs:
         timeout-minutes: 5
         run: |
           set -Eeuo pipefail
+          bb=/usr/bin/busybox
+          deb=/tmp/busybox-static_1.36.1-6ubuntu3.1_amd64.deb
+          url=https://archive.ubuntu.com/ubuntu/pool/main/b/busybox/busybox-static_1.36.1-6ubuntu3.1_amd64.deb
+          sha256=944b2728f53ceb3916cec2c962873c9951e612408099601751db2a0a5d81e0ed
+          bb_sha256=dbac288c29ba568459550a2da9e7ae0ded6b1fc728ee9fad3044c44e62d6ac14
+          # A dynamic `busybox` package or any installed provider of it would make dpkg refuse
+          # to unpack busybox-static. Stop before the download instead of degrading.
           if dpkg-query -W -f='${Status}' busybox 2>/dev/null | grep -q 'install ok installed'; then
             echo 'BUSYBOX_PACKAGE_CONFLICT' >&2
             exit 1
           fi
-          deb=/tmp/busybox-static_1.36.1-6ubuntu3.1_amd64.deb
-          url=https://archive.ubuntu.com/ubuntu/pool/main/b/busybox/busybox-static_1.36.1-6ubuntu3.1_amd64.deb
-          sha256=944b2728f53ceb3916cec2c962873c9951e612408099601751db2a0a5d81e0ed
+          if ! providers_raw=$(dpkg-query -W -f='${Package}\t${Status}\t${Provides}\n' '*' 2>/dev/null); then
+            echo 'BUSYBOX_PROVIDER_SCAN_FAILED' >&2
+            exit 1
+          fi
+          if ! providers=$(printf '%s\n' "$providers_raw" \
+            | awk -F'\t' '$2 == "install ok installed" && NF > 2 && $1 != "busybox-static" && $3 ~ /(^|[, ])busybox([, ]|$|=)/ { print $1 }' \
+            | sort -u); then
+            echo 'BUSYBOX_PROVIDER_SCAN_FAILED' >&2
+            exit 1
+          fi
+          if [ -n "$providers" ]; then
+            echo "BUSYBOX_PROVIDER_CONFLICT $(printf '%s' "$providers" | tr '\n' ' ')" >&2
+            exit 1
+          fi
+          # dpkg must own the file it installs: an unowned or foreign-owned target is a stop.
+          if [ -e "$bb" ] || [ -L "$bb" ]; then
+            if ! target_owner=$(dpkg -S "$bb" 2>/dev/null); then
+              echo 'BUSYBOX_UNMANAGED_TARGET_PRESENT' >&2
+              exit 1
+            fi
+            case "$target_owner" in
+              'busybox-static: '*) echo "BUSYBOX_TARGET_ALREADY_MANAGED $target_owner" >&2 ;;
+              *) echo "BUSYBOX_TARGET_OWNED_BY_OTHER_PACKAGE $target_owner" >&2; exit 1 ;;
+            esac
+          fi
           curl -fsSL --retry 3 --retry-delay 2 -o "$deb" "$url"
           [ "$(stat -c %s "$deb")" = 1008874 ] || { echo 'BUSYBOX_DEB_SIZE_MISMATCH' >&2; exit 1; }
           printf '%s  %s\n' "$sha256" "$deb" | sha256sum -c -
           sudo dpkg -i "$deb"
+          [ "$(dpkg-query -W -f='${Status}' busybox-static 2>/dev/null)" = 'install ok installed' ] || { echo 'BUSYBOX_STATIC_NOT_INSTALLED' >&2; exit 1; }
           [ "$(dpkg-query -W -f='${Version}' busybox-static)" = '1:1.36.1-6ubuntu3.1' ] || { echo 'BUSYBOX_VERSION_MISMATCH' >&2; exit 1; }
-          command -v busybox
-          busybox --list > /tmp/busybox-applets.txt
+          # local-smtp's pick() resolves /usr/bin first: prove this exact file is package-owned,
+          # a plain root-owned 0755 file, and byte-identical to the reviewed deb payload.
+          dpkg -L busybox-static | grep -qx "$bb" || { echo 'BUSYBOX_PACKAGE_PATH_MISSING' >&2; exit 1; }
+          dpkg -S "$bb" 2>/dev/null | grep -q '^busybox-static: ' || { echo 'BUSYBOX_PATH_NOT_OWNED_BY_PACKAGE' >&2; exit 1; }
+          { [ -f "$bb" ] && [ ! -L "$bb" ]; } || { echo 'BUSYBOX_NOT_REGULAR_FILE' >&2; exit 1; }
+          IFS=' ' read -r bb_uid bb_mode <<<"$(stat -c '%u %a' "$bb")"
+          [ "$bb_uid" = 0 ] || { echo 'BUSYBOX_OWNER_NOT_ROOT' >&2; exit 1; }
+          [ "$bb_mode" = 755 ] || { echo 'BUSYBOX_MODE_NOT_0755' >&2; exit 1; }
+          printf '%s  %s\n' "$bb_sha256" "$bb" | sha256sum -c - || { echo 'BUSYBOX_BINARY_SHA_MISMATCH' >&2; exit 1; }
+          resolved=$(command -v busybox || true)
+          if [ "$resolved" != "$bb" ]; then
+            echo "BUSYBOX_PATH_NOTE command -v busybox -> ${resolved:-<none>}; the step uses $bb" >&2
+          fi
+          "$bb" --list > /tmp/busybox-applets.txt
           grep -qx crond /tmp/busybox-applets.txt
-          help=$(busybox crond --help 2>&1)
+          help=$("$bb" crond --help 2>&1)
           grep -Fq -- '[-fbS]' <<<"$help"
           grep -Fq -- '[-l N]' <<<"$help"
           grep -Fq -- '[-L LOGFILE]' <<<"$help"
           grep -Fq -- '[-c DIR]' <<<"$help"
           grep -Eq -- '[[:space:]]-f[[:space:]]+Foreground' <<<"$help"
-          echo "BUSYBOX_CROND_READY $(busybox | sed -n '1p')"
+          banner=$("$bb" 2>&1 | sed -n '1p')
+          case "$banner" in 'BusyBox v1.36.1'*) ;; *) echo "BUSYBOX_VERSION_BANNER_MISMATCH $banner" >&2; exit 1;; esac
+          echo "BUSYBOX_CROND_READY $banner"
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
       - name: Prepare real http and off artifacts without business credentials
