@@ -1222,7 +1222,10 @@ jobs:
               if (result.error || result.signal || !Number.isInteger(result.status) || result.status !== 0) throw new Error('ARTIFACT_CLOSURE_GATE_FAILED');
               let parsed;
               try { parsed = JSON.parse(String(result.stdout).trim()); } catch { throw new Error('ARTIFACT_CLOSURE_GATE_FAILED'); }
-              if (!parsed || parsed.artifactClosure !== expected) throw new Error('ARTIFACT_CLOSURE_GATE_FAILED');
+              if (!parsed || parsed.artifactClosure !== expected || parsed.nodePath !== false) throw new Error('ARTIFACT_CLOSURE_GATE_FAILED');
+              if (expected === 'PASS') {
+                if (parsed.resolved !== 9 || parsed.loadedEntries !== 4 || !Number.isInteger(parsed.loadedInside) || parsed.loadedInside <= 0) throw new Error('ARTIFACT_CLOSURE_GATE_FAILED');
+              } else if (expected !== 'NEGATIVE_CONFIRMED') throw new Error('ARTIFACT_CLOSURE_GATE_FAILED');
               console.log(String(result.stdout).trim());
             };
             // Materialize traced links only from this prepared source tree; the immutable inventory records every packaged byte.
