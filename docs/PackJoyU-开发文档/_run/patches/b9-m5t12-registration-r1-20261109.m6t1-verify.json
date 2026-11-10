@@ -1,0 +1,14 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M6-T1": {
+      "contractHash": "b9f852bdda9b563ef61bbe201e8f3125a078b1076971e479df95fe4be59d568a",
+      "verdict": "pass",
+      "evidence": [
+        "19 行依赖由 M5-T3/M2-T4/M2-T7 末尾追加 M5-T12（保留全部现有）；契约 requires 末尾追加 {M5-T12, analytics-anon-aggregate}，未删 M5-T3/M2-T7，未补 model-event-rules。",
+        "19 行输入追加 M5-T12 表结构与部署前后按阶段合并不双计；验收 1 追加新旧表读取、覆盖起点前 no_data/partial 不填 0；验收 2 追加 Σsum/Σsamples、samples=0→null、start 分母、product pageViews no_data、live/consumed 缺键按 0 比较、旧 revision 行内时区。",
+        "未实施 M6-T1 源码/测试，未跑 PG/HTTP；本 pass 仅契约复核。"
+      ]
+    }
+  }
+}
