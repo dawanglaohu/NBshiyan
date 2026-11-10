@@ -9,6 +9,7 @@ import path from 'node:path';
 import type { APIRequestContext } from '@playwright/test';
 import { AccountDTOSchema, type AccountDTO } from '../src/lib/contracts/account';
 import { createRunAuthPool, cleanupRunAuth, publishRunAuth, readRunAuth, loadRunAuth, initializeRunAuth, RUN_AUTH_SLOTS, RunAuthError, privatePermissions, windowsPermission, type PermissionPolicy, type RunAuthSlot } from '../e2e/run-auth';
+import { runGlobalSetupInitialization } from '../e2e/global-setup';
 import { MemoryStore } from '../src/lib/server/ratelimit';
 
 const ORIGIN = 'http://localhost:3100';
@@ -251,6 +252,34 @@ test('run-auth ACL diagnostics keep bounded categories and never mask or leak th
   assert.equal(JSON.stringify(diagnosticFailure.diagnostic).includes('raw-private-marker'), false);
 });
 
+test('run-auth permission diagnostics log only closed enums through the real global-setup boundary', async () => {
+  const lines: string[] = [];
+  const original = Object.assign(new RunAuthError('PERMISSIONS', { category: 'nonzero', stderr: 'private_owner' }), { rawStderr: 'raw-private-marker' });
+  await assert.rejects(() => runGlobalSetupInitialization(async () => { throw original; }, (line) => lines.push(line)), (error) => error === original);
+  assert.deepEqual(lines, [JSON.stringify({ type: 'run-auth-permission-diagnostic', category: 'nonzero', stderr: 'private_owner' })]);
+  assert.equal(JSON.stringify(lines).includes('raw-private-marker'), false);
+
+  const teardown = () => {};
+  assert.equal(await runGlobalSetupInitialization(async () => teardown, (line) => lines.push(line)), teardown);
+  assert.equal(lines.length, 1);
+
+  const nonPermission = new RunAuthError('LOGIN');
+  await assert.rejects(() => runGlobalSetupInitialization(async () => { throw nonPermission; }, (line) => lines.push(line)), (error) => error === nonPermission);
+  const missing = new RunAuthError('PERMISSIONS');
+  await assert.rejects(() => runGlobalSetupInitialization(async () => { throw missing; }, (line) => lines.push(line)), (error) => error === missing);
+  const invalid = new RunAuthError('PERMISSIONS', { category: 'bogus' as never, stderr: 'private_owner' });
+  await assert.rejects(() => runGlobalSetupInitialization(async () => { throw invalid; }, (line) => lines.push(line)), (error) => error === invalid);
+  assert.equal(lines.length, 1);
+
+  const hostile = new RunAuthError('PERMISSIONS', { category: 'timeout', stderr: 'unknown' });
+  Object.defineProperty(hostile, 'code', { get() { throw new Error('raw-private-marker'); } });
+  await assert.rejects(() => runGlobalSetupInitialization(async () => { throw hostile; }, (line) => lines.push(line)), (error) => error === hostile);
+  const logFails = new RunAuthError('PERMISSIONS', { category: 'spawn', stderr: 'unknown' });
+  await assert.rejects(() => runGlobalSetupInitialization(async () => { throw logFails; }, () => { throw new Error('raw-private-marker'); }), (error) => error === logFails);
+  assert.equal(lines.length, 1);
+  assert.equal(JSON.stringify(lines).includes('raw-private-marker'), false);
+});
+
 test('run-auth initialization uses one normalized email for seed, credentials and strict account validation', async () => {
   const source = readFileSync('e2e/run-auth.ts', 'utf8');
   const tree = ts.createSourceFile('run-auth.ts', source, ts.ScriptTarget.Latest, true);
@@ -337,7 +366,7 @@ test('run-auth actual runner orders webServer plugin readiness before globalSetu
   const global = runner.slice(runner.indexOf('function createGlobalSetupTasks('), runner.indexOf('function createRunTestsTasks('));
   assert.ok(global.indexOf('createPluginSetupTasks') < global.indexOf('config2.globalSetups.map'));
   const setup = readFileSync('e2e/global-setup.ts', 'utf8');
-  assert.match(setup, /return initializeRunAuth\(/);
+  assert.match(setup, /return runGlobalSetupInitialization\(\(\) => initializeRunAuth\(/);
   for (const lifecycle of ['admin.spec.ts', 'admin-enroll.spec.ts', 'admin-login.spec.ts', 'admin-device-session.spec.ts', 'hotfix-login-empty.spec.ts']) assert.doesNotMatch(readFileSync(`e2e/${lifecycle}`, 'utf8'), /loadRunAuth|readRunAuth/);
 });
 

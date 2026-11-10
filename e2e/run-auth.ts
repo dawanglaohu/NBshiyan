@@ -47,6 +47,21 @@ export class RunAuthError extends Error {
   constructor(readonly code: string, readonly diagnostic?: WindowsPermissionDiagnostic) { super(`E2E_RUN_AUTH_${code}`); this.name = 'RunAuthError'; }
 }
 function fail(code: string, diagnostic?: WindowsPermissionDiagnostic): never { throw new RunAuthError(code, diagnostic); }
+export const PERMISSION_DIAGNOSTIC_LOG_TYPE = 'run-auth-permission-diagnostic';
+const PERMISSION_CATEGORIES: ReadonlySet<string> = new Set(['timeout', 'spawn', 'nonzero', 'output', 'unknown']);
+const PERMISSION_STDERRS: ReadonlySet<string> = new Set(['private_owner', 'private_rules', 'private_access', 'other', 'unknown']);
+/** Emit one closed-set line for a PERMISSIONS diagnostic; never stringifies the error and never replaces the original failure. */
+export function reportRunAuthPermissionDiagnostic(error: unknown, log: (line: string) => void = (line) => { console.error(line); }): void {
+  try {
+    if (!(error instanceof RunAuthError) || error.code !== 'PERMISSIONS') return;
+    const diagnostic: unknown = error.diagnostic;
+    if (!diagnostic || typeof diagnostic !== 'object') return;
+    const { category, stderr } = diagnostic as { category?: unknown; stderr?: unknown };
+    if (typeof category !== 'string' || typeof stderr !== 'string') return;
+    if (!PERMISSION_CATEGORIES.has(category) || !PERMISSION_STDERRS.has(stderr)) return;
+    log(JSON.stringify({ type: PERMISSION_DIAGNOSTIC_LOG_TYPE, category, stderr }));
+  } catch { /* Diagnostic output must not replace the original authentication failure. */ }
+}
 const sha = (value: string | Buffer) => createHash('sha256').update(value).digest('hex');
 const fileFor = (slot: RunAuthSlot) => `state-${slot}.json`;
 const marker = (handle: RunAuthHandle) => JSON.stringify({ nonce: handle.nonce, origin: handle.origin, source: handle.source });
