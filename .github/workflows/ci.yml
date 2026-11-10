@@ -366,6 +366,12 @@ jobs:
       # describe 级 skip 的汇总是 tests 0 / skipped 0，汇总门禁看不见。本步骤命令行列出的每个测试文件都要 pass >= 1，fail、skip、todo、cancelled 为 0。
       # passed、failed、skipped、todo、cancelled 缺任何一个，或不是非负整数，按文件门禁失败，不用 0 填充。
       # M3-T2 用 schema=m3t2 隔离。M3T2_REQUIRE_DATABASE 只在本步骤打开。缺地址时 admin-login-mode 与 admin-enroll-current-state 直接抛错。单元测试 job 不设它，pnpm test 继续跳过。
+      # M4-T12 专用空库：只建库（ON_ERROR_STOP、失败即停、无 drop/重试）；schema 与表由测试自身 CREATE SCHEMA + prisma db push 建立。
+      - name: Create M4-T12 dedicated PostgreSQL database
+        run: |
+          docker exec "${{ job.services.postgres.id }}" \
+            psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
+            -c 'CREATE DATABASE "b9_m4t12_20261109"'
       - name: Analytics, chat, and other PostgreSQL regressions
         env:
           ADMIN_RESET_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
@@ -389,6 +395,9 @@ jobs:
           # 测试内按随机名自建 schema（先查存在性再 CREATE），只清理本进程创建的那一个。
           M5T11_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
           M5T11_REQUIRE_DATABASE: 'true'
+          # M4-T12 队列/预算真实 PG：专属库名 + schema=m4t12；测试自备 schema/表，缺库即失败，不回退 e2e。
+          M4T12_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/b9_m4t12_20261109?schema=m4t12
+          M4T12_REQUIRE_DATABASE: 'true'
         run: |
           set -o pipefail
           cat > /tmp/m3t2-file-gate.cjs <<'EOF'
@@ -424,6 +433,7 @@ jobs:
               'tests/admin-device-management.http.test.ts',
               'tests/analytics-retention-plan.test.ts',
               'tests/analytics-retention.db.test.ts',
+              'tests/mail-queue-schedule.integration.test.ts',
             ];
             for (const file of wanted) {
               const hit = [...counts.entries()].find(([name]) => name.replaceAll('\\', '/').endsWith(file));
@@ -473,6 +483,7 @@ jobs:
             tests/admin-device-management.http.test.ts \
             tests/analytics-retention-plan.test.ts \
             tests/analytics-retention.db.test.ts \
+            tests/mail-queue-schedule.integration.test.ts \
             || { status=$?; cat /tmp/pg-regressions.tap /tmp/m3t2-file-gate.txt; exit "$status"; }
           grep -qx '# skipped 0' /tmp/pg-regressions.tap
           grep -qx '# fail 0' /tmp/pg-regressions.tap
@@ -508,6 +519,7 @@ jobs:
             'tests/admin-device-management.http.test.ts',
             'tests/analytics-retention-plan.test.ts',
             'tests/analytics-retention.db.test.ts',
+            'tests/mail-queue-schedule.integration.test.ts',
           ];
           let bad = false;
           for (const file of files) {
