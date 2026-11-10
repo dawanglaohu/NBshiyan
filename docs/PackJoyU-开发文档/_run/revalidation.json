@@ -22,6 +22,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -49,6 +56,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -76,6 +90,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -103,6 +124,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -130,6 +158,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -157,6 +192,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -184,6 +226,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -211,6 +260,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -238,6 +294,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -265,6 +328,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -292,6 +362,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -319,6 +396,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -346,6 +430,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -373,6 +464,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -400,6 +498,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -427,6 +532,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -454,6 +566,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -481,6 +600,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -508,6 +634,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -535,6 +668,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -562,6 +702,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -589,6 +736,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -616,6 +770,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -643,6 +804,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -670,6 +838,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -697,6 +872,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -724,6 +906,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -751,6 +940,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -778,6 +974,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -805,6 +1008,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -832,6 +1042,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -859,6 +1076,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -886,6 +1110,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -913,6 +1144,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -940,6 +1178,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -967,6 +1212,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -994,6 +1246,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1021,6 +1280,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1048,6 +1314,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1075,6 +1348,29 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M2-T7": {
+    "contractHash": "e718ac22ae396c6ee5c8ead67f85243d327cb18338475fcd981b66eadae361ad",
+    "patches": [
+      {
+        "changedFields": [
+          "definition",
+          "effectivePaths",
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md",
+          "task"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1102,6 +1398,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1129,6 +1432,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1156,6 +1466,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1183,6 +1500,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1210,6 +1534,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1237,6 +1568,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1264,6 +1602,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1291,6 +1636,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1318,6 +1670,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1345,6 +1704,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1372,6 +1738,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1399,6 +1772,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1426,6 +1806,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1453,6 +1840,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1468,6 +1862,15 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "definition",
+          "effectivePaths",
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1495,6 +1898,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1522,6 +1932,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1549,6 +1966,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1576,6 +2000,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1603,6 +2034,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1630,6 +2068,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1657,6 +2102,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1684,6 +2136,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1711,6 +2170,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1738,6 +2204,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1765,6 +2238,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1792,6 +2272,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1819,6 +2306,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1846,6 +2340,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1873,6 +2374,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1900,6 +2408,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1927,6 +2442,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1954,6 +2476,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -1981,6 +2510,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -2008,6 +2544,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -2035,6 +2578,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -2062,6 +2612,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -2089,6 +2646,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -2116,6 +2680,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -2143,6 +2714,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -2170,6 +2748,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -2197,6 +2782,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -2224,6 +2816,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -2251,6 +2850,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -2278,6 +2884,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -2305,6 +2918,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -2332,6 +2952,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -2359,6 +2986,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -2386,6 +3020,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -2413,6 +3054,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -2440,6 +3088,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -2467,6 +3122,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -2494,6 +3156,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -2521,6 +3190,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -2548,6 +3224,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -2575,6 +3258,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
@@ -2602,6 +3292,13 @@
         ],
         "patch": "b9-m5t12-registration-20261109",
         "sourceVersion": "59c284d10d1446ac0bee5c32eb5a0fd98c2493ddbe9a6756fbb7eadba5e72051"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/08-后端架构.md,02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "b9-m5t12-registration-20261109",
+        "sourceVersion": "a3a8230ec1137730bed2d642ab6624f659d902f9340a66defcbb043a894f0f5f"
       }
     ],
     "previousStatus": "done"
