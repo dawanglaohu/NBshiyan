@@ -1276,9 +1276,15 @@
       "09 节 L26 AnalyticsDaily 为替换而非新增同名行：durationMsSum BigInt、loadDurationSamples、pageViews Int?、sourceThrough DateTime?、行内 timezone/expiresAt、索引 [expiresAt]/[dimension, localDate]；紧随新增 AnalyticsAggregateDayState（timezone/索引）与 AnalyticsDayChange（utcDate 主键、version @default(0)、无 id）；R1 在三行行内均补“由 M5-T12 实施后生效；当前 schema 尚无此表”，ff2 原缺此标注已更正。",
       "08/18/data-retention 同步四类数据表 20,000/5,000/1,000 与两元数据表各 500/合计 1,000 独立；03:30 旧三表、04:30 实施后唯一清理新三表、共用租约、不新增 cron；当前三表不存在，不写已上线。",
       "M6-T1 依赖末尾追加 M5-T12、requires 追加 analytics-anon-aggregate；保留 M2-T4/M2-T7，不补 model-event-rules；输入/验收 1/2 按合稿追加；M6-T6/M7-T3 各加读取口径一句、不新增依赖。",
-      "M5-T12 仍 todo、未实施源码/测试/schema；真实 PG/性能/API/CI 未验；本 pass 仅为文档契约复核，不是业务或实现通过。"
+      "M5-T12 仍 todo、未实施源码/测试/schema；真实 PG/性能/API/CI 未验；本 pass 仅为文档契约复核，不是业务或实现通过。",
+      "当前 hash 160976ad 与旧 pass 同值续接：main403 合入 M2-T7 后 M5-T12 契约 definition 与 main403 逐值相同，effectivePaths 相对 main403 0 漂移，故无需改写定义。",
+      "M2-T7 行现明示「平均耗时与samples、无样本null、零成功0%由 M6-T1 计算、M6-T6 输出、M7-T3 终验，不在本任务重复验收」；M5-T12 provides analytics-anon-aggregate，M6-T1 requires 含 {M5-T12, analytics-anon-aggregate}，原始事件（M2-T7）与统计聚合（M6-T1/M6-T6）分工不重叠。",
+      "09 三行仍标「由 M5-T12 实施后生效；当前 schema 尚无此表」；data-retention 原始 AnalyticsEvent 30 天、AnalyticsDaily/DayState 13 自然月、DayChange UTC 13 月＋2 天，03:30 旧三表与实施后 04:30 唯一清理者不冲突。",
+      "main403 集成后当前契约 hash 由生成器现算，与该任务在 7abc4b5c:docs/PackJoyU-开发文档/_run/task-contracts.json 一致；非作者差量独审复算 145/145 after=现算、98 条 revalidation 全匹配、manifest dict-equal 36/6、dispatch 145/23 与 86 任务批号 0 移动（独审 D:/xiangmu/.codex-plans/NBShiYan-m5-t12/testing-m5t12-main403-review-20261109/testing-m5t12-main403-review-20261109.md，D4C2093284994B969DBF030263834529CBEC6786F531745ACC97945F3D776314）。",
+      "19 手合保留：M6-T6/M7-T3 行=main 职责正文＋ours「读取口径」句（去该句即 main 行），M6-T1 行保留 ours（main 未改该行），M2-T7 行取 main；本任务职责、依赖与验收未因合并丢失或改写。",
+      "本文件只声明文档契约与 main403 集成核验：本轮未跑 PG/HTTP/CI，不声明三表或统计 API 已实现；M5-T12 仍 todo，98 条待复验未清；旧 pass 不是业务复验，新 hash 只代表当前契约已按真实源并集重核。"
     ],
-    "reviewed": "2026-11-09T21:27:00.601264+00:00",
+    "reviewed": "2026-11-10T00:56:55.092436+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -1397,13 +1403,19 @@
   },
   "M6-T1": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "b9f852bdda9b563ef61bbe201e8f3125a078b1076971e479df95fe4be59d568a",
+    "contractHash": "bee36c70919b173cb2297bdf945727081e152155f00fad2c8def290351aa0b58",
     "evidence": [
       "19 行依赖由 M5-T3/M2-T4/M2-T7 末尾追加 M5-T12（保留全部现有）；契约 requires 末尾追加 {M5-T12, analytics-anon-aggregate}，未删 M5-T3/M2-T7，未补 model-event-rules。",
       "19 行输入追加 M5-T12 表结构与部署前后按阶段合并不双计；验收 1 追加新旧表读取、覆盖起点前 no_data/partial 不填 0；验收 2 追加 Σsum/Σsamples、samples=0→null、start 分母、product pageViews no_data、live/consumed 缺键按 0 比较、旧 revision 行内时区。",
-      "未实施 M6-T1 源码/测试，未跑 PG/HTTP；本 pass 仅契约复核。"
+      "未实施 M6-T1 源码/测试，未跑 PG/HTTP；本 pass 仅契约复核。",
+      "旧 3 条输入原文逐字保留为前缀；当前 hash 由 b9f852bd 变为 bee36c70，来源是 main403 合入后的共享章节 08/09/18 与 M2-T7 行变化，本任务 19 行输入/验收定义未被改写。",
+      "requires 现为 M5-T3/analytics-aggregate＋M2-T7/model-events＋M5-T12/analytics-anon-aggregate，未补 model-event-rules，与旧 pass 声明一致；M5-T12 为 analytics-anon-aggregate 唯一提供方。",
+      "19 行仍要求按阶段合并不双计、均值按 ΣdurationMsSum/ΣloadDurationSamples 加权、samples=0→null、start 为成功率分母、product pageViews no_data、live/consumed 缺键按 0、旧 revision 行内时区；三表当前不存在（实施后生效），故依赖未落地不构成契约矛盾。",
+      "main403 集成后当前契约 hash 由生成器现算，与该任务在 7abc4b5c:docs/PackJoyU-开发文档/_run/task-contracts.json 一致；非作者差量独审复算 145/145 after=现算、98 条 revalidation 全匹配、manifest dict-equal 36/6、dispatch 145/23 与 86 任务批号 0 移动（独审 D:/xiangmu/.codex-plans/NBShiYan-m5-t12/testing-m5t12-main403-review-20261109/testing-m5t12-main403-review-20261109.md，D4C2093284994B969DBF030263834529CBEC6786F531745ACC97945F3D776314）。",
+      "19 手合保留：M6-T6/M7-T3 行=main 职责正文＋ours「读取口径」句（去该句即 main 行），M6-T1 行保留 ours（main 未改该行），M2-T7 行取 main；本任务职责、依赖与验收未因合并丢失或改写。",
+      "本文件只声明文档契约与 main403 集成核验：本轮未跑 PG/HTTP/CI，不声明三表或统计 API 已实现；M5-T12 仍 todo，98 条待复验未清；旧 pass 不是业务复验，新 hash 只代表当前契约已按真实源并集重核。"
     ],
-    "reviewed": "2026-11-09T21:27:43.469043+00:00",
+    "reviewed": "2026-11-10T00:56:55.092436+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -1461,12 +1473,17 @@
   },
   "M6-T6": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "1f395ecf919237cff563ee1f0884b5757ea7c0bd11f6520e1e67714094e74cdc",
+    "contractHash": "5849d09fd70cbc32ba8a21015b1a29a2da463c8bc7ffcef53e8703afb6428ed8",
     "evidence": [
       "19 行验收 3 追加读取口径一句：新旧聚合按阶段合并不双计、product pageViews no_data、0% 按 start 分母、分类按 site 行+day-state+live marker（缺键按 0 比较）、旧 revision 行内时区、覆盖起点前 no_data/partial；未新增依赖。",
-      "未实施/未跑 HTTP；仅契约复核。"
+      "未实施/未跑 HTTP；仅契约复核。",
+      "旧 2 条输入原文逐字保留为前缀；当前 hash 由 1f395ecf 变为 5849d09f，来源是 main403 合并的 08/09/18 共享章节与 19 手合读取口径句。",
+      "requires 仍为 M6-T1/stats-query-rules＋M5-T4/analytics-settings-api，未新增 M5-T12 依赖；读取口径为验收说明，不改变依赖图；「超30天历史保留原标签或不可重算」与原始 30 天/聚合 13 自然月一致。",
+      "main403 集成后当前契约 hash 由生成器现算，与该任务在 7abc4b5c:docs/PackJoyU-开发文档/_run/task-contracts.json 一致；非作者差量独审复算 145/145 after=现算、98 条 revalidation 全匹配、manifest dict-equal 36/6、dispatch 145/23 与 86 任务批号 0 移动（独审 D:/xiangmu/.codex-plans/NBShiYan-m5-t12/testing-m5t12-main403-review-20261109/testing-m5t12-main403-review-20261109.md，D4C2093284994B969DBF030263834529CBEC6786F531745ACC97945F3D776314）。",
+      "19 手合保留：M6-T6/M7-T3 行=main 职责正文＋ours「读取口径」句（去该句即 main 行），M6-T1 行保留 ours（main 未改该行），M2-T7 行取 main；本任务职责、依赖与验收未因合并丢失或改写。",
+      "本文件只声明文档契约与 main403 集成核验：本轮未跑 PG/HTTP/CI，不声明三表或统计 API 已实现；M5-T12 仍 todo，98 条待复验未清；旧 pass 不是业务复验，新 hash 只代表当前契约已按真实源并集重核。"
     ],
-    "reviewed": "2026-11-09T21:27:57.271274+00:00",
+    "reviewed": "2026-11-10T00:56:55.092436+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -1511,12 +1528,17 @@
   },
   "M7-T3": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "4da93a8f11cce18229d999506035d37ce7cb090ce05fddcfedabbd82f36372e9",
+    "contractHash": "c6f4297d2d539329cd6a9ce114a1ddc9bf56a1edbd9a51bd98bb60311e94557a",
     "evidence": [
       "19 行验收 2 追加终验读取口径一句（新旧聚合不双计、product pageViews no_data、0% 按 start 分母、live/consumed 缺键按 0 比较、旧 revision 行内时区）；未新增依赖。",
-      "未实施/未跑；仅契约复核。"
+      "未实施/未跑；仅契约复核。",
+      "旧 2 条输入原文逐字保留为前缀；当前 hash 由 4da93a8f 变为 c6f4297d，来源是共享章节 09/18 与 19 行终验读取口径句。",
+      "requires 仍为 M5-T11、M5-T10、M6-T7、M2-T7，未新增依赖；「原始30d/聚合13月候选边界可测」与 data-retention 及 M6-T1/M6-T6 口径一致；终验读取口径只补充判定方式。",
+      "main403 集成后当前契约 hash 由生成器现算，与该任务在 7abc4b5c:docs/PackJoyU-开发文档/_run/task-contracts.json 一致；非作者差量独审复算 145/145 after=现算、98 条 revalidation 全匹配、manifest dict-equal 36/6、dispatch 145/23 与 86 任务批号 0 移动（独审 D:/xiangmu/.codex-plans/NBShiYan-m5-t12/testing-m5t12-main403-review-20261109/testing-m5t12-main403-review-20261109.md，D4C2093284994B969DBF030263834529CBEC6786F531745ACC97945F3D776314）。",
+      "19 手合保留：M6-T6/M7-T3 行=main 职责正文＋ours「读取口径」句（去该句即 main 行），M6-T1 行保留 ours（main 未改该行），M2-T7 行取 main；本任务职责、依赖与验收未因合并丢失或改写。",
+      "本文件只声明文档契约与 main403 集成核验：本轮未跑 PG/HTTP/CI，不声明三表或统计 API 已实现；M5-T12 仍 todo，98 条待复验未清；旧 pass 不是业务复验，新 hash 只代表当前契约已按真实源并集重核。"
     ],
-    "reviewed": "2026-11-09T21:28:09.401329+00:00",
+    "reviewed": "2026-11-10T00:56:55.092436+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
