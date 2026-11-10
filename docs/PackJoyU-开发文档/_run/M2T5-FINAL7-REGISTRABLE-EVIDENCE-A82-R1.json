@@ -1,0 +1,83 @@
+{
+  "scope": "task-contract",
+  "object": {
+    "head": "a82a89f7c007445e471e8bb4d558cc7e3664cc1d",
+    "tree": "691cd9fa77748dfbfdc5da3ce5782b7e93035f53",
+    "parent": "c5a1f57f848a1362b67ad5010c50d4ea1effb022",
+    "sourceVersion": "db8e0931663ce9708b9e624c3c7ceb01d27c1cbc46f1cb973a27966db203ccd7",
+    "excluded": {
+      "M4-T12": {
+        "contractHash": "40cee552c2fd8aaf2e93767a808d8f51cc56bca3682ffa28231cee8506718e40",
+        "recordStatus": "current",
+        "reason": "M4-T12 hash 未变（40cee552），记录仍 current；不属于本次 T5 关联七键，不重登记。"
+      }
+    },
+    "correction": "R1：七条证据正文的“现存登记值”已改为固定 a82 的实际评审记录值（c5a1 登记值），并注明相对本次新值 stale；新 contractHash 与语义结论不变。",
+    "note": "Verify-ready for the seven T5-related keys only. Records at a82 are the c5a1 registered values (same reviewed timestamp) and are stale to the seven new hashes; verify rewrites them and leaves the other 134 records untouched. Expected after registration: current 110 / stale 31."
+  },
+  "tasks": {
+    "M2-T5": {
+      "contractHash": "ec41867559a37745f7b735b9b5e466f26b1c008326304577b6eaa6261802230c",
+      "verdict": "pass",
+      "evidence": [
+        "固定 a82a89f7/tree 691cd9fa（父 c5a1）：task-contracts 仅 M2-T5 条目变，supportPaths 8→9，新增恰为 scripts/e2e-edge-auth.ts（第 8 项，playwright.config.ts 之后）；requires/provides/stage/wiring/outputPaths/sections 均未变。",
+        "当前 hash ec41867559a37745f7b735b9b5e466f26b1c008326304577b6eaa6261802230c（c5a1 为 5ba4f3fc58dc3c674290a75aad34c8d1126a5788ed9e24d81c6abeb088cad551）；变化由 supportPaths 定义变化解释，笔记正文 9,324→10,442 B 不进 task hash；effectivePaths 27→28 且含新路径。",
+        "a82 现存 review 记录为 5ba4f3fc58dc3c674290a75aad34c8d1126a5788ed9e24d81c6abeb088cad551（c5a1 登记值，2026-11-10T15:38:00.779733+00:00 pass，a82 与 build 未改），相对本次新值 ec41867559a37745f7b735b9b5e466f26b1c008326304577b6eaa6261802230c stale；本证据只登记 task-contract 语义，不宣称新头 CI、应用构建或 GIF。"
+      ]
+    },
+    "M2-T8": {
+      "contractHash": "34298c2b59a63b2f50c93b25b6bd160c8f5fe0dedab887574d2ed0d6e8aba5c7",
+      "verdict": "pass",
+      "evidence": [
+        "固定 a82a89f7：M2-T8 条目与 c5a1 逐值相等（定义/有效路径未变）。",
+        "hash 9c21fc1da07f424341001dc4df43f657cd9501606069d492720dba95ef0634f6→34298c2b59a63b2f50c93b25b6bd160c8f5fe0dedab887574d2ed0d6e8aba5c7，由 providers 链 M2-T5 传播（19 前置 M2-T8 含 M2-T5）；未新增义务。",
+        "a82 现存 review 记录为 9c21fc1da07f424341001dc4df43f657cd9501606069d492720dba95ef0634f6（c5a1 登记值，2026-11-10T15:38:00.779733+00:00 pass，a82 与 build 未改），相对本次新值 34298c2b59a63b2f50c93b25b6bd160c8f5fe0dedab887574d2ed0d6e8aba5c7 stale；status todo；只登记契约语义。"
+      ]
+    },
+    "M7-T1": {
+      "contractHash": "32e1659ff1fbd02f751f65f8e63cfb9437a9bc0bdd66e3b4833784498a3c7ea1",
+      "verdict": "pass",
+      "evidence": [
+        "固定 a82a89f7：M7-T1 条目与 c5a1 逐值相等。",
+        "hash cdc14b8c19dfa0d0c599218a6da17c6f91f8bfaa8b59b92e0a39d046e932dbd0→32e1659ff1fbd02f751f65f8e63cfb9437a9bc0bdd66e3b4833784498a3c7ea1，经 M2-T8→M2-T5 的 providers 传播。",
+        "a82 现存 review 记录为 cdc14b8c19dfa0d0c599218a6da17c6f91f8bfaa8b59b92e0a39d046e932dbd0（c5a1 登记值，2026-11-10T15:38:00.779733+00:00 pass，a82 与 build 未改），相对本次新值 32e1659ff1fbd02f751f65f8e63cfb9437a9bc0bdd66e3b4833784498a3c7ea1 stale；status todo；只登记契约语义。"
+      ]
+    },
+    "M7-T4": {
+      "contractHash": "3fae78f02aaf9695caa76e2b5fcd00d8150977b0bbeb953cae57e78461d33346",
+      "verdict": "pass",
+      "evidence": [
+        "固定 a82a89f7：M7-T4 条目与 c5a1 逐值相等。",
+        "hash a3157a777e544eab4bcfadad906fa9184e5ed3fd557d379e99735ab18192bce3→3fae78f02aaf9695caa76e2b5fcd00d8150977b0bbeb953cae57e78461d33346，经 M7-T1→M2-T8→M2-T5 传播；M4-T12 未变、不在本次变化源。",
+        "a82 现存 review 记录为 a3157a777e544eab4bcfadad906fa9184e5ed3fd557d379e99735ab18192bce3（c5a1 登记值，2026-11-10T15:38:00.779733+00:00 pass，a82 与 build 未改），相对本次新值 3fae78f02aaf9695caa76e2b5fcd00d8150977b0bbeb953cae57e78461d33346 stale；status todo；只登记契约语义。"
+      ]
+    },
+    "M7-T8": {
+      "contractHash": "018b5778d7205a210f4fd82f6870c013b44a04bb290a6bef2871382bd5de7932",
+      "verdict": "pass",
+      "evidence": [
+        "固定 a82a89f7：M7-T8 条目与 c5a1 逐值相等。",
+        "hash 9073a103ee2cb39481640c6c70069857684df3b314e636b560763ba91cc39f9a→018b5778d7205a210f4fd82f6870c013b44a04bb290a6bef2871382bd5de7932，经 M7-T4→M7-T1→M2-T8→M2-T5 传播。",
+        "a82 现存 review 记录为 9073a103ee2cb39481640c6c70069857684df3b314e636b560763ba91cc39f9a（c5a1 登记值，2026-11-10T15:38:00.779733+00:00 pass，a82 与 build 未改），相对本次新值 018b5778d7205a210f4fd82f6870c013b44a04bb290a6bef2871382bd5de7932 stale；status todo；只登记契约语义。"
+      ]
+    },
+    "M7-T9": {
+      "contractHash": "935f821ef1e5d800990e51c080d89bf8fbf3669fcf14a61c7198689e88a2e49f",
+      "verdict": "pass",
+      "evidence": [
+        "固定 a82a89f7：M7-T9 条目与 c5a1 逐值相等。",
+        "hash 227b9d9d3b2426953b46fa0b5d4c3409b0160c5c45925ac0068178f98cab3257→935f821ef1e5d800990e51c080d89bf8fbf3669fcf14a61c7198689e88a2e49f，经 M7-T8→M7-T4→M7-T1→M2-T8→M2-T5 传播。",
+        "a82 现存 review 记录为 227b9d9d3b2426953b46fa0b5d4c3409b0160c5c45925ac0068178f98cab3257（c5a1 登记值，2026-11-10T15:38:00.779733+00:00 pass，a82 与 build 未改），相对本次新值 935f821ef1e5d800990e51c080d89bf8fbf3669fcf14a61c7198689e88a2e49f stale；status todo；只登记契约语义。"
+      ]
+    },
+    "M7-T10": {
+      "contractHash": "aca31dbc064659cfc7f4d6cd785b31526a292cc4db97592bc737ad426283838d",
+      "verdict": "pass",
+      "evidence": [
+        "固定 a82a89f7：M7-T10 条目与 c5a1 逐值相等。",
+        "hash 882fd96b913bfaceb011485d3a59a1b83f2dd6ca6cdc3a86a34d44d84c261449→aca31dbc064659cfc7f4d6cd785b31526a292cc4db97592bc737ad426283838d，经 M7-T9→M7-T8→M7-T4→M7-T1→M2-T8→M2-T5 传播。",
+        "a82 现存 review 记录为 882fd96b913bfaceb011485d3a59a1b83f2dd6ca6cdc3a86a34d44d84c261449（c5a1 登记值，2026-11-10T15:38:00.779733+00:00 pass，a82 与 build 未改），相对本次新值 aca31dbc064659cfc7f4d6cd785b31526a292cc4db97592bc737ad426283838d stale；status todo；只登记契约语义。"
+      ]
+    }
+  }
+}
