@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { expect, test, type Page } from './fixtures';
+import { trustedEdgeHeaders } from './edge-test-ip';
 
 const db = new PrismaClient();
 
@@ -81,6 +82,7 @@ async function controlCardModel(page: Page, card: ReturnType<Page['locator']>) {
 
 test('EN: card inquire-product carries the same product/spec into the wizard and persists a real Inquiry', async ({ page }) => {
   test.setTimeout(60_000);
+  await page.context().setExtraHTTPHeaders(trustedEdgeHeaders('product-inquiry:en-card'));
   await page.goto('/en');
   await dismissConsent(page);
   await page.goto('/en/products');
@@ -120,6 +122,7 @@ test('EN: card inquire-product carries the same product/spec into the wizard and
 
 test('RU 390: card entry preselects the same product/spec and submits a real Inquiry', async ({ page }) => {
   test.setTimeout(60_000);
+  await page.context().setExtraHTTPHeaders(trustedEdgeHeaders('product-inquiry:ru-390'));
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/ru');
   await dismissConsent(page, 'ru');
@@ -159,6 +162,7 @@ test('RU 390: card entry preselects the same product/spec and submits a real Inq
 
 test('EN 390: card name/spec and inquiry entry stay visible and submit a real Inquiry', async ({ page }) => {
   test.setTimeout(60_000);
+  await page.context().setExtraHTTPHeaders(trustedEdgeHeaders('product-inquiry:en-390'));
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/en');
   await dismissConsent(page);
@@ -206,6 +210,7 @@ test('API: non-catalog WIZARD is 400 and from=quote keeps CART prefill', async (
 
   const before = await db.inquiryItem.count({ where: { productSlug: 'not-a-catalog-product' } });
   const bad = await page.request.post('/api/inquiries', {
+    headers: trustedEdgeHeaders('product-inquiry:api-400'),
     data: { source: 'WIZARD', locale: 'en', contact, items: [{ productSlug: 'not-a-catalog-product' }], turnstileToken: token },
   });
   expect(bad.status()).toBe(400);
@@ -255,6 +260,7 @@ test('catalog: gift-boxes card keeps its category key; published READY and desig
 
     // 一次请求同时覆盖：静态卡片键、published READY productSlug、designId 豁免。
     const accepted = await page.request.post('/api/inquiries', {
+      headers: trustedEdgeHeaders('product-inquiry:api-201'),
       data: {
         source: 'WIZARD', locale: 'en',
         contact: { name: 'M2-T5 Published', email: `${emailPrefix}-api@example.test`, region: 'DE' },
