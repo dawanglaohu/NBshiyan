@@ -1056,7 +1056,7 @@
   },
   "M4-T12": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "d87d78783c9201011b85044bda670a2d20c2a56203eb83d1219e748d48d0b372",
+    "contractHash": "6539686e252995da4a30f457cf8cf02c4f89cd660185655ff2d5a9120597cc47",
     "evidence": [
       "补丁 m4t12-scope-20261109 只改两处源：_run/task-contracts.json 的 M4-T12.supportPaths 原4条保留并追加6条（src/lib/server/mail.ts、src/lib/server/mail/send.ts、src/lib/server/mail/queue-job.ts、tests/fixtures/mail-db.ts、src/lib/server/cron-alert.ts、.github/workflows/ci.yml）；provides/requires/stage/wiring/outputPaths/sections 逐字段未变，其余143个任务定义逐字未变（git diff 该文件 +7/−1）。",
       "19-模块任务拆分.md：m4t12-scope-20261109 在 M4-T12 行第2条追加三句；m4t12-scope-r1-20261109 只把末句改为“告警调用前按正常 budget deadline 自查，过期则跳过；检查到调用非原子，不承诺 sendMail 的实际起始时刻”。原1)/2)条款、五计数、500ms余量、三处检查与DB独立收尾保留；R1 diff +1/−1，其余94行逐字未变。",
@@ -1065,9 +1065,10 @@
       "契约：2d4d26e605b4de2824dac72c7e19a52fae8081a8f4c16109f4187acf52f2d2c7 → d87d78783c9201011b85044bda670a2d20c2a56203eb83d1219e748d48d0b372；sourceVersion 70552b59ba0a72914f2f78985a7ec637510b39111ef6c545aa5c06aa206a6078 → 11587a78d204406f803ab2649b1df3599c4d8839db540b31053c44b9ee269342。N1 更正：11 是显式声明（handoff.taskPaths 1 条＝output route，与 outputPaths 同值；supportPaths 10 条），不是完整 effectivePaths；生成器展开 before 17 / after 23＝显式 11 + wiring.backendRoutes 13 − 与 taskPath 重复的 mail-queue route 1；wiring.jobs 2 条（registry.ts、deploy/cron.nbshiyan）本已在 supportPaths，不重复计入；output route 只计一次，不是第24条。",
       "派生由正常生成器重建：R1 更新 19 md、M4-T12 任务卡、docs-data.js、dispatch.json、build-manifest/build-state、review 与 evidence-template；未改 task-contracts（范围定义不变）、共享章节、生成器、运行源码/tests/schema/CI内容/生产开关。两个补丁并存：m4t12-scope-20261109.* 保留原记录与五项 pending 快照，m4t12-scope-r1-20261109.* 为本次新增。",
       "R1 命令与状态：begin exit 0；sync exit 0（已同步，待真实复核：M4-T12, M7-T10, M7-T4, M7-T8, M7-T9）；status 显示 sourceVersion 11587a78…、stale=[]、runtimeDrift=[]、blockers=[]；本件为本次 verify 的单任务输入，完整 affected 模板保留在 _run/patches/m4t12-scope-r1-20261109.evidence.json。未跑 PG/SMTP/HTTP/服务/生产操作，未 push/PR。",
-      "B1/N1 定点更正：B1 只改 19:64 末句为“告警调用前按正常 budget deadline 自查，过期则跳过；检查到调用非原子，不承诺 sendMail 的实际起始时刻”，未动 supportPaths/outputPaths/sections/wiring/provides/requires/stage；N1 只更正证据与回执的 effectivePaths 口径，不改注册表或补路径凑数；旧 7 条证据中的 E2/E5 在本件对应条目已更正，其余条目保留。"
+      "B1/N1 定点更正：B1 只改 19:64 末句为“告警调用前按正常 budget deadline 自查，过期则跳过；检查到调用非原子，不承诺 sendMail 的实际起始时刻”，未动 supportPaths/outputPaths/sections/wiring/provides/requires/stage；N1 只更正证据与回执的 effectivePaths 口径，不改注册表或补路径凑数；旧 7 条证据中的 E2/E5 在本件对应条目已更正，其余条目保留。",
+      "P2 scope 独审（数据库审查工程师，2026-11-09）：补丁 b9-m4t12-p2-evidence-support-20261109 仅改 _run/task-contracts.json 的 M4-T12.supportPaths 10→13；原 10 条按序逐字保留，仅追加 tests/evidence/local-smtp.mjs、tests/evidence/mail-cron-tick.sh、tests/evidence/mail-cron-phase.mjs；removed=[]；.github/workflows/ci.yml 仍在第 10 位且不重复；provides/requires/stage/wiring/sections/outputPaths 全等；源码/测试/prisma/deploy/.github/共享章节零差量；effectivePaths baseline 23→26（新增恰为上述 3 条）；一次 sync（created 01:13:02Z / synced 01:14:02Z），baseline 144 契约，sourceVersion 9e0bfd3b…；affected 5（M4-T12、M7-T10/T4/T8/T9）全 todo，无 done 漂移；revalidation.json 仍 {}；task-reviews 其余 138 条与 P1 不变；CI blob 5ed33a43…、PG 25 项、五段 233、manifest 36/6 均未变；R1 方案独审仅为条件通过（F1–F4 实施前必修，未执行特权链），本登记不声称代码/特权链已验。当前契约哈希 6539686e252995da4a30f457cf8cf02c4f89cd660185655ff2d5a9120597cc47。"
     ],
-    "reviewed": "2026-11-09T21:54:10.126360+00:00",
+    "reviewed": "2026-11-10T01:30:06.988055+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
