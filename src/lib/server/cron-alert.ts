@@ -1,6 +1,7 @@
 import type { StepSummary } from './retention';
+import type { AlertResult, AlertWithinOpts } from './mail';
 
-type Send = (kind: string, lines: Record<string, string | number>, dedupeKey: string) => Promise<void>;
+type Send = (kind: string, lines: Record<string, string | number>, dedupeKey: string, opts?: AlertWithinOpts) => Promise<AlertResult | void>;
 type Audit = (e: { action: string; meta: { failed: string[]; skipped: string[]; codes: string[] } }) => Promise<void>;
 
 /** 截断成只含 [A-Za-z0-9_.:-] 的短串，防止错误码里夹带别的内容 */

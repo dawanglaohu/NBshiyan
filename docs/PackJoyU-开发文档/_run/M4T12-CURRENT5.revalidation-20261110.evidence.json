@@ -1,0 +1,68 @@
+{
+  "scope": "task-contract",
+  "tree": {
+    "commit": "d340349f9038ee62b56a326cd027a3df91ca1026",
+    "tree": "3abe615f6efad602c8343adf05a58721cea86d5c",
+    "parent": "d6dac9db24c12fbfe32fc6cba652322aace1ae19",
+    "branch": "task/M4-T12",
+    "sourceVersion": "d1a88493573f90d0491df256e14ea07f431ae5e19b5a4ad1622d84010a427b91"
+  },
+  "generatedAt": "2026-11-10",
+  "tasks": {
+    "M4-T12": {
+      "contractHash": "40cee552c2fd8aaf2e93767a808d8f51cc56bca3682ffa28231cee8506718e40",
+      "verdict": "pass",
+      "evidence": [
+        "固定 d340/tree 3abe615f；在仓库外解包 d340 的 docs 子集并以 d340 自带 maintain_docs.state 重算：M4-T12 contractHash=40cee552c2fd8aaf2e93767a808d8f51cc56bca3682ffa28231cee8506718e40，sourceVersion=d1a88493573f90d0491df256e14ea07f431ae5e19b5a4ad1622d84010a427b91，契约总数 145；与 dispatch.tasks[M4-T12].contractHash 逐位相等。",
+        "19-模块任务拆分.md 的 M4-T12 行 title/module/deps/input/output/accept/est 与契约 context.task 逐字段相等；任务卡 depends_on=[M5-T1,M5-T8]、edges=[E-35,E-41,E-94]、status=todo，与契约一致。",
+        "definition：provides=mail-queue-real-schedule 唯一归属；requires M5-T8 job-foundation 由 M5-T8 provides 提供且在其 deps；E-94/E-35/E-41 文本覆盖每分钟真实 cron、GET/POST 共享租约、通知失败不改变已接收、失败不冒 SENT。",
+        "覆盖链：旧审 6539686e（2026-11-10T01:30:06Z，可在 f531830f 树逐位复现）→ patch.before 7cb67ec8 仅 02-设计/08-后端架构.md、02-设计/09-数据模型.md、04-执行/18-部署与运维.md 三个共享章节摘要变化；patch.before→当前仅 supportPaths 13→14（新增 tests/evidence/mail-evidence.config.ts）与 effectivePaths 26→27，其余 context 逐值相等；旧登记绑定前合并树，不能直接登记当前 hash，本件按当前上下文复核。",
+        "有效范围：14 条 supportPaths 在 d340 树 14/14 存在；新增 tests/evidence/mail-evidence.config.ts 被 .github/workflows/ci.yml:1318 支持文件断言与 :1587/:1591/:1596 三模式实际引用；其余 13 条与 patch.before 逐字相同；effectivePaths 由 taskPaths(1)+supportPaths(14)+wiring(jobs 2/backendRoutes 13) 去重复算=27，与契约逐值相等；该文件亦登记在已落地 M3-T21 supportPaths（共享支持文件，非排他所有权，不构成冲突）。",
+        "章节变更复核：08 jobs 保留 mail-queue 注册句，09 数据模型变更属 M3 hardExpiresAt 与 M5-T12 新表，18 变更属保留批量口径，均不改本任务 cron/CAS/预算/不冒 SENT 条款；五键 revalidation={} 且任务 todo；本证据只登记契约语义，不证实现、CI、GIF 或 landed。"
+      ]
+    },
+    "M7-T10": {
+      "contractHash": "3f6776addb458bfa70a1dfdd04196e8b619650d5169f2bb4802cf1500828b5dc",
+      "verdict": "pass",
+      "evidence": [
+        "固定 d340/tree 3abe615f；仓库外以 d340 自带 maintain_docs.state 重算 M7-T10 contractHash=3f6776addb458bfa70a1dfdd04196e8b619650d5169f2bb4802cf1500828b5dc，与 dispatch.tasks[M7-T10].contractHash 逐位相等；task-reviews 无 M7-T10 记录、revalidation={}，本件为首次完整当前契约复核。",
+        "19-模块任务拆分.md 的 M7-T10 行 title/module/deps/input/output/accept/est 与契约 context.task 逐字段相等；任务卡 depends_on=[M7-T9]、edges=[E-47]、est_days=2、status=todo，与契约一致。",
+        "definition：provides=zod-4-migration 唯一归属；requires M7-T9 delivery-acceptance 由 M7-T9 provides 提供且在其 deps；E-47 文本（伪造产品、超长字段、任意事件类型、重放事件拒绝）覆盖 acceptance 第 2 条。",
+        "输入事实核对：d340 的 package.json 为 zod ^3.25.76；scripts/audit-exceptions.json 仅一条 GHSA-mrhx-c7xc-m3w5（zod，owner Ryan，expires 2026-11-30）；scripts/audit-high-prod.ts 与 tests/contracts-foundation.test.ts 存在，CI .github/workflows/ci.yml:19 实跑 audit-high-prod.ts；该 wrapper 在豁免数为 0 时退化为严格扫描，删除豁免后无需改其语义，与 acceptance 的删除豁免后 audit 通过、2026-11-30 前完成自洽。",
+        "范围覆盖：仓库内 from 'zod' 导入点共 41 个文件（src/app/api 18、src/lib/contracts 7、src/lib/server 14、src/lib/client/api.ts 1、tests 1），41/41 均被 effectivePaths 覆盖；effectivePaths 由 taskPaths(11)+supportPaths(0)+wiring(buildPipeline 8/sharedTypes 2) 去重复算=20，与契约逐值相等；outputPaths 覆盖 package.json、pnpm-lock.yaml、scripts/audit-exceptions.json、src/lib/contracts/、tests/contracts-foundation.test.ts。",
+        "sections [1,2,4,5,6,8,9,10,14,16,17,18] 对应 12 个文件在 d340 全部存在且摘要与当前文件重算一致；分析 issues 无 BLOCK，readiness 仅『任务契约待语义复核』；本证据只登记契约语义，不证迁移已实施或审计已通过。"
+      ]
+    },
+    "M7-T4": {
+      "contractHash": "f449b15d9815e99a52da81d6d696d7948288d202e45025ed78db4b6ce48ee7ce",
+      "verdict": "pass",
+      "evidence": [
+        "固定 d340/tree 3abe615f；仓库外以 d340 自带 maintain_docs.state 重算 M7-T4 contractHash=f449b15d9815e99a52da81d6d696d7948288d202e45025ed78db4b6ce48ee7ce，与 dispatch.tasks[M7-T4].contractHash 逐位相等。",
+        "覆盖链：旧审 eb12bf47（2026-10-22T15:02:58Z，与 M3-T1-security-repair 补丁 after.context 逐值相同，其 sourceInputs 与 context.sections 摘要逐项相等）→当前仅 01-约束/04-开发条件.md、02-设计/07-前端架构.md、02-设计/09-数据模型.md、02-设计/11-UI.md、02-设计/12-UX.md、04-执行/18-部署与运维.md 六个共享章节摘要变化；task/definition/effectivePaths/architecture/design/module/project/handoff/skills/wiring 逐值相等。",
+        "六处章节变更已逐份核对（section-diffs/）：品牌素材、3D 滚轮/焦点矩阵、M3 hardExpiresAt、M5-T12 新表与保留批量、公开品牌布局目标值，均不改变本任务 acceptance 的询盘/聊天闭环、seq 同步、去重与容量降级条款；旧证据『共享章节未改变』对当前树不成立，故按当前上下文重核。",
+        "19-模块任务拆分.md 的 M7-T4 行 title/module/deps/input/output/accept/est 与契约 context.task 逐字段相等；requires M7-T1 visitor-media-acceptance、M4-T6 chat-operator-ui、M4-T7 chat-retention-dryrun-job 均由其 provides 提供且在其 deps；E-16/E-18/E-20/E-31/E-37/E-40 覆盖 POST /api/inquiries、POST /api/chat/conversations、稳定消息 ID、同 UUID 去重、收件与通知独立、拒绝分析仍可咨询与容量开关。",
+        "effectivePaths 由 taskPaths(2) 去重复算=2（docs/acceptance/consultation/、e2e/visitor-consultation-integration.spec.ts），与契约逐值相等；14 个引用章节文件全部存在且摘要与当前文件重算一致；任务 todo、revalidation={}；本证据只登记契约语义，不证实现、真实页面、GIF 或 landed。"
+      ]
+    },
+    "M7-T8": {
+      "contractHash": "8927c5b2927658566c6db304d8a13ef4ec5806f4ec189700dd485b0d691fc6aa",
+      "verdict": "pass",
+      "evidence": [
+        "固定 d340/tree 3abe615f；仓库外以 d340 自带 maintain_docs.state 重算 M7-T8 contractHash=8927c5b2927658566c6db304d8a13ef4ec5806f4ec189700dd485b0d691fc6aa，与 dispatch.tasks[M7-T8].contractHash 逐位相等。",
+        "覆盖链：旧审 194c61e3（2026-10-22T15:02:58Z，与 M3-T1-security-repair 补丁 after.context 逐值相同）→当前仅 01-约束/04-开发条件.md、02-设计/08-后端架构.md、02-设计/09-数据模型.md、04-执行/18-部署与运维.md 四个共享章节摘要变化；task/definition/effectivePaths/architecture/design/module/project/handoff/skills/wiring 逐值相等；四章变更已核对，不改变本任务当前 PR head/base/check、安全批准与来源记录核对条款。",
+        "19-模块任务拆分.md 的 M7-T8 行 title/module/deps/input/output/accept/est 与契约 context.task 逐字段相等；requires M7-T4/M7-T2/M7-T5/M7-T3/M7-T7 各自 provides 提供且在其 deps；E-105 覆盖逐候选实时只读 head/base/check、必需安全批准、来源不明/HEAD 不符不标可合并，以及秘密/受保护备份混入检查。",
+        "effectivePaths 由 taskPaths(1) 去重复算=1（docs/acceptance/provenance/），与契约逐值相等；12 个引用章节文件全部存在且摘要与当前文件重算一致；任务 todo、revalidation={}；本证据只登记契约语义，不证实际 PR/来源清单或 landed。"
+      ]
+    },
+    "M7-T9": {
+      "contractHash": "69cd34cb8406526dce5bafea1d9c3199a5e058be5cf55a944e758a26d7ec7ba8",
+      "verdict": "pass",
+      "evidence": [
+        "固定 d340/tree 3abe615f；仓库外以 d340 自带 maintain_docs.state 重算 M7-T9 contractHash=69cd34cb8406526dce5bafea1d9c3199a5e058be5cf55a944e758a26d7ec7ba8，与 dispatch.tasks[M7-T9].contractHash 逐位相等。",
+        "覆盖链：旧审 b72da8ce（2026-10-22T15:02:58Z，与 M3-T1-security-repair 补丁 after.context 逐值相同）→当前仅 01-约束/04-开发条件.md、02-设计/08-后端架构.md、02-设计/09-数据模型.md、04-执行/18-部署与运维.md 四个共享章节摘要变化；task/definition/effectivePaths/architecture/design/module/project/handoff/skills/wiring 逐值相等；四章变更已核对，不改变隔离构建/导入/schema/备份恢复与同 head 证据汇总条款。",
+        "19-模块任务拆分.md 的 M7-T9 行 title/module/deps/input/output/accept/est 与契约 context.task 逐字段相等；requires M7-T8 provenance-acceptance 与 M3-T21…T25 legacy-*-ui 均由对应任务 provides 提供且在其 deps；E-65 覆盖无可验证备份来源必须未接入、不得以文件存在/计划时间冒充成功，且不新增备份平台。",
+        "effectivePaths 由 taskPaths(2) 去重复算=2（docs/acceptance/delivery/、e2e/delivery-smoke.spec.ts），与契约逐值相等；12 个引用章节文件全部存在且摘要与当前文件重算一致；任务 todo、revalidation={}；本证据只登记契约语义，不证隔离构建/恢复/备份已执行或 landed。"
+      ]
+    }
+  }
+}

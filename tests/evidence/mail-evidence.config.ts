@@ -24,7 +24,7 @@ export default defineConfig({
   projects: [{ name: `mail-${mode}`, use: { viewport, video: { mode: 'on', size: viewport }, screenshot: 'off', trace: 'off' } }],
   webServer: [
     { command: 'node e2e/turnstile-mock.mjs', cwd: sourceRoot, url: 'http://127.0.0.1:3999/health', reuseExistingServer: false },
-    { command: `cd "${active}" && node server.js > /tmp/mail-evidence-server-${mode}.log 2>&1`,
+    { command: `cd "${active}" && env -u NODE_PATH node server.js > /tmp/mail-evidence-server-${mode}.log 2>&1`,
       url: `${baseURL}/en`, timeout: 120_000, reuseExistingServer: false,
       env: { PORT: '3100', HOSTNAME: '127.0.0.1', E2E_SITE_REVALIDATE: '1', AUTH_URL: baseURL, APP_ORIGIN: baseURL } },
   ],

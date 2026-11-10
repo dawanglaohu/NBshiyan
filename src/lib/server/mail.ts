@@ -54,12 +54,34 @@ export async function sendMail(m: Mail): Promise<SendMailResult> {
   }
 }
 
+/** 后台告警结果：sent 已发；skipped 未配置/限流/过期/无收件人；failed 配置非法或发送失败。 */
+export type AlertResult = 'sent' | 'skipped' | 'failed';
+export type AlertWithinOpts = { deadlineAt?: Date };
+
 /** 后台告警：发给 ADMIN_ALERT_EMAIL（没配则 INQUIRY_NOTIFY_EMAIL）。同类告警 30 分钟最多 1 封；告警自身失败只记日志，不再告警。 */
-export async function sendAdminAlert(kind: string, lines: Record<string, string | number>, dedupeKey = kind) {
+export async function sendAdminAlert(
+  kind: string,
+  lines: Record<string, string | number>,
+  dedupeKey = kind,
+  opts: AlertWithinOpts = {},
+): Promise<AlertResult> {
   const to = process.env.ADMIN_ALERT_EMAIL || process.env.INQUIRY_NOTIFY_EMAIL;
-  if (!to) { console.error('[alert] no recipient', kind); return; }
-  if (!(await hitRateLimit(`alert:${dedupeKey}`, 1, 30 * 60_000))) return;
-  try { await sendMail({ to, ...renderAlert(kind, lines) }); } catch (e) { console.error('[alert] send failed', kind, (e as Error).message); }
+  if (!to) { console.error('[alert] no recipient', kind); return 'skipped'; }
+  const expired = () => opts.deadlineAt !== undefined && Date.now() >= opts.deadlineAt.getTime();
+  if (expired()) { console.error('[alert] skipped deadline', kind); return 'skipped'; }
+  if (!(await hitRateLimit(`alert:${dedupeKey}`, 1, 30 * 60_000))) return 'skipped';
+  // 限流等待可能吃掉余量，调用 SMTP 前再确认一次。
+  if (expired()) { console.error('[alert] skipped deadline', kind); return 'skipped'; }
+  try {
+    // 紧接 SMTP 前的第三次检查（限流等待可能刚跨过截止）。
+    if (expired()) { console.error('[alert] skipped deadline', kind); return 'skipped'; }
+    const r = await sendMail({ to, ...renderAlert(kind, lines) });
+    if (!r.sent) { console.info('[alert] skipped smtp_disabled', kind); return 'skipped'; }
+    return 'sent';
+  } catch (e) {
+    console.error('[alert] send failed', kind, (e as Error).message);
+    return 'failed';
+  }
 }
 
 /** 业务通知（中文），后台链接只用 SITE_URL + 内部 id，不带 token */

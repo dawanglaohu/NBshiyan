@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // #74 测试用内存数据库：只实现邮件后端用到的 Prisma 子集（where 支持 AND/OR/in/not/lt/lte/gt/is、null、Date），唯一约束冲突抛 P2002。
 type Row = Record<string, any>;
 const eq = (a: unknown, b: unknown) => (a instanceof Date && b instanceof Date ? a.getTime() === b.getTime() : a === b);
@@ -105,9 +106,52 @@ export function createMailDb(opts: { inquiries?: Row[] } = {}) {
   };
   // 串行化事务：模拟 advisory lock（同一时间只有一个事务在跑）
   let chain: Promise<unknown> = Promise.resolve();
+  // 只服务 mail-queue 旧路由单元测试的最小 JobState 语义；真实租约/预算由 PG 集成测试覆盖。
+  const jobState: Row[] = [];
+  const siteSettings: Row[] = [];
+  const view = (row: Row) => ({
+    generation: row.generation, lastStatus: row.lastStatus,
+    lastStartedAt: row.lastStartedAt ?? null, lastFinishedAt: row.lastFinishedAt ?? null,
+    lastSucceededAt: row.lastSucceededAt ?? null, lockedUntil: row.lockedUntil ?? null,
+    lastErrorCode: row.lastErrorCode ?? null, summary: row.summary ?? null,
+  });
   const db: Row = {
     mailMessage, inquiry,
     async $queryRawUnsafe(sql: string) { calls.push(sql.includes('pg_advisory_xact_lock') ? 'advisory_lock' : 'raw'); return [{ ok: '' }]; },
+    async $queryRaw(strings: TemplateStringsArray, ...values: unknown[]) {
+      const sql = strings.join('?');
+      const plain = (v: unknown): unknown => (v && typeof v === 'object' && 'values' in v
+        ? (v as { values: unknown[] }).values[0]
+        : v);
+      if (sql.includes('INSERT INTO "JobState"')) {
+        const key = String(plain(values[0])); const owner = String(plain(values[1])); const lockedUntil = String(plain(values[2]));
+        let row = jobState.find((r) => r.key === key);
+        if (!row) { row = { key, generation: 0 }; jobState.push(row); }
+        row.generation += 1; row.leaseOwner = owner; row.lockedUntil = lockedUntil;
+        row.lastStatus = 'RUNNING'; row.lastStartedAt = lockedUntil; row.lastFinishedAt = null; row.lastSucceededAt = null;
+        return [view(row)];
+      }
+      if (sql.includes('SELECT "generation" FROM "JobState"')) {
+        return jobState.map((r) => ({ generation: r.generation }));
+      }
+      if (sql.includes('UPDATE "JobState"')) {
+        const row = jobState[0];
+        if (!row) return [];
+        row.lastStatus = values.includes('SUCCEEDED') ? 'SUCCEEDED' : 'FAILED';
+        row.lockedUntil = null; row.lastFinishedAt = new Date().toISOString();
+        if (row.lastStatus === 'SUCCEEDED') row.lastSucceededAt = row.lastFinishedAt;
+        return [view(row)];
+      }
+      if (sql.includes('INSERT INTO "SiteSetting"')) {
+        const initial = { version: 0, timezone: 'UTC', timezoneRevision: 1, changedAt: new Date().toISOString(), updatedBy: null };
+        siteSettings.push({ key: String(plain(values[0])), value: initial });
+        return [{ value: initial }];
+      }
+      if (sql.includes('FROM "SiteSetting"')) return siteSettings.filter((r) => values.includes(r.key)).map((r) => ({ value: r.value }));
+      return [];
+    },
+    async $executeRaw() { return 0; },
+    async $executeRawUnsafe() { return 0; },
     async $transaction(fn: (tx: unknown) => Promise<unknown>) {
       const run = chain.then(() => fn(db));
       chain = run.catch(() => undefined);
