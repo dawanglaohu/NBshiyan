@@ -15,6 +15,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -35,6 +42,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -55,6 +69,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -75,6 +96,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -95,6 +123,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -115,6 +150,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -135,6 +177,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -155,6 +204,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -175,6 +231,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -195,6 +258,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -215,6 +285,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -235,6 +312,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -255,6 +339,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -275,6 +366,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -295,6 +393,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -315,6 +420,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -335,6 +447,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -355,6 +474,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -375,6 +501,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -395,6 +528,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -415,6 +555,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -435,6 +582,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -455,6 +609,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -475,6 +636,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -495,6 +663,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -515,6 +690,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -535,6 +717,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -555,6 +744,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -575,6 +771,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -595,6 +798,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -615,6 +825,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -635,6 +852,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -655,6 +879,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -675,6 +906,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -695,6 +933,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "providers"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -715,6 +960,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -735,6 +987,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -755,6 +1014,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -775,6 +1041,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -795,6 +1068,29 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M2-T7": {
+    "contractHash": "35f889f668bd63f9d4b4cfa6439e1a5aebcec70ccb4ab7b8d04ca2317fe5f4a6",
+    "patches": [
+      {
+        "changedFields": [
+          "definition",
+          "effectivePaths",
+          "sections:02-设计/10-接口约定.md",
+          "task"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -815,6 +1111,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -835,6 +1138,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -855,6 +1165,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -875,6 +1192,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -895,6 +1219,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -915,6 +1246,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -935,6 +1273,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -955,6 +1300,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -975,6 +1327,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -995,6 +1354,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1015,6 +1381,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1035,6 +1408,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1055,6 +1435,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1075,6 +1462,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1090,6 +1484,15 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "definition",
+          "effectivePaths",
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1110,6 +1513,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1130,6 +1540,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1150,6 +1567,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1170,6 +1594,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1190,6 +1621,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1210,6 +1648,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1230,6 +1675,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1250,6 +1702,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1270,6 +1729,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1290,6 +1756,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1310,6 +1783,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1330,6 +1810,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1350,6 +1837,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1370,6 +1864,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1390,6 +1891,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1410,6 +1918,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1430,6 +1945,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1450,6 +1972,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1470,6 +1999,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1490,6 +2026,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1510,6 +2053,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1530,6 +2080,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1550,6 +2107,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1570,6 +2134,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1590,6 +2161,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1610,6 +2188,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1630,6 +2215,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1650,6 +2242,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1670,6 +2269,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1690,6 +2296,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1710,6 +2323,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1730,6 +2350,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1750,6 +2377,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1770,6 +2404,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1790,6 +2431,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1810,6 +2458,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1830,6 +2485,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1850,6 +2512,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1870,6 +2539,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1890,6 +2566,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1910,6 +2593,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
@@ -1930,6 +2620,13 @@
         ],
         "patch": "b9-m5t4-scope-20261109",
         "sourceVersion": "7d237e695de1bead3a95b06eb84d6856004c798d0d19fe60b6ebfdfbb99a4836"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/10-接口约定.md"
+        ],
+        "patch": "b9-m5t4-scope-20261109",
+        "sourceVersion": "80ea989f65c057477ae82d930dd751d7ceff3cde06c814d25032b950387d32b3"
       }
     ],
     "previousStatus": "done"
