@@ -1140,7 +1140,7 @@ jobs:
           console.log(JSON.stringify({ preparedRealModes: ['http', 'off'], source, modeManifests: modes, businessCredentialsUsed: false }));
           PREPARE
       - name: Isolated TLS SMTP integration
-        timeout-minutes: 20
+        timeout-minutes: 27
         shell: bash
         run: |
           set -- integration "$GITHUB_WORKSPACE" "$GITHUB_WORKSPACE/tests/evidence/local-smtp.mjs"
@@ -1470,11 +1470,14 @@ jobs:
           activate_build off
           probe_modules off
           node "$smtp_script" exec --root "$root" --mode off -- pnpm exec playwright test --config tests/evidence/mail-evidence.config.ts
+          # P2: the namespace setup already started the root tick; phase seeds one due row,
+          # restarts the http-real artifact, arms one tick and asserts SENT / JobState / sink.
+          node "$smtp_script" exec --root "$root" --mode http-real -- node tests/evidence/mail-cron-phase.mjs --report "$report_dir/admin-legacy-inquiries-mail-cron.json"
           DRIVER
           chmod 600 "$root/driver.sh"
           # PID 1 owns the lifetime. Parent stdin EOF, a deadline, signal or driver failure ends that PID namespace.
           # Kernel namespace teardown also covers detached PostgreSQL daemons; traps remain for graceful file cleanup only.
-          namespace_budget=18m
+          namespace_budget=23m
           [[ "$mode" == preflight-only ]] && namespace_budget=3m
           timeout --signal=TERM --kill-after=10s "$namespace_budget" node "$smtp_script" namespace-launch --root "$root" --project "$project" --scenario "$mode" --report-dir "$report_dir"
       - name: Cleanup owned private fixture
