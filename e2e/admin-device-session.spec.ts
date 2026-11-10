@@ -4,7 +4,7 @@ import type { APIRequestContext, APIResponse } from '@playwright/test';
 import { encode } from 'next-auth/jwt';
 import { authenticator } from 'otplib';
 import { test, expect } from './fixtures';
-import { BASE } from '../playwright.config';
+import { BASE } from './base-url';
 import { encrypt, hashSecret } from '../src/lib/server/admin/crypto';
 import { revokeUserDevices } from '../src/lib/server/admin/device-repo';
 import { AccountDTOSchema } from '../src/lib/contracts/account';
