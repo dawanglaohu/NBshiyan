@@ -4,6 +4,7 @@ import { request } from '@playwright/test';
 import { loadRunAuth } from './run-auth';
 import type { Browser, BrowserContext, Page, TestInfo } from '@playwright/test';
 import { test, expect } from './fixtures';
+import { trustedEdgeHeaders, type EdgeTestSite } from './edge-test-ip';
 // 与 playwright.config.ts 的 `E2E_PORT ?? 3100` 一致；不 import 该 config，也不 import 会间接
 // 加载它的 shared-admin，避免本机/收集时触发 standalone 产物前置（CI 仍由真实 config 的
 // webServer 起同一端口的服务）；认证状态只由 run-auth 的正常登录初始化。
@@ -71,7 +72,8 @@ async function contextFor(browser: Browser, state: SessionState, testInfo: TestI
 }
 
 /** 通过前台三步表单真实 POST /api/inquiries，读取真实响应里的 ref。 */
-async function createSyntheticInquiry(page: Page, tag: string): Promise<string> {
+async function createSyntheticInquiry(page: Page, tag: string, site: EdgeTestSite): Promise<string> {
+  await page.context().setExtraHTTPHeaders(trustedEdgeHeaders(site));
   await page.goto(`${BASE}/en/contact`);
   await page.getByRole('button', { name: 'Next' }).click();
   await page.getByRole('button', { name: 'Next' }).click();
@@ -347,7 +349,7 @@ test.describe('M3-T21 询盘/邮件视觉迁移（ADMIN 整组一次登录）', 
     const r = report();
     r.refTag = tag;
     stage('create-synthetic');
-    const ref = await createSyntheticInquiry(page, tag);
+    const ref = await createSyntheticInquiry(page, tag, 'admin-legacy:list-flow');
     r.refPattern = /^PJ-/.test(ref);
     stage('list-filters');
     const gets: string[] = [];
@@ -605,7 +607,7 @@ test.describe('M3-T21 询盘/邮件视觉迁移（ADMIN 整组一次登录）', 
     // 先由本用例真实建一条合成询盘，拿它自己的 ref；三尺寸都只进入这条记录，不点任意首行。
     stage('create-synthetic');
     const tag = `m3t21-form-${Date.now()}`;
-    const ref = await createSyntheticInquiry(page, tag);
+    const ref = await createSyntheticInquiry(page, tag, 'admin-legacy:form-density');
     out.refPattern = /^PJ-/.test(ref);
     for (const view of [{ width: 1920, height: 1080, label: '1920x1080', touch: false }, { width: 1440, height: 900, label: '1440x900', touch: false }, { width: 390, height: 844, label: '390x844', touch: true }]) {
       stage(`viewport:${view.label}`);
@@ -749,7 +751,7 @@ test.describe('M3-T21 询盘/邮件视觉迁移（ADMIN 整组一次登录）', 
     try {
       const adminPage = await adminCtx.newPage();
       const tag = `m3t21-sales-${Date.now()}`;
-      const ref = await createSyntheticInquiry(adminPage, tag);
+      const ref = await createSyntheticInquiry(adminPage, tag, 'admin-legacy:sales-404-403');
       r.refPattern = /^PJ-/.test(ref);
       await adminPage.goto(`${BASE}/admin/inquiries?q=${encodeURIComponent(ref)}`);
       await expect(adminPage.locator('.inq-list > .adm-card')).toBeVisible();
@@ -842,7 +844,7 @@ test.describe('M3-T21 询盘/邮件视觉迁移（ADMIN 整组一次登录）', 
       return { name, width: size.width, height: size.height };
     };
     const tag = `m3t21-err-${Date.now()}`;
-    const ref = await createSyntheticInquiry(page, tag);
+    const ref = await createSyntheticInquiry(page, tag, 'admin-legacy:error-400');
     // createSyntheticInquiry 结束时仍在 /en/contact 成功页：先真实进入后台列表再操作。
     await page.goto(`${BASE}/admin/inquiries`);
     await expect(page.locator('.inq-list > .adm-card')).toBeVisible();
@@ -995,9 +997,9 @@ test.describe('M3-T21 询盘/邮件视觉迁移（ADMIN 整组一次登录）', 
       return href!.split('/').pop()!;
     };
     const tag = `m3t21-anon-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-    const refA = await createSyntheticInquiry(page, tag);
+    const refA = await createSyntheticInquiry(page, tag, 'admin-legacy:anon-a');
     const tagB = `m3t21-anon-ctl-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-    const refB = await createSyntheticInquiry(page, tagB);
+    const refB = await createSyntheticInquiry(page, tagB, 'admin-legacy:anon-b');
     const emailA = `qa-${tag}@acme-test.com`;
     const emailB = `qa-${tagB}@acme-test.com`;
     const idA = await idByRef(refA);
@@ -1174,7 +1176,7 @@ test.describe('M3-T21 询盘/邮件视觉迁移（ADMIN 整组一次登录）', 
       };
       // 每个视口各自新建本视口自己的目标，避免复用同一记录导致“选当前值不发 PATCH”。
       const tag = `m3t21-flow-${v.label}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-      const ref = await createSyntheticInquiry(page, tag);
+      const ref = await createSyntheticInquiry(page, tag, 'admin-legacy:flow-views');
       await page.goto(`${BASE}/admin/inquiries?q=${encodeURIComponent(ref)}`);
       await expect(page.locator('.inq-list > .adm-card')).toBeVisible();
       const row = page.locator('.inq-list tbody tr.row').filter({ has: page.locator(`a:has-text("${ref}")`) });

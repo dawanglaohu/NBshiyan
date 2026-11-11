@@ -505,7 +505,17 @@
       "wiring": [
         "frontendRoutes"
       ],
-      "supportPaths": [],
+      "supportPaths": [
+        ".github/workflows/ci.yml",
+        "e2e/admin-legacy-inquiries-visual.spec.ts",
+        "e2e/edge-test-ip.ts",
+        "e2e/global-setup.ts",
+        "e2e/product-cards.spec.ts",
+        "e2e/run-auth.ts",
+        "playwright.config.ts",
+        "scripts/e2e-edge-auth.ts",
+        "tests/e2e-run-auth.test.ts"
+      ],
       "outputPaths": [
         "src/components/inquiry/",
         "src/components/quote/",

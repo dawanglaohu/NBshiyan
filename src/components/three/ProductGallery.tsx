@@ -7,6 +7,7 @@ import type { BoxView } from './FoldBox';
 import SceneErrorBoundary from './SceneErrorBoundary';
 import { hintText, COARSE_QUERY } from './hint';
 import AddToQuoteButton from '@/components/quote/AddToQuoteButton';
+import InquireProductLink from '@/components/quote/InquireProductLink';
 import { Link } from '@/i18n/navigation';
 import { controlCopy, createModelPointerState, reduceModelPointer, shouldAutoRotate, wheelAdmission } from '@/lib/three/model-pointer';
 import { accessibilityCopy, keyToCameraCommand, TOUCH_TARGET_PX } from '@/lib/three/model-accessibility';
@@ -58,7 +59,7 @@ function CatalogLink({ href, className, testId, children }: { href: string; clas
   return <Link href={href} className={className} data-testid={testId}>{children}</Link>;
 }
 
-type Labels = { learnMore: string; specsLabel: string; tap: string; drag: string; loading: string; add: string; details: string; done: string; views: Record<BoxView, string>; viewsLabel: string };
+type Labels = { learnMore: string; specsLabel: string; tap: string; drag: string; loading: string; add: string; inquire?: string; details: string; done: string; views: Record<BoxView, string>; viewsLabel: string };
 
 export default function ProductGallery({ items, labels, onModelResult }: { items: Item[]; labels: Labels; onModelResult?: (result: ModelLoadResult) => void }) {
   const locale = useLocale();
@@ -461,6 +462,7 @@ export default function ProductGallery({ items, labels, onModelResult }: { items
               )}
               <div className="actions">
                 <AddToQuoteButton slug={p.slug} />
+                <InquireProductLink slug={p.slug} name={p.name} label={labels.inquire ?? labels.add} />
                 {linked && <CatalogLink href={catalogHref} className="category-link" testId="category-link">{labels.learnMore}<span className="sr-only"> {p.name}</span></CatalogLink>}
               </div>
             </div>

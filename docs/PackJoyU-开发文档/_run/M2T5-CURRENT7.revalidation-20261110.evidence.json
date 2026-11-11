@@ -1,0 +1,75 @@
+{
+  "scope": "task-contract",
+  "object": {
+    "head": "a866d10f6371b4b0ea967ac0131b2608a907fff5",
+    "tree": "b3b9e6a2657b2d11e8a95ca5fbd787784916ebca",
+    "sourceVersion": "444322090043083fdbf4015dca9073fa75154602b40eaeb5bec78eb814b279c3",
+    "note": "Draft for the next authorized write window; not registered. contractHash values are a866 dispatch.tasks[].contractHash. Any subsequent commit invalidates them."
+  },
+  "tasks": {
+    "M2-T5": {
+      "contractHash": "e68e61d7f6f9eeeccd5c92d45dc4a57132fb24cc6b3dfee6c1695af78c6556f6",
+      "verdict": "pass",
+      "evidence": [
+        "固定 a866d10f/tree b3b9e6a2：M2-T5 契约条目（provides/requires/stage/wiring/supportPaths/outputPaths/sections）与 13a1 逐值相等；supportPaths 5 条即 13a1 补丁已登记项；与 main 仅 supportPaths 不同。",
+        "任务卡相对 13a1 仅 4 行 +4/−4（CI 计数/测试与证据口径/已知验证边界），验收标准与边界段落未动；front matter status 仍 todo。",
+        "六例证据绑定测试头 13a1／应用载体 cf97（6/6、首次 ACL EPERM 单列），A3 收集 239/208 亦在 13a1；13a1→a866 的 11 个源逐 blob 相同（本审复算），可按同源复用，但未在 a866 重跑。",
+        "当前 hash e68e61d7… 相对 13a1 的 5d13c343… 的变化实因是 main 合并带入的共享章节 09-数据模型/18-部署与运维 内容变化（context.sections 摘要），本任务自身定义未变；a866 真实 CI 与 GIF 绑定未完成，本证据不称其已验收。"
+      ]
+    },
+    "M2-T8": {
+      "contractHash": "d16525d8dbd596a4580095879fdbe21bd9f5bfdba81822c2c16e3ff3d634a82f",
+      "verdict": "pass",
+      "evidence": [
+        "固定 a866：M2-T8 契约条目与 13a1、main 均逐值相等（provides/requires/stage/wiring/supportPaths/outputPaths/sections）；任务卡 blob 与 13a1 相同，定义/验收/边界/有效范围/依赖无变化。",
+        "当前 hash 由 13a1 的 4ba64e8d… 变为 d16525d8… 的实因：共享章节 09-数据模型/18-部署与运维 在 main 合并后内容变化，且 providers 链含 M2-T5（祖先链 M2-T5），按 handoff_contract.py:327-342 传播；本任务未新增义务。",
+        "任务状态 todo 不构成本 task-contract 语义复核失败；本证据只登记契约语义，不宣称实现或整项运行验收。"
+      ]
+    },
+    "M7-T1": {
+      "contractHash": "00a953b99d607071a99018c891c0c443144af15183ee3f720dee76269d302bef",
+      "verdict": "pass",
+      "evidence": [
+        "固定 a866：M7-T1 契约条目与 13a1、main 均逐值相等；任务卡 blob 与 13a1 相同，定义/验收/边界/有效范围/依赖无变化。",
+        "当前 hash 由 13a1 的 49eb4635… 变为 00a953b9… 的实因：共享章节 09-数据模型/18-部署与运维 内容变化，且 providers 链含 M2-T5（祖先链 M2-T8→M2-T5），按 handoff_contract.py:327-342 传播；本任务未新增义务。",
+        "任务状态 todo 不构成本 task-contract 语义复核失败；本证据只登记契约语义，不宣称实现或整项运行验收。"
+      ]
+    },
+    "M7-T4": {
+      "contractHash": "4853317eecbb0bc530ba9bb603d76985efbe0481abf9d7213177203b1ffa6e53",
+      "verdict": "pass",
+      "evidence": [
+        "固定 a866：M7-T4 契约条目与 13a1、main 均逐值相等；任务卡 blob 与 13a1 相同，定义/验收/边界/有效范围/依赖无变化。",
+        "当前 hash 由 13a1 的 6dbe1fb5… 变为 4853317e… 的实因：共享章节 09-数据模型/18-部署与运维 内容变化，且 providers 链含 M2-T5（祖先链 M7-T1→M2-T8→M2-T5），按 handoff_contract.py:327-342 传播；本任务未新增义务。",
+        "任务状态 todo 不构成本 task-contract 语义复核失败；本证据只登记契约语义，不宣称实现或整项运行验收。"
+      ]
+    },
+    "M7-T8": {
+      "contractHash": "59d5e64f048f98865875ead5df8545401bd03ef9101df5b10e1526efb15f182c",
+      "verdict": "pass",
+      "evidence": [
+        "固定 a866：M7-T8 契约条目与 13a1、main 均逐值相等；任务卡 blob 与 13a1 相同，定义/验收/边界/有效范围/依赖无变化。",
+        "当前 hash 由 13a1 的 cf5c12d3… 变为 59d5e64f… 的实因：共享章节 08-后端架构/09-数据模型/18-部署与运维 内容变化，且 providers 链含 M2-T5（祖先链 M7-T4→M7-T1→M2-T8→M2-T5），按 handoff_contract.py:327-342 传播；本任务未新增义务。",
+        "任务状态 todo 不构成本 task-contract 语义复核失败；本证据只登记契约语义，不宣称实现或整项运行验收。"
+      ]
+    },
+    "M7-T9": {
+      "contractHash": "50a5704f4fd845e074ccf563844af591986b80263f5e10986d00eda33d62eac5",
+      "verdict": "pass",
+      "evidence": [
+        "固定 a866：M7-T9 契约条目与 13a1、main 均逐值相等；任务卡 blob 与 13a1 相同，定义/验收/边界/有效范围/依赖无变化。",
+        "当前 hash 由 13a1 的 26144312… 变为 50a5704f… 的实因：共享章节 08-后端架构/09-数据模型/18-部署与运维 内容变化，且 providers 链含 M2-T5（祖先链 M7-T8→M7-T4→M7-T1→M2-T8→M2-T5），按 handoff_contract.py:327-342 传播；本任务未新增义务。",
+        "任务状态 todo 不构成本 task-contract 语义复核失败；本证据只登记契约语义，不宣称实现或整项运行验收。"
+      ]
+    },
+    "M7-T10": {
+      "contractHash": "05e673929edddc931bfb99c0f23017bdf40dfe09b29a8d53054f56cc488e396b",
+      "verdict": "pass",
+      "evidence": [
+        "固定 a866：M7-T10 契约条目与 13a1、main 均逐值相等；任务卡 blob 与 13a1 相同，定义/验收/边界/有效范围/依赖无变化。",
+        "当前 hash 由 13a1 的 c4bcf8b4… 变为 05e67392… 的实因：共享章节 08-后端架构/09-数据模型/18-部署与运维 内容变化，且 providers 链含 M2-T5（祖先链 M7-T9→M7-T8→M7-T4→M7-T1→M2-T8→M2-T5），按 handoff_contract.py:327-342 传播；本任务未新增义务。",
+        "M7-T10 在 main 无评审记录，13a1 侧记录出生即 stale；本次为当前契约的新语义复核，不是旧记录改写。任务状态 todo 不构成失败；本证据只登记契约语义，不宣称实现或整项运行验收。"
+      ]
+    }
+  }
+}
