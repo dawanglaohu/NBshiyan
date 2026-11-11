@@ -2549,6 +2549,7 @@
         "tests/analytics-aggregate-plan.test.ts",
         "tests/jobs-runtime.http.test.ts",
         "tests/operations-mail-switch.test.ts",
+        "tests/mail-queue-schedule.integration.test.ts",
         "tests/analytics-settings.db.test.ts",
         "tests/analytics-aggregate.db.test.ts",
         ".github/workflows/ci.yml",

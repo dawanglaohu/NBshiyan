@@ -61,6 +61,22 @@ const requireDb = (): PrismaClient => {
   if (!db) assert.fail('M4-T12 集成验收必须连真实 PostgreSQL：M4T12_TEST_DATABASE_URL 未设置');
   return db;
 };
+
+/**
+ * 只为需要 operations 真正执行 mail-queue 的正向/失败映射用例临时打开邮件开关，
+ * 完整包住异步调用；finally 恢复原值或未设置状态。CI 默认 off 不受影响。
+ */
+async function withMailApiHttp<T>(fn: () => Promise<T>): Promise<T> {
+  const previous = process.env.NEXT_PUBLIC_ADMIN_MAIL;
+  process.env.NEXT_PUBLIC_ADMIN_MAIL = 'http';
+  try {
+    return await fn();
+  } finally {
+    if (previous === undefined) delete process.env.NEXT_PUBLIC_ADMIN_MAIL;
+    else process.env.NEXT_PUBLIC_ADMIN_MAIL = previous;
+  }
+}
+
 const cfg = (smtpConfig(ENV) as { ok: true; cfg: SmtpConfig }).cfg;
 
 type FakeAdapter = { sent: OutboundMail[]; api: MailSendAdapter };
@@ -407,10 +423,10 @@ describe('M4-T12 mail queue（真实 PG）', { concurrency: false, skip, timeout
     const services = createMailQueueJob({ db: requireDb(), clock: () => new Date(NOW), getAdapter: async () => adapter.api, env: ENV });
     const registry = { has: (k: string) => k === 'mail-queue', keys: () => ['mail-queue' as const], run: (_k: string, context: never) => services.run(context) };
     const handler = createOperationsHandler({ services: registry as never, clock: () => new Date(NOW), secret: 'c'.repeat(40) });
-    const res = await handler(new Request('http://127.0.0.1:3000/api/admin/cron/operations', {
+    const res = await withMailApiHttp(() => handler(new Request('http://127.0.0.1:3000/api/admin/cron/operations', {
       method: 'POST', headers: { authorization: `Bearer ${'c'.repeat(40)}`, 'content-type': 'application/json' },
       body: JSON.stringify({ jobKey: 'mail-queue' }),
-    }));
+    })));
     assert.equal(res.status, 200);
     const body = await res.json() as { jobKey: string; status: string; counts: Record<string, number> };
     assert.equal(body.jobKey, 'mail-queue');
@@ -471,11 +487,11 @@ describe('M4-T12 mail queue（真实 PG）', { concurrency: false, skip, timeout
         run: (_k: string, ctx: never) => job.run(ctx),
       };
       const handler = createOperationsHandler({ services: services as never, clock: () => new Date(NOW), secret: 'c'.repeat(40) });
-      const res = await handler(new Request('http://127.0.0.1:3000/api/admin/cron/operations', {
+      const res = await withMailApiHttp(() => handler(new Request('http://127.0.0.1:3000/api/admin/cron/operations', {
         method: 'POST',
         headers: { authorization: `Bearer ${'c'.repeat(40)}`, 'content-type': 'application/json' },
         body: JSON.stringify({ jobKey: 'mail-queue' }),
-      }));
+      })));
       assert.equal(res.status, 500);
       assert.deepEqual(await res.json(), { error: 'job_failed' });
       const state = await requireDb().jobState.findUniqueOrThrow({ where: { key: MAIL_QUEUE_KEY } });
@@ -868,12 +884,14 @@ describe('P2 error propagation（无库假 db）', { concurrency: false }, () =>
     };
     const outcome = await executeJobRequest({ services: services as never, clock: () => new Date(), deadlineMs: 5_000 }, MAIL_QUEUE_KEY);
     assert.equal(outcome.kind, 'failed');
+    const priorSwitch = process.env.NEXT_PUBLIC_ADMIN_MAIL;
     const handler = createOperationsHandler({ services: services as never, clock: () => new Date(), secret: 'c'.repeat(40) });
-    const res = await handler(new Request('http://127.0.0.1:3000/api/admin/cron/operations', {
+    const res = await withMailApiHttp(() => handler(new Request('http://127.0.0.1:3000/api/admin/cron/operations', {
       method: 'POST',
       headers: { authorization: `Bearer ${'c'.repeat(40)}`, 'content-type': 'application/json' },
       body: JSON.stringify({ jobKey: 'mail-queue' }),
-    }));
+    })));
+    assert.equal(process.env.NEXT_PUBLIC_ADMIN_MAIL, priorSwitch, '邮件开关应在调用后恢复');
     assert.equal(res.status, 500);
     assert.deepEqual(await res.json(), { error: 'job_failed' });
   });
@@ -896,11 +914,11 @@ describe('P2 error propagation（无库假 db）', { concurrency: false }, () =>
       run: (_k: string, ctx: never) => job.run(ctx),
     };
     const handler = createOperationsHandler({ services: services as never, clock: () => new Date(), secret: 'c'.repeat(40) });
-    const res = await handler(new Request('http://127.0.0.1:3000/api/admin/cron/operations', {
+    const res = await withMailApiHttp(() => handler(new Request('http://127.0.0.1:3000/api/admin/cron/operations', {
       method: 'POST',
       headers: { authorization: `Bearer ${'c'.repeat(40)}`, 'content-type': 'application/json' },
       body: JSON.stringify({ jobKey: 'mail-queue' }),
-    }));
+    })));
     assert.equal(res.status, 500);
     assert.deepEqual(await res.json(), { error: 'job_failed' });
     assert.ok(rawCalls >= 3, 'claim 后失败登记被尝试一次且未确认');
