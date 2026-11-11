@@ -1477,13 +1477,15 @@
   },
   "M7-T10": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "2a5256dedca156c67532cf64e48f57e0d179ebcd05853d4368f3ec804c7dde12",
+    "contractHash": "4bb7e85c7b1568bd2d58992709944e7efb73f8e34a75076581e8578423bbea17",
     "evidence": [
-      "固定对象：L bed4436b7bb26d67583373c24777eb2953f19cc3 / tree ace1e3fc305c882758b406ffb2cd00d5012aea0c / 唯一父 K 81cdb260224d359bb04bb6d35306c2e944a6958f；task/M5-T4 工作树 clean；本登记只写本补丁证据、task-reviews 与正常派生，不改 task-contracts.json、任务状态、源码/测试/CI/包锁/schema 与生成器。",
-      "本键为传播变更：契约对象在 K→L 逐字节相同（对象摘要 bdc7f1a19e99e2a8 = bdc7f1a19e99e2a8）；provides=1/requires=1/sections=12/supportPaths=0/outputPaths=5 全为原值；当前契约 hash 2a5256dedca156c67532cf64e48f57e0d179ebcd05853d4368f3ec804c7dde12 变化仅因依赖闭包含 M5-T4（经 M7-T9 → M3-T25 → M5-T10 → M5-T4），能力与接口未变。",
-      "范围限定：本记录只是 L 当前契约语义复核，不证明该任务已实现、不改变其 todo/status；M5-T4 亦不证明真实 PG 用例 15./16. 通过、不证明新 CI 转绿；未重验 P2/O1 或旧 43，未顺手清理既有 stale。"
+      "固定对象：N 35b748a5496e1fb9168f33bd7f088dd611de7a5d / tree 2b8dd7f715e13087b255cac6d4d06d5520321116 / 两父 M 4a9dcdd8b28752f66da7d109670a502f262c4dfa + main 7dd1ad76b766f7e031686c65aa48254e3012cba0；task/M5-T4 工作树 status --untracked-files=all 0 行；compiler 419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68；本条只登记联合契约语义，不改源码、任务状态、其他键或派生物。",
+      "契约对象与 M 侧逐字节相同（context 摘要 07af441451b5d720cc4b13c0511f126ae23a4c463f4e45445d5648c639170e5e；definition/stage/supportPaths/outputPaths/wiring 全为原值）；联合后 hash 由 M 2a5256dedca156c67532cf64e48f57e0d179ebcd05853d4368f3ec804c7dde12 与 main/H2 aca31dbc064659cfc7f4d6cd785b31526a292cc4db97592bc737ad426283838d 合成为 4bb7e85c7b1568bd2d58992709944e7efb73f8e34a75076581e8578423bbea17，变化仅来自提供方传播：闭包 85 个祖先在 M 与 main 两侧 hash 全部不同（含 M5-T4、M2-T5），条款未新增。",
+      "新增联合范围核验：requires 逐条能力唯一提供方且等于所引任务、且都在依赖闭包内——M7-T9/delivery-acceptance；自身 provides zod-4-migration 唯一归属本任务（True）；闭包 85 个祖先含 M5-T4=True 与 M2-T5=True；联合未新增能力/前置，无「联合新增范围无主或缺失」，与 review.json block=0 相符。",
+      "既有证据继承：M 侧记录 hash 2a5256dedca156c67532cf64e48f57e0d179ebcd05853d4368f3ec804c7dde12、reviewed 2026-11-11T05:34:58.660575+00:00、pass、evidence 3 条；main/H2 侧记录 hash aca31dbc064659cfc7f4d6cd785b31526a292cc4db97592bc737ad426283838d、reviewed 2026-11-10T16:59:58.469709+00:00、pass、evidence 3 条；两侧记录针对的契约对象与本条逐字节相同，故沿用其条款级结论，仅补联合传播后的重新绑定，不重做未来整任务验收。",
+      "范围限定：本记录只证「联合契约语义与支持域可登记」，不证明 M7-T10 的业务验收已实现；任务状态未由本记录改动（契约载荷不含 status 字段；M5-T4 仍 todo，本三条不因本条变 done），有效产出路径均已在树中存在；未重跑任何测试/CI/旧套件，未清理既有 19 条 stale，未把 hash 变化本身当通过依据。"
     ],
-    "reviewed": "2026-11-11T05:34:58.660575+00:00",
+    "reviewed": "2026-11-11T09:56:25.565756+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -1561,25 +1563,29 @@
   },
   "M7-T8": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "1c72b54ed835ea41ac20e0d07322f4bdb6c3392d11c5a97cef5df7e0239b967e",
+    "contractHash": "f94ec85142c94ff600bdd221f20fa3eaf77e31c41c4598eaea431d21004e39ea",
     "evidence": [
-      "固定对象：L bed4436b7bb26d67583373c24777eb2953f19cc3 / tree ace1e3fc305c882758b406ffb2cd00d5012aea0c / 唯一父 K 81cdb260224d359bb04bb6d35306c2e944a6958f；task/M5-T4 工作树 clean；本登记只写本补丁证据、task-reviews 与正常派生，不改 task-contracts.json、任务状态、源码/测试/CI/包锁/schema 与生成器。",
-      "本键为传播变更：契约对象在 K→L 逐字节相同（对象摘要 4833dd0b4dc1e334 = 4833dd0b4dc1e334）；provides=1/requires=5/sections=12/supportPaths=0/outputPaths=1 全为原值；当前契约 hash 1c72b54ed835ea41ac20e0d07322f4bdb6c3392d11c5a97cef5df7e0239b967e 变化仅因依赖闭包含 M5-T4（经 M7-T3 → M5-T10 → M5-T4），能力与接口未变。",
-      "范围限定：本记录只是 L 当前契约语义复核，不证明该任务已实现、不改变其 todo/status；M5-T4 亦不证明真实 PG 用例 15./16. 通过、不证明新 CI 转绿；未重验 P2/O1 或旧 43，未顺手清理既有 stale。"
+      "固定对象：N 35b748a5496e1fb9168f33bd7f088dd611de7a5d / tree 2b8dd7f715e13087b255cac6d4d06d5520321116 / 两父 M 4a9dcdd8b28752f66da7d109670a502f262c4dfa + main 7dd1ad76b766f7e031686c65aa48254e3012cba0；task/M5-T4 工作树 status --untracked-files=all 0 行；compiler 419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68；本条只登记联合契约语义，不改源码、任务状态、其他键或派生物。",
+      "契约对象与 M 侧逐字节相同（context 摘要 c18ca2c5ca638a5462908ca5a80daf259ae186f03008be1fa0c58e48f6648041；definition/stage/supportPaths/outputPaths/wiring 全为原值）；联合后 hash 由 M 1c72b54ed835ea41ac20e0d07322f4bdb6c3392d11c5a97cef5df7e0239b967e 与 main/H2 018b5778d7205a210f4fd82f6870c013b44a04bb290a6bef2871382bd5de7932 合成为 f94ec85142c94ff600bdd221f20fa3eaf77e31c41c4598eaea431d21004e39ea，变化仅来自提供方传播：闭包 78 个祖先在 M 与 main 两侧 hash 全部不同（含 M5-T4、M2-T5），条款未新增。",
+      "新增联合范围核验：requires 逐条能力唯一提供方且等于所引任务、且都在依赖闭包内——M7-T4/visitor-acceptance、M7-T2/session-acceptance、M7-T5/admin-acceptance、M7-T3/analytics-acceptance、M7-T7/operations-acceptance；自身 provides provenance-acceptance 唯一归属本任务（True）；闭包 78 个祖先含 M5-T4=True 与 M2-T5=True；联合未新增能力/前置，无「联合新增范围无主或缺失」，与 review.json block=0 相符。",
+      "既有证据继承：M 侧记录 hash 1c72b54ed835ea41ac20e0d07322f4bdb6c3392d11c5a97cef5df7e0239b967e、reviewed 2026-11-11T05:34:58.660575+00:00、pass、evidence 3 条；main/H2 侧记录 hash 018b5778d7205a210f4fd82f6870c013b44a04bb290a6bef2871382bd5de7932、reviewed 2026-11-10T16:59:58.469709+00:00、pass、evidence 3 条；两侧记录针对的契约对象与本条逐字节相同，故沿用其条款级结论，仅补联合传播后的重新绑定，不重做未来整任务验收。",
+      "范围限定：本记录只证「联合契约语义与支持域可登记」，不证明 M7-T8 的业务验收已实现；任务状态未由本记录改动（契约载荷不含 status 字段；M5-T4 仍 todo，本三条不因本条变 done），尚未存在的产出（未实现预期，不作缺陷）：docs/acceptance/provenance/；未重跑任何测试/CI/旧套件，未清理既有 19 条 stale，未把 hash 变化本身当通过依据。"
     ],
-    "reviewed": "2026-11-11T05:34:58.660575+00:00",
+    "reviewed": "2026-11-11T09:56:25.565756+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M7-T9": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "f006d5e87bfd6c44b7f0732e7f6b4a1479c4a5bf01ff6e55497340226829ec13",
+    "contractHash": "77a1af42b4e14cd0dc403d94a425dd5e29f51d43b7c7d24445545a0db5e099fd",
     "evidence": [
-      "固定对象：L bed4436b7bb26d67583373c24777eb2953f19cc3 / tree ace1e3fc305c882758b406ffb2cd00d5012aea0c / 唯一父 K 81cdb260224d359bb04bb6d35306c2e944a6958f；task/M5-T4 工作树 clean；本登记只写本补丁证据、task-reviews 与正常派生，不改 task-contracts.json、任务状态、源码/测试/CI/包锁/schema 与生成器。",
-      "本键为传播变更：契约对象在 K→L 逐字节相同（对象摘要 165d60cbe69343ca = 165d60cbe69343ca）；provides=1/requires=6/sections=12/supportPaths=0/outputPaths=2 全为原值；当前契约 hash f006d5e87bfd6c44b7f0732e7f6b4a1479c4a5bf01ff6e55497340226829ec13 变化仅因依赖闭包含 M5-T4（经 M3-T25 → M5-T10 → M5-T4），能力与接口未变。",
-      "范围限定：本记录只是 L 当前契约语义复核，不证明该任务已实现、不改变其 todo/status；M5-T4 亦不证明真实 PG 用例 15./16. 通过、不证明新 CI 转绿；未重验 P2/O1 或旧 43，未顺手清理既有 stale。"
+      "固定对象：N 35b748a5496e1fb9168f33bd7f088dd611de7a5d / tree 2b8dd7f715e13087b255cac6d4d06d5520321116 / 两父 M 4a9dcdd8b28752f66da7d109670a502f262c4dfa + main 7dd1ad76b766f7e031686c65aa48254e3012cba0；task/M5-T4 工作树 status --untracked-files=all 0 行；compiler 419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68；本条只登记联合契约语义，不改源码、任务状态、其他键或派生物。",
+      "契约对象与 M 侧逐字节相同（context 摘要 ad3d4fbf7256fd6ab3f5becbe26ea085f0c1fa965cd5dbbb01e75bdaa27fd0bd；definition/stage/supportPaths/outputPaths/wiring 全为原值）；联合后 hash 由 M f006d5e87bfd6c44b7f0732e7f6b4a1479c4a5bf01ff6e55497340226829ec13 与 main/H2 935f821ef1e5d800990e51c080d89bf8fbf3669fcf14a61c7198689e88a2e49f 合成为 77a1af42b4e14cd0dc403d94a425dd5e29f51d43b7c7d24445545a0db5e099fd，变化仅来自提供方传播：闭包 84 个祖先在 M 与 main 两侧 hash 全部不同（含 M5-T4、M2-T5），条款未新增。",
+      "新增联合范围核验：requires 逐条能力唯一提供方且等于所引任务、且都在依赖闭包内——M7-T8/provenance-acceptance、M3-T21/legacy-inquiries-ui、M3-T22/legacy-unassigned-ui、M3-T23/legacy-model-admin-ui、M3-T24/legacy-specs-ui、M3-T25/legacy-settings-users-ui；自身 provides delivery-acceptance 唯一归属本任务（True）；闭包 84 个祖先含 M5-T4=True 与 M2-T5=True；联合未新增能力/前置，无「联合新增范围无主或缺失」，与 review.json block=0 相符。",
+      "既有证据继承：M 侧记录 hash f006d5e87bfd6c44b7f0732e7f6b4a1479c4a5bf01ff6e55497340226829ec13、reviewed 2026-11-11T05:34:58.660575+00:00、pass、evidence 3 条；main/H2 侧记录 hash 935f821ef1e5d800990e51c080d89bf8fbf3669fcf14a61c7198689e88a2e49f、reviewed 2026-11-10T16:59:58.469709+00:00、pass、evidence 3 条；两侧记录针对的契约对象与本条逐字节相同，故沿用其条款级结论，仅补联合传播后的重新绑定，不重做未来整任务验收。",
+      "范围限定：本记录只证「联合契约语义与支持域可登记」，不证明 M7-T9 的业务验收已实现；任务状态未由本记录改动（契约载荷不含 status 字段；M5-T4 仍 todo，本三条不因本条变 done），尚未存在的产出（未实现预期，不作缺陷）：docs/acceptance/delivery/、e2e/delivery-smoke.spec.ts；未重跑任何测试/CI/旧套件，未清理既有 19 条 stale，未把 hash 变化本身当通过依据。"
     ],
-    "reviewed": "2026-11-11T05:34:58.660575+00:00",
+    "reviewed": "2026-11-11T09:56:25.565756+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
