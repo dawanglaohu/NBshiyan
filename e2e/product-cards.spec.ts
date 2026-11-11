@@ -174,6 +174,7 @@ test('products-link opens the server catalog, large cards, and the real model fi
   await expect(first.getByTestId('category-link')).toHaveAttribute('href', /\/products\/.+/);
   await expect(page.getByTestId('category-link').first()).toBeVisible();
   await expect(first.getByRole('button', { name: 'Add to quote' })).toBeVisible();
+  await expect(first.getByTestId('inquire-product')).toBeVisible();
   await expect(first.locator('.specs li').first()).toBeVisible();
   const heading = await first.locator('h2').evaluate((el) => getComputedStyle(el).textDecorationLine);
   expect(heading).toBe('none');
@@ -182,9 +183,9 @@ test('products-link opens the server catalog, large cards, and the real model fi
     if (!button) return { children: el.childElementCount, inset: -1 };
     return { children: el.childElementCount, inset: button.getBoundingClientRect().left - el.getBoundingClientRect().left };
   });
-  // 品类页上线后 .actions 里有「Add to quote」按钮和「Learn more」品类链接两个子元素；
+  // M2-T5 后 .actions 里有「Add to quote」「Get a quote」和「Learn more」三个子元素；
   // 按钮仍需贴左对齐（inset ≤ 1）。
-  expect(actions.children).toBe(2);
+  expect(actions.children).toBe(3);
   expect(actions.inset).toBeLessThanOrEqual(1);
   await expect(first.locator('.actions').getByTestId('category-link')).toHaveCount(1);
   const descStyle = await first.locator('.desc').evaluate((el) => {
@@ -273,6 +274,7 @@ test('a 390px products entry does not overflow and keeps the name, specs, and in
   await expect(first.getByTestId('product-name-link')).toHaveAttribute('href', /\/products\/.+/);
   await expect(first.locator('.specs li').first()).toBeVisible();
   await expect(first.getByRole('button', { name: 'Add to quote' })).toBeVisible();
+  await expect(first.getByTestId('inquire-product')).toBeVisible();
   const overflow = await page.evaluate(() => ({
     scroll: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth),
     client: document.documentElement.clientWidth,
@@ -336,7 +338,7 @@ test('ru 390 products page does not overflow and each control center hits itself
   expect(misses).toEqual([]);
 });
 
-test('unpublished cards stay plain text and published cards keep both links', async ({ page }) => {
+test('unpublished cards stay plain text and published cards keep both catalog links plus the inquiry entry', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/en/products');
   const css = await page.locator('link[rel="stylesheet"]').evaluateAll((els) => els.map((el) => (el as HTMLLinkElement).href));
@@ -356,8 +358,9 @@ test('unpublished cards stay plain text and published cards keep both links', as
       if (!button) return { children: el.childElementCount, inset: -1 };
       return { children: el.childElementCount, inset: button.getBoundingClientRect().left - el.getBoundingClientRect().left };
     });
-    expect(row.children).toBe(1);
+    expect(row.children).toBe(2);
     expect(row.inset).toBeLessThanOrEqual(1);
+    await expect(root.getByTestId('inquire-product')).toHaveCount(1);
   }
 
   const live = page.locator('#live');

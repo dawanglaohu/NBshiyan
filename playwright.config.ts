@@ -2,6 +2,7 @@ import { cpSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
 import { BASE, PORT } from './scripts/base-url';
+import { E2E_EDGE_AUTH_SECRET } from './scripts/e2e-edge-auth';
 
 export { BASE };
 
@@ -50,6 +51,8 @@ export default defineConfig({
         E2E_SITE_REVALIDATE: '1',
         // 本地 e2e 与 CI 共用的假值，不是生产密钥。生产环境缺少此项时同意接口仍返回 503。
         PRIVACY_HASH_SECRET: 'ci-e2e-only-privacy-hash-not-prod-0001',
+        // 密钥唯一来源 scripts/e2e-edge-auth.ts（镜像上下文内）；IP 表仍在 e2e/edge-test-ip.ts：让测试走应用既有的可信代理入口，按调用点隔离限流桶。
+        EDGE_AUTH_SECRET: E2E_EDGE_AUTH_SECRET,
         AUTH_URL: BASE,
         APP_ORIGIN: BASE,
       }

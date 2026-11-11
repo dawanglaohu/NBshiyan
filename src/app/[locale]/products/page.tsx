@@ -27,6 +27,7 @@ export default async function ProductsPage({ params }: { params: Promise<{ local
   setRequestLocale(locale);
   const t = await getTranslations('Products');
   const v = await getTranslations('Views');
+  const nav = await getTranslations('Nav');
   const loc = (locale === 'ru' ? 'ru' : 'en') as Locale;
   // 卡片文字和图片在服务端渲染，爬虫可读；3D 只在客户端增强
   const catalog = await loadCatalog(async () => withPublishedReady(await listPublishedModels()), loc, products, { strictEmpty: process.env.CATALOG_STRICT_API === '1' });
@@ -57,7 +58,7 @@ export default async function ProductsPage({ params }: { params: Promise<{ local
       <p>{t('hint')}</p>
       {items.length === 0 ? <p role="status" className="empty">{t('empty')}</p> : <>
       <CategoryBar items={items.map(({ slug, name }) => ({ slug, name }))} label={t('categories')} />
-      <ProductGallery items={items} labels={{ learnMore: t('learnMore'), specsLabel: t('specsLabel'), tap: t('tapToRotate'), drag: t('dragToRotate'), loading: t('loading'), add: t('addToQuote'), details: t('details'), done: t('done'), viewsLabel: v('label'), views: { closed: v('closed'), open: v('open'), dieline: v('dieline') } }} />
+      <ProductGallery items={items} labels={{ learnMore: t('learnMore'), specsLabel: t('specsLabel'), tap: t('tapToRotate'), drag: t('dragToRotate'), loading: t('loading'), add: t('addToQuote'), inquire: nav('quote'), details: t('details'), done: t('done'), viewsLabel: v('label'), views: { closed: v('closed'), open: v('open'), dieline: v('dieline') } }} />
       </>}
     </main>
   );
