@@ -35448,8 +35448,10 @@
     "_run/task-contracts.json": "c9a80357b32c30ac3ddfc6fc57f0aba8d45fa1b506e32c7f6a2557548de7cdd8"
   },
   "sourceVersion": "ece7313f83e8001b20fa2c02450ea60ce0ebddc9403d58f5c0402438318324fd",
-  "status": "synced",
+  "status": "verified",
   "synced": "2026-11-11T03:50:44.651295+00:00",
   "task": "M5-T4",
-  "verifiedTasks": []
+  "verifiedTasks": [
+    "M5-T4"
+  ]
 }

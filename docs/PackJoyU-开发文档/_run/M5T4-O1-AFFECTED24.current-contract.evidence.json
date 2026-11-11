@@ -1,0 +1,221 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M3-T10": {
+      "contractHash": "0cb50a14b9206e3a2b8e7063639e307fdb35435abc199fab63f4049d3f436eeb",
+      "verdict": "pass",
+      "evidence": [
+        "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+        "契约对象在 I→J 间逐字节相同（对象 sha256 I=ca473bb168a421ef = J=ca473bb168a421ef）；provides=1/requires=2/sections=14/supportPaths=5/outputPaths=2 全为原值；当前契约 hash 0cb50a14b9206e3a；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+        "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      ]
+    },
+    "M3-T11": {
+      "contractHash": "f6e82503bf5130bcab1ead4c16b12284ee9bae023fa3a504aefc358a46031e02",
+      "verdict": "pass",
+      "evidence": [
+        "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+        "契约对象在 I→J 间逐字节相同（对象 sha256 I=a0d0b8af3f5979b4 = J=a0d0b8af3f5979b4）；provides=1/requires=4/sections=14/supportPaths=6/outputPaths=3 全为原值；当前契约 hash f6e82503bf5130bc；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+        "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      ]
+    },
+    "M3-T12": {
+      "contractHash": "99e1b930ce6fa45068847a626344a4012091f70e1de9069a6dd0262f31262f12",
+      "verdict": "pass",
+      "evidence": [
+        "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+        "契约对象在 I→J 间逐字节相同（对象 sha256 I=01cc0807e8bafaba = J=01cc0807e8bafaba）；provides=2/requires=4/sections=14/supportPaths=5/outputPaths=4 全为原值；当前契约 hash 99e1b930ce6fa450；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+        "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      ]
+    },
+    "M3-T13": {
+      "contractHash": "b3a1f2ae4bc4ac8a4fef76aae59263684cde9ba75decab8912958284f12adee2",
+      "verdict": "pass",
+      "evidence": [
+        "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+        "契约对象在 I→J 间逐字节相同（对象 sha256 I=6d19b0cdcb357b71 = J=6d19b0cdcb357b71）；provides=1/requires=3/sections=14/supportPaths=5/outputPaths=1 全为原值；当前契约 hash b3a1f2ae4bc4ac8a；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+        "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      ]
+    },
+    "M3-T25": {
+      "contractHash": "652f9cd4a34b128b823e9a91bcac297cf0c90c3c6b8fc51f07a6b11a7053c12b",
+      "verdict": "pass",
+      "evidence": [
+        "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+        "契约对象在 I→J 间逐字节相同（对象 sha256 I=7be4b0358b5e5a37 = J=7be4b0358b5e5a37）；provides=1/requires=5/sections=12/supportPaths=2/outputPaths=9 全为原值；当前契约 hash 652f9cd4a34b128b；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+        "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      ]
+    },
+    "M3-T6": {
+      "contractHash": "62b8eaa6c372d52275e3bc99ffbc418557d791619d7408d0e9e6f6fe38eb2e56",
+      "verdict": "pass",
+      "evidence": [
+        "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+        "契约对象在 I→J 间逐字节相同（对象 sha256 I=7fca49153d8b4d41 = J=7fca49153d8b4d41）；provides=1/requires=5/sections=14/supportPaths=8/outputPaths=2 全为原值；当前契约 hash 62b8eaa6c372d522；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+        "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      ]
+    },
+    "M3-T8": {
+      "contractHash": "3c5256170ec906221d14783a949eadc38be4826ab19f856c09a924e621017fa8",
+      "verdict": "pass",
+      "evidence": [
+        "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+        "契约对象在 I→J 间逐字节相同（对象 sha256 I=889957ad20e44684 = J=889957ad20e44684）；provides=1/requires=2/sections=14/supportPaths=5/outputPaths=3 全为原值；当前契约 hash 3c5256170ec90622；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+        "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      ]
+    },
+    "M3-T9": {
+      "contractHash": "215cd489be5b727b461c31e9a6d940bf686b8faafd83287feafdcc23a2f8abf6",
+      "verdict": "pass",
+      "evidence": [
+        "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+        "契约对象在 I→J 间逐字节相同（对象 sha256 I=38ee1ea1ea8d0893 = J=38ee1ea1ea8d0893）；provides=1/requires=2/sections=14/supportPaths=7/outputPaths=2 全为原值；当前契约 hash 215cd489be5b727b；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+        "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      ]
+    },
+    "M5-T10": {
+      "contractHash": "4cfbfb7b3e97793adf005923e931265beffa7e2695827ea17036c92729770204",
+      "verdict": "pass",
+      "evidence": [
+        "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+        "契约对象在 I→J 间逐字节相同（对象 sha256 I=11e313b80e0086b6 = J=11e313b80e0086b6）；provides=1/requires=3/sections=14/supportPaths=0/outputPaths=4 全为原值；当前契约 hash 4cfbfb7b3e97793a；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+        "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      ]
+    },
+    "M5-T4": {
+      "contractHash": "54897f8ff38eabb1d65b0c023c8e94213914df107bbf69cba55e777a843816de",
+      "verdict": "pass",
+      "evidence": [
+        "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+        "契约内容变化仅一处：supportPaths 11→12，新增 tests/operations-mail-switch.test.ts（无删除）；provides/requires/outputPaths/sections 均为原值；当前契约 hash 54897f8ff38eabb1。",
+        "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      ]
+    },
+    "M6-T2": {
+      "contractHash": "4873d38bc52f39486a5400de623519d6ca2ee19cdded5d9bd2d344f00fe5ca3a",
+      "verdict": "pass",
+      "evidence": [
+        "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+        "契约对象在 I→J 间逐字节相同（对象 sha256 I=ab8c1c9701b8acac = J=ab8c1c9701b8acac）；provides=1/requires=2/sections=12/supportPaths=0/outputPaths=4 全为原值；当前契约 hash 4873d38bc52f3948；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+        "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      ]
+    },
+    "M6-T3": {
+      "contractHash": "a84f56787a39e16fc18e26d523b361ace87b079b0600cff909df7f43c8d7ba8c",
+      "verdict": "pass",
+      "evidence": [
+        "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+        "契约对象在 I→J 间逐字节相同（对象 sha256 I=a34206606828d391 = J=a34206606828d391）；provides=1/requires=2/sections=12/supportPaths=0/outputPaths=7 全为原值；当前契约 hash a84f56787a39e16f；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+        "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      ]
+    },
+    "M6-T4": {
+      "contractHash": "771c3521b904f7df9711340a3759f63868849c3d0f19e05fded0332a9dab9e25",
+      "verdict": "pass",
+      "evidence": [
+        "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+        "契约对象在 I→J 间逐字节相同（对象 sha256 I=b56287b6e8e3bee9 = J=b56287b6e8e3bee9）；provides=1/requires=2/sections=14/supportPaths=0/outputPaths=6 全为原值；当前契约 hash 771c3521b904f7df；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+        "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      ]
+    },
+    "M6-T5": {
+      "contractHash": "1499314a4dfcea76ebf673c9961cceb8ee0ee6919b401c51c61211d9076896fc",
+      "verdict": "pass",
+      "evidence": [
+        "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+        "契约对象在 I→J 间逐字节相同（对象 sha256 I=e3e579a5746dae17 = J=e3e579a5746dae17）；provides=1/requires=2/sections=12/supportPaths=0/outputPaths=4 全为原值；当前契约 hash 1499314a4dfcea76；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+        "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      ]
+    },
+    "M6-T6": {
+      "contractHash": "e0d265b9669c72017dbb0ae5db6e099027bb26c2a9c2f36281adfe4d0c7f628e",
+      "verdict": "pass",
+      "evidence": [
+        "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+        "契约对象在 I→J 间逐字节相同（对象 sha256 I=21978dda21431bd9 = J=21978dda21431bd9）；provides=1/requires=2/sections=12/supportPaths=0/outputPaths=5 全为原值；当前契约 hash e0d265b9669c7201；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+        "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      ]
+    },
+    "M6-T7": {
+      "contractHash": "8ac4bee9342e615c6497cab3b54ad8b48c4ad400c1bf63d8b3e3023e83c00395",
+      "verdict": "pass",
+      "evidence": [
+        "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+        "契约对象在 I→J 间逐字节相同（对象 sha256 I=36ba5108d6a6817a = J=36ba5108d6a6817a）；provides=1/requires=4/sections=14/supportPaths=0/outputPaths=4 全为原值；当前契约 hash 8ac4bee9342e615c；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+        "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      ]
+    },
+    "M7-T10": {
+      "contractHash": "c5bd2fe935c1d96a9f73084a65c914808fe5f24b4ee3a6a44560287537c39a2b",
+      "verdict": "pass",
+      "evidence": [
+        "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+        "契约对象在 I→J 间逐字节相同（对象 sha256 I=bdc7f1a19e99e2a8 = J=bdc7f1a19e99e2a8）；provides=1/requires=1/sections=12/supportPaths=0/outputPaths=5 全为原值；当前契约 hash c5bd2fe935c1d96a；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+        "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      ]
+    },
+    "M7-T2": {
+      "contractHash": "8c5f92ca9d195aaf02572a47b66771e67c4d2d5f8f7fa71c2c5f0e9f2f397a65",
+      "verdict": "pass",
+      "evidence": [
+        "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+        "契约对象在 I→J 间逐字节相同（对象 sha256 I=109d5701c408138f = J=109d5701c408138f）；provides=1/requires=2/sections=14/supportPaths=0/outputPaths=3 全为原值；当前契约 hash 8c5f92ca9d195aaf；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+        "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      ]
+    },
+    "M7-T3": {
+      "contractHash": "8f4e16961d51548cf0bce611175362c4bec82aab5c56bbc9d37bc958bcc99513",
+      "verdict": "pass",
+      "evidence": [
+        "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+        "契约对象在 I→J 间逐字节相同（对象 sha256 I=69b394dee3ead029 = J=69b394dee3ead029）；provides=1/requires=4/sections=14/supportPaths=0/outputPaths=3 全为原值；当前契约 hash 8f4e16961d51548c；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+        "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      ]
+    },
+    "M7-T5": {
+      "contractHash": "feac63fec51f59134140dacc033a24bd5b6a4a6e54a007f3981cce41475a424f",
+      "verdict": "pass",
+      "evidence": [
+        "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+        "契约对象在 I→J 间逐字节相同（对象 sha256 I=9b41d7f5305aac04 = J=9b41d7f5305aac04）；provides=1/requires=2/sections=14/supportPaths=0/outputPaths=3 全为原值；当前契约 hash feac63fec51f5913；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+        "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      ]
+    },
+    "M7-T6": {
+      "contractHash": "ab804273c608bd95d16297f5bedc89076ae07b136b6f59eebc5b63afdc5aec77",
+      "verdict": "pass",
+      "evidence": [
+        "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+        "契约对象在 I→J 间逐字节相同（对象 sha256 I=eaacb57998a5f9b6 = J=eaacb57998a5f9b6）；provides=1/requires=2/sections=14/supportPaths=0/outputPaths=3 全为原值；当前契约 hash ab804273c608bd95；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+        "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      ]
+    },
+    "M7-T7": {
+      "contractHash": "6172e677a9cce89f3499cca3edafd42d9dad14e6f588d028052591d3ab1ca4bc",
+      "verdict": "pass",
+      "evidence": [
+        "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+        "契约对象在 I→J 间逐字节相同（对象 sha256 I=084b85bc99ea11b3 = J=084b85bc99ea11b3）；provides=1/requires=3/sections=12/supportPaths=0/outputPaths=3 全为原值；当前契约 hash 6172e677a9cce89f；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+        "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      ]
+    },
+    "M7-T8": {
+      "contractHash": "acb0d5e668aefac65d235d8ceef57541a573aa9aa33f5841ab554e641fa5cdd6",
+      "verdict": "pass",
+      "evidence": [
+        "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+        "契约对象在 I→J 间逐字节相同（对象 sha256 I=4833dd0b4dc1e334 = J=4833dd0b4dc1e334）；provides=1/requires=5/sections=12/supportPaths=0/outputPaths=1 全为原值；当前契约 hash acb0d5e668aefac6；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+        "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      ]
+    },
+    "M7-T9": {
+      "contractHash": "45228b8fc750116d4603c6cc823c0e5b77097a0de4335e09b24195aa6449f5f7",
+      "verdict": "pass",
+      "evidence": [
+        "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+        "契约对象在 I→J 间逐字节相同（对象 sha256 I=165d60cbe69343ca = J=165d60cbe69343ca）；provides=1/requires=6/sections=12/supportPaths=0/outputPaths=2 全为原值；当前契约 hash 45228b8fc750116d；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+        "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      ]
+    }
+  }
+}

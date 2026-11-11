@@ -658,54 +658,50 @@
     "verdict": "pass"
   },
   "M3-T10": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "c97e78c2cd36f0fc04a2efeb5e31b58e81ca6c58ce00cfbb6273ae6fb7bb78c1",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "0cb50a14b9206e3a2b8e7063639e307fdb35435abc199fab63f4049d3f436eeb",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M3-T10《接通首次绑定表单与一次展示材料》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+      "契约对象在 I→J 间逐字节相同（对象 sha256 I=ca473bb168a421ef = J=ca473bb168a421ef）；provides=1/requires=2/sections=14/supportPaths=5/outputPaths=2 全为原值；当前契约 hash 0cb50a14b9206e3a；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-11-11T04:16:38.484181+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T11": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "cb55e906e83a26ce33778425bb5449dfbc5df5798e260a2d896f61632b5cc78f",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "f6e82503bf5130bcab1ead4c16b12284ee9bae023fa3a504aefc358a46031e02",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M3-T11《接通独立恢复及受限重绑向导》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+      "契约对象在 I→J 间逐字节相同（对象 sha256 I=a0d0b8af3f5979b4 = J=a0d0b8af3f5979b4）；provides=1/requires=4/sections=14/supportPaths=6/outputPaths=3 全为原值；当前契约 hash f6e82503bf5130bc；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-11-11T04:16:38.484181+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T12": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "29c421c5bce6edbecd8fb5910a6d50da009e81e6511c273502de526a89f0842c",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "99e1b930ce6fa45068847a626344a4012091f70e1de9069a6dd0262f31262f12",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M3-T12《接通个人安全页与共享新鲜验证对话框》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+      "契约对象在 I→J 间逐字节相同（对象 sha256 I=01cc0807e8bafaba = J=01cc0807e8bafaba）；provides=2/requires=4/sections=14/supportPaths=5/outputPaths=4 全为原值；当前契约 hash 99e1b930ce6fa450；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-11-11T04:16:38.484181+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T13": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "b985cf75f8887fc570c989090030f89e502289d25c8ebebaf00032ecd0378dfe",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "b3a1f2ae4bc4ac8a4fef76aae59263684cde9ba75decab8912958284f12adee2",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M3-T13《接通退出全部设备确认与结果核实》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+      "契约对象在 I→J 间逐字节相同（对象 sha256 I=6d19b0cdcb357b71 = J=6d19b0cdcb357b71）；provides=1/requires=3/sections=14/supportPaths=5/outputPaths=1 全为原值；当前契约 hash b3a1f2ae4bc4ac8a；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-11-11T04:16:38.484181+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -888,15 +884,14 @@
     "verdict": "pass"
   },
   "M3-T25": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "b4e92107b9fae38f55d06d03a5faa310c1d33d3ae95b25973631f819a488754f",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "652f9cd4a34b128b823e9a91bcac297cf0c90c3c6b8fc51f07a6b11a7053c12b",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M3-T25《统一既有站点设置和账号表完整视觉》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+      "契约对象在 I→J 间逐字节相同（对象 sha256 I=7be4b0358b5e5a37 = J=7be4b0358b5e5a37）；provides=1/requires=5/sections=12/supportPaths=2/outputPaths=9 全为原值；当前契约 hash 652f9cd4a34b128b；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-11-11T04:16:38.484181+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -947,15 +942,14 @@
     "verdict": "pass"
   },
   "M3-T6": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "bc941727d283819ea77e3ba8802eb284d3c50c15a0aec06a0cb1e0e22017e668",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "62b8eaa6c372d52275e3bc99ffbc418557d791619d7408d0e9e6f6fe38eb2e56",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M3-T6《接通唯一登录页和明确方式字段》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+      "契约对象在 I→J 间逐字节相同（对象 sha256 I=7fca49153d8b4d41 = J=7fca49153d8b4d41）；provides=1/requires=5/sections=14/supportPaths=8/outputPaths=2 全为原值；当前契约 hash 62b8eaa6c372d522；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-11-11T04:16:38.484181+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -975,28 +969,26 @@
     "verdict": "pass"
   },
   "M3-T8": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "c84d6ce32a8a6ff1bcc13aa8fca8a9b607652f238cd0b6d0149dc22104b4d056",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "3c5256170ec906221d14783a949eadc38be4826ab19f856c09a924e621017fa8",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M3-T8《显示本人设备并退出指定设备》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+      "契约对象在 I→J 间逐字节相同（对象 sha256 I=889957ad20e44684 = J=889957ad20e44684）；provides=1/requires=2/sections=14/supportPaths=5/outputPaths=3 全为原值；当前契约 hash 3c5256170ec90622；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-11-11T04:16:38.484181+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T9": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "f18e0366f9d5c170f2587af5d33a53926b5715939d09e811989076fef6a27997",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "215cd489be5b727b461c31e9a6d940bf686b8faafd83287feafdcc23a2f8abf6",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M3-T9《在账号行复用验证对话框授权恢复》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+      "契约对象在 I→J 间逐字节相同（对象 sha256 I=38ee1ea1ea8d0893 = J=38ee1ea1ea8d0893）；provides=1/requires=2/sections=14/supportPaths=7/outputPaths=2 全为原值；当前契约 hash 215cd489be5b727b；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-11-11T04:16:38.484181+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -1219,15 +1211,14 @@
     "verdict": "pass"
   },
   "M5-T10": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "e0341cf061de1004d75ed143df200628ad14b17b3fc15a2a8914039585590c42",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "4cfbfb7b3e97793adf005923e931265beffa7e2695827ea17036c92729770204",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M5-T10《呈现ADMIN时区表单与保存反馈》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+      "契约对象在 I→J 间逐字节相同（对象 sha256 I=11e313b80e0086b6 = J=11e313b80e0086b6）；provides=1/requires=3/sections=14/supportPaths=0/outputPaths=4 全为原值；当前契约 hash 4cfbfb7b3e97793a；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-11-11T04:16:38.484181+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -1299,23 +1290,13 @@
   },
   "M5-T4": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "4593f57221818c08812aa51647a4d293ef88518d53a748b297da390a64abed98",
+    "contractHash": "54897f8ff38eabb1d65b0c023c8e94213914df107bbf69cba55e777a843816de",
     "evidence": [
-      "固定头 a7deba52c6eaa71d3e2b43f2109abbd52f7e71ba（唯一父 ecaab7a8391ea26ee73b0336c04babbd09adc061）/ tree bc9016a91172b94bd7d65675f5a0b1f17e18e67c；eca 是 merge（tree 2cd8f1f85e7f113098a1c8a40c95ee7930bd84a9，双亲 988c82d19805c73332ab038e26e84d20836095d3＋73f5873f9517e737fc29965ef129e4166ab851cb）；branch task/M5-T4、工作树 clean、卡 status todo（未 landed）。",
-      "当前契约 hash 4593f57221818c08812aa51647a4d293ef88518d53a748b297da390a64abed98，与 _run/patches/b9-m5t4-scope-20261109.json changes.M5-T4.after.hash 相等；补丁 synced 2026-11-10T03:40:12Z、sourceVersion cd7ad9a0；补丁 before 05328c64b3e7296778d86cf1bd559922b00ca45784773b4688412c5c67c374bf 是 8209b2de 基线（supportPaths 0、10 节旧文本、08/09/18 旧文本），不等于上次复验态 bd655119。",
-      "旧记录 bd655119bd29afd5c1b9d589e5b84784b1c8c0bf041931b880a9a993dd4c88ec：reviewed 2026-11-09T23:32:39Z、verdict pass、evidence 14 条。bd655119 对应 16a989c3 首版范围补丁（supportPaths 11、10 节新文本、08/09/18 旧文本）；16a989c3 与当前逐节复算：08 2709bfa9→61ab14d5、09 03b14612→f93308d5、10 378a9b0f→378a9b0f（未变）、18 d4790993→b391dee4。",
-      "真差量仅共享 08/09/18 三节，未改 M5-T4 验收或定义：16a989c3 与当前「验收标准」段逐字相同（497 B），definition（provides/requires/stage/wiring/supportPaths 11/outputPaths 3/sections 12）逐项相同；effectivePaths 也相同。补丁 before→after 里 supportPaths 0→11、accept 扩写是相对更早基线 8209b2de 的差，不是本窗口新增。",
-      "08 节复核（作业/保留批量）：聚合 batch≤500 按站点自然日、总截止 55s、租约 90s、代次 CAS 不变；分析保留改为按删除行计——四类数据表合计 20,000 行/轮、DELETE 单批 5,000 行、AnalyticsDaily≤1,000 行；两元数据表各 500 行/轮、合计 1,000/轮，独立于四表；实施后 04:30 analytics-retention 成为 AnalyticsDaily/AnalyticsAggregateDayState/AnalyticsDayChange 三张新表唯一清理者，03:30 旧链只跑既有三表，两链共用 analytics-aggregate 租约、不新增 cron。配额是删除/批次上限、不约束候选总数，candidateCount/deletedCount 分列，每批独立事务。",
-      "09 节复核（数据模型）：AnalyticsDaily 明确「由 M5-T12 实施后生效；当前 schema 尚无此表」；pageViews 改为 Int?（product 行为 NULL）、durationMsSum BigInt＋loadDurationSamples（均值读侧加权、不存日均值）、sourceThrough DateTime?（零事实不造时间）；新增 AnalyticsAggregateDayState（复合 PK localDate/timezoneRevision、markerVersions/deferUntil/gap 无身份、按自身时区 13 月、与 GC 共用租约/代次）与 AnalyticsDayChange（utcDate 主键、version BigInt、UTC 日 13 月＋2 天、先 state 后 marker）。在 a7deba52 的 prisma/schema.prisma 实测无 AnalyticsDaily/AnalyticsAggregateDayState/AnalyticsDayChange 三 model（现有 AnalyticsEvent:587、AnalyticsRollupDay:612、AnalyticsDailyRollup:626），与「尚未实施」一致。",
-      "18 节复核（运维/保留归属）：AnalyticsDaily 按行内 timezone 的 expiresAt 等号到期；state 按自身时区 13 月、marker 按 UTC 日 13 月＋2 天；实施后 04:30 为三张新表唯一清理者，实施前三表照旧、不写已建表；metadata 两表上限不得并入四表额度。03:30/04:30/*/5 三条 cron 与共享租约在 deploy/cron.nbshiyan 属实（blob a3f146d8 在 802fbffb 与 a7deba52 相同；M5-T11 提交 1f4a2da6 引入）。",
-      "代码身份（旧 802fbffb→当前 a7deba52，M5-T4 任务页 code 引用去重 13 项）：11 项 blob 相同——route.ts、settings.ts、settings-repo.ts、aggregate-plan.ts、aggregate.ts、jobs/registry.ts、contracts/analytics.ts、analytics-settings.http.test.ts、analytics-settings.db.test.ts、analytics-aggregate.db.test.ts、analytics-aggregate-plan.test.ts；2 项不同——composition.ts（657b6127→a96a0fce，差异为 M4 recoveryEnrollment 接线，不是 M5-T4）、jobs-runtime.http.test.ts（c501f8e3→d8f92f4c，仅删 1 个空行 44,408→44,407 B）。settings 服务/仓储/路由/契约/测试均未改，旧记录实现证据仍适用。",
-      "验收 1（E-58）：route.ts:9/15 requireAdmin(ADMIN)→handler；GET 单语句双读 settings+backlog（settings-repo.ts:36）、读时 live/null（settings.ts:100/196）、坏 settings 503、缺 settings 默认 UTC/rev1；PATCH 同源→限流→2KB→strict→版本 CAS＋审计＋重算待办同事务（settings.ts:182/363）；作业在同一 RR 事务按完整值 CAS 删除待办后 complete（registry.ts:194/280/315），窗口按 planSnapshot（aggregate-plan.ts:108）只重算仍保留完整 30 天原始覆盖的区间，更早 skippedRange/partial，无分页。旧记录 evidence#3 保留。",
-      "验收 2（E-59）：不存在 IANA、旧 version、SALES/EDITOR/未登录均拒绝且原配置不变；不回退浏览器时区；GET 与作业共用同一可用 pending 判定；about/org 不变、10 节四字段 schema。测试定位：analytics-settings.http.test.ts:257/373、analytics-settings.db.test.ts:350/374、jobs-runtime.http.test.ts:482/660/726。旧记录 evidence#4/#5 保留（作者 69/69 与专测 10/10 为作者本地证据，本窗未复跑）。",
-      "真实 CI（当前头，非作者重跑）：run 42761469368、head a7deba52、attempt 1 success；e2e job 1,673s/2,700s；PostgreSQL 步骤 25 文件/303 pass/0 fail，其中 analytics-settings.http.test.ts pass=10、analytics-settings.db.test.ts pass=9、jobs-runtime.http.test.ts pass=24、analytics-aggregate.db.test.ts pass=18；device 步骤 3 文件/25 pass。日志无 ##[error]。这只证明当前头真实跑过测试，不等于 R10/socket/浏览器/生产已验证。",
-      "既有边界保留（不扩不缩）：R2 = CAS DELETE 命中 1 行后整组回滚（SiteSetting.value::text 未变、无聚合/水位、JobState 保持 RUNNING）；R8 = 真实 cron 503 job_timeout 仅在提交前中止场景＋释放锁后 1.5s 两字段观察窗成立（非全字段相等/非 promise settle/非租约到期）；R10 未知提交、socket HTTP/浏览器、生产 PG 仍未证。本窗未连库、未跑测试/服务、未改源码/CI/契约/生成物、未 push。",
-      "非阻断调度观察（供后续，非本差量、本窗不改 cron）：04:30 analytics-retention 与 */5 analytics-aggregate 在同一分钟触发且共用 analytics-aggregate 租约，失败侧 409 跳过且 cron 不重试；若聚合先持租约，retention 当日即被跳过。cron blob 在旧/当前头相同（a3f146d8，M5-T11 引入），不是本次差量造成。不给具体偏移（04:35 仍命中 */5），留待后续调度设计。"
+      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+      "契约内容变化仅一处：supportPaths 11→12，新增 tests/operations-mail-switch.test.ts（无删除）；provides/requires/outputPaths/sections 均为原值；当前契约 hash 54897f8ff38eabb1。",
+      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
     ],
-    "reviewed": "2026-11-10T07:05:01.175331+00:00",
+    "reviewed": "2026-11-11T04:17:07.039957+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -1413,83 +1394,74 @@
     "verdict": "pass"
   },
   "M6-T2": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "aa2f26715ac8fe2cd78b746490789a0c9f0ea6785850257c85f2e90753c69fd9",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "4873d38bc52f39486a5400de623519d6ca2ee19cdded5d9bd2d344f00fe5ca3a",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M6-T2《接入询盘与聊天只读业务计数》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+      "契约对象在 I→J 间逐字节相同（对象 sha256 I=ab8c1c9701b8acac = J=ab8c1c9701b8acac）；provides=1/requires=2/sections=12/supportPaths=0/outputPaths=4 全为原值；当前契约 hash 4873d38bc52f3948；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-11-11T04:16:38.484181+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M6-T3": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "3f5332abcdef65dfcf7bb7c843fa8a49d4d7f316e79d8125e11337c835845656",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "a84f56787a39e16fc18e26d523b361ace87b079b0600cff909df7f43c8d7ba8c",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M6-T3《登记存储备份报告与运维采样》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+      "契约对象在 I→J 间逐字节相同（对象 sha256 I=a34206606828d391 = J=a34206606828d391）；provides=1/requires=2/sections=12/supportPaths=0/outputPaths=7 全为原值；当前契约 hash a84f56787a39e16f；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-11-11T04:16:38.484181+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M6-T4": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "5f75ba12d8e1ffcd4662f2f5c075b3151df3b0ca299b48c4a5721d482d8cad3b",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "771c3521b904f7df9711340a3759f63868849c3d0f19e05fded0332a9dab9e25",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M6-T4《交付可导航的核心数据看板页面》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+      "契约对象在 I→J 间逐字节相同（对象 sha256 I=b56287b6e8e3bee9 = J=b56287b6e8e3bee9）；provides=1/requires=2/sections=14/supportPaths=0/outputPaths=6 全为原值；当前契约 hash 771c3521b904f7df；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-11-11T04:16:38.484181+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M6-T5": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "a2b69c4d85e495ceb2562dff21ce2113bfb7e1cadece3edbdb4fc72878b2f672",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "1499314a4dfcea76ebf673c9961cceb8ee0ee6919b401c51c61211d9076896fc",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M6-T5《接入HTTP和邮件可靠性来源》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+      "契约对象在 I→J 间逐字节相同（对象 sha256 I=e3e579a5746dae17 = J=e3e579a5746dae17）；provides=1/requires=2/sections=12/supportPaths=0/outputPaths=4 全为原值；当前契约 hash 1499314a4dfcea76；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-11-11T04:16:38.484181+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M6-T6": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "5849d09fd70cbc32ba8a21015b1a29a2da463c8bc7ffcef53e8703afb6428ed8",
+    "contractHash": "e0d265b9669c72017dbb0ae5db6e099027bb26c2a9c2f36281adfe4d0c7f628e",
     "evidence": [
-      "19 行验收 3 追加读取口径一句：新旧聚合按阶段合并不双计、product pageViews no_data、0% 按 start 分母、分类按 site 行+day-state+live marker（缺键按 0 比较）、旧 revision 行内时区、覆盖起点前 no_data/partial；未新增依赖。",
-      "未实施/未跑 HTTP；仅契约复核。",
-      "旧 2 条输入原文逐字保留为前缀；当前 hash 由 1f395ecf 变为 5849d09f，来源是 main403 合并的 08/09/18 共享章节与 19 手合读取口径句。",
-      "requires 仍为 M6-T1/stats-query-rules＋M5-T4/analytics-settings-api，未新增 M5-T12 依赖；读取口径为验收说明，不改变依赖图；「超30天历史保留原标签或不可重算」与原始 30 天/聚合 13 自然月一致。",
-      "main403 集成后当前契约 hash 由生成器现算，与该任务在 7abc4b5c:docs/PackJoyU-开发文档/_run/task-contracts.json 一致；非作者差量独审复算 145/145 after=现算、98 条 revalidation 全匹配、manifest dict-equal 36/6、dispatch 145/23 与 86 任务批号 0 移动（独审 D:/xiangmu/.codex-plans/NBShiYan-m5-t12/testing-m5t12-main403-review-20261109/testing-m5t12-main403-review-20261109.md，D4C2093284994B969DBF030263834529CBEC6786F531745ACC97945F3D776314）。",
-      "19 手合保留：M6-T6/M7-T3 行=main 职责正文＋ours「读取口径」句（去该句即 main 行），M6-T1 行保留 ours（main 未改该行），M2-T7 行取 main；本任务职责、依赖与验收未因合并丢失或改写。",
-      "本文件只声明文档契约与 main403 集成核验：本轮未跑 PG/HTTP/CI，不声明三表或统计 API 已实现；M5-T12 仍 todo，98 条待复验未清；旧 pass 不是业务复验，新 hash 只代表当前契约已按真实源并集重核。"
+      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+      "契约对象在 I→J 间逐字节相同（对象 sha256 I=21978dda21431bd9 = J=21978dda21431bd9）；provides=1/requires=2/sections=12/supportPaths=0/outputPaths=5 全为原值；当前契约 hash e0d265b9669c7201；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
     ],
-    "reviewed": "2026-11-10T00:56:55.092436+00:00",
+    "reviewed": "2026-11-11T04:16:38.484181+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M6-T7": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "9b2bdb534a12ec89795d081f6829d9464d08f18a616059ffe6dc7f74f590b3ae",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "8ac4bee9342e615c6497cab3b54ad8b48c4ad400c1bf63d8b3e3023e83c00395",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M6-T7《完成看板逐源状态与故障呈现》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+      "契约对象在 I→J 间逐字节相同（对象 sha256 I=36ba5108d6a6817a = J=36ba5108d6a6817a）；provides=1/requires=4/sections=14/supportPaths=0/outputPaths=4 全为原值；当前契约 hash 8ac4bee9342e615c；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-11-11T04:16:38.484181+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -1508,45 +1480,37 @@
   },
   "M7-T10": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "3f6776addb458bfa70a1dfdd04196e8b619650d5169f2bb4802cf1500828b5dc",
+    "contractHash": "c5bd2fe935c1d96a9f73084a65c914808fe5f24b4ee3a6a44560287537c39a2b",
     "evidence": [
-      "固定 d340/tree 3abe615f；仓库外以 d340 自带 maintain_docs.state 重算 M7-T10 contractHash=3f6776addb458bfa70a1dfdd04196e8b619650d5169f2bb4802cf1500828b5dc，与 dispatch.tasks[M7-T10].contractHash 逐位相等；task-reviews 无 M7-T10 记录、revalidation={}，本件为首次完整当前契约复核。",
-      "19-模块任务拆分.md 的 M7-T10 行 title/module/deps/input/output/accept/est 与契约 context.task 逐字段相等；任务卡 depends_on=[M7-T9]、edges=[E-47]、est_days=2、status=todo，与契约一致。",
-      "definition：provides=zod-4-migration 唯一归属；requires M7-T9 delivery-acceptance 由 M7-T9 provides 提供且在其 deps；E-47 文本（伪造产品、超长字段、任意事件类型、重放事件拒绝）覆盖 acceptance 第 2 条。",
-      "输入事实核对：d340 的 package.json 为 zod ^3.25.76；scripts/audit-exceptions.json 仅一条 GHSA-mrhx-c7xc-m3w5（zod，owner Ryan，expires 2026-11-30）；scripts/audit-high-prod.ts 与 tests/contracts-foundation.test.ts 存在，CI .github/workflows/ci.yml:19 实跑 audit-high-prod.ts；该 wrapper 在豁免数为 0 时退化为严格扫描，删除豁免后无需改其语义，与 acceptance 的删除豁免后 audit 通过、2026-11-30 前完成自洽。",
-      "范围覆盖：仓库内 from 'zod' 导入点共 41 个文件（src/app/api 18、src/lib/contracts 7、src/lib/server 14、src/lib/client/api.ts 1、tests 1），41/41 均被 effectivePaths 覆盖；effectivePaths 由 taskPaths(11)+supportPaths(0)+wiring(buildPipeline 8/sharedTypes 2) 去重复算=20，与契约逐值相等；outputPaths 覆盖 package.json、pnpm-lock.yaml、scripts/audit-exceptions.json、src/lib/contracts/、tests/contracts-foundation.test.ts。",
-      "sections [1,2,4,5,6,8,9,10,14,16,17,18] 对应 12 个文件在 d340 全部存在且摘要与当前文件重算一致；分析 issues 无 BLOCK，readiness 仅『任务契约待语义复核』；本证据只登记契约语义，不证迁移已实施或审计已通过。"
+      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+      "契约对象在 I→J 间逐字节相同（对象 sha256 I=bdc7f1a19e99e2a8 = J=bdc7f1a19e99e2a8）；provides=1/requires=1/sections=12/supportPaths=0/outputPaths=5 全为原值；当前契约 hash c5bd2fe935c1d96a；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
     ],
-    "reviewed": "2026-11-10T11:32:51.845576+00:00",
+    "reviewed": "2026-11-11T04:16:38.484181+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M7-T2": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "3c7828b7334e356b04560ee13a5ffbb78eb5e675517882c5ba76208d3fc6554a",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "8c5f92ca9d195aaf02572a47b66771e67c4d2d5f8f7fa71c2c5f0e9f2f397a65",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M7-T2《终验真实会话跨路径持久与撤销》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+      "契约对象在 I→J 间逐字节相同（对象 sha256 I=109d5701c408138f = J=109d5701c408138f）；provides=1/requires=2/sections=14/supportPaths=0/outputPaths=3 全为原值；当前契约 hash 8c5f92ca9d195aaf；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-11-11T04:16:38.484181+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M7-T3": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "c6f4297d2d539329cd6a9ce114a1ddc9bf56a1edbd9a51bd98bb60311e94557a",
+    "contractHash": "8f4e16961d51548cf0bce611175362c4bec82aab5c56bbc9d37bc958bcc99513",
     "evidence": [
-      "19 行验收 2 追加终验读取口径一句（新旧聚合不双计、product pageViews no_data、0% 按 start 分母、live/consumed 缺键按 0 比较、旧 revision 行内时区）；未新增依赖。",
-      "未实施/未跑；仅契约复核。",
-      "旧 2 条输入原文逐字保留为前缀；当前 hash 由 4da93a8f 变为 c6f4297d，来源是共享章节 09/18 与 19 行终验读取口径句。",
-      "requires 仍为 M5-T11、M5-T10、M6-T7、M2-T7，未新增依赖；「原始30d/聚合13月候选边界可测」与 data-retention 及 M6-T1/M6-T6 口径一致；终验读取口径只补充判定方式。",
-      "main403 集成后当前契约 hash 由生成器现算，与该任务在 7abc4b5c:docs/PackJoyU-开发文档/_run/task-contracts.json 一致；非作者差量独审复算 145/145 after=现算、98 条 revalidation 全匹配、manifest dict-equal 36/6、dispatch 145/23 与 86 任务批号 0 移动（独审 D:/xiangmu/.codex-plans/NBShiYan-m5-t12/testing-m5t12-main403-review-20261109/testing-m5t12-main403-review-20261109.md，D4C2093284994B969DBF030263834529CBEC6786F531745ACC97945F3D776314）。",
-      "19 手合保留：M6-T6/M7-T3 行=main 职责正文＋ours「读取口径」句（去该句即 main 行），M6-T1 行保留 ours（main 未改该行），M2-T7 行取 main；本任务职责、依赖与验收未因合并丢失或改写。",
-      "本文件只声明文档契约与 main403 集成核验：本轮未跑 PG/HTTP/CI，不声明三表或统计 API 已实现；M5-T12 仍 todo，98 条待复验未清；旧 pass 不是业务复验，新 hash 只代表当前契约已按真实源并集重核。"
+      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+      "契约对象在 I→J 间逐字节相同（对象 sha256 I=69b394dee3ead029 = J=69b394dee3ead029）；provides=1/requires=4/sections=14/supportPaths=0/outputPaths=3 全为原值；当前契约 hash 8f4e16961d51548c；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
     ],
-    "reviewed": "2026-11-10T00:56:55.092436+00:00",
+    "reviewed": "2026-11-11T04:16:38.484181+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -1565,67 +1529,62 @@
     "verdict": "pass"
   },
   "M7-T5": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "636e07fddd4deeda15498a1d8c4e264251c1144165dd580164d3a9e04eaf7ca7",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "feac63fec51f59134140dacc033a24bd5b6a4a6e54a007f3981cce41475a424f",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M7-T5《终验受限恢复与单管理员兜底》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+      "契约对象在 I→J 间逐字节相同（对象 sha256 I=9b41d7f5305aac04 = J=9b41d7f5305aac04）；provides=1/requires=2/sections=14/supportPaths=0/outputPaths=3 全为原值；当前契约 hash feac63fec51f5913；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-11-11T04:16:38.484181+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M7-T6": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "618ea7b11ff64326f61f6b20048a40c961abf3a6549cad9e5fec6170a057f0e8",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "ab804273c608bd95d16297f5bedc89076ae07b136b6f59eebc5b63afdc5aec77",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M7-T6《终验新鲜本人授权与忘密码隔离》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+      "契约对象在 I→J 间逐字节相同（对象 sha256 I=eaacb57998a5f9b6 = J=eaacb57998a5f9b6）；provides=1/requires=2/sections=14/supportPaths=0/outputPaths=3 全为原值；当前契约 hash ab804273c608bd95；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-11-11T04:16:38.484181+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M7-T7": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "c44eefed776ea6c6947d83c7039ab99a9800af4616b616cbb2a7a5be4f1f6fe6",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "6172e677a9cce89f3499cca3edafd42d9dad14e6f588d028052591d3ab1ca4bc",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M7-T7《终验运维来源与通知重启消费》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+      "契约对象在 I→J 间逐字节相同（对象 sha256 I=084b85bc99ea11b3 = J=084b85bc99ea11b3）；provides=1/requires=3/sections=12/supportPaths=0/outputPaths=3 全为原值；当前契约 hash 6172e677a9cce89f；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-11-11T04:16:38.484181+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M7-T8": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "8927c5b2927658566c6db304d8a13ef4ec5806f4ec189700dd485b0d691fc6aa",
+    "contractHash": "acb0d5e668aefac65d235d8ceef57541a573aa9aa33f5841ab554e641fa5cdd6",
     "evidence": [
-      "固定 d340/tree 3abe615f；仓库外以 d340 自带 maintain_docs.state 重算 M7-T8 contractHash=8927c5b2927658566c6db304d8a13ef4ec5806f4ec189700dd485b0d691fc6aa，与 dispatch.tasks[M7-T8].contractHash 逐位相等。",
-      "覆盖链：旧审 194c61e3（2026-10-22T15:02:58Z，与 M3-T1-security-repair 补丁 after.context 逐值相同）→当前仅 01-约束/04-开发条件.md、02-设计/08-后端架构.md、02-设计/09-数据模型.md、04-执行/18-部署与运维.md 四个共享章节摘要变化；task/definition/effectivePaths/architecture/design/module/project/handoff/skills/wiring 逐值相等；四章变更已核对，不改变本任务当前 PR head/base/check、安全批准与来源记录核对条款。",
-      "19-模块任务拆分.md 的 M7-T8 行 title/module/deps/input/output/accept/est 与契约 context.task 逐字段相等；requires M7-T4/M7-T2/M7-T5/M7-T3/M7-T7 各自 provides 提供且在其 deps；E-105 覆盖逐候选实时只读 head/base/check、必需安全批准、来源不明/HEAD 不符不标可合并，以及秘密/受保护备份混入检查。",
-      "effectivePaths 由 taskPaths(1) 去重复算=1（docs/acceptance/provenance/），与契约逐值相等；12 个引用章节文件全部存在且摘要与当前文件重算一致；任务 todo、revalidation={}；本证据只登记契约语义，不证实际 PR/来源清单或 landed。"
+      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+      "契约对象在 I→J 间逐字节相同（对象 sha256 I=4833dd0b4dc1e334 = J=4833dd0b4dc1e334）；provides=1/requires=5/sections=12/supportPaths=0/outputPaths=1 全为原值；当前契约 hash acb0d5e668aefac6；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
     ],
-    "reviewed": "2026-11-10T11:32:51.845576+00:00",
+    "reviewed": "2026-11-11T04:16:38.484181+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M7-T9": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "69cd34cb8406526dce5bafea1d9c3199a5e058be5cf55a944e758a26d7ec7ba8",
+    "contractHash": "45228b8fc750116d4603c6cc823c0e5b77097a0de4335e09b24195aa6449f5f7",
     "evidence": [
-      "固定 d340/tree 3abe615f；仓库外以 d340 自带 maintain_docs.state 重算 M7-T9 contractHash=69cd34cb8406526dce5bafea1d9c3199a5e058be5cf55a944e758a26d7ec7ba8，与 dispatch.tasks[M7-T9].contractHash 逐位相等。",
-      "覆盖链：旧审 b72da8ce（2026-10-22T15:02:58Z，与 M3-T1-security-repair 补丁 after.context 逐值相同）→当前仅 01-约束/04-开发条件.md、02-设计/08-后端架构.md、02-设计/09-数据模型.md、04-执行/18-部署与运维.md 四个共享章节摘要变化；task/definition/effectivePaths/architecture/design/module/project/handoff/skills/wiring 逐值相等；四章变更已核对，不改变隔离构建/导入/schema/备份恢复与同 head 证据汇总条款。",
-      "19-模块任务拆分.md 的 M7-T9 行 title/module/deps/input/output/accept/est 与契约 context.task 逐字段相等；requires M7-T8 provenance-acceptance 与 M3-T21…T25 legacy-*-ui 均由对应任务 provides 提供且在其 deps；E-65 覆盖无可验证备份来源必须未接入、不得以文件存在/计划时间冒充成功，且不新增备份平台。",
-      "effectivePaths 由 taskPaths(2) 去重复算=2（docs/acceptance/delivery/、e2e/delivery-smoke.spec.ts），与契约逐值相等；12 个引用章节文件全部存在且摘要与当前文件重算一致；任务 todo、revalidation={}；本证据只登记契约语义，不证隔离构建/恢复/备份已执行或 landed。"
+      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
+      "契约对象在 I→J 间逐字节相同（对象 sha256 I=165d60cbe69343ca = J=165d60cbe69343ca）；provides=1/requires=6/sections=12/supportPaths=0/outputPaths=2 全为原值；当前契约 hash 45228b8fc750116d；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
+      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
     ],
-    "reviewed": "2026-11-10T11:32:51.845576+00:00",
+    "reviewed": "2026-11-11T04:16:38.484181+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
