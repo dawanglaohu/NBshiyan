@@ -14,8 +14,9 @@ import assert from 'node:assert/strict';
 import { Prisma, PrismaClient } from '@prisma/client';
 import { siteDayUtcBounds, siteLocalDate } from '../src/lib/analytics/day-boundaries';
 import { LATE_ARRIVAL_MS, planSnapshot } from '../src/lib/analytics/aggregate-plan';
-import { aggregateOneDayInSnapshot, runAggregateOnce, AggregateVersionConflict } from '../src/lib/server/analytics/aggregate';
+import { aggregateOneDayInSnapshot, runAggregateOnce, AggregateBatchExceeded, AggregateVersionConflict } from '../src/lib/server/analytics/aggregate';
 import { loadEventsAtSnapshot, AGGREGATE_JOB_KEY, upsertWatermarkGuarded } from '../src/lib/server/analytics/aggregate-repo';
+import { ANALYTICS_RECOMPUTE_KEY } from '../src/lib/server/analytics/settings-repo';
 
 const base = process.env.DATABASE_URL;
 const SCHEMA = `aggregate_${process.pid}`;
@@ -874,5 +875,50 @@ describe('M5-T3 consistent-snapshot daily aggregate', { concurrency: false, skip
     assert.equal(afterEmpty.eventCount, 0);
     assert.equal(afterEmpty.sourceMax, null, '较新 revision 下空日必须允许把水位重定为 NULL');
     assert.equal((await d2RollupRows(day2)).length, 0, '空日的日聚合必须与水位在同一轮里被清空');
+  });
+
+  test('M5-T4 R9 超限负控：rebuildFrom 窗口超过 maxBatchDays 时整组拒绝、无行、待办不动', async () => {
+    await reset();
+    const conn = requireDb();
+    const now = new Date('2026-03-01T10:00:00.000Z');
+    const day = siteLocalDate(now, TZ);
+    await insertEvent({
+      occurredAt: new Date(`${day}T01:00:00.000Z`),
+      receivedAt: new Date(`${day}T02:00:00.000Z`),
+      browserHash: 'm5t4-batch',
+    });
+    const backlog = {
+      timezoneRevision: 1,
+      timezone: TZ,
+      recomputableFrom: new Date(now.getTime() - 5 * 86_400_000).toISOString(),
+      requestedAt: now.toISOString(),
+      updatedBy: 'admin-a',
+      status: 'pending',
+    };
+    await conn.$executeRaw`
+      INSERT INTO "SiteSetting" ("key", "value") VALUES (${ANALYTICS_RECOMPUTE_KEY}, ${JSON.stringify(backlog)}::jsonb)
+    `;
+    await assert.rejects(
+      () => runAggregateOnce({
+        db: conn,
+        now,
+        siteTimezone: TZ,
+        currentDate: day,
+        timezoneRevision: 1,
+        generation: 1,
+        maxBatchDays: 2,
+        rebuildFrom: backlog.recomputableFrom,
+      }),
+      AggregateBatchExceeded,
+    );
+    const rollups = await conn.$queryRaw<{ c: bigint }[]>`SELECT COUNT(*)::bigint AS c FROM "AnalyticsDailyRollup"`;
+    const watermarks = await conn.$queryRaw<{ c: bigint }[]>`SELECT COUNT(*)::bigint AS c FROM "AnalyticsRollupDay"`;
+    assert.equal(Number(rollups[0]!.c), 0, '超限不得写入聚合行');
+    assert.equal(Number(watermarks[0]!.c), 0, '超限不得写入水位');
+    const stored = await conn.$queryRaw<{ value: string }[]>`
+      SELECT "value"::text AS "value" FROM "SiteSetting" WHERE "key" = ${ANALYTICS_RECOMPUTE_KEY}
+    `;
+    assert.deepEqual(JSON.parse(stored[0]!.value), backlog, '超限不得消费/改写待办');
+    await conn.$executeRaw`DELETE FROM "SiteSetting" WHERE "key" = ${ANALYTICS_RECOMPUTE_KEY}`;
   });
 });

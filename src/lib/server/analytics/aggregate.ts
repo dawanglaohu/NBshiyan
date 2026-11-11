@@ -100,6 +100,8 @@ export type AggregateRunResult = {
   coverage: CoverageState;
   earliestRecomputableDate: string;
   days: AggregateDayResult[];
+  /** 重算起点早于完整原始覆盖而被跳过的连续区间；无则为 null。 */
+  skippedRange: { from: string; to: string; dayCount: number } | null;
   errorCode: string | null;
 };
 
@@ -396,6 +398,8 @@ export async function runAggregateOnce(deps: {
   occurredNotAfter?: Date;
   /** 防御性上限，单位是站点自然日（不是事件数）；超出即拒绝且不写库。 */
   maxBatchDays?: number;
+  /** 时区切换后的重算起点（UTC 瞬时）；调用方已排除 absent/corrupt/stale/future。 */
+  rebuildFrom?: string;
   /** 与整组聚合同一事务的提交钩子；抛错则整组回滚（用于原子完成作业租约）。 */
   commit?: AggregateCommitHook;
   /**
@@ -413,6 +417,7 @@ export async function runAggregateOnce(deps: {
     now: deps.now,
     siteTimezone: deps.siteTimezone,
     currentDate: deps.currentDate,
+    ...(deps.rebuildFrom !== undefined ? { rebuildFrom: deps.rebuildFrom } : {}),
   });
   if (deps.maxBatchDays !== undefined && plan.siteDates.length > deps.maxBatchDays) {
     throw new AggregateBatchExceeded(deps.maxBatchDays);
@@ -492,6 +497,7 @@ export async function runAggregateOnce(deps: {
     coverage: plan.coverage,
     earliestRecomputableDate: plan.earliestRecomputableDate,
     days,
+    skippedRange: plan.skippedRange,
     errorCode: null,
   };
 }

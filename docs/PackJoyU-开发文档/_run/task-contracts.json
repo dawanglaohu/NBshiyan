@@ -2550,7 +2550,21 @@
         "backendRoutes",
         "container"
       ],
-      "supportPaths": [],
+      "supportPaths": [
+        "src/lib/server/analytics/settings.ts",
+        "src/lib/server/analytics/settings-repo.ts",
+        "src/lib/analytics/aggregate-plan.ts",
+        "src/lib/server/analytics/aggregate.ts",
+        "src/lib/server/jobs/registry.ts",
+        "tests/analytics-aggregate-plan.test.ts",
+        "tests/jobs-runtime.http.test.ts",
+        "tests/operations-mail-switch.test.ts",
+        "tests/mail-queue-schedule.integration.test.ts",
+        "tests/analytics-settings.db.test.ts",
+        "tests/analytics-aggregate.db.test.ts",
+        ".github/workflows/ci.yml",
+        "src/lib/contracts/analytics.ts"
+      ],
       "outputPaths": [
         "src/app/api/admin/settings/analytics/route.ts",
         "src/lib/server/composition.ts",

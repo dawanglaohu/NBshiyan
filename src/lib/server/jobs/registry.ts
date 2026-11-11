@@ -6,7 +6,16 @@ import type { AppErrorCode } from '../../contracts/errors';
 import { siteLocalDate } from '../../analytics/day-boundaries';
 import { secretMatches } from '../uploads';
 import { AggregateBatchExceeded, AggregateDeadlineExceeded, AggregateVersionConflict, runAggregateOnce } from '../analytics/aggregate';
-import { readAnalyticsSiteClock } from '../analytics/rollup';
+import {
+  classifyRecomputeBacklog,
+  parseAnalyticsSettingsValue,
+  parseRecomputeBacklogStrict,
+  type RecomputeBacklog,
+  type StoredAnalyticsSettings,
+} from '../analytics/settings';
+import { consumeRecomputeBacklog, readSettingsAndBacklog } from '../analytics/settings-repo';
+import { mailApiEnabled } from '../mail/config';
+import { INITIAL_TIMEZONE_REVISION } from './types';
 import { createJobLeaseRepo } from './lease-repo';
 
 /** 单轮作业最多处理的条目数；超过即拒绝，避免一次调度把进程拖住。 */
@@ -165,8 +174,11 @@ export async function runWithinBudget<T>(
   }
 }
 
-type SiteClockRead = Awaited<ReturnType<typeof readAnalyticsSiteClock>>;
-type ClockReader = (db: Prisma.TransactionClient) => Promise<SiteClockRead>;
+type SettingsInputs = {
+  settings: StoredAnalyticsSettings | null | 'corrupt';
+  backlog: RecomputeBacklog | null | 'corrupt';
+};
+type SettingsInputsReader = (db: Prisma.TransactionClient) => Promise<SettingsInputs>;
 
 /**
  * 已实现的 analytics-aggregate 作业：领取固定租约 → 读取站点时钟 → 按站点时区重算一次。
@@ -183,11 +195,20 @@ type ClockReader = (db: Prisma.TransactionClient) => Promise<SiteClockRead>;
 export function createAnalyticsAggregateJob(deps: {
   db: PrismaClient;
   clock?: () => Date;
-  /** 读取站点时钟；默认读 SiteSetting，测试可注入抛错以覆盖 claim 成功后的读取失败分支。 */
-  settingsReader?: ClockReader;
+  /**
+   * 读取 settings 与重算待办；默认在同一语句读两个 key 并 strict 解析。
+   * 测试可注入抛错以覆盖 claim 成功后的读取失败分支。
+   */
+  reader?: SettingsInputsReader;
 }): RegisteredJob {
   const clock = deps.clock ?? (() => new Date());
-  const readSettings: ClockReader = deps.settingsReader ?? ((db) => readAnalyticsSiteClock(db));
+  const readInputs: SettingsInputsReader = deps.reader ?? (async (db) => {
+    const raw = await readSettingsAndBacklog(db);
+    return {
+      settings: parseAnalyticsSettingsValue(raw.settings),
+      backlog: parseRecomputeBacklogStrict(raw.backlog),
+    };
+  });
   const repo = createJobLeaseRepo({ db: deps.db, clock });
   const EMPTY_COUNTS: JobCountsDTO = { candidateCount: 0 };
 
@@ -240,14 +261,35 @@ export function createAnalyticsAggregateJob(deps: {
         return 'unpersisted';
       };
 
-      // 2. 站点时钟：同样在预算内读；读取抛错或内容损坏都走安全失败，不留下水位。
-      const settingsResult = await runWithinBudget(deps.db, budget, (tx) => readSettings(tx));
+      // 2. settings 与重算待办：同一语句读、同一预算；损坏走安全失败，不留下水位。
+      const settingsResult = await runWithinBudget(deps.db, budget, (tx) => readInputs(tx));
       if (settingsResult.kind === 'budget') return { kind: 'timeout' };
       if (settingsResult.kind === 'error') return failedOutcome(await fail('service_unavailable'), EMPTY_COUNTS);
-      const settings = settingsResult.value;
-      if (settings === 'corrupt' || settings.timezoneRevision !== claim.timezoneRevision) {
+      const inputs = settingsResult.value;
+      if (inputs.settings === 'corrupt') return failedOutcome(await fail('service_unavailable'), EMPTY_COUNTS);
+      const settings = inputs.settings ?? {
+        version: 0,
+        timezone: 'UTC',
+        timezoneRevision: INITIAL_TIMEZONE_REVISION,
+        changedAt: now.toISOString(),
+        updatedBy: null,
+      };
+      if (settings.timezoneRevision !== claim.timezoneRevision) {
         return failedOutcome(await fail('service_unavailable'), EMPTY_COUNTS);
       }
+      // GET 与作业共用同一可用 pending 判定；只有 planned 才进入重算窗口与消费。
+      const disposition = classifyRecomputeBacklog({
+        settings,
+        backlog: inputs.backlog,
+        claimRevision: claim.timezoneRevision,
+        now,
+      });
+      if (disposition.kind === 'unusable') {
+        console.error('[cron] analytics.recompute_backlog_unusable', { reason: disposition.reason });
+      } else if (disposition.kind === 'future_floor') {
+        console.error('[cron] analytics.recompute_floor_future');
+      }
+      const rebuildFrom = disposition.kind === 'planned' ? disposition.rebuildFrom : undefined;
 
       // 3. 聚合：事务预算在真正开始时按剩余预算重算；成功时与 JobState 同事务提交。
       const counts: JobCountsDTO = { candidateCount: 0 };
@@ -265,8 +307,18 @@ export function createAnalyticsAggregateJob(deps: {
           // 到其 occurredAt 前不得提前计入（E-60）。
           occurredNotAfter: now,
           maxBatchDays: JOB_MAX_BATCH,
+          ...(rebuildFrom !== undefined ? { rebuildFrom } : {}),
           commit: async (tx, summary) => {
             if (budgetExhausted(budget)) throw new AggregateDeadlineExceeded();
+            if (disposition.kind === 'planned') {
+              if (summary.writtenDays > 0) {
+                // 同一 RR 事务内：完整值 CAS 删除先于 complete；complete 抛错整组回滚（含 DELETE）。
+                const removed = await consumeRecomputeBacklog(tx, disposition.expectedBacklog);
+                if (removed === 0) console.error('[cron] analytics.recompute_consume_miss');
+              } else {
+                console.error('[cron] analytics.recompute_empty_plan');
+              }
+            }
             await repo.complete({
               key: ANALYTICS_AGGREGATE_KEY,
               owner: ANALYTICS_AGGREGATE_OWNER,
@@ -386,6 +438,9 @@ export async function executeJobRequest(
   return { kind: 'ran', status: outcome.status, counts: outcome.counts, finishedAt: clock().toISOString() };
 }
 
+/** mail-queue 的固定 key；operations 只对它应用邮件接口开关，其余作业不受影响。 */
+const MAIL_QUEUE_JOB_KEY = 'mail-queue' as const;
+
 /**
  * POST /api/admin/cron/operations 的处理器：固定 jobKey 白名单 + Bearer
  * CRON_SECRET（常量时间比较）。只执行 registry 里已注册的实现，不接受任意脚本、
@@ -409,6 +464,11 @@ export function createOperationsHandler(deps: OperationsHandlerDeps) {
     const request = parsed.data;
     const { jobKey } = request;
     if (!deps.services.has(jobKey)) return reply({ error: 'unknown_job' }, 400);
+
+    // 邮件接口关闭时，operations 里的 mail-queue 也必须先表现为“不存在”，
+    // 而不是执行后再由 adapter 空转。只拦这一个 jobKey；analytics 等作业照常。
+    // 404 与专用 /api/admin/cron/mail-queue 的 mailSwitchGate 一致，且发生在鉴权之后。
+    if (jobKey === MAIL_QUEUE_JOB_KEY && !mailApiEnabled()) return reply({ error: 'not_found' }, 404);
 
     const now = clock();
     if (!(now instanceof Date) || !Number.isFinite(now.getTime())) {

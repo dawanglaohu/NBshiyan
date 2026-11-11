@@ -11,6 +11,7 @@ import { deviceServiceFor, type DeviceSessionService } from './admin/device-sess
 import { mapAppError, mapUnknownFailure } from './http/errors';
 import { createApiCounter, type ApiCounter, type ApiCounterDb, type CounterLog } from './http/metrics';
 import { createAnalyticsConsentService, type AnalyticsConsentService } from './analytics/consent';
+import { createAnalyticsSettingsService, type AnalyticsSettingsService } from './analytics/settings';
 import { createAnalyticsEventRepo } from './analytics/event-repo';
 import { createAnalyticsIngestService, type AnalyticsIngestService } from './analytics/ingest';
 import { analyticsConsentSecret } from './config';
@@ -44,6 +45,8 @@ export type AdminServices = HttpServices & {
   recoveryEnrollment: RecoveryEnrollmentService;
   accountSecurity: AccountSecurityService;
   deviceManagement: DeviceManagementService;
+  /** 站点统计时区设置；M5-T4 的 settings 工厂只在这里接线。 */
+  analyticsSettings: AnalyticsSettingsService;
 };
 
 /** 新 HTTP 层的组装点。路由在最终响应处调用 apiCounter，不在这里发请求。 */
@@ -100,6 +103,7 @@ export function createAdminServices(deps: {
     }),
     accountSecurity: createAccountSecurityService({ db, clock, actionGrants }),
     deviceManagement: createDeviceManagementService({ db, clock, actionGrants, policy: config.session }),
+    analyticsSettings: createAnalyticsSettingsService({ db, clock }),
   };
 }
 

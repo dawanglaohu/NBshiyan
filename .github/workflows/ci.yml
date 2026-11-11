@@ -237,7 +237,7 @@ jobs:
           retention-days: 7
 
   e2e:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # 浏览器依赖安装、构建和完整测试共享此作业总预算；各用例超时与验收门禁保持不变。
     timeout-minutes: 45
     services:
@@ -395,6 +395,9 @@ jobs:
           # 测试内按随机名自建 schema（先查存在性再 CREATE），只清理本进程创建的那一个。
           M5T11_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
           M5T11_REQUIRE_DATABASE: 'true'
+          # M5-T4 设置/重算 HTTP 真库回归：专属变量 + require；缺地址必须失败，不静默 skip。
+          M5T4_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e?schema=m5t4
+          M5T4_REQUIRE_DATABASE: 'true'
           # M4-T12 队列/预算真实 PG：专属库名 + schema=m4t12；测试自备 schema/表，缺库即失败，不回退 e2e。
           M4T12_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/b9_m4t12_20261109?schema=m4t12
           M4T12_REQUIRE_DATABASE: 'true'
@@ -410,6 +413,7 @@ jobs:
             }
             const wanted = [
               'tests/analytics-settings.db.test.ts',
+              'tests/analytics-settings.http.test.ts',
               'tests/analytics-ingest.http.db.test.ts',
               'tests/analytics-aggregate.db.test.ts',
               'tests/jobs-runtime.http.test.ts',
@@ -460,6 +464,7 @@ jobs:
             --test-reporter-destination=/tmp/pg-regressions.tap \
             --test-reporter-destination=/tmp/m3t2-file-gate.txt \
             tests/analytics-settings.db.test.ts \
+            tests/analytics-settings.http.test.ts \
             tests/analytics-ingest.http.db.test.ts \
             tests/analytics-aggregate.db.test.ts \
             tests/jobs-runtime.http.test.ts \
@@ -496,6 +501,7 @@ jobs:
           process.stdout.write(gate.endsWith('\n') ? gate : `${gate}\n`);
           const files = [
             'tests/analytics-settings.db.test.ts',
+            'tests/analytics-settings.http.test.ts',
             'tests/analytics-ingest.http.db.test.ts',
             'tests/analytics-aggregate.db.test.ts',
             'tests/jobs-runtime.http.test.ts',
@@ -561,7 +567,46 @@ jobs:
             console.log(`ACTION_GRANT_LOCK_EXPIRY_EVIDENCE ${JSON.stringify(r)}`);
           }
           EOF
-      - run: pnpm exec playwright install --with-deps chromium
+      - name: Provision Playwright browser and OS deps (transient mirror + bounded retry)
+        shell: bash
+        timeout-minutes: 20
+        run: |
+          set -Eeuo pipefail
+          export DEBIAN_FRONTEND=noninteractive
+          # Transient GitHub runner only: point the Ubuntu official sources at the verified
+          # HTTPS mirror for this job. Suites/Components/Signed-By stay as shipped; unknown
+          # layouts hard-fail instead of being guessed. DNS/hosts/resolv.conf are not touched.
+          UBU=/etc/apt/sources.list.d/ubuntu.sources
+          [ -f "$UBU" ] || { echo 'APT_SOURCE_LAYOUT_UNKNOWN no-ubuntu.sources' >&2; exit 1; }
+          grep -q '^Signed-By:' "$UBU" || { echo 'APT_SIGNED_BY_MISSING' >&2; exit 1; }
+          grep -Eq '^URIs:.*((archive|security)\.ubuntu\.com|mirror\+file:)' "$UBU" \
+            || { echo 'APT_SOURCE_URIS_UNEXPECTED' >&2; exit 1; }
+          if grep -Eq '^[[:space:]]*deb[[:space:]]+http' /etc/apt/sources.list 2>/dev/null; then
+            echo 'APT_LEGACY_SOURCES_PRESENT' >&2; exit 1
+          fi
+          sudo cp -a "$UBU" /tmp/ubuntu.sources.bak
+          sudo sed -i -E 's#^URIs:.*#URIs: https://mirrors.edge.kernel.org/ubuntu/#' "$UBU"
+          grep -q '^Signed-By:' "$UBU" || { echo 'APT_SIGNED_BY_MISSING_AFTER_REWRITE' >&2; exit 1; }
+          grep -q '^Components:' "$UBU" || { echo 'APT_COMPONENTS_MISSING_AFTER_REWRITE' >&2; exit 1; }
+          if ! sudo apt-get update -o Acquire::Retries=3 -o Acquire::https::Timeout=30 \
+                 -o Acquire::https::Verify-Peer=true -o Acquire::https::Verify-Host=true; then
+            sudo cp -a /tmp/ubuntu.sources.bak "$UBU"
+            echo 'APT_MIRROR_UPDATE_FAILED' >&2
+            exit 1
+          fi
+          echo 'APT_UBUNTU_MIRROR_READY https://mirrors.edge.kernel.org/ubuntu/'
+          # Same lockfile-pinned @playwright/test and the same --with-deps contract. This is a
+          # bounded mitigation on a transient runner, not a claim that runner DNS is solved.
+          for attempt in 1 2 3; do
+            if pnpm exec playwright install --with-deps chromium; then
+              echo "PLAYWRIGHT_PROVISION_OK attempt=$attempt"
+              exit 0
+            fi
+            echo "PLAYWRIGHT_PROVISION_RETRY attempt=$attempt failed" >&2
+            sleep $((attempt * 15))
+          done
+          echo 'PLAYWRIGHT_PROVISION_EXHAUSTED' >&2
+          exit 1
       - run: pnpm build
       # next build 的 standalone 产物缺 .next/static 与 public，浏览器跑起来才会 404 样式和媒体。
       # playwright.config.ts 加载时也做同样的复制（本地跑 e2e 不必手动执行本步），这里显式列出来，CI 日志里能核到运行目录就位。
@@ -891,7 +936,7 @@ jobs:
 
 
   mail-evidence:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 35
     permissions:
       contents: read
@@ -916,7 +961,13 @@ jobs:
           set -Eeuo pipefail
           bb=/usr/bin/busybox
           deb=/tmp/busybox-static_1.36.1-6ubuntu3.1_amd64.deb
-          url=https://archive.ubuntu.com/ubuntu/pool/main/b/busybox/busybox-static_1.36.1-6ubuntu3.1_amd64.deb
+          # Two verified official endpoints on distinct DNS zones; the same deb bytes, size pin
+          # and SHA256 pin below still gate the install. Per-endpoint budget keeps the whole
+          # download inside this 5-minute step: 2 endpoints x 2 attempts x 30 s max = 120 s.
+          urls=(
+            https://mirrors.edge.kernel.org/ubuntu/pool/main/b/busybox/busybox-static_1.36.1-6ubuntu3.1_amd64.deb
+            https://archive.ubuntu.com/ubuntu/pool/main/b/busybox/busybox-static_1.36.1-6ubuntu3.1_amd64.deb
+          )
           sha256=944b2728f53ceb3916cec2c962873c9951e612408099601751db2a0a5d81e0ed
           bb_sha256=dbac288c29ba568459550a2da9e7ae0ded6b1fc728ee9fad3044c44e62d6ac14
           # A dynamic `busybox` package or any installed provider of it would make dpkg refuse
@@ -950,7 +1001,19 @@ jobs:
               *) echo "BUSYBOX_TARGET_OWNED_BY_OTHER_PACKAGE $target_owner" >&2; exit 1 ;;
             esac
           fi
-          curl -fsSL --retry 3 --retry-delay 2 -o "$deb" "$url"
+          supplied=0
+          for url in "${urls[@]}"; do
+            if curl -fsSL --proto '=https' --tlsv1.2 \
+                 --retry 1 --retry-all-errors --retry-delay 2 \
+                 --connect-timeout 10 --max-time 30 \
+                 -o "$deb" "$url"; then
+              echo "BUSYBOX_SUPPLIED_FROM $url"
+              supplied=1
+              break
+            fi
+            echo "BUSYBOX_SUPPLY_ENDPOINT_FAILED $url" >&2
+          done
+          [ "$supplied" = 1 ] || { echo 'BUSYBOX_SUPPLY_ALL_ENDPOINTS_FAILED' >&2; exit 1; }
           [ "$(stat -c %s "$deb")" = 1008874 ] || { echo 'BUSYBOX_DEB_SIZE_MISMATCH' >&2; exit 1; }
           printf '%s  %s\n' "$sha256" "$deb" | sha256sum -c -
           sudo dpkg -i "$deb"
@@ -981,7 +1044,46 @@ jobs:
           case "$banner" in 'BusyBox v1.36.1'*) ;; *) echo "BUSYBOX_VERSION_BANNER_MISMATCH $banner" >&2; exit 1;; esac
           echo "BUSYBOX_CROND_READY $banner"
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium
+      - name: Provision Playwright browser and OS deps (transient mirror + bounded retry)
+        shell: bash
+        timeout-minutes: 20
+        run: |
+          set -Eeuo pipefail
+          export DEBIAN_FRONTEND=noninteractive
+          # Transient GitHub runner only: point the Ubuntu official sources at the verified
+          # HTTPS mirror for this job. Suites/Components/Signed-By stay as shipped; unknown
+          # layouts hard-fail instead of being guessed. DNS/hosts/resolv.conf are not touched.
+          UBU=/etc/apt/sources.list.d/ubuntu.sources
+          [ -f "$UBU" ] || { echo 'APT_SOURCE_LAYOUT_UNKNOWN no-ubuntu.sources' >&2; exit 1; }
+          grep -q '^Signed-By:' "$UBU" || { echo 'APT_SIGNED_BY_MISSING' >&2; exit 1; }
+          grep -Eq '^URIs:.*((archive|security)\.ubuntu\.com|mirror\+file:)' "$UBU" \
+            || { echo 'APT_SOURCE_URIS_UNEXPECTED' >&2; exit 1; }
+          if grep -Eq '^[[:space:]]*deb[[:space:]]+http' /etc/apt/sources.list 2>/dev/null; then
+            echo 'APT_LEGACY_SOURCES_PRESENT' >&2; exit 1
+          fi
+          sudo cp -a "$UBU" /tmp/ubuntu.sources.bak
+          sudo sed -i -E 's#^URIs:.*#URIs: https://mirrors.edge.kernel.org/ubuntu/#' "$UBU"
+          grep -q '^Signed-By:' "$UBU" || { echo 'APT_SIGNED_BY_MISSING_AFTER_REWRITE' >&2; exit 1; }
+          grep -q '^Components:' "$UBU" || { echo 'APT_COMPONENTS_MISSING_AFTER_REWRITE' >&2; exit 1; }
+          if ! sudo apt-get update -o Acquire::Retries=3 -o Acquire::https::Timeout=30 \
+                 -o Acquire::https::Verify-Peer=true -o Acquire::https::Verify-Host=true; then
+            sudo cp -a /tmp/ubuntu.sources.bak "$UBU"
+            echo 'APT_MIRROR_UPDATE_FAILED' >&2
+            exit 1
+          fi
+          echo 'APT_UBUNTU_MIRROR_READY https://mirrors.edge.kernel.org/ubuntu/'
+          # Same lockfile-pinned @playwright/test and the same --with-deps contract. This is a
+          # bounded mitigation on a transient runner, not a claim that runner DNS is solved.
+          for attempt in 1 2 3; do
+            if pnpm exec playwright install --with-deps chromium; then
+              echo "PLAYWRIGHT_PROVISION_OK attempt=$attempt"
+              exit 0
+            fi
+            echo "PLAYWRIGHT_PROVISION_RETRY attempt=$attempt failed" >&2
+            sleep $((attempt * 15))
+          done
+          echo 'PLAYWRIGHT_PROVISION_EXHAUSTED' >&2
+          exit 1
       - name: Prepare real http and off artifacts without business credentials
         timeout-minutes: 12
         shell: bash
