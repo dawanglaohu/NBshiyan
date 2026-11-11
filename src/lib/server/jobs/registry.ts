@@ -14,6 +14,7 @@ import {
   type StoredAnalyticsSettings,
 } from '../analytics/settings';
 import { consumeRecomputeBacklog, readSettingsAndBacklog } from '../analytics/settings-repo';
+import { mailApiEnabled } from '../mail/config';
 import { INITIAL_TIMEZONE_REVISION } from './types';
 import { createJobLeaseRepo } from './lease-repo';
 
@@ -437,6 +438,9 @@ export async function executeJobRequest(
   return { kind: 'ran', status: outcome.status, counts: outcome.counts, finishedAt: clock().toISOString() };
 }
 
+/** mail-queue 的固定 key；operations 只对它应用邮件接口开关，其余作业不受影响。 */
+const MAIL_QUEUE_JOB_KEY = 'mail-queue' as const;
+
 /**
  * POST /api/admin/cron/operations 的处理器：固定 jobKey 白名单 + Bearer
  * CRON_SECRET（常量时间比较）。只执行 registry 里已注册的实现，不接受任意脚本、
@@ -460,6 +464,11 @@ export function createOperationsHandler(deps: OperationsHandlerDeps) {
     const request = parsed.data;
     const { jobKey } = request;
     if (!deps.services.has(jobKey)) return reply({ error: 'unknown_job' }, 400);
+
+    // 邮件接口关闭时，operations 里的 mail-queue 也必须先表现为“不存在”，
+    // 而不是执行后再由 adapter 空转。只拦这一个 jobKey；analytics 等作业照常。
+    // 404 与专用 /api/admin/cron/mail-queue 的 mailSwitchGate 一致，且发生在鉴权之后。
+    if (jobKey === MAIL_QUEUE_JOB_KEY && !mailApiEnabled()) return reply({ error: 'not_found' }, 404);
 
     const now = clock();
     if (!(now instanceof Date) || !Number.isFinite(now.getTime())) {
