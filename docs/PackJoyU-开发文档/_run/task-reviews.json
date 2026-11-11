@@ -659,49 +659,49 @@
   },
   "M3-T10": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "0cb50a14b9206e3a2b8e7063639e307fdb35435abc199fab63f4049d3f436eeb",
+    "contractHash": "e6daa707580b3b36896ba82a22d096b55facf44c67cb5cdfaf25ab3c4a3ce36e",
     "evidence": [
-      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
-      "契约对象在 I→J 间逐字节相同（对象 sha256 I=ca473bb168a421ef = J=ca473bb168a421ef）；provides=1/requires=2/sections=14/supportPaths=5/outputPaths=2 全为原值；当前契约 hash 0cb50a14b9206e3a；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
-      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      "固定对象：L bed4436b7bb26d67583373c24777eb2953f19cc3 / tree ace1e3fc305c882758b406ffb2cd00d5012aea0c / 唯一父 K 81cdb260224d359bb04bb6d35306c2e944a6958f；task/M5-T4 工作树 clean；本登记只写本补丁证据、task-reviews 与正常派生，不改 task-contracts.json、任务状态、源码/测试/CI/包锁/schema 与生成器。",
+      "本键为传播变更：契约对象在 K→L 逐字节相同（对象摘要 ca473bb168a421ef = ca473bb168a421ef）；provides=1/requires=2/sections=14/supportPaths=5/outputPaths=2 全为原值；当前契约 hash e6daa707580b3b36896ba82a22d096b55facf44c67cb5cdfaf25ab3c4a3ce36e 变化仅因依赖闭包含 M5-T4（经 M3-T6 → M6-T4 → M6-T6 → M5-T4），能力与接口未变。",
+      "范围限定：本记录只是 L 当前契约语义复核，不证明该任务已实现、不改变其 todo/status；M5-T4 亦不证明真实 PG 用例 15./16. 通过、不证明新 CI 转绿；未重验 P2/O1 或旧 43，未顺手清理既有 stale。"
     ],
-    "reviewed": "2026-11-11T04:16:38.484181+00:00",
+    "reviewed": "2026-11-11T05:34:58.660575+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T11": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "f6e82503bf5130bcab1ead4c16b12284ee9bae023fa3a504aefc358a46031e02",
+    "contractHash": "d5e32c6dd4b039f8ff88bcffe1cbd5998fe282f269f691c44582ad7fbd159073",
     "evidence": [
-      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
-      "契约对象在 I→J 间逐字节相同（对象 sha256 I=a0d0b8af3f5979b4 = J=a0d0b8af3f5979b4）；provides=1/requires=4/sections=14/supportPaths=6/outputPaths=3 全为原值；当前契约 hash f6e82503bf5130bc；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
-      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      "固定对象：L bed4436b7bb26d67583373c24777eb2953f19cc3 / tree ace1e3fc305c882758b406ffb2cd00d5012aea0c / 唯一父 K 81cdb260224d359bb04bb6d35306c2e944a6958f；task/M5-T4 工作树 clean；本登记只写本补丁证据、task-reviews 与正常派生，不改 task-contracts.json、任务状态、源码/测试/CI/包锁/schema 与生成器。",
+      "本键为传播变更：契约对象在 K→L 逐字节相同（对象摘要 a0d0b8af3f5979b4 = a0d0b8af3f5979b4）；provides=1/requires=4/sections=14/supportPaths=6/outputPaths=3 全为原值；当前契约 hash d5e32c6dd4b039f8ff88bcffe1cbd5998fe282f269f691c44582ad7fbd159073 变化仅因依赖闭包含 M5-T4（经 M3-T6 → M6-T4 → M6-T6 → M5-T4），能力与接口未变。",
+      "范围限定：本记录只是 L 当前契约语义复核，不证明该任务已实现、不改变其 todo/status；M5-T4 亦不证明真实 PG 用例 15./16. 通过、不证明新 CI 转绿；未重验 P2/O1 或旧 43，未顺手清理既有 stale。"
     ],
-    "reviewed": "2026-11-11T04:16:38.484181+00:00",
+    "reviewed": "2026-11-11T05:34:58.660575+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T12": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "99e1b930ce6fa45068847a626344a4012091f70e1de9069a6dd0262f31262f12",
+    "contractHash": "e68aaa5db9033048b0e4f5f539a8a6ffb124f53717b2463ebc61af1f83daa9c6",
     "evidence": [
-      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
-      "契约对象在 I→J 间逐字节相同（对象 sha256 I=01cc0807e8bafaba = J=01cc0807e8bafaba）；provides=2/requires=4/sections=14/supportPaths=5/outputPaths=4 全为原值；当前契约 hash 99e1b930ce6fa450；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
-      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      "固定对象：L bed4436b7bb26d67583373c24777eb2953f19cc3 / tree ace1e3fc305c882758b406ffb2cd00d5012aea0c / 唯一父 K 81cdb260224d359bb04bb6d35306c2e944a6958f；task/M5-T4 工作树 clean；本登记只写本补丁证据、task-reviews 与正常派生，不改 task-contracts.json、任务状态、源码/测试/CI/包锁/schema 与生成器。",
+      "本键为传播变更：契约对象在 K→L 逐字节相同（对象摘要 01cc0807e8bafaba = 01cc0807e8bafaba）；provides=2/requires=4/sections=14/supportPaths=5/outputPaths=4 全为原值；当前契约 hash e68aaa5db9033048b0e4f5f539a8a6ffb124f53717b2463ebc61af1f83daa9c6 变化仅因依赖闭包含 M5-T4（经 M3-T11 → M3-T6 → M6-T4 → M6-T6 → M5-T4），能力与接口未变。",
+      "范围限定：本记录只是 L 当前契约语义复核，不证明该任务已实现、不改变其 todo/status；M5-T4 亦不证明真实 PG 用例 15./16. 通过、不证明新 CI 转绿；未重验 P2/O1 或旧 43，未顺手清理既有 stale。"
     ],
-    "reviewed": "2026-11-11T04:16:38.484181+00:00",
+    "reviewed": "2026-11-11T05:34:58.660575+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T13": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "b3a1f2ae4bc4ac8a4fef76aae59263684cde9ba75decab8912958284f12adee2",
+    "contractHash": "9ea3e7e471c933b0c882b4d733a58c4815e4f9cdbe3f78439b40a8b0581c17f2",
     "evidence": [
-      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
-      "契约对象在 I→J 间逐字节相同（对象 sha256 I=6d19b0cdcb357b71 = J=6d19b0cdcb357b71）；provides=1/requires=3/sections=14/supportPaths=5/outputPaths=1 全为原值；当前契约 hash b3a1f2ae4bc4ac8a；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
-      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      "固定对象：L bed4436b7bb26d67583373c24777eb2953f19cc3 / tree ace1e3fc305c882758b406ffb2cd00d5012aea0c / 唯一父 K 81cdb260224d359bb04bb6d35306c2e944a6958f；task/M5-T4 工作树 clean；本登记只写本补丁证据、task-reviews 与正常派生，不改 task-contracts.json、任务状态、源码/测试/CI/包锁/schema 与生成器。",
+      "本键为传播变更：契约对象在 K→L 逐字节相同（对象摘要 6d19b0cdcb357b71 = 6d19b0cdcb357b71）；provides=1/requires=3/sections=14/supportPaths=5/outputPaths=1 全为原值；当前契约 hash 9ea3e7e471c933b0c882b4d733a58c4815e4f9cdbe3f78439b40a8b0581c17f2 变化仅因依赖闭包含 M5-T4（经 M3-T12 → M3-T11 → M3-T6 → M6-T4 → M6-T6 → M5-T4），能力与接口未变。",
+      "范围限定：本记录只是 L 当前契约语义复核，不证明该任务已实现、不改变其 todo/status；M5-T4 亦不证明真实 PG 用例 15./16. 通过、不证明新 CI 转绿；未重验 P2/O1 或旧 43，未顺手清理既有 stale。"
     ],
-    "reviewed": "2026-11-11T04:16:38.484181+00:00",
+    "reviewed": "2026-11-11T05:34:58.660575+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -885,13 +885,13 @@
   },
   "M3-T25": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "652f9cd4a34b128b823e9a91bcac297cf0c90c3c6b8fc51f07a6b11a7053c12b",
+    "contractHash": "9525538bdb5a4c4d118139303f509c723a5513dd51eee90b7dd59a00170d52c8",
     "evidence": [
-      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
-      "契约对象在 I→J 间逐字节相同（对象 sha256 I=7be4b0358b5e5a37 = J=7be4b0358b5e5a37）；provides=1/requires=5/sections=12/supportPaths=2/outputPaths=9 全为原值；当前契约 hash 652f9cd4a34b128b；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
-      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      "固定对象：L bed4436b7bb26d67583373c24777eb2953f19cc3 / tree ace1e3fc305c882758b406ffb2cd00d5012aea0c / 唯一父 K 81cdb260224d359bb04bb6d35306c2e944a6958f；task/M5-T4 工作树 clean；本登记只写本补丁证据、task-reviews 与正常派生，不改 task-contracts.json、任务状态、源码/测试/CI/包锁/schema 与生成器。",
+      "本键为传播变更：契约对象在 K→L 逐字节相同（对象摘要 7be4b0358b5e5a37 = 7be4b0358b5e5a37）；provides=1/requires=5/sections=12/supportPaths=2/outputPaths=9 全为原值；当前契约 hash 9525538bdb5a4c4d118139303f509c723a5513dd51eee90b7dd59a00170d52c8 变化仅因依赖闭包含 M5-T4（经 M5-T10 → M5-T4），能力与接口未变。",
+      "范围限定：本记录只是 L 当前契约语义复核，不证明该任务已实现、不改变其 todo/status；M5-T4 亦不证明真实 PG 用例 15./16. 通过、不证明新 CI 转绿；未重验 P2/O1 或旧 43，未顺手清理既有 stale。"
     ],
-    "reviewed": "2026-11-11T04:16:38.484181+00:00",
+    "reviewed": "2026-11-11T05:34:58.660575+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -943,13 +943,13 @@
   },
   "M3-T6": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "62b8eaa6c372d52275e3bc99ffbc418557d791619d7408d0e9e6f6fe38eb2e56",
+    "contractHash": "88c59c5dfc721a426f5635e4eade8c2edb270c5f99af016ff7bf353402dec661",
     "evidence": [
-      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
-      "契约对象在 I→J 间逐字节相同（对象 sha256 I=7fca49153d8b4d41 = J=7fca49153d8b4d41）；provides=1/requires=5/sections=14/supportPaths=8/outputPaths=2 全为原值；当前契约 hash 62b8eaa6c372d522；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
-      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      "固定对象：L bed4436b7bb26d67583373c24777eb2953f19cc3 / tree ace1e3fc305c882758b406ffb2cd00d5012aea0c / 唯一父 K 81cdb260224d359bb04bb6d35306c2e944a6958f；task/M5-T4 工作树 clean；本登记只写本补丁证据、task-reviews 与正常派生，不改 task-contracts.json、任务状态、源码/测试/CI/包锁/schema 与生成器。",
+      "本键为传播变更：契约对象在 K→L 逐字节相同（对象摘要 7fca49153d8b4d41 = 7fca49153d8b4d41）；provides=1/requires=5/sections=14/supportPaths=8/outputPaths=2 全为原值；当前契约 hash 88c59c5dfc721a426f5635e4eade8c2edb270c5f99af016ff7bf353402dec661 变化仅因依赖闭包含 M5-T4（经 M6-T4 → M6-T6 → M5-T4），能力与接口未变。",
+      "范围限定：本记录只是 L 当前契约语义复核，不证明该任务已实现、不改变其 todo/status；M5-T4 亦不证明真实 PG 用例 15./16. 通过、不证明新 CI 转绿；未重验 P2/O1 或旧 43，未顺手清理既有 stale。"
     ],
-    "reviewed": "2026-11-11T04:16:38.484181+00:00",
+    "reviewed": "2026-11-11T05:34:58.660575+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -970,25 +970,25 @@
   },
   "M3-T8": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "3c5256170ec906221d14783a949eadc38be4826ab19f856c09a924e621017fa8",
+    "contractHash": "15389368006d147f4ccb29620fa0ff0e0cf38015a88c9311b58413b64d76fa99",
     "evidence": [
-      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
-      "契约对象在 I→J 间逐字节相同（对象 sha256 I=889957ad20e44684 = J=889957ad20e44684）；provides=1/requires=2/sections=14/supportPaths=5/outputPaths=3 全为原值；当前契约 hash 3c5256170ec90622；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
-      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      "固定对象：L bed4436b7bb26d67583373c24777eb2953f19cc3 / tree ace1e3fc305c882758b406ffb2cd00d5012aea0c / 唯一父 K 81cdb260224d359bb04bb6d35306c2e944a6958f；task/M5-T4 工作树 clean；本登记只写本补丁证据、task-reviews 与正常派生，不改 task-contracts.json、任务状态、源码/测试/CI/包锁/schema 与生成器。",
+      "本键为传播变更：契约对象在 K→L 逐字节相同（对象摘要 889957ad20e44684 = 889957ad20e44684）；provides=1/requires=2/sections=14/supportPaths=5/outputPaths=3 全为原值；当前契约 hash 15389368006d147f4ccb29620fa0ff0e0cf38015a88c9311b58413b64d76fa99 变化仅因依赖闭包含 M5-T4（经 M3-T12 → M3-T11 → M3-T6 → M6-T4 → M6-T6 → M5-T4），能力与接口未变。",
+      "范围限定：本记录只是 L 当前契约语义复核，不证明该任务已实现、不改变其 todo/status；M5-T4 亦不证明真实 PG 用例 15./16. 通过、不证明新 CI 转绿；未重验 P2/O1 或旧 43，未顺手清理既有 stale。"
     ],
-    "reviewed": "2026-11-11T04:16:38.484181+00:00",
+    "reviewed": "2026-11-11T05:34:58.660575+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T9": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "215cd489be5b727b461c31e9a6d940bf686b8faafd83287feafdcc23a2f8abf6",
+    "contractHash": "1edf38e18200b667a96cfb8e5e627f287d7f22eccc834e3aab643bd1c8c631ad",
     "evidence": [
-      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
-      "契约对象在 I→J 间逐字节相同（对象 sha256 I=38ee1ea1ea8d0893 = J=38ee1ea1ea8d0893）；provides=1/requires=2/sections=14/supportPaths=7/outputPaths=2 全为原值；当前契约 hash 215cd489be5b727b；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
-      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      "固定对象：L bed4436b7bb26d67583373c24777eb2953f19cc3 / tree ace1e3fc305c882758b406ffb2cd00d5012aea0c / 唯一父 K 81cdb260224d359bb04bb6d35306c2e944a6958f；task/M5-T4 工作树 clean；本登记只写本补丁证据、task-reviews 与正常派生，不改 task-contracts.json、任务状态、源码/测试/CI/包锁/schema 与生成器。",
+      "本键为传播变更：契约对象在 K→L 逐字节相同（对象摘要 38ee1ea1ea8d0893 = 38ee1ea1ea8d0893）；provides=1/requires=2/sections=14/supportPaths=7/outputPaths=2 全为原值；当前契约 hash 1edf38e18200b667a96cfb8e5e627f287d7f22eccc834e3aab643bd1c8c631ad 变化仅因依赖闭包含 M5-T4（经 M3-T12 → M3-T11 → M3-T6 → M6-T4 → M6-T6 → M5-T4），能力与接口未变。",
+      "范围限定：本记录只是 L 当前契约语义复核，不证明该任务已实现、不改变其 todo/status；M5-T4 亦不证明真实 PG 用例 15./16. 通过、不证明新 CI 转绿；未重验 P2/O1 或旧 43，未顺手清理既有 stale。"
     ],
-    "reviewed": "2026-11-11T04:16:38.484181+00:00",
+    "reviewed": "2026-11-11T05:34:58.660575+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -1212,13 +1212,13 @@
   },
   "M5-T10": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "4cfbfb7b3e97793adf005923e931265beffa7e2695827ea17036c92729770204",
+    "contractHash": "f6b993cc773d8b7cd346cc544da4c50fdb988ac5c9bf7ba401c2a9e2e97a9c15",
     "evidence": [
-      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
-      "契约对象在 I→J 间逐字节相同（对象 sha256 I=11e313b80e0086b6 = J=11e313b80e0086b6）；provides=1/requires=3/sections=14/supportPaths=0/outputPaths=4 全为原值；当前契约 hash 4cfbfb7b3e97793a；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
-      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      "固定对象：L bed4436b7bb26d67583373c24777eb2953f19cc3 / tree ace1e3fc305c882758b406ffb2cd00d5012aea0c / 唯一父 K 81cdb260224d359bb04bb6d35306c2e944a6958f；task/M5-T4 工作树 clean；本登记只写本补丁证据、task-reviews 与正常派生，不改 task-contracts.json、任务状态、源码/测试/CI/包锁/schema 与生成器。",
+      "本键为传播变更：契约对象在 K→L 逐字节相同（对象摘要 11e313b80e0086b6 = 11e313b80e0086b6）；provides=1/requires=3/sections=14/supportPaths=0/outputPaths=4 全为原值；当前契约 hash f6b993cc773d8b7cd346cc544da4c50fdb988ac5c9bf7ba401c2a9e2e97a9c15 变化仅因依赖闭包含 M5-T4（直连 requires 含 M5-T4），能力与接口未变。",
+      "范围限定：本记录只是 L 当前契约语义复核，不证明该任务已实现、不改变其 todo/status；M5-T4 亦不证明真实 PG 用例 15./16. 通过、不证明新 CI 转绿；未重验 P2/O1 或旧 43，未顺手清理既有 stale。"
     ],
-    "reviewed": "2026-11-11T04:16:38.484181+00:00",
+    "reviewed": "2026-11-11T05:34:58.660575+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -1290,13 +1290,13 @@
   },
   "M5-T4": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "54897f8ff38eabb1d65b0c023c8e94213914df107bbf69cba55e777a843816de",
+    "contractHash": "5057dca01f29e10fa87f67c161a1201665f6a1170b1cae90047d813aa6086e24",
     "evidence": [
-      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
-      "契约内容变化仅一处：supportPaths 11→12，新增 tests/operations-mail-switch.test.ts（无删除）；provides/requires/outputPaths/sections 均为原值；当前契约 hash 54897f8ff38eabb1。",
-      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      "固定对象：L bed4436b7bb26d67583373c24777eb2953f19cc3 / tree ace1e3fc305c882758b406ffb2cd00d5012aea0c / 唯一父 K 81cdb260224d359bb04bb6d35306c2e944a6958f；task/M5-T4 工作树 clean；本登记只写本补丁证据、task-reviews 与正常派生，不改 task-contracts.json、任务状态、源码/测试/CI/包锁/schema 与生成器。",
+      "本键为直接变更：supportPaths 12→13，仅新增 tests/mail-queue-schedule.integration.test.ts；provides=1/requires=2/sections=12/outputPaths=3 与 K 一致，除该字段外契约对象逐字节相同（对象摘要 K=3c5fe453a018344e / L=7ea9e86a30f06388）。当前契约 hash 5057dca01f29e10fa87f67c161a1201665f6a1170b1cae90047d813aa6086e24（K 时 54897f8ff38eabb1d65b0c023c8e94213914df107bbf69cba55e777a843816de）。",
+      "范围限定：本记录只是 L 当前契约语义复核，不证明该任务已实现、不改变其 todo/status；M5-T4 亦不证明真实 PG 用例 15./16. 通过、不证明新 CI 转绿；未重验 P2/O1 或旧 43，未顺手清理既有 stale。"
     ],
-    "reviewed": "2026-11-11T04:17:07.039957+00:00",
+    "reviewed": "2026-11-11T05:35:22.962801+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -1395,73 +1395,73 @@
   },
   "M6-T2": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "4873d38bc52f39486a5400de623519d6ca2ee19cdded5d9bd2d344f00fe5ca3a",
+    "contractHash": "aec34640efe96b766107da1485f5a5b2281dac8518c48f60719270b5c3d66f37",
     "evidence": [
-      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
-      "契约对象在 I→J 间逐字节相同（对象 sha256 I=ab8c1c9701b8acac = J=ab8c1c9701b8acac）；provides=1/requires=2/sections=12/supportPaths=0/outputPaths=4 全为原值；当前契约 hash 4873d38bc52f3948；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
-      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      "固定对象：L bed4436b7bb26d67583373c24777eb2953f19cc3 / tree ace1e3fc305c882758b406ffb2cd00d5012aea0c / 唯一父 K 81cdb260224d359bb04bb6d35306c2e944a6958f；task/M5-T4 工作树 clean；本登记只写本补丁证据、task-reviews 与正常派生，不改 task-contracts.json、任务状态、源码/测试/CI/包锁/schema 与生成器。",
+      "本键为传播变更：契约对象在 K→L 逐字节相同（对象摘要 ab8c1c9701b8acac = ab8c1c9701b8acac）；provides=1/requires=2/sections=12/supportPaths=0/outputPaths=4 全为原值；当前契约 hash aec34640efe96b766107da1485f5a5b2281dac8518c48f60719270b5c3d66f37 变化仅因依赖闭包含 M5-T4（经 M6-T6 → M5-T4），能力与接口未变。",
+      "范围限定：本记录只是 L 当前契约语义复核，不证明该任务已实现、不改变其 todo/status；M5-T4 亦不证明真实 PG 用例 15./16. 通过、不证明新 CI 转绿；未重验 P2/O1 或旧 43，未顺手清理既有 stale。"
     ],
-    "reviewed": "2026-11-11T04:16:38.484181+00:00",
+    "reviewed": "2026-11-11T05:34:58.660575+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M6-T3": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "a84f56787a39e16fc18e26d523b361ace87b079b0600cff909df7f43c8d7ba8c",
+    "contractHash": "d8de224731ca936c0a87eb5f873bf342ba34bef4b2103b61429cde6da7fd47f3",
     "evidence": [
-      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
-      "契约对象在 I→J 间逐字节相同（对象 sha256 I=a34206606828d391 = J=a34206606828d391）；provides=1/requires=2/sections=12/supportPaths=0/outputPaths=7 全为原值；当前契约 hash a84f56787a39e16f；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
-      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      "固定对象：L bed4436b7bb26d67583373c24777eb2953f19cc3 / tree ace1e3fc305c882758b406ffb2cd00d5012aea0c / 唯一父 K 81cdb260224d359bb04bb6d35306c2e944a6958f；task/M5-T4 工作树 clean；本登记只写本补丁证据、task-reviews 与正常派生，不改 task-contracts.json、任务状态、源码/测试/CI/包锁/schema 与生成器。",
+      "本键为传播变更：契约对象在 K→L 逐字节相同（对象摘要 a34206606828d391 = a34206606828d391）；provides=1/requires=2/sections=12/supportPaths=0/outputPaths=7 全为原值；当前契约 hash d8de224731ca936c0a87eb5f873bf342ba34bef4b2103b61429cde6da7fd47f3 变化仅因依赖闭包含 M5-T4（经 M6-T6 → M5-T4），能力与接口未变。",
+      "范围限定：本记录只是 L 当前契约语义复核，不证明该任务已实现、不改变其 todo/status；M5-T4 亦不证明真实 PG 用例 15./16. 通过、不证明新 CI 转绿；未重验 P2/O1 或旧 43，未顺手清理既有 stale。"
     ],
-    "reviewed": "2026-11-11T04:16:38.484181+00:00",
+    "reviewed": "2026-11-11T05:34:58.660575+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M6-T4": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "771c3521b904f7df9711340a3759f63868849c3d0f19e05fded0332a9dab9e25",
+    "contractHash": "ccddda080b166394c931e8e2e868642339c037da151167051a951dd3d03dee93",
     "evidence": [
-      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
-      "契约对象在 I→J 间逐字节相同（对象 sha256 I=b56287b6e8e3bee9 = J=b56287b6e8e3bee9）；provides=1/requires=2/sections=14/supportPaths=0/outputPaths=6 全为原值；当前契约 hash 771c3521b904f7df；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
-      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      "固定对象：L bed4436b7bb26d67583373c24777eb2953f19cc3 / tree ace1e3fc305c882758b406ffb2cd00d5012aea0c / 唯一父 K 81cdb260224d359bb04bb6d35306c2e944a6958f；task/M5-T4 工作树 clean；本登记只写本补丁证据、task-reviews 与正常派生，不改 task-contracts.json、任务状态、源码/测试/CI/包锁/schema 与生成器。",
+      "本键为传播变更：契约对象在 K→L 逐字节相同（对象摘要 b56287b6e8e3bee9 = b56287b6e8e3bee9）；provides=1/requires=2/sections=14/supportPaths=0/outputPaths=6 全为原值；当前契约 hash ccddda080b166394c931e8e2e868642339c037da151167051a951dd3d03dee93 变化仅因依赖闭包含 M5-T4（经 M6-T6 → M5-T4），能力与接口未变。",
+      "范围限定：本记录只是 L 当前契约语义复核，不证明该任务已实现、不改变其 todo/status；M5-T4 亦不证明真实 PG 用例 15./16. 通过、不证明新 CI 转绿；未重验 P2/O1 或旧 43，未顺手清理既有 stale。"
     ],
-    "reviewed": "2026-11-11T04:16:38.484181+00:00",
+    "reviewed": "2026-11-11T05:34:58.660575+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M6-T5": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "1499314a4dfcea76ebf673c9961cceb8ee0ee6919b401c51c61211d9076896fc",
+    "contractHash": "f6c1a7d33d4bfbdaf87ea85d06f76ae99e72644e379f36a55c4c0d22327e1f42",
     "evidence": [
-      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
-      "契约对象在 I→J 间逐字节相同（对象 sha256 I=e3e579a5746dae17 = J=e3e579a5746dae17）；provides=1/requires=2/sections=12/supportPaths=0/outputPaths=4 全为原值；当前契约 hash 1499314a4dfcea76；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
-      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      "固定对象：L bed4436b7bb26d67583373c24777eb2953f19cc3 / tree ace1e3fc305c882758b406ffb2cd00d5012aea0c / 唯一父 K 81cdb260224d359bb04bb6d35306c2e944a6958f；task/M5-T4 工作树 clean；本登记只写本补丁证据、task-reviews 与正常派生，不改 task-contracts.json、任务状态、源码/测试/CI/包锁/schema 与生成器。",
+      "本键为传播变更：契约对象在 K→L 逐字节相同（对象摘要 e3e579a5746dae17 = e3e579a5746dae17）；provides=1/requires=2/sections=12/supportPaths=0/outputPaths=4 全为原值；当前契约 hash f6c1a7d33d4bfbdaf87ea85d06f76ae99e72644e379f36a55c4c0d22327e1f42 变化仅因依赖闭包含 M5-T4（经 M6-T6 → M5-T4），能力与接口未变。",
+      "范围限定：本记录只是 L 当前契约语义复核，不证明该任务已实现、不改变其 todo/status；M5-T4 亦不证明真实 PG 用例 15./16. 通过、不证明新 CI 转绿；未重验 P2/O1 或旧 43，未顺手清理既有 stale。"
     ],
-    "reviewed": "2026-11-11T04:16:38.484181+00:00",
+    "reviewed": "2026-11-11T05:34:58.660575+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M6-T6": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "e0d265b9669c72017dbb0ae5db6e099027bb26c2a9c2f36281adfe4d0c7f628e",
+    "contractHash": "aeb1572d0c1511926d90ac95dc7890b88dbc2e68ad145e4315d5a1c38ce3d1cd",
     "evidence": [
-      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
-      "契约对象在 I→J 间逐字节相同（对象 sha256 I=21978dda21431bd9 = J=21978dda21431bd9）；provides=1/requires=2/sections=12/supportPaths=0/outputPaths=5 全为原值；当前契约 hash e0d265b9669c7201；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
-      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      "固定对象：L bed4436b7bb26d67583373c24777eb2953f19cc3 / tree ace1e3fc305c882758b406ffb2cd00d5012aea0c / 唯一父 K 81cdb260224d359bb04bb6d35306c2e944a6958f；task/M5-T4 工作树 clean；本登记只写本补丁证据、task-reviews 与正常派生，不改 task-contracts.json、任务状态、源码/测试/CI/包锁/schema 与生成器。",
+      "本键为传播变更：契约对象在 K→L 逐字节相同（对象摘要 21978dda21431bd9 = 21978dda21431bd9）；provides=1/requires=2/sections=12/supportPaths=0/outputPaths=5 全为原值；当前契约 hash aeb1572d0c1511926d90ac95dc7890b88dbc2e68ad145e4315d5a1c38ce3d1cd 变化仅因依赖闭包含 M5-T4（直连 requires 含 M5-T4），能力与接口未变。",
+      "范围限定：本记录只是 L 当前契约语义复核，不证明该任务已实现、不改变其 todo/status；M5-T4 亦不证明真实 PG 用例 15./16. 通过、不证明新 CI 转绿；未重验 P2/O1 或旧 43，未顺手清理既有 stale。"
     ],
-    "reviewed": "2026-11-11T04:16:38.484181+00:00",
+    "reviewed": "2026-11-11T05:34:58.660575+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M6-T7": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "8ac4bee9342e615c6497cab3b54ad8b48c4ad400c1bf63d8b3e3023e83c00395",
+    "contractHash": "abfae613905fb56744511fe4fca6d4d9c42ca14510cb376af3624448ef5d5143",
     "evidence": [
-      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
-      "契约对象在 I→J 间逐字节相同（对象 sha256 I=36ba5108d6a6817a = J=36ba5108d6a6817a）；provides=1/requires=4/sections=14/supportPaths=0/outputPaths=4 全为原值；当前契约 hash 8ac4bee9342e615c；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
-      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      "固定对象：L bed4436b7bb26d67583373c24777eb2953f19cc3 / tree ace1e3fc305c882758b406ffb2cd00d5012aea0c / 唯一父 K 81cdb260224d359bb04bb6d35306c2e944a6958f；task/M5-T4 工作树 clean；本登记只写本补丁证据、task-reviews 与正常派生，不改 task-contracts.json、任务状态、源码/测试/CI/包锁/schema 与生成器。",
+      "本键为传播变更：契约对象在 K→L 逐字节相同（对象摘要 36ba5108d6a6817a = 36ba5108d6a6817a）；provides=1/requires=4/sections=14/supportPaths=0/outputPaths=4 全为原值；当前契约 hash abfae613905fb56744511fe4fca6d4d9c42ca14510cb376af3624448ef5d5143 变化仅因依赖闭包含 M5-T4（经 M6-T4 → M6-T6 → M5-T4），能力与接口未变。",
+      "范围限定：本记录只是 L 当前契约语义复核，不证明该任务已实现、不改变其 todo/status；M5-T4 亦不证明真实 PG 用例 15./16. 通过、不证明新 CI 转绿；未重验 P2/O1 或旧 43，未顺手清理既有 stale。"
     ],
-    "reviewed": "2026-11-11T04:16:38.484181+00:00",
+    "reviewed": "2026-11-11T05:34:58.660575+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -1480,37 +1480,37 @@
   },
   "M7-T10": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "c5bd2fe935c1d96a9f73084a65c914808fe5f24b4ee3a6a44560287537c39a2b",
+    "contractHash": "2a5256dedca156c67532cf64e48f57e0d179ebcd05853d4368f3ec804c7dde12",
     "evidence": [
-      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
-      "契约对象在 I→J 间逐字节相同（对象 sha256 I=bdc7f1a19e99e2a8 = J=bdc7f1a19e99e2a8）；provides=1/requires=1/sections=12/supportPaths=0/outputPaths=5 全为原值；当前契约 hash c5bd2fe935c1d96a；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
-      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      "固定对象：L bed4436b7bb26d67583373c24777eb2953f19cc3 / tree ace1e3fc305c882758b406ffb2cd00d5012aea0c / 唯一父 K 81cdb260224d359bb04bb6d35306c2e944a6958f；task/M5-T4 工作树 clean；本登记只写本补丁证据、task-reviews 与正常派生，不改 task-contracts.json、任务状态、源码/测试/CI/包锁/schema 与生成器。",
+      "本键为传播变更：契约对象在 K→L 逐字节相同（对象摘要 bdc7f1a19e99e2a8 = bdc7f1a19e99e2a8）；provides=1/requires=1/sections=12/supportPaths=0/outputPaths=5 全为原值；当前契约 hash 2a5256dedca156c67532cf64e48f57e0d179ebcd05853d4368f3ec804c7dde12 变化仅因依赖闭包含 M5-T4（经 M7-T9 → M3-T25 → M5-T10 → M5-T4），能力与接口未变。",
+      "范围限定：本记录只是 L 当前契约语义复核，不证明该任务已实现、不改变其 todo/status；M5-T4 亦不证明真实 PG 用例 15./16. 通过、不证明新 CI 转绿；未重验 P2/O1 或旧 43，未顺手清理既有 stale。"
     ],
-    "reviewed": "2026-11-11T04:16:38.484181+00:00",
+    "reviewed": "2026-11-11T05:34:58.660575+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M7-T2": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "8c5f92ca9d195aaf02572a47b66771e67c4d2d5f8f7fa71c2c5f0e9f2f397a65",
+    "contractHash": "a7f599687346f43a56666846fb024934d2a357f75345b3d7525f7fe997873431",
     "evidence": [
-      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
-      "契约对象在 I→J 间逐字节相同（对象 sha256 I=109d5701c408138f = J=109d5701c408138f）；provides=1/requires=2/sections=14/supportPaths=0/outputPaths=3 全为原值；当前契约 hash 8c5f92ca9d195aaf；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
-      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      "固定对象：L bed4436b7bb26d67583373c24777eb2953f19cc3 / tree ace1e3fc305c882758b406ffb2cd00d5012aea0c / 唯一父 K 81cdb260224d359bb04bb6d35306c2e944a6958f；task/M5-T4 工作树 clean；本登记只写本补丁证据、task-reviews 与正常派生，不改 task-contracts.json、任务状态、源码/测试/CI/包锁/schema 与生成器。",
+      "本键为传播变更：契约对象在 K→L 逐字节相同（对象摘要 109d5701c408138f = 109d5701c408138f）；provides=1/requires=2/sections=14/supportPaths=0/outputPaths=3 全为原值；当前契约 hash a7f599687346f43a56666846fb024934d2a357f75345b3d7525f7fe997873431 变化仅因依赖闭包含 M5-T4（经 M3-T6 → M6-T4 → M6-T6 → M5-T4），能力与接口未变。",
+      "范围限定：本记录只是 L 当前契约语义复核，不证明该任务已实现、不改变其 todo/status；M5-T4 亦不证明真实 PG 用例 15./16. 通过、不证明新 CI 转绿；未重验 P2/O1 或旧 43，未顺手清理既有 stale。"
     ],
-    "reviewed": "2026-11-11T04:16:38.484181+00:00",
+    "reviewed": "2026-11-11T05:34:58.660575+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M7-T3": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "8f4e16961d51548cf0bce611175362c4bec82aab5c56bbc9d37bc958bcc99513",
+    "contractHash": "edcec4f3d04e5d143c3ff1dd9cd45fc5c2c22ad8a72accc4fde45b6a8678a2d4",
     "evidence": [
-      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
-      "契约对象在 I→J 间逐字节相同（对象 sha256 I=69b394dee3ead029 = J=69b394dee3ead029）；provides=1/requires=4/sections=14/supportPaths=0/outputPaths=3 全为原值；当前契约 hash 8f4e16961d51548c；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
-      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      "固定对象：L bed4436b7bb26d67583373c24777eb2953f19cc3 / tree ace1e3fc305c882758b406ffb2cd00d5012aea0c / 唯一父 K 81cdb260224d359bb04bb6d35306c2e944a6958f；task/M5-T4 工作树 clean；本登记只写本补丁证据、task-reviews 与正常派生，不改 task-contracts.json、任务状态、源码/测试/CI/包锁/schema 与生成器。",
+      "本键为传播变更：契约对象在 K→L 逐字节相同（对象摘要 69b394dee3ead029 = 69b394dee3ead029）；provides=1/requires=4/sections=14/supportPaths=0/outputPaths=3 全为原值；当前契约 hash edcec4f3d04e5d143c3ff1dd9cd45fc5c2c22ad8a72accc4fde45b6a8678a2d4 变化仅因依赖闭包含 M5-T4（经 M5-T10 → M5-T4），能力与接口未变。",
+      "范围限定：本记录只是 L 当前契约语义复核，不证明该任务已实现、不改变其 todo/status；M5-T4 亦不证明真实 PG 用例 15./16. 通过、不证明新 CI 转绿；未重验 P2/O1 或旧 43，未顺手清理既有 stale。"
     ],
-    "reviewed": "2026-11-11T04:16:38.484181+00:00",
+    "reviewed": "2026-11-11T05:34:58.660575+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -1530,61 +1530,61 @@
   },
   "M7-T5": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "feac63fec51f59134140dacc033a24bd5b6a4a6e54a007f3981cce41475a424f",
+    "contractHash": "f15ca890faed207a116dbf7a782fa83d7e7734726ae20a7f5b4012a0c8d9fb9c",
     "evidence": [
-      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
-      "契约对象在 I→J 间逐字节相同（对象 sha256 I=9b41d7f5305aac04 = J=9b41d7f5305aac04）；provides=1/requires=2/sections=14/supportPaths=0/outputPaths=3 全为原值；当前契约 hash feac63fec51f5913；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
-      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      "固定对象：L bed4436b7bb26d67583373c24777eb2953f19cc3 / tree ace1e3fc305c882758b406ffb2cd00d5012aea0c / 唯一父 K 81cdb260224d359bb04bb6d35306c2e944a6958f；task/M5-T4 工作树 clean；本登记只写本补丁证据、task-reviews 与正常派生，不改 task-contracts.json、任务状态、源码/测试/CI/包锁/schema 与生成器。",
+      "本键为传播变更：契约对象在 K→L 逐字节相同（对象摘要 9b41d7f5305aac04 = 9b41d7f5305aac04）；provides=1/requires=2/sections=14/supportPaths=0/outputPaths=3 全为原值；当前契约 hash f15ca890faed207a116dbf7a782fa83d7e7734726ae20a7f5b4012a0c8d9fb9c 变化仅因依赖闭包含 M5-T4（经 M7-T6 → M3-T12 → M3-T11 → M3-T6 → M6-T4 → M6-T6 → M5-T4），能力与接口未变。",
+      "范围限定：本记录只是 L 当前契约语义复核，不证明该任务已实现、不改变其 todo/status；M5-T4 亦不证明真实 PG 用例 15./16. 通过、不证明新 CI 转绿；未重验 P2/O1 或旧 43，未顺手清理既有 stale。"
     ],
-    "reviewed": "2026-11-11T04:16:38.484181+00:00",
+    "reviewed": "2026-11-11T05:34:58.660575+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M7-T6": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "ab804273c608bd95d16297f5bedc89076ae07b136b6f59eebc5b63afdc5aec77",
+    "contractHash": "d68406adbf0491346c854e8fe71ee9f71da65b6c780d5a945f076e22eed7b71d",
     "evidence": [
-      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
-      "契约对象在 I→J 间逐字节相同（对象 sha256 I=eaacb57998a5f9b6 = J=eaacb57998a5f9b6）；provides=1/requires=2/sections=14/supportPaths=0/outputPaths=3 全为原值；当前契约 hash ab804273c608bd95；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
-      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      "固定对象：L bed4436b7bb26d67583373c24777eb2953f19cc3 / tree ace1e3fc305c882758b406ffb2cd00d5012aea0c / 唯一父 K 81cdb260224d359bb04bb6d35306c2e944a6958f；task/M5-T4 工作树 clean；本登记只写本补丁证据、task-reviews 与正常派生，不改 task-contracts.json、任务状态、源码/测试/CI/包锁/schema 与生成器。",
+      "本键为传播变更：契约对象在 K→L 逐字节相同（对象摘要 eaacb57998a5f9b6 = eaacb57998a5f9b6）；provides=1/requires=2/sections=14/supportPaths=0/outputPaths=3 全为原值；当前契约 hash d68406adbf0491346c854e8fe71ee9f71da65b6c780d5a945f076e22eed7b71d 变化仅因依赖闭包含 M5-T4（经 M3-T12 → M3-T11 → M3-T6 → M6-T4 → M6-T6 → M5-T4），能力与接口未变。",
+      "范围限定：本记录只是 L 当前契约语义复核，不证明该任务已实现、不改变其 todo/status；M5-T4 亦不证明真实 PG 用例 15./16. 通过、不证明新 CI 转绿；未重验 P2/O1 或旧 43，未顺手清理既有 stale。"
     ],
-    "reviewed": "2026-11-11T04:16:38.484181+00:00",
+    "reviewed": "2026-11-11T05:34:58.660575+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M7-T7": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "6172e677a9cce89f3499cca3edafd42d9dad14e6f588d028052591d3ab1ca4bc",
+    "contractHash": "773d4932364644eb51347f0f83f4f22a86bfae211cdb0518ca9b68e5594d8450",
     "evidence": [
-      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
-      "契约对象在 I→J 间逐字节相同（对象 sha256 I=084b85bc99ea11b3 = J=084b85bc99ea11b3）；provides=1/requires=3/sections=12/supportPaths=0/outputPaths=3 全为原值；当前契约 hash 6172e677a9cce89f；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
-      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      "固定对象：L bed4436b7bb26d67583373c24777eb2953f19cc3 / tree ace1e3fc305c882758b406ffb2cd00d5012aea0c / 唯一父 K 81cdb260224d359bb04bb6d35306c2e944a6958f；task/M5-T4 工作树 clean；本登记只写本补丁证据、task-reviews 与正常派生，不改 task-contracts.json、任务状态、源码/测试/CI/包锁/schema 与生成器。",
+      "本键为传播变更：契约对象在 K→L 逐字节相同（对象摘要 084b85bc99ea11b3 = 084b85bc99ea11b3）；provides=1/requires=3/sections=12/supportPaths=0/outputPaths=3 全为原值；当前契约 hash 773d4932364644eb51347f0f83f4f22a86bfae211cdb0518ca9b68e5594d8450 变化仅因依赖闭包含 M5-T4（经 M6-T7 → M6-T4 → M6-T6 → M5-T4），能力与接口未变。",
+      "范围限定：本记录只是 L 当前契约语义复核，不证明该任务已实现、不改变其 todo/status；M5-T4 亦不证明真实 PG 用例 15./16. 通过、不证明新 CI 转绿；未重验 P2/O1 或旧 43，未顺手清理既有 stale。"
     ],
-    "reviewed": "2026-11-11T04:16:38.484181+00:00",
+    "reviewed": "2026-11-11T05:34:58.660575+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M7-T8": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "acb0d5e668aefac65d235d8ceef57541a573aa9aa33f5841ab554e641fa5cdd6",
+    "contractHash": "1c72b54ed835ea41ac20e0d07322f4bdb6c3392d11c5a97cef5df7e0239b967e",
     "evidence": [
-      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
-      "契约对象在 I→J 间逐字节相同（对象 sha256 I=4833dd0b4dc1e334 = J=4833dd0b4dc1e334）；provides=1/requires=5/sections=12/supportPaths=0/outputPaths=1 全为原值；当前契约 hash acb0d5e668aefac6；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
-      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      "固定对象：L bed4436b7bb26d67583373c24777eb2953f19cc3 / tree ace1e3fc305c882758b406ffb2cd00d5012aea0c / 唯一父 K 81cdb260224d359bb04bb6d35306c2e944a6958f；task/M5-T4 工作树 clean；本登记只写本补丁证据、task-reviews 与正常派生，不改 task-contracts.json、任务状态、源码/测试/CI/包锁/schema 与生成器。",
+      "本键为传播变更：契约对象在 K→L 逐字节相同（对象摘要 4833dd0b4dc1e334 = 4833dd0b4dc1e334）；provides=1/requires=5/sections=12/supportPaths=0/outputPaths=1 全为原值；当前契约 hash 1c72b54ed835ea41ac20e0d07322f4bdb6c3392d11c5a97cef5df7e0239b967e 变化仅因依赖闭包含 M5-T4（经 M7-T3 → M5-T10 → M5-T4），能力与接口未变。",
+      "范围限定：本记录只是 L 当前契约语义复核，不证明该任务已实现、不改变其 todo/status；M5-T4 亦不证明真实 PG 用例 15./16. 通过、不证明新 CI 转绿；未重验 P2/O1 或旧 43，未顺手清理既有 stale。"
     ],
-    "reviewed": "2026-11-11T04:16:38.484181+00:00",
+    "reviewed": "2026-11-11T05:34:58.660575+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M7-T9": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "45228b8fc750116d4603c6cc823c0e5b77097a0de4335e09b24195aa6449f5f7",
+    "contractHash": "f006d5e87bfd6c44b7f0732e7f6b4a1479c4a5bf01ff6e55497340226829ec13",
     "evidence": [
-      "固定对象：J 245ce40badd03920a0e9f1bcc75e0139e11ec3c7 / tree d9670bce5cad6b546ae85117704694cb8cf8f8cf / 唯一父 I bc5872b1…；task/M5-T4 工作树 clean；本登记只写 task-reviews.json 与 patch 记录/正常派生物，不改 task-contracts.json、任务状态、源码与生成器。",
-      "契约对象在 I→J 间逐字节相同（对象 sha256 I=165d60cbe69343ca = J=165d60cbe69343ca）；provides=1/requires=6/sections=12/supportPaths=0/outputPaths=2 全为原值；当前契约 hash 45228b8fc750116d；仅因祖先 provider 闭包在 J 中变化而哈希沿依赖传播，能力接口未变。",
-      "范围限定：本记录是当前契约语义复核，不证明该 todo 任务已实现，不证明真实 DB/HTTP/TLS；未跑 verify/sync/landed 以外的写操作，未改 141 条之外条目，旧 stale 未顺手清理。"
+      "固定对象：L bed4436b7bb26d67583373c24777eb2953f19cc3 / tree ace1e3fc305c882758b406ffb2cd00d5012aea0c / 唯一父 K 81cdb260224d359bb04bb6d35306c2e944a6958f；task/M5-T4 工作树 clean；本登记只写本补丁证据、task-reviews 与正常派生，不改 task-contracts.json、任务状态、源码/测试/CI/包锁/schema 与生成器。",
+      "本键为传播变更：契约对象在 K→L 逐字节相同（对象摘要 165d60cbe69343ca = 165d60cbe69343ca）；provides=1/requires=6/sections=12/supportPaths=0/outputPaths=2 全为原值；当前契约 hash f006d5e87bfd6c44b7f0732e7f6b4a1479c4a5bf01ff6e55497340226829ec13 变化仅因依赖闭包含 M5-T4（经 M3-T25 → M5-T10 → M5-T4），能力与接口未变。",
+      "范围限定：本记录只是 L 当前契约语义复核，不证明该任务已实现、不改变其 todo/status；M5-T4 亦不证明真实 PG 用例 15./16. 通过、不证明新 CI 转绿；未重验 P2/O1 或旧 43，未顺手清理既有 stale。"
     ],
-    "reviewed": "2026-11-11T04:16:38.484181+00:00",
+    "reviewed": "2026-11-11T05:34:58.660575+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
