@@ -312,6 +312,8 @@ export function createAnalyticsAggregateJob(deps: {
           currentDate,
           timezoneRevision: claim.timezoneRevision,
           generation: claim.generation,
+          // 与 claim/renew/complete 同一个时钟引用：日轮提交点用同一时间基准判租约过期。
+          clock,
           deadlineAt: budget.deadlineAt,
           // 只计已发生的事实：准入窗口内 occurredAt 最多领先 now+5min 的未来事件，
           // 到其 occurredAt 前不得提前计入（E-60）。
@@ -384,6 +386,7 @@ export function createAnalyticsAggregateJob(deps: {
                 notAfter: now,
                 generation: claim.generation,
                 leaseOwner: ANALYTICS_AGGREGATE_OWNER,
+                leaseClock: clock,
                 deadlineAt: budget.deadlineAt,
               });
               console.error('[cron] analytics.daily_coverage', {

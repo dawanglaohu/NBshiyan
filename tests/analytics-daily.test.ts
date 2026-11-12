@@ -271,21 +271,56 @@ function stubTx(jobState: Array<Record<string, unknown>>): Parameters<typeof ass
 }
 
 const base = { timezoneRevision: 3, now: NOW, generation: 7, leaseOwner: 'analytics-aggregate' };
-const future = new Date(Date.now() + 60_000).toISOString().replace('T', 'T').replace('Z', 'Z');
+/** 历史租约终点（NOW + 60s）：真实墙钟看它早已过期，同一租约 clock 看它仍有效。 */
+const LEASE_END = new Date(NOW.getTime() + 60_000).toISOString();
+const leaseAtNow = (): Date => new Date(NOW);
+const leaseAt = (offsetMs: number) => (): Date => new Date(NOW.getTime() + offsetMs);
+const leaseRow = (lockedUntil: string | null) =>
+  [{ generation: 7, leaseOwner: 'analytics-aggregate', lockedUntil }];
 
 describe('M5-T12 assertDailyAggregateGuards fail-closed', { concurrency: false }, () => {
-  test('正常租约通过', async () => {
-    await assertDailyAggregateGuards(stubTx([{ generation: 7, leaseOwner: 'analytics-aggregate', lockedUntil: future }]), base);
+  test('同一租约 clock 未过期即通过：不被真实墙钟判成过期', async () => {
+    // 修复前这里用 Date.now()：2026-03 的租约在真实 2026-11 必判 stale。同一 clock 下必须通过。
+    await assertDailyAggregateGuards(stubTx(leaseRow(LEASE_END)), { ...base, leaseClock: leaseAtNow });
+  });
+
+  test('业务 snapshot now 改成真实今天，不改变租约判定', async () => {
+    // 业务 now 只描述统计快照，不参与过期判定：已过期的租约不能靠改业务 now 通过。
+    await assertDailyAggregateGuards(stubTx(leaseRow(LEASE_END)), {
+      ...base,
+      now: new Date(),
+      leaseClock: leaseAtNow,
+    });
+  });
+
+  test('租约 clock 推进到 lockedUntil 等号 → 拒绝（等号即过期）', async () => {
+    await assert.rejects(
+      () => assertDailyAggregateGuards(stubTx(leaseRow(LEASE_END)), { ...base, leaseClock: leaseAt(60_000) }),
+      AggregateVersionConflict,
+    );
+  });
+
+  test('租约 clock 推进到 lockedUntil 之后 → 拒绝', async () => {
+    await assert.rejects(
+      () => assertDailyAggregateGuards(stubTx(leaseRow(LEASE_END)), { ...base, leaseClock: leaseAt(60_001) }),
+      AggregateVersionConflict,
+    );
   });
 
   test('无 JobState 行 → stale_generation', async () => {
-    await assert.rejects(() => assertDailyAggregateGuards(stubTx([]), base), AggregateVersionConflict);
+    await assert.rejects(
+      () => assertDailyAggregateGuards(stubTx([]), { ...base, leaseClock: leaseAtNow }),
+      AggregateVersionConflict,
+    );
   });
 
   test('代次不相等（含库内更小）→ stale_generation', async () => {
     for (const generation of [6, 8]) {
       await assert.rejects(
-        () => assertDailyAggregateGuards(stubTx([{ generation, leaseOwner: 'analytics-aggregate', lockedUntil: future }]), base),
+        () => assertDailyAggregateGuards(
+          stubTx([{ generation, leaseOwner: 'analytics-aggregate', lockedUntil: LEASE_END }]),
+          { ...base, leaseClock: leaseAtNow },
+        ),
         AggregateVersionConflict,
       );
     }
@@ -293,30 +328,46 @@ describe('M5-T12 assertDailyAggregateGuards fail-closed', { concurrency: false }
 
   test('owner 不等 → stale_generation', async () => {
     await assert.rejects(
-      () => assertDailyAggregateGuards(stubTx([{ generation: 7, leaseOwner: 'other-worker', lockedUntil: future }]), base),
+      () => assertDailyAggregateGuards(
+        stubTx([{ generation: 7, leaseOwner: 'other-worker', lockedUntil: LEASE_END }]),
+        { ...base, leaseClock: leaseAtNow },
+      ),
       AggregateVersionConflict,
     );
   });
 
-  test('lockedUntil 缺失/非法/已过期 → stale_generation', async () => {
-    const past = new Date(Date.now() - 1_000).toISOString();
-    for (const lockedUntil of [null, 'not-a-time', past]) {
+  test('lockedUntil 缺失/非法 → stale_generation', async () => {
+    for (const lockedUntil of [null, 'not-a-time']) {
       await assert.rejects(
-        () => assertDailyAggregateGuards(stubTx([{ generation: 7, leaseOwner: 'analytics-aggregate', lockedUntil }]), base),
+        () => assertDailyAggregateGuards(stubTx(leaseRow(lockedUntil)), { ...base, leaseClock: leaseAtNow }),
+        AggregateVersionConflict,
+      );
+    }
+  });
+
+  test('租约 clock 非法（Invalid Date / 非 Date / 抛错）→ 拒绝，不回退墙钟', async () => {
+    const bad: Array<() => Date> = [
+      () => new Date(Number.NaN),
+      () => '2026-03-02T10:00:00.000Z' as unknown as Date,
+      () => { throw new Error('clock_unreadable'); },
+    ];
+    for (const leaseClock of bad) {
+      // 若实现把非法时钟回退成"现在"，这个历史租约会被判过期而通过断言——必须先是拒绝，且原因稳定。
+      await assert.rejects(
+        () => assertDailyAggregateGuards(stubTx(leaseRow(LEASE_END)), { ...base, leaseClock }),
         AggregateVersionConflict,
       );
     }
   });
 
   test('运行时负控：cast 省略 generation / leaseOwner 必须在写前失败', async () => {
-    const futureLease = new Date(Date.now() + 60_000).toISOString();
-    const row = [{ generation: 7, leaseOwner: 'analytics-aggregate', lockedUntil: futureLease }];
+    const row = leaseRow(LEASE_END);
     await assert.rejects(
-      () => assertDailyAggregateGuards(stubTx(row), { ...base, generation: undefined as unknown as number }),
+      () => assertDailyAggregateGuards(stubTx(row), { ...base, leaseClock: leaseAtNow, generation: undefined as unknown as number }),
       AggregateVersionConflict,
     );
     await assert.rejects(
-      () => assertDailyAggregateGuards(stubTx(row), { ...base, leaseOwner: undefined as unknown as string }),
+      () => assertDailyAggregateGuards(stubTx(row), { ...base, leaseClock: leaseAtNow, leaseOwner: undefined as unknown as string }),
       AggregateVersionConflict,
     );
   });
@@ -399,7 +450,13 @@ function stubDb(options: {
 
 const PHASE_NOW = new Date('2026-03-02T10:00:00.000Z');
 const OLD_DAY = '2026-01-15';
-const LIVE_LEASE = new Date(Date.now() + 120_000).toISOString();
+/**
+ * 固定租约终点（PHASE_NOW + 90s）：守卫必须用同一个 `leaseClock` 判，不许依赖真实墙钟。
+ * 若实现退回 `Date.now()`，这个 2026-03 的租约会在真实 2026-11 被判过期，本组用例立刻红。
+ */
+const LIVE_LEASE = new Date(PHASE_NOW.getTime() + 90_000).toISOString();
+/** 与 PHASE_NOW 同源的租约时钟：缺失时守卫才回落到真实当前时间。 */
+const PHASE_LEASE_CLOCK = (): Date => PHASE_NOW;
 const planState = {
   localDate: OLD_DAY,
   timezoneRevision: 3,
@@ -422,6 +479,7 @@ function phaseArgs() {
     baseDates: new Set([OLD_DAY]),
     generation: 7,
     leaseOwner: 'analytics-aggregate',
+    leaseClock: PHASE_LEASE_CLOCK,
     notAfter: PHASE_NOW,
   };
 }
@@ -491,6 +549,7 @@ describe('M5-T12 gap 写：只按原 plan expected，不读当前行', { concurr
     cutoff: PHASE_NOW,
     generation: 7,
     leaseOwner: 'analytics-aggregate',
+    leaseClock: PHASE_LEASE_CLOCK,
     notAfter: PHASE_NOW,
     expected,
   });
@@ -552,6 +611,7 @@ describe('M5-T12 闭包 coverage：回滚后的独立 CAS 事务', { concurrency
       notAfter: PHASE_NOW,
       generation: 7,
       leaseOwner: 'analytics-aggregate',
+      leaseClock: PHASE_LEASE_CLOCK,
     });
     assert.equal(writes.length, 1);
     assert.equal(writes[0]?.result, 'updated');
@@ -772,6 +832,7 @@ describe('M5-T12 B7 包装返回：unknown 必须穿过真实 wrapper/作业入�
     timezoneRevision: 3,
     generation: 7,
     leaseOwner: 'analytics-aggregate',
+    clock: PHASE_LEASE_CLOCK,
     baseDates: [OLD_DAY] as string[],
   });
 
@@ -802,6 +863,7 @@ describe('M5-T12 B7 包装返回：unknown 必须穿过真实 wrapper/作业入�
         currentDate: '2026-03-02',
         timezoneRevision: 3,
         generation: 7,
+        clock: PHASE_LEASE_CLOCK,
         daily: { baseDates: [OLD_DAY], leaseOwner: 'analytics-aggregate' },
         db: db as never,
       } as never),
@@ -854,6 +916,7 @@ describe('M5-T12 主事务未知时，已确认提交的 metadata 必须保留',
       currentDate: '2026-03-02',
       timezoneRevision: 3,
       generation: 7,
+      clock: PHASE_LEASE_CLOCK,
       leaseOwner: 'analytics-aggregate',
       baseDates: [],
       db: db as never,
@@ -1179,6 +1242,7 @@ describe('M5-T12 wrapper 主事务：按执行位置判 unknown，不看错误�
     timezoneRevision: 3,
     generation: 7,
     leaseOwner: 'analytics-aggregate',
+    clock: PHASE_LEASE_CLOCK,
     baseDates: [OLD_DAY] as string[],
     db: db as never,
   } as never);
@@ -1258,6 +1322,7 @@ describe('M5-T12 wrapper 主事务：按执行位置判 unknown，不看错误�
           currentDate: '2026-03-02',
           timezoneRevision: 3,
           generation: 7,
+          clock: PHASE_LEASE_CLOCK,
           daily: { baseDates: [], leaseOwner: 'analytics-aggregate' },
           db: db as never,
         } as never),

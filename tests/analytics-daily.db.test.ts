@@ -168,7 +168,9 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
     now: Date;
   }) {
     const conn = requireDb();
-    const until = new Date(Date.now() + 60_000);
+    // 租约终点按**本用例自己的 now** 写入：执行侧传同一个 clock，才算证明“同一时间基准”。
+    // 不能用 Date.now()+60s——那会让真实墙钟替守卫兜底，掩盖时钟混用。
+    const until = new Date(input.now.getTime() + 60_000);
     await conn.$executeRaw`
       INSERT INTO "JobState" (
         "key", "leaseOwner", "generation", "lockedUntil", "lastStartedAt",
@@ -290,7 +292,9 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
       leaseOwner: 'test-lease',
       currentDate: TODAY,
       ...overrides,
-    };
+    } as Parameters<typeof runDailyAggregateRound>[0];
+    // 与 seedGuards 写租约同一个 now：守卫读执行时钟，不读真实墙钟。
+    args.clock = () => args.now;
     await seedGuards({
       generation: args.generation,
       leaseOwner: args.leaseOwner,
@@ -593,6 +597,8 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
         timezoneRevision: REV,
         generation,
         currentDate,
+        // 与 seedGuards 写租约同一个 now：守卫读执行时钟，不读真实墙钟。
+        clock: () => now,
         daily: { leaseOwner, baseDates: [day] },
         commit: async (tx) => {
           // 先证明两条链在**同一事务**里已真实写入，再抛错；不是空断言。
@@ -710,6 +716,7 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
       notAfter: now,
       generation,
       leaseOwner,
+      leaseClock: () => now,
     });
     assert.equal(writes.length, 1);
     assert.equal(writes[0]?.result, 'conflict_noop', '已保存成功态应归为 no-op，而不是覆盖或报错');
@@ -730,6 +737,7 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
     const first = await writeDailyCoverageMetadata(requireDb(), {
       entries: [{ date: day, expected: stale }],
       timezone: TZ, revision: REV, now, cutoff: now, notAfter: now, generation, leaseOwner,
+      leaseClock: () => now,
     });
     assert.equal(first[0]?.result, 'inserted');
     const before = await readDayState(requireDb(), { localDate: day, timezoneRevision: REV });
@@ -737,6 +745,7 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
     const second = await writeDailyCoverageMetadata(requireDb(), {
       entries: [{ date: day, expected: stale }],
       timezone: TZ, revision: REV, now, cutoff: now, notAfter: now, generation, leaseOwner,
+      leaseClock: () => now,
     });
     assert.equal(second[0]?.result, 'conflict_noop', '终态缺口应归 no-op，不得报完成也不得覆写');
     const row = await readDayState(requireDb(), { localDate: day, timezoneRevision: REV });
@@ -765,6 +774,7 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
       () => writeDailyCoverageMetadata(requireDb(), {
         entries: [{ date: gapDate, expected: { markers: {}, updatedAt: null, deferUntil: null } }],
         timezone: TZ, revision: REV, now, cutoff: now, notAfter: now, generation, leaseOwner,
+        leaseClock: () => now,
       }),
       (error: unknown) => {
         assert.ok(error instanceof AggregateVersionConflict, '非终态缺口不得被当成已保存完成');
@@ -793,6 +803,7 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
     // 重叠对照：新链只用旧链已占用的日，distinct 并集仍 = limit。
     const overlap = await runAggregateOnce({
       db: requireDb(), now, siteTimezone: TZ, timezoneRevision: REV, generation, currentDate,
+      clock: () => now,
       daily: { leaseOwner, baseDates: [reserved[0]!], maxDays: limit },
     });
     assert.notEqual(overlap.daily?.status, 'budget', '并集等于上限时不得触发 max_days_initial');
@@ -810,6 +821,7 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
     await assert.rejects(
       () => runAggregateOnce({
         db: requireDb(), now, siteTimezone: TZ, timezoneRevision: REV, generation, currentDate,
+        clock: () => now,
         daily: { leaseOwner, baseDates: [reserved[0]!, outside], maxDays: limit },
       }),
       (error: unknown) => {

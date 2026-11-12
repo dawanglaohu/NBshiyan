@@ -775,6 +775,8 @@ export async function runAnalyticsRetention(deps: {
       currentDate,
       timezoneRevision: claim.timezoneRevision,
       generation: claim.generation,
+      // 与本次 claim/complete 同一时钟引用：日轮若在此路径启用，提交点用同一时间基准判租约。
+      clock,
       deadlineAt: budget.deadlineAt,
       occurredNotAfter: now,
       maxBatchDays: JOB_MAX_BATCH,

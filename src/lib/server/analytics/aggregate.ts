@@ -481,6 +481,11 @@ export async function runAggregateOnce(deps: {
   currentDate: string;
   timezoneRevision: number;
   generation: number;
+  /**
+   * 与作业租约 claim/renew/complete 同一个动态时钟，只用于日轮提交点的租约过期判定；
+   * 不参与业务统计与真实预算（`deadlineAt` 仍是墙钟）。
+   */
+  clock?: () => Date;
   /** 整轮预算的截止时刻；到期后不再开始新一天、也不提交，事务整笔回滚。 */
   deadlineAt?: Date;
   /** 只统计 occurredAt ≤ 该时刻的事实；调度作业传业务 now，保证未来事件到时间前不计入。 */
@@ -550,6 +555,7 @@ export async function runAggregateOnce(deps: {
       baseDates: new Set(deps.daily.baseDates.filter((date) => date >= floor)),
       generation: deps.generation,
       leaseOwner: deps.daily.leaseOwner,
+      ...(deps.clock !== undefined ? { leaseClock: deps.clock } : {}),
       ...(deps.deadlineAt !== undefined ? { deadlineAt: deps.deadlineAt } : {}),
     });
     metadataHandled = phase.handled;
@@ -608,6 +614,7 @@ export async function runAggregateOnce(deps: {
           deadlineReached,
           generation: deps.generation,
           leaseOwner: daily.leaseOwner,
+          ...(deps.clock !== undefined ? { leaseClock: deps.clock } : {}),
           baseDates: new Set(daily.baseDates.filter((date) => date >= floor)),
           reservedDays: new Set(plan.siteDates),
           metadataHandled,
@@ -884,11 +891,30 @@ function minDate(values: Array<Date | null>): Date | null {
 }
 
 /**
- * 日聚合的提交点守卫（不可省略）：行锁 `JobState` 真读 generation，再原子复核时区代次。
+ * 读一次租约时钟，返回毫秒；非 Date、非法毫秒、抛错一律返回 NaN（由调用方 fail-closed）。
  *
- * 供「独立日轮事务」与「作业内同一 RR 事务（由 runAggregateOnce 在末尾 repo.complete 再核一次）」
- * 共用；租约过期判断不在这里用轮首 now——那由调用方在提交点用 repo.renew / repo.complete
- * 的真实时钟完成（见 ADDENDUM-1 §3）。
+ * 用 `Date.prototype.getTime` 直接取值：既接受跨 realm 的 Date，也拒绝任何伪造对象。
+ */
+function readLeaseClockMs(clock: (() => Date) | undefined): number {
+  const read = clock ?? ((): Date => new Date());
+  try {
+    const value: unknown = read();
+    if (value === null || typeof value !== 'object') return Number.NaN;
+    const ms = Date.prototype.getTime.call(value);
+    return Number.isFinite(ms) ? ms : Number.NaN;
+  } catch {
+    return Number.NaN;
+  }
+}
+
+/**
+ * 日聚合的提交点守卫（不可省略）：行锁 `JobState` 真读 generation/owner/租约终点，
+ * 再原子复核时区代次。
+ *
+ * 租约过期判断用**与 claim/renew/complete 同一个动态租约时钟**：四个提交点
+ * （主 RR 内日轮、主 RR 前的独立元数据 CAS、回滚后的 coverage、回滚后的 gap）
+ * 都必须判一次，且都不把静态业务 `now` 当执行时钟——业务 `now` 只描述统计快照。
+ * `leaseClock` 是 server 内部依赖，缺省为真实当前时间；无请求/环境变量入口。
  */
 export async function assertDailyAggregateGuards(
   tx: Prisma.TransactionClient,
@@ -899,6 +925,8 @@ export async function assertDailyAggregateGuards(
     generation: number;
     /** 租约 owner（必填）；与 JobState 行不一致即拒绝。 */
     leaseOwner: string;
+    /** 与租约仓储同一引用的动态时钟；缺省时取一次真实当前时间。 */
+    leaseClock?: () => Date;
   },
 ): Promise<void> {
   const rows = await tx.$queryRaw<{
@@ -911,12 +939,14 @@ export async function assertDailyAggregateGuards(
     FROM "JobState" WHERE "key" = ${AGGREGATE_JOB_KEY} FOR UPDATE
   `;
   const row = rows[0];
-  // fail-closed：无租约行、代次不符、owner 不符、租约已过期都拒绝；不看传入 now。
+  // fail-closed：无租约行、代次不符、owner 不符、租约终点非法/已到/已过都拒绝。
   if (row === undefined) throw new AggregateVersionConflict('stale_generation');
   if (Number(row.generation) !== args.generation) throw new AggregateVersionConflict('stale_generation');
   if (row.leaseOwner !== args.leaseOwner) throw new AggregateVersionConflict('stale_generation');
   const lockedUntil = row.lockedUntil === null ? Number.NaN : Date.parse(row.lockedUntil);
-  if (!Number.isFinite(lockedUntil) || lockedUntil <= Date.now()) {
+  // 等号即过期：与租约仓储的接管条件 `lockedUntil <= now` 同一判定。
+  const leaseNow = readLeaseClockMs(args.leaseClock);
+  if (!Number.isFinite(lockedUntil) || !Number.isFinite(leaseNow) || lockedUntil <= leaseNow) {
     throw new AggregateVersionConflict('stale_generation');
   }
   await assertCurrentTimezoneRevision(tx, args.timezoneRevision, args.now);
@@ -942,6 +972,8 @@ export type DailyInTxArgs = {
   deadlineReached: () => boolean;
   generation: number;
   leaseOwner: string;
+  /** 与租约仓储同一引用的动态时钟；缺省时守卫取一次真实当前时间。 */
+  leaseClock?: () => Date;
   baseDates: ReadonlySet<string>;
   /** 同一轮旧链已占用的站点日：与日轮目标日取并集后不得超过 maxDays。 */
   reservedDays?: ReadonlySet<string>;
@@ -1000,6 +1032,7 @@ export async function runDailyInTx(
     now,
     generation: args.generation,
     leaseOwner: args.leaseOwner,
+    ...(args.leaseClock !== undefined ? { leaseClock: args.leaseClock } : {}),
   });
 
   // ---- plan（同一快照）----------------------------------------------------
@@ -1162,6 +1195,8 @@ export async function runDailyAggregateRound(deps: {
   /** 作业租约代次与 owner（必填，fail-closed）。 */
   generation: number;
   leaseOwner: string;
+  /** 与作业租约同一引用的动态时钟；只用于提交点的租约过期判定。 */
+  clock?: () => Date;
   resolveProductSlugFromPath?: (normalizedPath: string, locale: string) => string | null;
 }): Promise<DailyAggregateRoundResult> {
   const now = deps.now;
@@ -1200,6 +1235,7 @@ export async function runDailyAggregateRound(deps: {
       baseDates,
       generation: deps.generation,
       leaseOwner: deps.leaseOwner,
+      ...(deps.clock !== undefined ? { leaseClock: deps.clock } : {}),
       ...(deps.deadlineAt !== undefined ? { deadlineAt: deps.deadlineAt } : {}),
     });
     metadataWrites = phase.written;
@@ -1248,6 +1284,7 @@ export async function runDailyAggregateRound(deps: {
           deadlineReached,
           generation: deps.generation,
           leaseOwner: deps.leaseOwner,
+          ...(deps.clock !== undefined ? { leaseClock: deps.clock } : {}),
           baseDates,
           metadataHandled,
           resolveProduct,
@@ -1303,6 +1340,7 @@ export async function runDailyAggregateRound(deps: {
               notAfter,
               generation: deps.generation,
               leaseOwner: deps.leaseOwner,
+              ...(deps.clock !== undefined ? { leaseClock: deps.clock } : {}),
               ...(deps.deadlineAt !== undefined ? { deadlineAt: deps.deadlineAt } : {}),
             });
         result.metadata.push(...writes);
@@ -1321,6 +1359,7 @@ export async function runDailyAggregateRound(deps: {
             notAfter,
             generation: deps.generation,
             leaseOwner: deps.leaseOwner,
+            ...(deps.clock !== undefined ? { leaseClock: deps.clock } : {}),
             expected: haltError?.planExpected ?? null,
           });
       result.gaps.push({ localDate: halted.localDate, gapKind, write });
@@ -1542,6 +1581,8 @@ export async function writeDailyMetadataPhase(
     baseDates: ReadonlySet<string>;
     generation: number;
     leaseOwner: string;
+    /** 与租约仓储同一引用的动态时钟；本阶段自有独立 CAS 事务，必须自己判过期。 */
+    leaseClock?: () => Date;
     /** 本轮计入上界；defer 合并按 `previous > notAfter` 保留。 */
     notAfter: Date;
     deadlineAt?: Date;
@@ -1565,6 +1606,7 @@ export async function writeDailyMetadataPhase(
       now: args.now,
       generation: args.generation,
       leaseOwner: args.leaseOwner,
+      ...(args.leaseClock !== undefined ? { leaseClock: args.leaseClock } : {}),
     });
     const states = await readDayStatesInDomain(tx, args.revision, args.floor, args.today);
     const live = await readLiveMarkerVersions(tx);
@@ -1660,6 +1702,8 @@ export async function writeDailyCoverageMetadata(
     notAfter: Date;
     generation: number;
     leaseOwner: string;
+    /** 与租约仓储同一引用的动态时钟；回滚后的独立 CAS 也要自己判过期。 */
+    leaseClock?: () => Date;
     deadlineAt?: Date;
   },
 ): Promise<DailyAggregateMetadataWrite[]> {
@@ -1672,6 +1716,7 @@ export async function writeDailyCoverageMetadata(
       now: args.now,
       generation: args.generation,
       leaseOwner: args.leaseOwner,
+      ...(args.leaseClock !== undefined ? { leaseClock: args.leaseClock } : {}),
     });
     const out: DailyAggregateMetadataWrite[] = [];
     for (const entry of args.entries) {
@@ -1793,6 +1838,8 @@ export async function writeDailyGap(
     /** 作业租约代次与 owner（必填，fail-closed）：gap 也是写 state，必须同受守卫。 */
     generation: number;
     leaseOwner: string;
+    /** 与租约仓储同一引用的动态时钟；gap 事务同样要自己判过期。 */
+    leaseClock?: () => Date;
     /** plan 阶段读到的该日期望值；`null`＝当时确认无该行。 */
     expected: DailyStateExpectation | null;
   },
@@ -1806,6 +1853,7 @@ export async function writeDailyGap(
         now: args.now,
         generation: args.generation,
         leaseOwner: args.leaseOwner,
+        ...(args.leaseClock !== undefined ? { leaseClock: args.leaseClock } : {}),
       });
       if (expected.updatedAt === null) {
         // 「当时确认无该行」才走插入；否则说明期望值本身不可用，不写。

@@ -312,12 +312,39 @@ describe('M5-T8 jobs runtime + cron operations route', { concurrency: false, ski
         ${`${day}T02:00:00.000Z`}::timestamptz AT TIME ZONE 'UTC'
       )
     `;
-    // 前两次取时（claim）用基准时刻，之后每次（complete）跳 120s，使租约在提交事务内已过期。
-    let calls = 0;
-    const base = NOW.getTime();
-    const advancing = () => new Date(base + (calls++ >= 2 ? 120_000 : 0));
+    // 租约时钟按**阶段**推进：complete 的 JobState 行锁读到后才过期（仍在提交事务内），
+    // 不靠第 N 次 clock 调用——新增的 metadata 守卫会多读一次钟，不能让失效提前到守卫。
+    let leaseExpired = false;
+    const leaseClock = () => new Date(NOW.getTime() + (leaseExpired ? 120_000 : 0));
+    const observedDb = new Proxy(conn, {
+      get(target, prop) {
+        if (prop === '$transaction') {
+          return (fn: (tx: Prisma.TransactionClient) => Promise<unknown>, options?: { maxWait?: number; timeout?: number }) =>
+            target.$transaction((tx) => {
+              const wrapped = new Proxy(tx, {
+                get(txTarget, txProp) {
+                  const value = Reflect.get(txTarget, txProp, txTarget) as unknown;
+                  if (typeof value !== 'function') return value;
+                  if (txProp === '$queryRaw') {
+                    return async (strings: TemplateStringsArray, ...values: unknown[]) => {
+                      const rows = await (value as (...args: unknown[]) => Promise<unknown>).call(txTarget, strings, ...values);
+                      // complete 的第一条语句：只取 generation 的 JobState 行锁（metadata 守卫还取 owner/to_char）。
+                      if (strings.join('?').includes('SELECT "generation" FROM "JobState"')) leaseExpired = true;
+                      return rows;
+                    };
+                  }
+                  return (value as (...args: unknown[]) => unknown).bind(txTarget);
+                },
+              });
+              return fn(wrapped as Prisma.TransactionClient);
+            }, options);
+        }
+        const value = Reflect.get(target, prop, target) as unknown;
+        return typeof value === 'function' ? (value as (...args: unknown[]) => unknown).bind(target) : value;
+      },
+    }) as PrismaClient;
     const res = await createOperationsHandler({
-      services: createJobServices({ db: conn, clock: advancing }).jobs,
+      services: createJobServices({ db: observedDb, clock: leaseClock }).jobs,
       clock: () => new Date(NOW),
       secret: SECRET,
     })(post({ jobKey: 'analytics-aggregate' }));
@@ -678,6 +705,8 @@ describe('M5-T4 pending 分类与完整值 CAS 消费', { concurrency: false, sk
 
     // 记录事务内 CAS DELETE 实际执行与命中行数；不改 Prisma 行为，只在测试注入的客户端上旁路观测。
     const casDeletes: number[] = [];
+    // 租约时钟按**阶段**推进，不按 clock 调用次数：CAS DELETE 命中后才跳到 BASE+120s。
+    let leaseExpired = false;
     const observedDb = new Proxy(conn, {
       get(target, prop) {
         if (prop === '$transaction') {
@@ -690,7 +719,11 @@ describe('M5-T4 pending 分类与完整值 CAS 消费', { concurrency: false, sk
                   if (txProp === '$executeRaw') {
                     return async (strings: TemplateStringsArray, ...values: unknown[]) => {
                       const removed = await (value as (...args: unknown[]) => Promise<number>).call(txTarget, strings, ...values);
-                      if (strings.join('?').includes('DELETE FROM "SiteSetting"')) casDeletes.push(Number(removed));
+                      if (strings.join('?').includes('DELETE FROM "SiteSetting"')) {
+                        casDeletes.push(Number(removed));
+                        // CAS DELETE 已真实执行：此刻才让租约过期，失效点落在其后的 repo.complete。
+                        leaseExpired = true;
+                      }
                       return removed;
                     };
                   }
@@ -705,11 +738,9 @@ describe('M5-T4 pending 分类与完整值 CAS 消费', { concurrency: false, sk
       },
     }) as PrismaClient;
 
-    // 前两次取时（claim）用基准时刻，之后（CAS 后的 complete）跳 120s，使租约在提交事务内过期。
-    let calls = 0;
     const base = BASE.getTime();
-    const advancing = () => new Date(base + (calls++ >= 2 ? 120_000 : 0));
-    const outcome = await createAnalyticsAggregateJob({ db: observedDb, clock: advancing }).run({
+    const leaseClock = () => new Date(base + (leaseExpired ? 120_000 : 0));
+    const outcome = await createAnalyticsAggregateJob({ db: observedDb, clock: leaseClock }).run({
       now: new Date(BASE),
       deadlineAt: new Date(Date.now() + 30_000),
       signal: new AbortController().signal,
