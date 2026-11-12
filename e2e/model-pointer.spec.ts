@@ -356,7 +356,11 @@ test('hover pauses spin and a user pause survives hide and foreground', async ({
   });
   expect(moved).toBe(true);
 
-  await first.hover();
+  // 指针进入用真实几何坐标：hover() 的 actionability 重试与“指针进入即暂停”无关；
+  // 命中与覆盖关系仍由 data-spinning 的结果断言把关。
+  await first.scrollIntoViewIfNeeded();
+  const enter = await center(first);
+  await page.mouse.move(enter.x, enter.y);
   await expect(first).toHaveAttribute('data-spinning', '0');
   const held = await first.evaluate(async (el) => {
     const start = el.getAttribute('data-azimuth');
@@ -369,9 +373,14 @@ test('hover pauses spin and a user pause survives hide and foreground', async ({
   });
   expect(held).toBe(true);
 
-  await page.locator('h1').hover();
+  // 离开模型同样用真实坐标；若指针仍落在模型上，恢复自转会失败。
+  const title = await center(page.locator('h1'));
+  await page.mouse.move(title.x, title.y);
   await expect(first).toHaveAttribute('data-spinning', '1');
-  await page.locator('article.card').first().getByTestId('model-pause-rotation').click();
+  // 暂停按钮用真实命中点击；若被遮挡，data-user-paused 断言会失败，覆盖关系不被跳过。
+  const pauseButton = page.locator('article.card').first().getByTestId('model-pause-rotation');
+  const pausePoint = await center(pauseButton);
+  await page.mouse.click(pausePoint.x, pausePoint.y);
   await expect(first).toHaveAttribute('data-user-paused', '1');
   await expect(first).toHaveAttribute('data-spinning', '0');
 
