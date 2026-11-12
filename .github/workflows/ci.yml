@@ -379,6 +379,9 @@ jobs:
           # M4-T1 首消息真实 PG 回归：专属变量 + require；缺地址必须失败，绝不回退通用 DATABASE_URL。
           B9_M4T1_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
           CHAT_REQUIRE_DATABASE: 'true'
+          # M4-T2 访客读游标真实 PG/route 回归：只认专属变量、必须 loopback；缺地址时上一条 require 直接失败。
+          # 测试自建 chatread_<pid>_<hex> schema，事后按同名 DROP CASCADE，不落 public。
+          B10_M4T2_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
           M3T2_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e?schema=m3t2
           M3T2_REQUIRE_DATABASE: 'true'
           M3T3_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e?schema=m3t3
@@ -416,6 +419,7 @@ jobs:
               'tests/analytics-settings.http.test.ts',
               'tests/analytics-ingest.http.db.test.ts',
               'tests/analytics-aggregate.db.test.ts',
+              'tests/chat-visitor-read.http.test.ts',
               'tests/jobs-runtime.http.test.ts',
               'tests/analytics-rollup.http.db.test.ts',
               'tests/retention-cleanup.http.db.test.ts',
@@ -467,6 +471,7 @@ jobs:
             tests/analytics-settings.http.test.ts \
             tests/analytics-ingest.http.db.test.ts \
             tests/analytics-aggregate.db.test.ts \
+            tests/chat-visitor-read.http.test.ts \
             tests/jobs-runtime.http.test.ts \
             tests/analytics-rollup.http.db.test.ts \
             tests/retention-cleanup.http.db.test.ts \
@@ -504,6 +509,7 @@ jobs:
             'tests/analytics-settings.http.test.ts',
             'tests/analytics-ingest.http.db.test.ts',
             'tests/analytics-aggregate.db.test.ts',
+            'tests/chat-visitor-read.http.test.ts',
             'tests/jobs-runtime.http.test.ts',
             'tests/analytics-rollup.http.db.test.ts',
             'tests/retention-cleanup.http.db.test.ts',

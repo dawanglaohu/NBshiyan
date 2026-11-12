@@ -1753,7 +1753,8 @@
       "supportPaths": [
         "src/lib/server/chat/repo.ts",
         "src/lib/server/composition.ts",
-        "tests/chat-visitor-read.http.test.ts"
+        "tests/chat-visitor-read.http.test.ts",
+        ".github/workflows/ci.yml"
       ],
       "outputPaths": [
         "src/lib/server/chat/read-cursor.ts",
