@@ -1210,14 +1210,15 @@
   },
   "M5-T10": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "bdfb3f944a94605eb98ee88e2f323203bf0a77ffdcdb66df05919c7d256a7ee4",
+    "contractHash": "0c20a457ad28f4dedc313eba3037063b4dbbb4700d47d04ddaaa31890ba59dea",
     "evidence": [
-      "docs/PackJoyU-开发文档/_run/task-contracts.json：M5-T10 supportPaths 由 [] 仅新增 src/components/admin/settings/SettingsSections.tsx；outputPaths/requires/stage/wiring/sections 逐字段未变（sync 源变更文件仅 _run/task-contracts.json）",
-      "PR556 head 12a2caf689f627c84f4d1a4b4f88a67a65a72fa5 的实际 diff 含 src/components/admin/settings/SettingsSections.tsx 5+/3-，是接入 settings 第三分区导航的必要支持文件；本补丁只补声明、不扩大 UI/API 要求",
-      "begin/sync 记录：patches/b10-m5t10-nav-support-20261111.json status=synced、sourceVersion=b232fdac…；受影响任务为 M3-T25/M5-T10/M7-T10/M7-T3/M7-T8/M7-T9，均为契约哈希传播，非源变更扩大",
-      "派生核对：docs-data.js/build-manifest.json/build-state.json/dispatch.json/review.json 由项目 build 正常再生；revalidation.json 未新增（M5-T10 仍 todo）；main 23148287 与任务源码未改"
+      "源变更仅 docs/PackJoyU-开发文档/_run/task-contracts.json：M5-T10 supportPaths 在既有 src/components/admin/settings/SettingsSections.tsx 后新增 .github/workflows/ci.yml；git diff 为 1 行新增，outputPaths/requires/stage/wiring/sections 逐字段未变",
+      "依据为 run 43182287745：e2e step 15 A3 收集计数门 actual {all:244, main:213, model:14, consent:14, errors:2, flow:1} vs expected {all:239, main:208,...}；fdc64006 相对 12a2caf6 新增 1 条 409 恢复用例使 spec 4→5 例，增量恰 +1；修复点在 ci.yml 常量（621/656/658/669/752），属 CI 单写（M5-T12/全栈），本补丁只声明支持路径，不改 ci.yml 源",
+      "begin exit=0、sync exit=0（日志 support-patch-ci-20261112/01-begin.log、02-sync.log）；补丁 status=synced、sourceVersion=8575aa71b30c74afa5a139065e2e8ee127e377dfe5948027971226be47dc2544；sourceChanges 仅 _run/task-contracts.json",
+      "受影响任务 M3-T25/M5-T10/M7-T10/M7-T3/M7-T8/M7-T9 均为契约哈希传播（M5-T10 为直接源变更），无第二个源条款变更；派生 docs-data.js/build-manifest.json/build-state.json/dispatch.json/review.json 由项目 build 正常再生，revalidation.json 未变",
+      "边界：未改产品源码/测试/ci.yml/schema/main 分支；未 --landed/Ready/merge/新 PR；未 push；原 PR556 head 仍 12a2caf6，本地 fdc64006"
     ],
-    "reviewed": "2026-11-12T07:43:35.010313+00:00",
+    "reviewed": "2026-11-12T08:55:50.323078+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },

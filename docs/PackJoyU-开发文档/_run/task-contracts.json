@@ -2904,7 +2904,8 @@
         "frontendRoutes"
       ],
       "supportPaths": [
-        "src/components/admin/settings/SettingsSections.tsx"
+        "src/components/admin/settings/SettingsSections.tsx",
+        ".github/workflows/ci.yml"
       ],
       "outputPaths": [
         "src/components/admin/stats/AnalyticsSettingsContainer.tsx",
