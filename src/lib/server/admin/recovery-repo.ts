@@ -166,6 +166,12 @@ export type RecoveryRepo = {
   revokeOldRecoverySessions(tx: Prisma.TransactionClient, userId: string, now: Date): Promise<void>;
   createRecoverySession(tx: Prisma.TransactionClient, session: NewRecoverySession): Promise<void>;
 
+  /**
+   * M3-T20：本人换验证器先锁 User→Device，确认账号仍启用 2FA 且当前设备属于本人、未撤销、sv 未变。
+   * 锁序与 action-grant 的 consumeLocked 相同（User 再 Device），可与其在同一事务里重入。
+   * 返回 undefined 表示会话/设备已不可用；sv 递增由调用方在同一事务完成。
+   */
+  lockActiveAccountForSelfRebind(tx: Prisma.TransactionClient, userId: string, sid: string): Promise<{ sessionVersion: number } | undefined>;
   /** M3-T5：无锁读 tokenHash 对应的 userId/email，只用于选定要锁的 User 行与账号桶主体。 */
   readRecoverySessionHint(db: RecoveryDb, tokenHash: string): Promise<RecoverySessionHint | undefined>;
   /**
@@ -278,6 +284,28 @@ export function createRecoveryRepo(): RecoveryRepo {
     },
     async createRecoverySession(tx, session) {
       await tx.adminRecoverySession.create({ data: session });
+    },
+
+    async lockActiveAccountForSelfRebind(tx, userId, sid) {
+      const users = await tx.$queryRaw<{ sessionVersion: number; disabled: boolean; totpEnabled: boolean }[]>`
+        SELECT "sessionVersion", disabled, "totpEnabled"
+        FROM "User"
+        WHERE id = ${userId}
+        FOR UPDATE
+      `;
+      const user = users[0];
+      if (!user || user.disabled || !user.totpEnabled) return undefined;
+      const devices = await tx.$queryRaw<{ id: string }[]>`
+        SELECT id
+        FROM "AdminDeviceSession"
+        WHERE id = ${sid}
+          AND "userId" = ${userId}
+          AND "revokedAt" IS NULL
+          AND "sessionVersion" = ${user.sessionVersion}
+        FOR UPDATE
+      `;
+      if (devices.length !== 1) return undefined;
+      return { sessionVersion: user.sessionVersion };
     },
 
     async readRecoverySessionHint(db, tokenHash) {
