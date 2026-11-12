@@ -28,6 +28,49 @@ async function center(locator: Locator) {
   return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
 }
 
+/** 同一阶段的合并读取：首个 product-viewport 的距离 + 当前 scrollY；距离缺失/空白/非有限直接失败。 */
+async function readDistanceAndScroll(page: Page): Promise<{ distance: string; scrollY: number }> {
+  const read = await page.evaluate(() => {
+    const el = document.querySelectorAll('[data-testid="product-viewport"]')[0];
+    return { distance: el?.getAttribute('data-camera-distance') ?? null, scrollY: window.scrollY };
+  });
+  if (read.distance === null || read.distance.trim() === '') throw new Error('相机距离缺失或空白');
+  if (!Number.isFinite(Number(read.distance))) throw new Error('相机距离非有限值');
+  return { distance: read.distance, scrollY: read.scrollY };
+}
+
+/** 页面内实时读唯一根节点属性：多匹配或缺失返回 null（断言失败），不做 fallback。 */
+async function expectUniqueAttribute(page: Page, selector: string, name: string, expected: string) {
+  await expect
+    .poll(
+      () =>
+        page.evaluate(
+          ({ selector, name }: { selector: string; name: string }) => {
+            const nodes = document.querySelectorAll(selector);
+            if (nodes.length !== 1) return null;
+            return nodes[0].getAttribute(name);
+          },
+          { selector, name },
+        ),
+      { timeout: 7_000 },
+    )
+    .toBe(expected);
+}
+
+/** 页面内实时读首个 product-viewport 的属性：缺节点返回 null（断言失败）。 */
+async function expectFirstViewportAttribute(page: Page, name: string, expected: string) {
+  await expect
+    .poll(
+      () =>
+        page.evaluate((attribute: string) => {
+          const el = document.querySelectorAll('[data-testid="product-viewport"]')[0];
+          return el ? el.getAttribute(attribute) : null;
+        }, name),
+      { timeout: 7_000 },
+    )
+    .toBe(expected);
+}
+
 test.beforeEach(async ({ page }) => {
   // 本地 next dev 的热更新要 eval，而站点 CSP 不含 unsafe-eval，客户端不会水合。
   // CI 用生产构建，不设这个变量，CSP 保持原样。
@@ -76,7 +119,7 @@ test('pointer capture, page wheel, modifier zoom, and release', async ({ page })
   });
   expect(hoverHeld).toBe(true);
   expect(await first.getAttribute('data-camera-distance')).toBe(distanceBeforeHover);
-  await expect(page.locator('[data-capture-owner]')).toHaveAttribute('data-capture-owner', '');
+  await expectUniqueAttribute(page, '[data-capture-owner]', 'data-capture-owner', '');
 
   // 同一阶段的非重试读取合成一次页内快照：azimuth 基线与两卡中心都取原 first/second 节点，
   // 中心仍用 getBoundingClientRect 的视口坐标公式；任一视口缺失或框为零直接失败，不回退。
@@ -104,11 +147,11 @@ test('pointer capture, page wheel, modifier zoom, and release', async ({ page })
   const { azimuthA, azimuthB, start, other } = openingStage;
   await page.mouse.move(start.x, start.y);
   await page.mouse.down();
-  await expect(page.locator('[data-capture-owner]')).toHaveAttribute('data-capture-owner', slugA!);
+  await expectUniqueAttribute(page, '[data-capture-owner]', 'data-capture-owner', slugA!);
   // steps 2：中间步只影响采样密度，终点仍是第二张卡中心，捕获与所有断言不变。
   await page.mouse.move(other.x, other.y, { steps: 2 });
   // 减采样后仍须证明跨卡移动没有丢 capture owner：移动后、mouseup 前 owner 仍是 A。
-  await expect(page.locator('[data-capture-owner]')).toHaveAttribute('data-capture-owner', slugA!);
+  await expectUniqueAttribute(page, '[data-capture-owner]', 'data-capture-owner', slugA!);
   await expect(first).not.toHaveAttribute('data-azimuth', azimuthA!);
   await expect(second).toHaveAttribute('data-azimuth', azimuthB!);
   await expect(page).toHaveURL(/\/en\/products$/);
@@ -120,11 +163,11 @@ test('pointer capture, page wheel, modifier zoom, and release', async ({ page })
   expect(locked.body).not.toBe('hidden');
   expect(locked.touch).toContain('pan-y');
   await page.mouse.up();
-  await expect(page.locator('[data-capture-owner]')).toHaveAttribute('data-capture-owner', '');
+  await expectUniqueAttribute(page, '[data-capture-owner]', 'data-capture-owner', '');
 
   await page.evaluate(() => window.scrollTo(0, 0));
-  const plainDistance = await first.getAttribute('data-camera-distance');
-  const scrollBefore = await page.evaluate(() => window.scrollY);
+  // 同一阶段一次页内快照：距离与 scrollY 一起读；距离缺失/空白/非有限立即失败，不用 Number(null)/NaN 兜。
+  const { distance: plainDistance, scrollY: scrollBefore } = await readDistanceAndScroll(page);
   const back = await center(first);
   await page.mouse.move(back.x, back.y);
   await page.mouse.wheel(0, 480);
@@ -142,14 +185,11 @@ test('pointer capture, page wheel, modifier zoom, and release', async ({ page })
   expect(Math.abs(clamped - minDistance)).toBeLessThan(0.05);
 
   await first.focus();
-  await expect(first).toHaveAttribute('data-focused', '1');
-  // 基线必须先取原始字符串：缺失、trim 后空白、转数非有限，一律立即失败。
-  // 否则 Number(null)=0 或 NaN 会让后面的“已变化”判定对任意有限值恒真，滚轮没生效也会过。
-  const rawFocused = await first.getAttribute('data-camera-distance');
-  if (rawFocused === null || rawFocused.trim() === '') throw new Error('聚焦距离基线缺失或空白');
+  await expectFirstViewportAttribute(page, 'data-focused', '1');
+  // 基线必须真实存在且有限：缺失、trim 后空白、非有限一律失败，否则 Number(null)=0 / NaN 会让
+  // 后面的“已变化”判定对任意有限值恒真，滚轮没生效也会过。距离与 scrollY 同一次页内快照读取。
+  const { distance: rawFocused, scrollY: scrollAtFocus } = await readDistanceAndScroll(page);
   const focusedDistance = Number(rawFocused);
-  if (!Number.isFinite(focusedDistance)) throw new Error('聚焦距离基线非有限值');
-  const scrollAtFocus = await page.evaluate(() => window.scrollY);
   await page.keyboard.down('Control');
   const focusedPoint = await center(first);
   await page.mouse.move(focusedPoint.x, focusedPoint.y);
@@ -176,7 +216,7 @@ test('pointer capture, page wheel, modifier zoom, and release', async ({ page })
 
   await page.keyboard.press('Escape');
   await expect(first).toHaveAttribute('data-focused', '0');
-  await expect(page.locator('[data-focused-model]')).toHaveAttribute('data-focused-model', '');
+  await expectUniqueAttribute(page, '[data-focused-model]', 'data-focused-model', '');
   const afterEscape = await first.getAttribute('data-camera-distance');
   await page.keyboard.down('Control');
   await page.mouse.wheel(0, -80);
@@ -186,9 +226,9 @@ test('pointer capture, page wheel, modifier zoom, and release', async ({ page })
   const again = await center(first);
   await page.mouse.move(again.x, again.y);
   await page.mouse.down();
-  await expect(page.locator('[data-capture-owner]')).toHaveAttribute('data-capture-owner', slugA!);
+  await expectUniqueAttribute(page, '[data-capture-owner]', 'data-capture-owner', slugA!);
   await first.dispatchEvent('pointercancel');
-  await expect(page.locator('[data-capture-owner]')).toHaveAttribute('data-capture-owner', '');
+  await expectUniqueAttribute(page, '[data-capture-owner]', 'data-capture-owner', '');
   await page.mouse.up();
 
   await second.focus();
@@ -197,7 +237,7 @@ test('pointer capture, page wheel, modifier zoom, and release', async ({ page })
   const next = await center(second);
   await page.mouse.move(next.x, next.y);
   await page.mouse.down();
-  await expect(page.locator('[data-capture-owner]')).toHaveAttribute('data-capture-owner', slugB!);
+  await expectUniqueAttribute(page, '[data-capture-owner]', 'data-capture-owner', slugB!);
   await page.mouse.up();
 
   await page.locator('[data-testid="home-link"]:visible').first().click();
@@ -206,13 +246,25 @@ test('pointer capture, page wheel, modifier zoom, and release', async ({ page })
   await expect(page).toHaveURL(/\/en\/products$/);
   const returned = page.getByTestId('product-viewport').nth(1);
   await expect(returned).toHaveAttribute('data-framed', '1', { timeout: 25_000 });
-  const returnedSlug = await returned.getAttribute('data-slug');
-  const point = await center(returned);
+  // 同一阶段一次页内快照：第二张卡的 slug 与中心；缺节点、零框、空 slug 都直接失败，不回退。
+  const returnedStage = await page.evaluate(() => {
+    const el = document.querySelectorAll('[data-testid="product-viewport"]')[1];
+    if (!el) return null;
+    const slug = el.getAttribute('data-slug');
+    const r = el.getBoundingClientRect();
+    if (!(r.width > 0 && r.height > 0)) return null;
+    return { slug, x: r.x + r.width / 2, y: r.y + r.height / 2 };
+  });
+  if (!returnedStage || returnedStage.slug === null || returnedStage.slug.trim() === '') {
+    throw new Error('返回后第二张卡 slug/几何缺失或尺寸为零');
+  }
+  const returnedSlug = returnedStage.slug;
+  const point = { x: returnedStage.x, y: returnedStage.y };
   await page.mouse.move(point.x, point.y);
   await page.mouse.down();
-  await expect(page.locator('[data-capture-owner]')).toHaveAttribute('data-capture-owner', returnedSlug!);
+  await expectUniqueAttribute(page, '[data-capture-owner]', 'data-capture-owner', returnedSlug);
   await page.mouse.up();
-  await expect(page.locator('[data-capture-owner]')).toHaveAttribute('data-capture-owner', '');
+  await expectUniqueAttribute(page, '[data-capture-owner]', 'data-capture-owner', '');
 });
 
 /**
