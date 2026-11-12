@@ -475,4 +475,70 @@ describe('M4-T2 访客 GET 同步与 read 单调推进', { concurrency: false, s
     const readClosed = await json(await postRead(conversationId, { lastReadSeq: 1 }, { cookie: cookieOf(visitor) }));
     assert.equal(readClosed.status, 200);
   });
+
+  async function counterTotals(routeId: string): Promise<{ requestCount: number; errorCount: number }> {
+    const rows = await db().$queryRaw<{ requestCount: number; errorCount: number }[]>`
+      SELECT COALESCE(SUM("requestCount"), 0)::int AS "requestCount",
+             COALESCE(SUM("errorCount"), 0)::int AS "errorCount"
+      FROM "ApiDailyCounter"
+      WHERE "routeId" = ${routeId}
+    `;
+    return rows[0] ?? { requestCount: 0, errorCount: 0 };
+  }
+
+  test('每个响应恰计一次：200 与 400/401/403/404/413 都进 ApiDailyCounter，5xx 之外 errorCount 不变', async () => {
+    const visitor = await seedVisitor();
+    const { conversationId } = await createConversation(visitor);
+    const GET_ID = 'GET /api/chat/conversations/[id]';
+    const READ_ID = 'POST /api/chat/conversations/[id]/read';
+
+    async function expectOnce(routeId: string, run: () => Promise<Response>, expectedStatus: number) {
+      const before = await counterTotals(routeId);
+      const response = await run();
+      assert.equal(response.status, expectedStatus);
+      const after = await counterTotals(routeId);
+      assert.equal(after.requestCount - before.requestCount, 1, `${routeId} ${expectedStatus} 必须恰计一次`);
+      assert.equal(after.errorCount - before.errorCount, 0, '4xx 不增加 errorCount');
+    }
+
+    await expectOnce(GET_ID, () => getSync(conversationId, { cookie: cookieOf(visitor) }), 200);
+    await expectOnce(GET_ID, () => getSync(conversationId, { cookie: cookieOf(visitor), limit: 101 }), 400);
+    await expectOnce(GET_ID, () => getSync(conversationId, { cookie: null }), 401);
+    await expectOnce(GET_ID, () => getSync(`missing-${randomUUID()}`, { cookie: cookieOf(visitor) }), 404);
+    await expectOnce(
+      READ_ID,
+      () => postRead(conversationId, { lastReadSeq: 1 }, { cookie: cookieOf(visitor), origin: 'https://evil.example' }),
+      403,
+    );
+    await expectOnce(
+      READ_ID,
+      () => postRead(conversationId, { lastReadSeq: 1 }, { cookie: cookieOf(visitor), rawBody: 'x'.repeat(16 * 1024 + 1) }),
+      413,
+    );
+    await expectOnce(READ_ID, () => postRead(conversationId, { lastReadSeq: 1 }, { cookie: cookieOf(visitor) }), 200);
+  });
+
+  test('同步限流 429 也计数：同 cookie 第 61 次为 429，共 61 次入账', async () => {
+    const visitor = await seedVisitor();
+    const { conversationId } = await createConversation(visitor);
+    const routeId = 'GET /api/chat/conversations/[id]';
+    const before = await counterTotals(routeId);
+    let lastStatus = 0;
+    for (let i = 0; i < 61; i += 1) {
+      lastStatus = (await getSync(conversationId, { cookie: cookieOf(visitor), afterSeq: 0 })).status;
+    }
+    assert.equal(lastStatus, 429);
+    const after = await counterTotals(routeId);
+    assert.equal(after.requestCount - before.requestCount, 61, '每个响应（含 429）恰计一次，不重复计数');
+    assert.equal(after.errorCount - before.errorCount, 0);
+  });
+
+  test('多张同名 cookie：401 清 cookie 的 Set-Cookie 不丢', async () => {
+    const visitor = await seedVisitor();
+    const { conversationId } = await createConversation(visitor);
+    const response = await getSync(conversationId, { cookie: `pj_chat=${visitor.token}; pj_chat=other` });
+    assert.equal(response.status, 401);
+    assert.match(response.headers.get('set-cookie') ?? '', /pj_chat=;/, '歧义 cookie 必须被清除');
+    assert.equal(response.headers.get('cache-control'), 'private, no-store');
+  });
 });

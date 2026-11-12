@@ -35,7 +35,17 @@ export async function POST(request: Request, { params }: RouteParams) {
   const secure = chatVisitorCookieSecure(request.url, env);
   let services: ChatServices | undefined;
 
-  const finish = async (status: number, body: unknown, headers: Record<string, string>) => {
+  /**
+   * 统一最终响应：成功与所有 mapped 拒绝都从这里出，确保每个请求恰好计一次
+   * ApiDailyCounter（失败也计 requestCount，5xx 才计 errorCount）。
+   * 计数失败只记录 warning，不改变已经决定的状态/正文/头；Set-Cookie 逐条 append，支持多条。
+   */
+  const finish = async (
+    status: number,
+    body: unknown,
+    headers: Record<string, string>,
+    cookies: readonly string[] = [],
+  ) => {
     let outStatus = status;
     let outBody = body;
     if (services) {
@@ -47,21 +57,20 @@ export async function POST(request: Request, { params }: RouteParams) {
         // 计数失败不改变已经决定的状态和正文。
       }
     }
-    return Response.json(outBody, {
+    const response = Response.json(outBody, {
       status: outStatus,
       headers: { ...headers, 'cache-control': 'private, no-store' },
     });
+    for (const cookie of cookies) response.headers.append('set-cookie', cookie);
+    return response;
   };
 
   const fail = (error: AppError, setCookie?: string) => {
     const mapped = classifyThrown(error, requestId);
-    if (mapped.kind !== 'mapped') throw new Error('chat read error');
-    const response = Response.json(mapped.body, {
-      status: mapped.status,
-      headers: { ...mapped.headers, 'cache-control': 'private, no-store' },
-    });
-    if (setCookie) response.headers.append('set-cookie', setCookie);
-    return response;
+    if (mapped.kind === 'legacy-response') return withPrivateNoStore(mapped.response);
+    if (mapped.kind === 'legacy-body') return finish(500, mapped.body, {});
+    // mapped 拒绝必须在统一出口计数：不能直接 Response.json 绕过 finish。
+    return finish(mapped.status, mapped.body, mapped.headers, setCookie ? [setCookie] : []);
   };
 
   try {
