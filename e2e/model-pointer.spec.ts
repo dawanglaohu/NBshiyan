@@ -355,6 +355,7 @@ test('hover pauses spin and a user pause survives hide and foreground', async ({
         { timeout: 7_000 },
       )
       .toEqual({ paused: '1', spinning: '0' });
+  console.log('[M5-T10][model345] stage=moved:start');
   const moved = await first.evaluate(async (el) => {
     const start = el.getAttribute('data-azimuth');
     const t0 = performance.now();
@@ -366,6 +367,7 @@ test('hover pauses spin and a user pause survives hide and foreground', async ({
     }
     return { moved: false, frames, elapsed: Math.round(performance.now() - t0) };
   });
+  console.log(`[M5-T10][model345] stage=moved:done ${JSON.stringify(moved)}`);
   expect(moved.moved).toBe(true);
 
   // 指针进入用真实几何坐标：hover() 的 actionability 重试与“指针进入即暂停”无关；
@@ -396,6 +398,7 @@ test('hover pauses spin and a user pause survives hide and foreground', async ({
   });
   await page.mouse.move(enter.x, enter.y);
   await expect(first).toHaveAttribute('data-spinning', '0');
+  console.log('[M5-T10][model345] stage=held:start');
   const held = await first.evaluate(async (el) => {
     const start = el.getAttribute('data-azimuth');
     const t0 = performance.now();
@@ -407,6 +410,7 @@ test('hover pauses spin and a user pause survives hide and foreground', async ({
     }
     return { held: true, frames, elapsed: Math.round(performance.now() - t0) };
   });
+  console.log(`[M5-T10][model345] stage=held:done ${JSON.stringify(held)}`);
   expect(held.held).toBe(true);
 
   // 离开模型同样用真实坐标；若指针仍落在模型上，恢复自转会失败。
@@ -436,6 +440,7 @@ test('hover pauses spin and a user pause survives hide and foreground', async ({
     document.dispatchEvent(new Event('visibilitychange'));
   });
   await expectPaused();
+  console.log('[M5-T10][model345] stage=still:start');
   const still = await first.evaluate(async (el) => {
     const start = el.getAttribute('data-azimuth');
     const t0 = performance.now();
@@ -447,6 +452,7 @@ test('hover pauses spin and a user pause survives hide and foreground', async ({
     }
     return { paused: el.getAttribute('data-user-paused') === '1', frames, elapsed: Math.round(performance.now() - t0) };
   });
+  console.log(`[M5-T10][model345] stage=still:done ${JSON.stringify(still)}`);
   expect(still.paused).toBe(true);
   console.log(`[M5-T10][model345] moved=${JSON.stringify(moved)} held=${JSON.stringify(held)} still=${JSON.stringify(still)}`);
 });
