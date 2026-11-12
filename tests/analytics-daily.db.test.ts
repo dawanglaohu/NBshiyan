@@ -8,8 +8,8 @@ import { spawn } from 'node:child_process';
 import { Prisma, PrismaClient } from '@prisma/client';
 import { siteDayUtcBounds } from '../src/lib/analytics/day-boundaries';
 import { classifyDayCompleteness } from '../src/lib/analytics/daily-aggregate';
-import { AggregateVersionConflict, runAggregateOnce, runDailyAggregateRound, writeDailyCoverageMetadata } from '../src/lib/server/analytics/aggregate';
-import { planSnapshot } from '../src/lib/analytics/aggregate-plan';
+import { AggregateVersionConflict, DailyRoundHalt, runAggregateOnce, runDailyAggregateRound, writeDailyCoverageMetadata } from '../src/lib/server/analytics/aggregate';
+import { isDateRecomputable, planSnapshot, shiftLocalDate } from '../src/lib/analytics/aggregate-plan';
 import { AGGREGATE_JOB_KEY } from '../src/lib/server/analytics/aggregate-repo';
 import { readDayState, readLiveMarkerVersions } from '../src/lib/server/analytics/aggregate-day-state';
 
@@ -696,7 +696,7 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
     assert.equal(after?.updatedAt, before?.updatedAt, '行未被写入，updatedAt 必须保持');
   });
 
-  test('closure 独立元数据 CAS：另一路仍是 raw_partial → 版本冲突、不宣完成', async () => {
+  test('closure 独立元数据 CAS：raw_partial 是终态 → 旧 expected 得 no-op、原行不覆写', async () => {
     await reset();
     const now = new Date('2026-03-05T02:00:00.000Z');
     const generation = 1;
@@ -710,19 +710,48 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
       timezone: TZ, revision: REV, now, cutoff: now, notAfter: now, generation, leaseOwner,
     });
     assert.equal(first[0]?.result, 'inserted');
-    // 第二次仍用旧 expected：CAS 0 行，且现存行不是已保存成功态 → 必须报版本冲突。
+    const before = await readDayState(requireDb(), { localDate: day, timezoneRevision: REV });
+    // raw_partial 属 TERMINAL_GAPS：现存这种行就是已保存态，旧 expected CAS 0 行后归 no-op。
+    const second = await writeDailyCoverageMetadata(requireDb(), {
+      entries: [{ date: day, expected: stale }],
+      timezone: TZ, revision: REV, now, cutoff: now, notAfter: now, generation, leaseOwner,
+    });
+    assert.equal(second[0]?.result, 'conflict_noop', '终态缺口应归 no-op，不得报完成也不得覆写');
+    const row = await readDayState(requireDb(), { localDate: day, timezoneRevision: REV });
+    assert.equal(row?.gapKind, 'raw_partial', '原行必须保持，不被旧 expected 重写');
+    assert.equal(row?.updatedAt, before?.updatedAt, 'no-op 不写行，updatedAt 不变');
+  });
+
+  test('closure 独立元数据 CAS：非终态 budget 缺口 → 版本冲突、不宣完成', async () => {
+    await reset();
+    const now = new Date('2026-03-05T02:00:00.000Z');
+    const generation = 1;
+    const leaseOwner = 'test-lease';
+    await seedGuards({ generation, leaseOwner, revision: REV, timezone: TZ, now });
+    // 真实路径造一条非终态缺口：两日候选但 maxDays=1 → budget halt，wrapper 写 budget gap。
+    await insertEvent({ kind: 'page_view', browserHash: 'b1', path: '/en', occurredAt: new Date('2026-03-01T02:00:00Z') });
+    await insertEvent({ kind: 'page_view', browserHash: 'b2', path: '/en', occurredAt: new Date('2026-03-02T02:00:00Z') });
+    const halted = await roundRun({ baseDates: ['2026-03-01', '2026-03-02'], maxDays: 1 });
+    assert.equal(halted.status, 'budget');
+    const gapDate = halted.gaps[0]?.localDate;
+    assert.ok(gapDate, 'budget halt 必须留下 gap 日期');
+    const before = await readDayState(requireDb(), { localDate: gapDate, timezoneRevision: REV });
+    assert.equal(before?.gapKind, 'budget', '前提：现存行是非终态 budget 缺口');
+
+    // 旧 expected（读时无行）再发独立 CAS：0 行后按 saved 判定 → 非终态 → 版本冲突。
     await assert.rejects(
       () => writeDailyCoverageMetadata(requireDb(), {
-        entries: [{ date: day, expected: stale }],
+        entries: [{ date: gapDate, expected: { markers: {}, updatedAt: null, deferUntil: null } }],
         timezone: TZ, revision: REV, now, cutoff: now, notAfter: now, generation, leaseOwner,
       }),
       (error: unknown) => {
-        assert.ok(error instanceof AggregateVersionConflict, '未保存成功态不得被当成 no-op');
+        assert.ok(error instanceof AggregateVersionConflict, '非终态缺口不得被当成已保存完成');
         return true;
       },
     );
-    const row = await readDayState(requireDb(), { localDate: day, timezoneRevision: REV });
-    assert.equal(row?.gapKind, 'raw_partial', '原行必须保持，不被旧 expected 重写');
+    const row = await readDayState(requireDb(), { localDate: gapDate, timezoneRevision: REV });
+    assert.equal(row?.gapKind, 'budget', '原行必须保持');
+    assert.equal(row?.updatedAt, before?.updatedAt, '冲突路径不写行');
   });
 
   test('union≤maxDays：旧链 plan 集合与新链目标按 distinct 并集计，超出 1 才命中 max_days_initial', async () => {
@@ -746,17 +775,26 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
     });
     assert.notEqual(overlap.daily?.status, 'budget', '并集等于上限时不得触发 max_days_initial');
 
-    // 超限对照：再加一个旧链计划外、但仍在可重算域内的已结束日 → 并集 = limit + 1。
-    const outside = plan.earliestRecomputableDate;
+    // 超限对照：再加一个旧链计划外、但**真正可重算**的已结束日 → 并集 = limit + 1。
+    // 不能直接用 earliestRecomputableDate：该日首瞬时可能早于 raw 下限，会归 coverage 不进 targets。
+    const outside = shiftLocalDate(plan.earliestRecomputableDate, 1);
+    assert.equal(isDateRecomputable(outside, TZ, plan.earliestRecomputableDate), true, '超限日必须真正可重算');
     assert.ok(!reserved.includes(outside), '超限日必须落在旧链计划之外');
     await insertEvent({ kind: 'page_view', browserHash: 'b-extra', path: '/en', occurredAt: new Date(`${outside}T02:00:00Z`) });
-    const over = await runAggregateOnce({
-      db: requireDb(), now, siteTimezone: TZ, timezoneRevision: REV, generation, currentDate,
-      daily: { leaseOwner, baseDates: [reserved[0]!, outside], maxDays: limit },
-    });
-    assert.equal(over.daily?.status, 'budget');
-    assert.equal(over.daily?.budget?.reason, 'max_days_initial');
-    assert.equal(over.daily?.budget?.queued, limit + 1, 'queued 必须是 distinct 并集大小');
+    // runAggregateOnce 这条路径上，超限是包装器内的 DailyRoundHalt → 被原样抛出，不返回 daily.budget。
+    await assert.rejects(
+      () => runAggregateOnce({
+        db: requireDb(), now, siteTimezone: TZ, timezoneRevision: REV, generation, currentDate,
+        daily: { leaseOwner, baseDates: [reserved[0]!, outside], maxDays: limit },
+      }),
+      (error: unknown) => {
+        assert.ok(error instanceof DailyRoundHalt, '超限必须以 DailyRoundHalt 抛出');
+        assert.equal(error.halt.kind, 'budget');
+        assert.equal(error.halt.reason, 'max_days_initial');
+        assert.equal(error.halt.queued, limit + 1, 'queued 必须是 distinct 并集大小');
+        return true;
+      },
+    );
   });
 });
 // ---- 专属 DB 入口拒绝负控：spawn 真实入口文件，断言安全码、非 0 退出、不回显 DSN ----
