@@ -290,31 +290,33 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
   test('基本日聚合：站点/产品行、BigInt 总和、sourceThrough、13 月 expiresAt', async () => {
     await reset();
     await insertEvent({ kind: 'page_view', browserHash: 'b1', path: '/en', occurredAt: new Date('2026-03-02T02:00:00Z') });
+    // 路径归属走真实 defaultProductSlugFromPath：段必须是 CATALOG_CATEGORY_KEYS 内已上架 key，
+    // 所以这里用 'color-boxes'，而不是任意 slug（未上架 slug 归不到产品，属产品语义）。
     await insertEvent({
       kind: 'product_view',
       browserHash: 'b1',
-      productSlug: 'cube',
+      productSlug: 'color-boxes',
       occurredAt: new Date('2026-03-02T02:30:00Z'),
     });
     await insertEvent({
       kind: 'model_view_start',
       browserHash: 'b2',
       viewId: 'v1',
-      productSlug: 'cube',
+      productSlug: 'color-boxes',
       occurredAt: new Date('2026-03-02T03:00:00Z'),
     });
     await insertEvent({
       kind: 'model_load_success',
       browserHash: 'b2',
       viewId: 'v1',
-      productSlug: 'cube',
+      productSlug: 'color-boxes',
       durationMs: 1200,
       occurredAt: new Date('2026-03-02T03:00:05Z'),
     });
     await insertEvent({
       kind: 'page_view',
       browserHash: 'b3',
-      path: '/en/products/cube',
+      path: '/en/products/color-boxes',
       occurredAt: new Date('2026-03-02T04:00:00Z'),
     });
 
@@ -325,9 +327,9 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
 
     const rows = await dailyRows('2026-03-02');
     const site = rows.find((row) => row.dimension === 'site');
-    const cube = rows.find((row) => row.dimension === 'product:cube');
+    const productRow = rows.find((row) => row.dimension === 'product:color-boxes');
     assert.ok(site);
-    assert.ok(cube);
+    assert.ok(productRow);
     // 站点 UV 含终态自身 browserHash（b1/b2/b3 = 3）。
     assert.equal(site.visitors, 3);
     assert.equal(site.pageViews, 2);
@@ -341,12 +343,12 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
     assert.equal(site.timezone, TZ);
     assert.equal(site.sourceThrough, '2026-03-02T04:00:00.000Z');
     // 产品 UV：product_view(b1) + start(b2) + 路径命中 page_view(b3)；终态不加 UV。
-    assert.equal(cube.visitors, 3);
-    assert.equal(cube.pageViews, null);
-    assert.equal(cube.productViews, 1);
-    assert.equal(cube.modelStarts, 1);
-    assert.equal(cube.modelSuccesses, 1);
-    assert.equal(cube.durationMsSum, 1200n);
+    assert.equal(productRow.visitors, 3);
+    assert.equal(productRow.pageViews, null);
+    assert.equal(productRow.productViews, 1);
+    assert.equal(productRow.modelStarts, 1);
+    assert.equal(productRow.modelSuccesses, 1);
+    assert.equal(productRow.durationMsSum, 1200n);
     // 2026-03-02 + 13 自然月 = 2027-04-02 本地日首；Asia/Shanghai = 2027-04-01T16:00Z。
     assert.equal(site.expiresAt, '2027-04-01T16:00:00.000Z');
 
@@ -699,7 +701,7 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
     assert.equal(writes[0]?.result, 'conflict_noop', '已保存成功态应归为 no-op，而不是覆盖或报错');
     const after = await readDayState(requireDb(), { localDate: day, timezoneRevision: REV });
     assert.equal(after?.gapKind, null, '已保存的结果不得被旧 expected 覆写成 raw_partial');
-    assert.equal(after?.updatedAt, before?.updatedAt, '行未被写入，updatedAt 必须保持');
+    assert.equal(new Date(after!.updatedAt).getTime(), new Date(before!.updatedAt).getTime(), '行未被写入，updatedAt 必须保持（按瞬时比，不比 Date 引用）');
   });
 
   test('closure 独立元数据 CAS：raw_partial 是终态 → 旧 expected 得 no-op、原行不覆写', async () => {
@@ -725,7 +727,7 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
     assert.equal(second[0]?.result, 'conflict_noop', '终态缺口应归 no-op，不得报完成也不得覆写');
     const row = await readDayState(requireDb(), { localDate: day, timezoneRevision: REV });
     assert.equal(row?.gapKind, 'raw_partial', '原行必须保持，不被旧 expected 重写');
-    assert.equal(row?.updatedAt, before?.updatedAt, 'no-op 不写行，updatedAt 不变');
+    assert.equal(new Date(row!.updatedAt).getTime(), new Date(before!.updatedAt).getTime(), 'no-op 不写行，updatedAt 不变（按瞬时比）');
   });
 
   test('closure 独立元数据 CAS：非终态 budget 缺口 → 版本冲突、不宣完成', async () => {
@@ -757,7 +759,7 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
     );
     const row = await readDayState(requireDb(), { localDate: gapDate, timezoneRevision: REV });
     assert.equal(row?.gapKind, 'budget', '原行必须保持');
-    assert.equal(row?.updatedAt, before?.updatedAt, '冲突路径不写行');
+    assert.equal(new Date(row!.updatedAt).getTime(), new Date(before!.updatedAt).getTime(), '冲突路径不写行（按瞬时比）');
   });
 
   test('union≤maxDays：旧链 plan 集合与新链目标按 distinct 并集计，超出 1 才命中 max_days_initial', async () => {
