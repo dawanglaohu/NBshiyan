@@ -631,13 +631,14 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
   test('closure 独立覆盖：闭包日不可重算时整笔回滚，只留独立 CAS 的 coverage 元数据', async () => {
     await reset();
     await seedGuards({ generation: 1, leaseOwner: 'test-lease', revision: REV, timezone: TZ, now: new Date('2026-03-05T02:00:00.000Z') });
-    // start 在 2026-02-01，终态在次日；闭包日早于本轮可重算下限，闭包才发现不可重算。
+    // 可重算的终态日落 02-04；它的闭包是 start 所在的 02-03（日首 02-02T16:00Z 早于
+    // raw 下限 02-03T02:00Z，闭包时才发现该 start 日不可重算）。start 本身早于 rawCutoff。
     await insertEvent({
       kind: 'model_view_start',
       browserHash: 'b1',
       viewId: 'v-closure',
       productSlug: 'cube',
-      occurredAt: new Date('2026-02-01T02:00:00Z'),
+      occurredAt: new Date('2026-02-03T01:00:00Z'),
     });
     await insertEvent({
       kind: 'model_load_failure',
@@ -645,23 +646,23 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
       viewId: 'v-closure',
       productSlug: 'cube',
       durationMs: 500,
-      occurredAt: new Date('2026-02-02T02:00:00Z'),
+      occurredAt: new Date('2026-02-04T02:00:00Z'),
     });
 
-    const run = await roundRun({ baseDates: ['2026-02-01'] });
+    const run = await roundRun({ baseDates: ['2026-02-04'] });
     // 闭包日不可重算：主 RR 整笔回滚，用本次 plan 的原 expected 在独立 CAS 事务补 coverage。
     assert.equal(run.status, 'partial');
     assert.ok(run.committed !== null, '回滚也要如实给出确认提交列表');
     assert.deepEqual(run.committed, []);
-    assert.deepEqual(await dailyRows('2026-02-01'), [], '主事务已回滚，指标行不得残留');
-    assert.deepEqual(await dailyRows('2026-02-02'), []);
-    // 独立 CAS 写的是 coverage 元数据，而不是指标。
-    const closureState = await readDayState(requireDb(), { localDate: '2026-02-02', timezoneRevision: REV });
-    assert.ok(closureState !== null, '闭包日的 coverage 元数据必须存在');
-    assert.equal(closureState?.gapKind, null, '不是 gap：这是 coverage 覆盖说明');
+    assert.deepEqual(await dailyRows('2026-02-04'), [], '主事务已回滚，指标行不得残留');
+    assert.deepEqual(run.gaps, [], 'coverage 不是 gap：不得写 gap 记录');
+    // 独立 CAS 写的是 start 日的 coverage 元数据（gapKind=raw_partial），不是指标。
+    const closureState = await readDayState(requireDb(), { localDate: '2026-02-03', timezoneRevision: REV });
+    assert.ok(closureState !== null, 'start 日的 coverage 元数据必须存在');
+    assert.equal(closureState?.gapKind, 'raw_partial', 'coverage 写的是 raw_partial，不是 null');
     assert.ok(
-      run.metadata.some((item) => item.localDate === '2026-02-02'),
-      '本轮必须带出独立 CAS 写入的 coverage 结果',
+      run.metadata.some((item) => item.localDate === '2026-02-03' && item.action === 'coverage'),
+      '本轮必须带出独立 CAS 写入的 coverage 结果（start 日）',
     );
   });
 
