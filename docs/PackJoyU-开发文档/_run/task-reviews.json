@@ -1237,16 +1237,16 @@
   },
   "M5-T12": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "9ac403d623bffcc4b95fd5a53c4dec8e9dd4ed9ee78dedd4cc6770003f380b36",
+    "contractHash": "5dd0bb1fd4a4c07e68455b124e79a3b405fbcfd40130808615dab7b9e029c84d",
     "evidence": [
-      "源变更仅 docs/PackJoyU-开发文档/_run/task-contracts.json（git diff 2 行新增）：M5-T12 supportPaths 末尾新增 src/app/api/admin/cron/retention-cleanup/route.ts 与 tests/retention-cleanup.test.ts，无重复；stage/wiring/outputPaths/requires/sections/ci.yml 条目均未变",
-      "触发输入：tree task/M5-T12 clean @ ae5bdad4c3f1185b102a18d18ee0e70bd766155c / tree 16db0915621e9d0a271d5c97979a7ec6cd4e3197 / parent 919959da…，git status 0 行；两文件已在该 HEAD 跟踪（route blob 404c7a84…、test blob 10351082…），此前不在 supportPaths",
-      "依据原 DB 合并审 business-e4a-review-20261112/BUSINESS-E4A-REVIEW.md 与 Chief 已读 route:43-46：GC 未知结果在既有 cron route 被折叠、phase/targets 丢失；专用测试须覆盖实际消费者（路由分支），不得把 mapper 纯测当路由已证。本补丁只给写域，不改 stage/wiring/output/验收/CI/业务/测试内容，不重开 M5-T11，不加 cron-alert.ts 或公开 ops 契约；ci.yml 本就在 supportPaths，不为 CI 新增路径",
-      "begin exit=0、sync exit=0（日志 01-begin.log、02-sync.log）；补丁 status=synced、sourceVersion=378717dab1a1e4fd5bb9f67cffc53a27ace035877f8cf9d8df53e1a095d002b9；sourceChanges 仅 _run/task-contracts.json；两路径均已进 effectivePaths",
-      "受影响 24 个（M3-T6/T8/T9/T10/T11/T12/T13/T25、M5-T12、M6-T1..T7、M7-T2/T3/T5/T6/T7/T8/T9/T10），均为契约哈希传播（M5-T12 为直接源变更）；docs-data/build-manifest/build-state/dispatch/review 正常再生",
-      "边界：未 checkout/reset/rebase、未覆盖作者未提交内容；未改 main/CI/业务源码/测试内容/状态；未 --landed/Ready/merge/新 PR；未 push"
+      "源变更仅 docs/PackJoyU-开发文档/_run/task-contracts.json（git diff 1 行新增）：M5-T12 supportPaths 末尾新增 src/lib/server/analytics/retention-cleanup-handler.ts，无重复；stage/wiring/outputPaths/requires/sections 未变；route 与 tests/retention-cleanup.test.ts 此前已支持，不重复加",
+      "触发输入：tree task/M5-T12 clean @ 755e5738e8b24251e04d8f7ac247e58e787910a3 / tree 3e5e074b4ee8b55f9aa8023dee9de587a7a415a4 / parent e828bb50…，git status 0 行；该 handler 尚不在 HEAD（由作者在 C 实现窗新建），supportPaths 仅作写域声明",
+      "依据 Chief 裁定：C 需要真实 handler 分支的执行验证；不得在 Next route.ts 额外导出 handleWith/createHandler（导出白名单影响 build），也不把 HTTP 控制器塞进聚合服务只为省路径；新增最小 server 内部 handler 模块作依赖注入缝，不新增公开 HTTP/ops 契约、不重开 M5-T11",
+      "begin exit=0、sync exit=0（日志 01-begin.log、02-sync.log）；补丁 status=synced、sourceVersion=735443977c46a099104f7c37401452b2ce94cbf19dafe1b068a144b4be50934f；sourceChanges 仅 _run/task-contracts.json；该路径已进 effectivePaths",
+      "受影响 24 个（M3-T6/T8/T9/T10/T11/T12/T13/T25、M5-T12、M6-T1..T7、M7-T2/T3/T5/T6/T7/T8/T9/T10），均为契约哈希传播；docs-data/build-manifest/build-state/dispatch/review 正常再生",
+      "边界：未 checkout/reset/rebase、未覆盖作者未提交内容；未改 route/业务源码/测试内容/CI/验收/status；未 --landed/Ready/merge/新 PR；未 push"
     ],
-    "reviewed": "2026-11-12T15:15:33.318407+00:00",
+    "reviewed": "2026-11-12T15:56:45.760080+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
