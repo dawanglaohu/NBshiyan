@@ -53,9 +53,9 @@ R9 修复（PR554）分层差量：实现层 `5b012bc3` → `201d2d30` = **4 文
 
 ## 媒体（L 最终头）
 
-- L 演示 GIF：`media-L935/r9-L935-product-inquiry-1440x900.gif`，**359,244 B**，1200×750、11.2 s、112 帧、4 个源状态帧，SHA-256 `B0F9BE53EAE93FD3A843914C5A654ACF946E3E0E15294B8C6A04B7CD7656DC0C`；assets 分支 commit `3864db94b83ed89d68b2b4a8a9a6e111c3904634`（父 `a0920925`，非 force、未删旧文件），文件 `r9-L935-product-inquiry.gif`、blob `6d216ea2…`；远端回读 200 / `image/gif` / 359,244 B、SHA 一致；PR554 正文改前改后 head 均 L。
+- L 演示 GIF：`media-gif-L935/r9-L935-product-inquiry-1440x900.gif`（同域 `PROVENANCE.md`/`PROVENANCE.json`），**359,244 B**，1200×750、11.2 s、112 帧、4 个源状态帧，SHA-256 `B0F9BE53EAE93FD3A843914C5A654ACF946E3E0E15294B8C6A04B7CD7656DC0C`；assets 分支 commit `3864db94b83ed89d68b2b4a8a9a6e111c3904634`（父 `a0920925`，非 force、未删旧文件），文件 `r9-L935-product-inquiry.gif`、blob `6d216ea2…`；远端回读 200 / `image/gif` / 359,244 B、SHA 一致；PR554 正文改前改后 head 均 L。
 - 载体：仓库已声明并安装的 `@playwright/test` 1.64.0 + 隔离 headless Chromium 156.0.8078.4（chromium-1248），单 context、新空帧目录、一次连续运行；**564 请求全 GET、nonGet 0、失败 0**；未点同意、未登录、未提交、未切聊天开关，向导停 Step 1；未隐藏 DOM、未改 CSS、未合成响应、未 build/安装/起停服务。
-- 0c 轮 GIF（362,442 B `69a39582…`、assets `a0920925`）保留为历史，不覆盖、不混用；L 是 docs-only 落地，`01`–`03` 帧与 0c 对应帧字节相同（确定性渲染），`00` 帧因构建/BID 不同而不同，均为本轮新 context 现场截图。媒体 owner 报首次截图 PNG 损坏未保存，该帧未纳入证据。
+- 0c 轮 GIF（362,442 B `69a39582…`、assets `a0920925`）保留为历史，不覆盖、不混用；L 是 docs-only 落地，`01`–`03` 帧与 0c 对应帧字节相同（确定性渲染），`00` 帧与 0c 不同（观测，未单独归因），均为本轮新 context 现场截图。首次截图 PNG 损坏由测试窄核 owner 披露（不属 3D 四帧记录），该帧未纳入证据。
 
 ## 遗留
 
