@@ -10,31 +10,38 @@ import { classifyDayCompleteness } from '../src/lib/analytics/daily-aggregate';
 import { runDailyAggregateRound } from '../src/lib/server/analytics/aggregate';
 import { readDayState, readLiveMarkerVersions } from '../src/lib/server/analytics/aggregate-day-state';
 
-// 专属入口（M5-T12）：只认 M5T12_TEST_DATABASE_URL；CI 还要显式 M5T12_CI_MODE=true 才允许 e2e/postgres。
-// 不 fallback 通用 DATABASE_URL：本机其它库/别的任务库不会被误当成本卡验收库。
+// 专属入口（M5-T12）：只认 M5T12_TEST_DATABASE_URL，不 fallback 通用 DATABASE_URL。
+// 本机库名/角色尚未分配：非 CI 即使给了 URL 也拒绝，不靠“看起来不像保留库”推断授权。
+// CI 必须三个开关同时成立：CI=true + M5T12_CI_MODE=true + M5T12_REQUIRE_DATABASE=true，
+// 且 URL 只接受 loopback / database=e2e / user=postgres / 不带 schema 参数。
 const REQUIRE = process.env.M5T12_REQUIRE_DATABASE === 'true';
-const base = process.env.M5T12_TEST_DATABASE_URL;
+const CI_FLAG = process.env.CI === 'true';
 const CI_MODE = process.env.M5T12_CI_MODE === 'true';
-if (REQUIRE && !base?.startsWith('postgres')) {
-  throw new Error('M5T12_TEST_DATABASE_URL must be a postgres URL when M5T12_REQUIRE_DATABASE=true');
-}
-// 非 CI 的本机库必须是回环 + 本卡专属库名；CI 只接受一次性 e2e/postgres 身份（双 flag 同时成立）。
-if (base !== undefined && !CI_MODE) {
+const base = process.env.M5T12_TEST_DATABASE_URL;
+const schemaParam = base === undefined ? null : new URL(base).searchParams.get('schema');
+
+if (REQUIRE && base === undefined) throw new Error('E_M5T12_URL_MISSING');
+if (base !== undefined) {
+  if (!(CI_FLAG && CI_MODE && REQUIRE)) throw new Error('E_M5T12_LOCAL_DB_NOT_PROVISIONED');
   const parsed = new URL(base);
-  if (!['127.0.0.1', 'localhost'].includes(parsed.hostname)) {
-    throw new Error('M5T12_TEST_DATABASE_URL must point to loopback outside CI');
-  }
-  const fb = new Set(['postgres', 'template1', 'e2e', 'nb', 'nb_new', 'nbshiyan']);
-  const dbName = parsed.pathname.replace(/^\//, '').split('?')[0] ?? '';
-  if (fb.has(dbName)) {
-    throw new Error('M5T12_TEST_DATABASE_URL must use a dedicated database outside CI');
-  }
+  if (!['127.0.0.1', 'localhost'].includes(parsed.hostname)) throw new Error('E_M5T12_HOST_NOT_LOOPBACK');
+  if (parsed.pathname.replace(/^\//, '') !== 'e2e') throw new Error('E_M5T12_DB_NOT_E2E');
+  if (decodeURIComponent(parsed.username) !== 'postgres') throw new Error('E_M5T12_USER_NOT_POSTGRES');
+  if (schemaParam !== null) throw new Error('E_M5T12_URL_HAS_SCHEMA');
 }
-// 随机 owned schema：每次运行独立命名，收尾只清这一个；CI 与非 CI 同规则。
+
+// 随机 owned schema：每次运行独立命名，收尾只清这一个；正则与创建时的名字严格对应。
 const SCHEMA = `m5t12_daily_${process.pid}_${Math.random().toString(16).slice(2, 10)}`;
-const url = base?.startsWith('postgres')
-  ? `${base}${base.includes('?') ? '&' : '?'}schema=${encodeURIComponent(SCHEMA)}&connection_limit=3&pool_timeout=10`
-  : null;
+const url = base === undefined
+  ? null
+  : (() => {
+      const parsed = new URL(base);
+      parsed.search = '';
+      parsed.searchParams.set('schema', SCHEMA);
+      parsed.searchParams.set('connection_limit', '3');
+      parsed.searchParams.set('pool_timeout', '10');
+      return parsed.toString();
+    })();
 const db = url ? new PrismaClient({ datasources: { db: { url } } }) : null;
 const skip = !db && 'no M5T12_TEST_DATABASE_URL';
 
@@ -46,38 +53,57 @@ function utc(date: Date): Prisma.Sql {
   return Prisma.sql`${date.toISOString()}::timestamptz AT TIME ZONE 'UTC'`;
 }
 
+/** 只有本次 `CREATE SCHEMA` 真的成功才置 true；失败/碰撞不接管、不 DROP。 */
+let schemaCreated = false;
+
 function requireDb(): PrismaClient {
-  if (!db) assert.fail('M5-T12 日聚合 PG 回归必须连真实 PostgreSQL：DATABASE_URL 未设置或缺库');
+  if (!db) assert.fail('M5-T12 日聚合 PG 回归必须连真实 PostgreSQL：M5T12_TEST_DATABASE_URL 缺失或 CI 开关不齐');
   return db;
 }
 
 after(async () => {
   if (!db) return;
-  assert.match(SCHEMA, /^daily_agg_\d+$/);
-  await db.$executeRawUnsafe(`DROP SCHEMA IF EXISTS "${SCHEMA}" CASCADE`);
-  await db.$disconnect();
+  try {
+    // 只清本次 owned schema：名字必须精确匹配创建时的随机格式，否则拒绝 DROP。
+    if (!schemaCreated) return;
+    if (!/^m5t12_daily_\d+_[0-9a-f]{8}$/.test(SCHEMA)) throw new Error('E_M5T12_SCHEMA_NOT_OWNED');
+    // 失败 loud（不吞、不 IF EXISTS 掩盖）：交给 runner 报 after-hook 失败。
+    await db.$executeRawUnsafe(`DROP SCHEMA "${SCHEMA}" CASCADE`);
+  } finally {
+    await db.$disconnect();
+  }
 });
 
 describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: false, skip, timeout: 180_000 }, () => {
   before(async () => {
     if (!db) return;
     const conn = requireDb();
-    await conn.$executeRawUnsafe(`CREATE SCHEMA IF NOT EXISTS "${SCHEMA}"`);
+    // 只读身份核对必须早于任何 CREATE；错误只给安全码，不回显 DSN。
+    const identity = await conn.$queryRaw<{ db: string; user: string }[]>`
+      SELECT current_database() AS "db", current_user AS "user"
+    `;
+    if (identity[0]?.db !== 'e2e' || identity[0]?.user !== 'postgres') {
+      throw new Error('E_M5T12_IDENTITY_MISMATCH');
+    }
+    // 普通 CREATE（不用 IF NOT EXISTS）：碰撞/失败都不接管、不 DROP。
+    await conn.$executeRawUnsafe(`CREATE SCHEMA "${SCHEMA}"`);
+    schemaCreated = true;
     await conn.$executeRawUnsafe(`SET search_path TO "${SCHEMA}"`);
-    const pushed = await Promise.resolve()
-      .then(async () => {
-        const { execFileSync } = await import('node:child_process');
-        const { createRequire } = await import('node:module');
-        const prismaCli = createRequire(import.meta.url).resolve('prisma/build/index.js');
-        execFileSync(process.execPath, [prismaCli, 'db', 'push', '--skip-generate'], {
-          cwd: process.cwd(),
-          env: { ...process.env, DATABASE_URL: url! },
-          stdio: ['ignore', 'pipe', 'pipe'],
-        });
-        return true;
-      })
-      .catch(() => false);
-    assert.equal(pushed, true, 'prisma db push failed');
+    try {
+      const { execFileSync } = await import('node:child_process');
+      const { createRequire } = await import('node:module');
+      const prismaCli = createRequire(import.meta.url).resolve('prisma/build/index.js');
+      execFileSync(process.execPath, [prismaCli, 'db', 'push', '--skip-generate'], {
+        cwd: process.cwd(),
+        env: { ...process.env, DATABASE_URL: url! },
+        stdio: ['ignore', 'pipe', 'pipe'],
+        timeout: 180_000,
+        killSignal: 'SIGKILL',
+      });
+    } catch {
+      // 有界失败；不打印捕获对象，避免把 DSN 带进 CI 日志。
+      throw new Error('E_M5T12_DBPUSH_FAILED');
+    }
   });
 
   async function reset() {
