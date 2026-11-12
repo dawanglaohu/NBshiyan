@@ -269,7 +269,12 @@ async function deleteRollupDayBatch(
 
 type Budget = { removed: number; batches: number; batchSize: number; maxPerRun: number };
 
-async function drain(budget: Budget, deleteBatch: (limit: number) => Promise<number>): Promise<number> {
+async function drain(
+  budget: Budget,
+  deleteBatch: (limit: number) => Promise<number>,
+  /** 每个**已确认提交**的批次立刻记账：后续批次未知时，先前确认的计数不会丢。 */
+  onConfirmed: (count: number) => void = () => {},
+): Promise<number> {
   let deleted = 0;
   while (budget.removed < budget.maxPerRun) {
     const limit = Math.min(budget.batchSize, budget.maxPerRun - budget.removed);
@@ -278,6 +283,7 @@ async function drain(budget: Budget, deleteBatch: (limit: number) => Promise<num
     if (count === 0) break;
     budget.removed += count;
     budget.batches += 1;
+    onConfirmed(count);
     deleted += count;
     if (count < limit) break;
   }
@@ -386,11 +392,22 @@ export async function runRetentionCleanup(deps: {
     if (mode === 'delete') {
       const budget: Budget = { removed: 0, batches: 0, batchSize, maxPerRun };
       for (const siteDate of confirmed) {
-        counts.deletedEvents += await drain(budget, (limit) => deleteEventBatch(deps.db, repo, claim, siteDate, clock.timezone, now, limit));
+        await drain(
+          budget,
+          (limit) => deleteEventBatch(deps.db, repo, claim, siteDate, clock.timezone, now, limit),
+          (count) => { counts.deletedEvents += count; },
+        );
       }
-      const deletedDaily = await drain(budget, (limit) => deleteDailyBatch(deps.db, repo, claim, rollupBefore, limit));
-      const deletedDays = await drain(budget, (limit) => deleteRollupDayBatch(deps.db, repo, claim, rollupBefore, limit));
-      counts.deletedRollupRows = deletedDaily + deletedDays;
+      await drain(
+        budget,
+        (limit) => deleteDailyBatch(deps.db, repo, claim, rollupBefore, limit),
+        (count) => { counts.deletedRollupRows += count; },
+      );
+      await drain(
+        budget,
+        (limit) => deleteRollupDayBatch(deps.db, repo, claim, rollupBefore, limit),
+        (count) => { counts.deletedRollupRows += count; },
+      );
       counts.batches = budget.batches;
     }
     try {

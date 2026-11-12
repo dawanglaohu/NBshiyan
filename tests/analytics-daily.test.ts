@@ -587,7 +587,7 @@ describe('M5-T12 闭包 coverage：回滚后的独立 CAS 事务', { concurrency
 
 import { mergeDeferUntil } from "../src/lib/server/analytics/aggregate-day-state";
 import { runAggregateOnce, runDailyAggregateRound, AggregateDeadlineExceeded, AggregateCommitUnknown } from "../src/lib/server/analytics/aggregate";
-import { runRetentionBatch } from "../src/lib/server/analytics/retention-cleanup";
+import { runRetentionBatch, runRetentionCleanup } from "../src/lib/server/analytics/retention-cleanup";
 
 describe('M5-T12 defer 合并按 notAfter 判定', { concurrency: false }, () => {
   const notAfter = new Date('2026-03-02T10:00:00.000Z');
@@ -913,5 +913,111 @@ describe('M5-T12 GC 批次事务：COMMIT 未知与确认回滚分开', { concur
       () => runRetentionBatch(batchDb('pool-timeout') as never, ['2026-03-01'], async () => 7),
       (error: unknown) => (error as { code?: string }).code === 'P2024',
     );
+  });
+});
+
+describe('M5-T12 retention-cleanup 整体消费者：批次 COMMIT 未知即停且不写 FAILED', { concurrency: false }, () => {
+  const NOW = new Date('2026-05-01T00:00:00.000Z');
+  const LOCKED = new Date('2026-05-01T01:00:00.000Z').toISOString();
+  const view = {
+    key: 'analytics-aggregate' as const,
+    generation: 3,
+    lastStatus: 'NEVER' as const,
+    lastStartedAt: null,
+    lastFinishedAt: null,
+    lastSucceededAt: null,
+    lockedUntil: LOCKED,
+    leaseActive: true,
+    lastErrorCode: null,
+    summary: null,
+  };
+
+  function build(mode: 'lost-receipt' | 'callback-fails') {
+    const records = { completions: [] as Array<{ status: string; errorCode: string | null }>, renews: 0 };
+    let transaction = 0;
+    let batches = 0;
+    const settings = {
+      value: JSON.stringify({ version: 0, timezone: 'UTC', timezoneRevision: 1, changedAt: NOW.toISOString(), updatedBy: null }),
+    };
+    const query = async (arg: unknown) => {
+      const text = Array.isArray(arg) ? arg.join('?') : ((arg as { strings?: readonly string[] }).strings ?? []).join('?');
+      if (text.includes('FROM "SiteSetting"')) return [settings];
+      if (text.includes('FROM "AnalyticsRollupDay"') && text.includes('"timezoneRevision" = ')) {
+        return [{ siteDate: '2026-01-01' }];
+      }
+      if (text.includes('FROM "AnalyticsRollupDay"') && text.includes('"siteDate" = ')) {
+        return [{ timezoneRevision: 1 }];
+      }
+      if (text.includes('FROM "AnalyticsRollupDay"')) return [{ siteDate: '2026-01-01', timezoneRevision: 1 }];
+      if (text.includes('FROM "AnalyticsEvent"') && text.includes('"receivedAt" <')) return [{ count: 1 }];
+      if (text.includes('FROM "AnalyticsEvent"')) return [{ count: 1 }];
+      if (text.includes('FROM "AnalyticsDailyRollup"')) return [{ count: 0 }];
+      if (text.includes('FROM "AnalyticsDaily"') && text.includes('"expiresAt" >')) return [];
+      if (text.includes('FROM "AnalyticsDaily"')) return [{ count: 0 }];
+      if (text.includes('FROM "AnalyticsAggregateDayState"')) return [];
+      if (text.includes('FROM "AnalyticsDayChange"')) return [{ count: 0 }];
+      return [];
+    };
+    const execute = async () => {
+      batches += 1;
+      if (mode === 'callback-fails' && batches === 2) throw new Error('batch_callback');
+      return 1;
+    };
+    const db = {
+      $transaction: async (fn: (tx: unknown) => Promise<unknown>) => {
+        transaction += 1;
+        const before = batches;
+        const value = await fn({ $queryRaw: query, $executeRaw: execute, $executeRawUnsafe: async () => 0 });
+        if (mode === 'lost-receipt' && batches > before && batches === 2) {
+          throw new Error('reply lost after commit');
+        }
+        return value;
+      },
+      $queryRaw: query,
+      $executeRaw: execute,
+    };
+    const repo = {
+      claimPreservingStatus: async () => ({ acquired: true as const, generation: 3, lockedUntil: LOCKED, timezoneRevision: 1, view }),
+      renew: async () => {
+        records.renews += 1;
+        return { renewed: true as const, generation: 3, lockedUntil: LOCKED, view };
+      },
+      completeSeparately: async (input: { status: string; errorCode: string | null }) => {
+        records.completions.push({ status: input.status, errorCode: input.errorCode });
+        return { committed: true as const, view };
+      },
+    };
+    return { db, repo, records, transactions: () => transaction, batches: () => batches };
+  }
+
+  function args(built: ReturnType<typeof build>) {
+    return {
+      db: built.db as never,
+      clock: () => NOW,
+      mode: 'delete' as const,
+      batchSize: 1,
+      maxPerRun: 5,
+      audit: async () => {},
+      repoFactory: () => built.repo as never,
+    };
+  }
+
+  test('首批已确认、后批模拟丢回执：后续批次 0、FAILED 终态 0、已确认计数保留', async () => {
+    const built = build('lost-receipt');
+    const result = await runRetentionCleanup(args(built) as never);
+    assert.equal(result.status, 'failed');
+    assert.equal(result.errorCode, 'service_unavailable');
+    assert.equal(result.deletedEvents, 1, '只保留首批已确认 1 行');
+    assert.deepEqual(built.records.completions, [], '不得写任何终态（尤其不能是 FAILED）');
+    assert.equal(built.batches(), 2, '第二批未知后不得再开批次');
+  });
+
+  test('对照：批次回调内失败是确认失败，finish(FAILED) 必须被记录', async () => {
+    const built = build('callback-fails');
+    const result = await runRetentionCleanup(args(built) as never);
+    assert.equal(result.status, 'failed');
+    assert.equal(built.records.completions.length, 1, '观察点必须能到达 finish 分支');
+    assert.equal(built.records.completions[0]?.status, 'FAILED');
+    assert.equal(result.deletedEvents, 1);
   });
 });
