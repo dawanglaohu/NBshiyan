@@ -284,7 +284,7 @@ for (const role of ['ADMIN', 'EDITOR'] as const) test.describe(`M3-T23 ${role} r
       const readyWaitStart = Date.now();
       // 真实滚动到预览区，再对未限定状态的场景容器做有界等待：3D 首帧在慢渲染环境里可能超过
       // 全局 7s（仓内已有 25s 首帧等待惯例）；本等待只覆盖“预览 ready 可见”这一段，不代表挂载全程。
-      await page.locator('.mdl-preview-scene').scrollIntoViewIfNeeded();
+      await page.locator('.mdl-preview-scene').scrollIntoViewIfNeeded({ timeout: 25_000 });
       await expect(page.locator('.mdl-preview-scene[data-preview-state="ready"]')).toBeVisible({ timeout: 25_000 });
       const readyWaitMs = Date.now() - readyWaitStart;
       console.log(`[M5-T10][preview-ready] role=${role} width=${viewport.width} readyWaitMs=${readyWaitMs}`);
