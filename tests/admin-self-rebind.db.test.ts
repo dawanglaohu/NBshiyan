@@ -208,30 +208,54 @@ export async function stopChild(child: ChildProcess, graceMs = 10_000, killMs = 
 
 export type CleanupPlan = {
   stop: () => Promise<void>;
-  disconnect: () => Promise<void>;
+  disconnectDb: () => Promise<void>;
   drop: () => Promise<void>;
+  disconnectAdmin: () => Promise<void>;
   owned: boolean;
 };
 
+export type CleanupResult = {
+  failure: string | null;
+  preservedOwned: boolean;
+  schemaDropped: boolean;
+};
+
+/** 真实 after 与负控共用同一 plan 形状，避免测试只测互不相干的计数器。 */
+export function cleanupPlan(deps: CleanupPlan): CleanupPlan {
+  return deps;
+}
+
 /**
- * 单一 cleanup owner：停服未确认退出时跳过 disconnect/DROP 并保留 schema 归属标志；
- * 只有停服确认成功才 disconnect，再仅 drop 本次 CREATE 成功的 schema。
+ * 单一 cleanup owner：停服→断测试 schema 连接→用仍连接的 adminDb DROP 本次 schema→断 adminDb。
+ * 停服/断测试库失败时保留 owned 并不 DROP；DROP 失败保留 owned；DROP 成功后 admin 断连失败不得谎称 schema 仍在。
  */
-export async function runCleanup(plan: CleanupPlan): Promise<{ failure: string | null; preservedOwned: boolean }> {
+export async function runCleanup(plan: CleanupPlan): Promise<CleanupResult> {
   try {
     await plan.stop();
   } catch {
-    return { failure: 'M3T20_STANDALONE_KILL_FAILED', preservedOwned: plan.owned };
+    return { failure: 'M3T20_STANDALONE_KILL_FAILED', preservedOwned: plan.owned, schemaDropped: false };
   }
-  await plan.disconnect().catch(() => undefined);
+  try {
+    await plan.disconnectDb();
+  } catch {
+    return { failure: 'M3T20_DB_DISCONNECT_FAILED', preservedOwned: plan.owned, schemaDropped: false };
+  }
+  let schemaDropped = false;
   if (plan.owned) {
     try {
       await plan.drop();
+      schemaDropped = true;
     } catch {
-      return { failure: 'M3T20_SCHEMA_DROP_FAILED', preservedOwned: false };
+      await plan.disconnectAdmin().catch(() => undefined);
+      return { failure: 'M3T20_SCHEMA_DROP_FAILED', preservedOwned: true, schemaDropped: false };
     }
   }
-  return { failure: null, preservedOwned: false };
+  try {
+    await plan.disconnectAdmin();
+  } catch {
+    return { failure: 'M3T20_ADMIN_DISCONNECT_FAILED', preservedOwned: false, schemaDropped };
+  }
+  return { failure: null, preservedOwned: false, schemaDropped };
 }
 
 /** 清理失败必须让测试进程非 0，而不是只写日志/只在 console 里报错。 */
@@ -288,18 +312,20 @@ before(async () => {
 });
 
 after(async () => {
-  await finalizeCleanup({
+  await finalizeCleanup(cleanupPlan({
     stop: stopStandalone,
-    disconnect: async () => {
+    disconnectDb: async () => {
       await db?.$disconnect?.();
-      await adminDb?.$disconnect?.();
     },
     drop: async () => {
-      if (!adminDb || !schemaCreated) return;
+      if (!adminDb || !schemaCreated) throw new Error('M3T20_SCHEMA_DROP_FAILED');
       await cleanupOwnedSchema(adminDb as unknown as SchemaAdmin, schema, schemaCreated);
     },
+    disconnectAdmin: async () => {
+      await adminDb?.$disconnect?.();
+    },
     owned: schemaCreated,
-  });
+  }));
 });
 
 async function makeAccount(): Promise<{ user: User; deviceId: string; plain: string }> {
@@ -494,66 +520,120 @@ describe('M3-T20 安全前置负控（无库/无监听）', () => {
     await stopChild(exiting, 50, 50);
   });
 
-  test('cleanup 单一 owner：停服失败保 schema，确认退出才 disconnect+DROP', async () => {
-    let disconnected = 0;
-    let dropped = 0;
-    const stopFailed = await runCleanup({
-      stop: async () => { throw new Error('kill failed'); },
-      disconnect: async () => { disconnected += 1; },
-      drop: async () => { dropped += 1; },
+  test('cleanup 单一 owner：停服失败保 schema，确认退出才按序 disconnectDb→DROP→disconnectAdmin', async () => {
+    const calls: string[] = [];
+    const stopFailed = await runCleanup(cleanupPlan({
+      stop: async () => { calls.push('stop'); throw new Error('kill failed'); },
+      disconnectDb: async () => { calls.push('disconnectDb'); },
+      drop: async () => { calls.push('drop'); },
+      disconnectAdmin: async () => { calls.push('disconnectAdmin'); },
       owned: true,
-    });
-    assert.deepEqual(stopFailed, { failure: 'M3T20_STANDALONE_KILL_FAILED', preservedOwned: true });
-    assert.equal(disconnected, 0, '停服未确认不得 disconnect');
-    assert.equal(dropped, 0, '停服未确认不得 DROP');
+    }));
+    assert.deepEqual(stopFailed, { failure: 'M3T20_STANDALONE_KILL_FAILED', preservedOwned: true, schemaDropped: false });
+    assert.deepEqual(calls, ['stop']);
 
-    const ok = await runCleanup({
-      stop: async () => undefined,
-      disconnect: async () => { disconnected += 1; },
-      drop: async () => { dropped += 1; },
+    calls.length = 0;
+    const ok = await runCleanup(cleanupPlan({
+      stop: async () => { calls.push('stop'); },
+      disconnectDb: async () => { calls.push('disconnectDb'); },
+      drop: async () => { calls.push('drop'); },
+      disconnectAdmin: async () => { calls.push('disconnectAdmin'); },
       owned: true,
-    });
-    assert.deepEqual(ok, { failure: null, preservedOwned: false });
-    assert.equal(disconnected, 1);
-    assert.equal(dropped, 1);
+    }));
+    assert.deepEqual(ok, { failure: null, preservedOwned: false, schemaDropped: true });
+    assert.deepEqual(calls, ['stop', 'disconnectDb', 'drop', 'disconnectAdmin']);
 
-    await runCleanup({
+    calls.length = 0;
+    const notOwned = await runCleanup(cleanupPlan({
       stop: async () => undefined,
-      disconnect: async () => { disconnected += 1; },
-      drop: async () => { dropped += 1; },
+      disconnectDb: async () => { calls.push('disconnectDb'); },
+      drop: async () => { calls.push('drop'); },
+      disconnectAdmin: async () => { calls.push('disconnectAdmin'); },
       owned: false,
-    });
-    assert.equal(disconnected, 2);
-    assert.equal(dropped, 1, 'owned=false/创建失败不得 DROP');
+    }));
+    assert.deepEqual(notOwned, { failure: null, preservedOwned: false, schemaDropped: false });
+    assert.deepEqual(calls, ['disconnectDb', 'disconnectAdmin']);
 
-    const dropFailed = await runCleanup({
+    const dbFailed = await runCleanup(cleanupPlan({
       stop: async () => undefined,
-      disconnect: async () => undefined,
-      drop: async () => { throw new Error('drop failed'); },
+      disconnectDb: async () => { throw new Error('db disconnect'); },
+      drop: async () => { throw new Error('must not drop'); },
+      disconnectAdmin: async () => { throw new Error('must not admin'); },
       owned: true,
-    });
-    assert.equal(dropFailed.failure, 'M3T20_SCHEMA_DROP_FAILED');
+    }));
+    assert.deepEqual(dbFailed, { failure: 'M3T20_DB_DISCONNECT_FAILED', preservedOwned: true, schemaDropped: false });
+
+    const dropFailed = await runCleanup(cleanupPlan({
+      stop: async () => undefined,
+      disconnectDb: async () => undefined,
+      drop: async () => { throw new Error('drop failed'); },
+      disconnectAdmin: async () => undefined,
+      owned: true,
+    }));
+    assert.deepEqual(dropFailed, { failure: 'M3T20_SCHEMA_DROP_FAILED', preservedOwned: true, schemaDropped: false });
+
+    const adminFailed = await runCleanup(cleanupPlan({
+      stop: async () => undefined,
+      disconnectDb: async () => undefined,
+      drop: async () => undefined,
+      disconnectAdmin: async () => { throw new Error('admin disconnect'); },
+      owned: true,
+    }));
+    assert.deepEqual(adminFailed, { failure: 'M3T20_ADMIN_DISCONNECT_FAILED', preservedOwned: false, schemaDropped: true });
+  });
+
+  test('cleanup 顺序：DROP 前 adminDb 必须仍连接（假 admin closed 则旧顺序必红）', async () => {
+    const admin = { closed: false, dropped: false };
+    const calls: string[] = [];
+    const result = await runCleanup(cleanupPlan({
+      stop: async () => { calls.push('stop'); },
+      disconnectDb: async () => { calls.push('disconnectDb'); },
+      drop: async () => {
+        if (admin.closed) throw new Error('adminDb closed before drop');
+        admin.dropped = true;
+        calls.push('drop');
+      },
+      disconnectAdmin: async () => { admin.closed = true; calls.push('disconnectAdmin'); },
+      owned: true,
+    }));
+    assert.deepEqual(result, { failure: null, preservedOwned: false, schemaDropped: true });
+    assert.equal(admin.dropped, true);
+    assert.deepEqual(calls, ['stop', 'disconnectDb', 'drop', 'disconnectAdmin']);
+
+    const broken = { closed: false };
+    const brokenResult = await runCleanup(cleanupPlan({
+      stop: async () => undefined,
+      disconnectDb: async () => { broken.closed = true; },
+      drop: async () => {
+        if (broken.closed) throw new Error('adminDb closed before drop');
+      },
+      disconnectAdmin: async () => undefined,
+      owned: true,
+    }));
+    assert.deepEqual(brokenResult, { failure: 'M3T20_SCHEMA_DROP_FAILED', preservedOwned: true, schemaDropped: false });
   });
 
   test('finalizeCleanup 失败置进程非0并抛出，成功不置', async () => {
     const codes: number[] = [];
     await assert.rejects(
-      finalizeCleanup({
+      finalizeCleanup(cleanupPlan({
         stop: async () => { throw new Error('kill failed'); },
-        disconnect: async () => undefined,
+        disconnectDb: async () => undefined,
         drop: async () => undefined,
+        disconnectAdmin: async () => undefined,
         owned: true,
-      }, (code) => codes.push(code)),
+      }), (code) => codes.push(code)),
       /M3T20_STANDALONE_KILL_FAILED/,
     );
     assert.deepEqual(codes, [1]);
     codes.length = 0;
-    await finalizeCleanup({
+    await finalizeCleanup(cleanupPlan({
       stop: async () => undefined,
-      disconnect: async () => undefined,
+      disconnectDb: async () => undefined,
       drop: async () => undefined,
+      disconnectAdmin: async () => undefined,
       owned: false,
-    }, (code) => codes.push(code));
+    }), (code) => codes.push(code));
     assert.deepEqual(codes, []);
   });
 });
