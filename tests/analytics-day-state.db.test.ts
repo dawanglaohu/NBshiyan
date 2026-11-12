@@ -241,14 +241,20 @@ describe('M5-T12 analytics day-state CAS and live markers', { concurrency: false
     assert.deepEqual(row?.markerVersions, { '2026-02-20': '2' });
   });
 
-  test('marker bump：同日两次 → version=2；终态额外 bump 配对 start 的 UTC 日', async () => {
+  test('marker bump：同日重复只前进 1；终态额外 bump 配对 start 的 UTC 日', async () => {
     await reset();
     const conn = requireDb();
     const now = new Date('2026-03-02T06:00:00.000Z');
     await bumpDayChangeVersions(conn, ['2026-03-02', '2026-03-02'], now);
     await bumpDayChangeVersions(conn, ['2026-03-02'], now);
     const live = await readLiveMarkerVersions(conn);
-    assert.equal(live.get('2026-03-02'), '3');
+    // 同一调用内的同日按 Set 去重：重复日只前进 1，跨调用才再 +1。
+    assert.equal(live.get('2026-03-02'), '2');
+    // 跨日不吞：不同 UTC 日同批各 +1（只去重同日）。
+    await bumpDayChangeVersions(conn, ['2026-03-03', '2026-03-03'], now);
+    const multiDay = await readLiveMarkerVersions(conn);
+    assert.equal(multiDay.get('2026-03-03'), '1');
+    assert.equal(multiDay.get('2026-03-02'), '2');
 
     // start 在 03-01，终态在 03-02：sink 必须同时 bump 03-01 与 03-02。
     const start = new Date('2026-03-01T20:00:00.000Z');
@@ -270,7 +276,7 @@ describe('M5-T12 analytics day-state CAS and live markers', { concurrency: false
     ], new Date('2026-03-02T01:00:01.000Z'));
     const afterBump = await readLiveMarkerVersions(conn);
     assert.equal(afterBump.get('2026-03-01'), '1');
-    assert.equal(afterBump.get('2026-03-02'), '4');
+    assert.equal(afterBump.get('2026-03-02'), '3');
   });
 
   test('M6 分类接真实行：markers 全等 → complete；bump 后 → live_marker_ahead；gap → partial', async () => {
