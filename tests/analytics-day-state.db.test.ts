@@ -250,11 +250,12 @@ describe('M5-T12 analytics day-state CAS and live markers', { concurrency: false
     const live = await readLiveMarkerVersions(conn);
     // 同一调用内的同日按 Set 去重：重复日只前进 1，跨调用才再 +1。
     assert.equal(live.get('2026-03-02'), '2');
-    // 跨日不吞：不同 UTC 日同批各 +1（只去重同日）。
-    await bumpDayChangeVersions(conn, ['2026-03-03', '2026-03-03'], now);
+    // 同批内：同日重复仍只 +1，但**不同 UTC 日各 +1**（去重只针对同日，不吞别的日）。
+    await bumpDayChangeVersions(conn, ['2026-03-03', '2026-03-04', '2026-03-03'], now);
     const multiDay = await readLiveMarkerVersions(conn);
-    assert.equal(multiDay.get('2026-03-03'), '1');
-    assert.equal(multiDay.get('2026-03-02'), '2');
+    assert.equal(multiDay.get('2026-03-03'), '1', '同一批内的重复日只前进 1');
+    assert.equal(multiDay.get('2026-03-04'), '1', '同批内另一个 UTC 日必须各自 +1');
+    assert.equal(multiDay.get('2026-03-02'), '2', '其他日不受本批影响');
 
     // start 在 03-01，终态在 03-02：sink 必须同时 bump 03-01 与 03-02。
     const start = new Date('2026-03-01T20:00:00.000Z');
