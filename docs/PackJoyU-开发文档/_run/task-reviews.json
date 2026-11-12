@@ -1237,16 +1237,16 @@
   },
   "M5-T12": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "b50a3bd8fb018127d94ec5cb132a5381b27f115879056b56678ba157d132547e",
+    "contractHash": "6e7df7d06c11fe3dc5702721901a54ddf65bf53d7b43d79a4087bf5f3dcccea7",
     "evidence": [
-      "源变更仅 docs/PackJoyU-开发文档/_run/task-contracts.json（git diff 14+/6−）：M5-T12 stage primitive→integration；wiring 由 [migrations] 增为 [migrations, container, jobs]（仓库现行枚举）；supportPaths 在既有 6 条后新增 event-repo.ts、jobs/registry.ts、composition.ts、analytics-ingest.test.ts、analytics-ingest.http.db.test.ts、analytics-retention-plan.test.ts、jobs-runtime.http.test.ts；移除 integrationTask=M6-T1（M6-T1 仍以 requires M5-T12:analytics-anon-aggregate 保留读侧后继关系）",
-      "依据 Chief 裁定：M5-T12 既有采集（ingest marker）、五分钟聚合作业与 04:30 清理的必要接线在本卡完成；M6-T1 仅读侧 DTO/查询规则，不再作为未接线豁免；不重开已落 M5-T3/T6/T8，不新增功能/HTTP/cron/生产授权",
-      "有效范围随 wiring 声明并入注册点（composition.ts/db.ts/auth.ts、jobs/registry.ts、deploy/cron.nbshiyan）：这是既有 wiring 枚举的正常并集，声明≠修改；本轮未改 deploy.sh、cron 时刻、config/生产开关、统计 HTTP/contracts，验收 1–8 与原任务条款不变",
-      "begin exit=0、sync exit=0（日志 01-begin.log、02-sync.log）；补丁 status=synced、sourceVersion=bacd1b8282f09cb1f78adcdc188fc25079372aded61de9ab426fbd711bf6a6f3；sourceChanges 仅 _run/task-contracts.json",
-      "受影响 24 个：M3-T6/T8/T9/T10/T11/T12/T13/T25、M5-T12、M6-T1..T7、M7-T2/T3/T5/T6/T7/T8/T9/T10，均为契约哈希传播（M5-T12 为直接源变更）；derive docs-data/build-manifest/build-state/dispatch/review 正常再生",
-      "边界：起点 HEAD af49e4fd67d49ab348f77e1ab3218b826551f9f6 / tree 775ad1d2… clean；未改业务源码/测试/CI/schema；未 --landed/Ready/merge/新 PR；未 push"
+      "源变更仅 docs/PackJoyU-开发文档/_run/task-contracts.json（git diff 1 行新增）：M5-T12 supportPaths 末尾新增 src/lib/server/analytics/retention-cleanup.ts，无重复；stage/wiring/outputPaths/requires/sections 逐字段未变",
+      "依据原验收 7「只有已确认提交批次计数，提交未知不计数并停止 metadata」：三类 DELETE 事务在 retention-cleanup.ts 内，现有允许边界（retention.ts/registry.ts/aggregate.ts）无法给批次事务打回调标记、外层 catch 无法区分终态未确认；属原范围必要支持路径，不新增功能、不重开 M5-T11、不降验收 1–8，不新增测试文件",
+      "触发输入：作者 clean 冻结头 b09faf6285c8e55a10f1658394ec37586a9d5329 / tree 3f53e1dd228763dfca3e014936303295fc6243c2 / parent 0c727c411b6f68defd866ab81b80ba2eb9fe7d83，git status 0 行；retention-cleanup.ts 已在 HEAD（blob 63f5e0aa…）",
+      "begin exit=0、sync exit=0（日志 01-begin.log、02-sync.log）；补丁 status=synced、sourceVersion=2c7035fcd95aa2cd48d2c4d1585d7651942b11af57cca4a50cca2304c3ebd0b7；sourceChanges 仅 _run/task-contracts.json；该文件已进入 effectivePaths",
+      "受影响 24 个（M3-T6/T8/T9/T10/T11/T12/T13/T25、M5-T12、M6-T1..T7、M7-T2/T3/T5/T6/T7/T8/T9/T10），均为契约哈希传播（M5-T12 为直接源变更）；docs-data/build-manifest/build-state/dispatch/review 正常再生",
+      "边界：未改 cleanup/retention/registry/CI/schema/main/共享规范；未 checkout/reset/rebase、未覆盖作者源码；未 --landed/Ready/merge/新 PR；未 push"
     ],
-    "reviewed": "2026-11-12T09:34:43.657285+00:00",
+    "reviewed": "2026-11-12T11:54:45.332571+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
