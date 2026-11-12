@@ -547,6 +547,22 @@ export async function runAggregateOnce(deps: {
           resolveProduct: daily.resolveProductSlugFromPath ?? defaultProductSlugFromPath,
         });
       }
+      if (dailyCapture.value !== null) {
+        // 元数据写在**同一事务内、commit 钩子之前**：此时租约仍由本次持有、代次未变，
+        // 不会出现「作业已 SUCCEEDED、metadata CAS 才失败」的丢状态窗口。
+        for (const item of dailyCapture.value.metadataDays) {
+          await writeDailyMetadataInTx(tx, {
+            date: item.date, action: item.action, timezone: deps.siteTimezone,
+            revision: deps.timezoneRevision, now: deps.now, cutoff: plan.cutoff,
+          });
+        }
+        for (const date of dailyCapture.value.closureMeta) {
+          await writeDailyMetadataInTx(tx, {
+            date, action: 'coverage', timezone: deps.siteTimezone,
+            revision: deps.timezoneRevision, now: deps.now, cutoff: plan.cutoff,
+          });
+        }
+      }
       if (deps.commit) {
         let dataThrough: string | null = null;
         let sourceThrough: string | null = null;

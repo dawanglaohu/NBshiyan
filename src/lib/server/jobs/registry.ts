@@ -11,7 +11,6 @@ import {
   AggregateDeadlineExceeded,
   AggregateVersionConflict,
   DailyRoundHalt,
-  commitDailyMetadata,
   runAggregateOnce,
 } from '../analytics/aggregate';
 import {
@@ -354,17 +353,6 @@ export function createAnalyticsAggregateJob(deps: {
           },
         });
         const written = result.days.filter((day) => day.written).length;
-        if (result.dailyMeta) {
-          // 日轮的覆盖/bootstrap 元数据：独立 CAS 事务，不随整组回滚。
-          await commitDailyMetadata(deps.db, {
-            metadataDays: result.dailyMeta.metadataDays,
-            closureMeta: result.dailyMeta.closureMeta,
-            timezone: settings.timezone,
-            revision: claim.timezoneRevision,
-            now,
-            cutoff: now,
-          });
-        }
         return { kind: 'ran', status: 'SUCCEEDED', counts: { candidateCount: written } };
       } catch (error) {
         // guard/budget 在日轮事务内抛出 → 整笔回滚（含旧链）；这里只落 PARTIAL，不宣 SUCCEEDED。
