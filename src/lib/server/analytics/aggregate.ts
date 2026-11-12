@@ -18,6 +18,7 @@ import { aggregateSiteDay, type RollupSourceEvent } from '../../analytics/rollup
 import { planSnapshot, shiftLocalDate, type CoverageState, type SnapshotPlan } from '../../analytics/aggregate-plan';
 import { ANALYTICS_SETTINGS_KEY, INITIAL_TIMEZONE_REVISION, StoredTimezoneRevisionSchema } from '../jobs/types';
 import {
+  AGGREGATE_JOB_KEY,
   findEarliestStart,
   loadDailyDayFacts,
   loadPairedTerminals,
@@ -644,10 +645,31 @@ function minDate(values: Array<Date | null>): Date | null {
  */
 export async function assertDailyAggregateGuards(
   tx: Prisma.TransactionClient,
-  args: { timezoneRevision: number; now: Date; generation?: number },
+  args: {
+    timezoneRevision: number;
+    now: Date;
+    /** 作业租约代次（必填，fail-closed）。 */
+    generation: number;
+    /** 租约 owner（必填）；与 JobState 行不一致即拒绝。 */
+    leaseOwner: string;
+  },
 ): Promise<void> {
-  const stored = await readLockedGeneration(tx);
-  if (args.generation !== undefined && stored !== null && stored > args.generation) {
+  const rows = await tx.$queryRaw<{
+    generation: number;
+    leaseOwner: string | null;
+    lockedUntil: string | null;
+  }[]>`
+    SELECT "generation", "leaseOwner",
+           to_char("lockedUntil", 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "lockedUntil"
+    FROM "JobState" WHERE "key" = ${AGGREGATE_JOB_KEY} FOR UPDATE
+  `;
+  const row = rows[0];
+  // fail-closed：无租约行、代次不符、owner 不符、租约已过期都拒绝；不看传入 now。
+  if (row === undefined) throw new AggregateVersionConflict('stale_generation');
+  if (Number(row.generation) !== args.generation) throw new AggregateVersionConflict('stale_generation');
+  if (row.leaseOwner !== args.leaseOwner) throw new AggregateVersionConflict('stale_generation');
+  const lockedUntil = row.lockedUntil === null ? Number.NaN : Date.parse(row.lockedUntil);
+  if (!Number.isFinite(lockedUntil) || lockedUntil <= Date.now()) {
     throw new AggregateVersionConflict('stale_generation');
   }
   await assertCurrentTimezoneRevision(tx, args.timezoneRevision, args.now);
@@ -672,8 +694,9 @@ export async function runDailyAggregateRound(deps: {
   deadlineAt?: Date;
   notAfter?: Date;
   rawCutoff?: Date;
-  /** 作业租约代次；传入时在同一 RR 事务开头做行锁比较（提交点仍由 repo.complete 再核一次）。 */
-  generation?: number;
+  /** 作业租约代次与 owner（必填，fail-closed）。 */
+  generation: number;
+  leaseOwner: string;
   resolveProductSlugFromPath?: (normalizedPath: string, locale: string) => string | null;
 }): Promise<DailyAggregateRoundResult> {
   const now = deps.now;
@@ -795,7 +818,8 @@ export async function runDailyAggregateRound(deps: {
       await assertDailyAggregateGuards(tx, {
         timezoneRevision: revision,
         now,
-        ...(deps.generation !== undefined ? { generation: deps.generation } : {}),
+        generation: deps.generation,
+        leaseOwner: deps.leaseOwner,
       });
       const plans: DailyDayPlan[] = [];
       const seen = new Set<string>();

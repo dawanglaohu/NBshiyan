@@ -141,6 +141,8 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
       now: new Date('2026-03-05T02:00:00.000Z'),
       siteTimezone: TZ,
       timezoneRevision: REV,
+      generation: 1,
+      leaseOwner: 'test-lease',
       currentDate: TODAY,
       ...overrides,
     });
