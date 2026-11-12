@@ -1005,9 +1005,12 @@ describe('M5-T12 retention-cleanup 整体消费者：批次 COMMIT 未知即停�
   test('首批已确认、后批模拟丢回执：后续批次 0、FAILED 终态 0、已确认计数保留', async () => {
     const built = build('lost-receipt');
     const result = await runRetentionCleanup(args(built) as never);
-    assert.equal(result.status, 'failed');
-    assert.equal(result.errorCode, 'service_unavailable');
+    assert.equal(result.status, 'unknown', '未知提交不得折叠成 failed');
     assert.equal(result.deletedEvents, 1, '只保留首批已确认 1 行');
+    if (result.status === 'unknown') {
+      assert.equal(result.phase, 'metrics');
+      assert.ok(result.targets.length >= 1);
+    }
     assert.deepEqual(built.records.completions, [], '不得写任何终态（尤其不能是 FAILED）');
     assert.equal(built.batches(), 2, '第二批未知后不得再开批次');
   });

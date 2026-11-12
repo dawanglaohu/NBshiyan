@@ -55,7 +55,12 @@ export type RetentionCleanupCounts = {
 export type RetentionCleanupResult =
   | { status: 'busy' }
   | ({ status: 'succeeded' } & RetentionCleanupCounts)
-  | { status: 'failed'; errorCode: 'invalid' | 'internal_error' | 'service_unavailable'; deletedEvents: number; deletedRollupRows: number };
+  | { status: 'failed'; errorCode: 'invalid' | 'internal_error' | 'service_unavailable'; deletedEvents: number; deletedRollupRows: number }
+  /**
+   * COMMIT 答复未知（B7）：既不能报成功，也不能报「已确认 FAILED」。
+   * `phase`/`targets` 只是内部诊断，不新增公开 ops 字段；HTTP 500 不等于事务已回滚。
+   */
+  | { status: 'unknown'; phase: 'metadata' | 'metrics'; targets: string[]; deletedEvents: number; deletedRollupRows: number };
 
 type AuditWrite = (entry: { action: string; meta?: Prisma.InputJsonValue }) => Promise<void>;
 
@@ -431,9 +436,11 @@ export async function runRetentionCleanup(deps: {
         targets: error.unknownTargets.length,
         confirmedBatches: counts.batches,
       });
+      // 不写 FAILED 终态、不补 gap；已确认批次的行数如实带出，未知批次不计。
       return {
-        status: 'failed',
-        errorCode: 'service_unavailable',
+        status: 'unknown',
+        phase: error.phase,
+        targets: [...error.unknownTargets],
         deletedEvents: counts.deletedEvents,
         deletedRollupRows: counts.deletedRollupRows,
       };

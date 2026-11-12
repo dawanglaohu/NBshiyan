@@ -40,6 +40,18 @@ async function handle(req: Request) {
   try {
     const result = await runRetentionCleanup({ db: prisma });
     if (result.status === 'busy') return json({ error: 'job_busy' }, 409);
+    if (result.status === 'unknown') {
+      // COMMIT 答复未知：沿用既有 500 形状与告警通道，但明确分类为 commit_unknown。
+      // HTTP 500/告警都不等于「事务已回滚」；不写成功、不写假 FAILED、不补 gap。
+      console.error('[cron] retention-cleanup commit_unknown', {
+        phase: result.phase,
+        targets: result.targets.length,
+        confirmedDeletedEvents: result.deletedEvents,
+        confirmedDeletedRollupRows: result.deletedRollupRows,
+      });
+      await reportRetentionFailure('commit_unknown');
+      return json({ error: 'retention_cleanup_failed' }, 500);
+    }
     if (result.status === 'failed') {
       console.error('[cron] retention-cleanup failed', result.errorCode);
       await reportRetentionFailure(result.errorCode);

@@ -215,9 +215,13 @@ test('retention-cleanup cron 在 03:30 调本机，命令行没有密钥，409 �
   assert.match(route, /no-store/);
   assert.match(route, /ANALYTICS_ROLLUP_JOB_KEY|runRetentionCleanup/);
   assert.equal((route.match(/alertRetentionCleanupIssue\(/g) ?? []).length, 1);
-  assert.equal((route.match(/reportRetentionFailure\(/g) ?? []).length, 3);
-  const busy = route.slice(route.indexOf("result.status === 'busy'"), route.indexOf("result.status === 'failed'"));
+  // 1 处定义 + failed/unknown 两个分支各一次调用；busy 仍不报警。
+  assert.equal((route.match(/reportRetentionFailure\(/g) ?? []).length, 4);
+  const busy = route.slice(route.indexOf("result.status === 'busy'"), route.indexOf("result.status === 'unknown'"));
   assert.equal(busy.includes('reportRetentionFailure'), false);
+  // unknown 分支必须走既有告警通道并以 commit_unknown 分类（HTTP 500 不等于事务已回滚）。
+  assert.match(route, /result\.status === 'unknown'/);
+  assert.match(route, /reportRetentionFailure\('commit_unknown'\)/);
 });
 
 test('没带密钥或密钥不对时返回 401，响应不缓存也不回显密钥', async () => {
