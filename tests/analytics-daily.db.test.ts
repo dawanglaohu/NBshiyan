@@ -10,16 +10,33 @@ import { classifyDayCompleteness } from '../src/lib/analytics/daily-aggregate';
 import { runDailyAggregateRound } from '../src/lib/server/analytics/aggregate';
 import { readDayState, readLiveMarkerVersions } from '../src/lib/server/analytics/aggregate-day-state';
 
-const base = process.env.DATABASE_URL;
-const SCHEMA = `daily_agg_${process.pid}`;
+// 专属入口（M5-T12）：只认 M5T12_TEST_DATABASE_URL；CI 还要显式 M5T12_CI_MODE=true 才允许 e2e/postgres。
+// 不 fallback 通用 DATABASE_URL：本机其它库/别的任务库不会被误当成本卡验收库。
+const REQUIRE = process.env.M5T12_REQUIRE_DATABASE === 'true';
+const base = process.env.M5T12_TEST_DATABASE_URL;
+const CI_MODE = process.env.M5T12_CI_MODE === 'true';
+if (REQUIRE && !base?.startsWith('postgres')) {
+  throw new Error('M5T12_TEST_DATABASE_URL must be a postgres URL when M5T12_REQUIRE_DATABASE=true');
+}
+// 非 CI 的本机库必须是回环 + 本卡专属库名；CI 只接受一次性 e2e/postgres 身份（双 flag 同时成立）。
+if (base !== undefined && !CI_MODE) {
+  const parsed = new URL(base);
+  if (!['127.0.0.1', 'localhost'].includes(parsed.hostname)) {
+    throw new Error('M5T12_TEST_DATABASE_URL must point to loopback outside CI');
+  }
+  const fb = new Set(['postgres', 'template1', 'e2e', 'nb', 'nb_new', 'nbshiyan']);
+  const dbName = parsed.pathname.replace(/^\//, '').split('?')[0] ?? '';
+  if (fb.has(dbName)) {
+    throw new Error('M5T12_TEST_DATABASE_URL must use a dedicated database outside CI');
+  }
+}
+// 随机 owned schema：每次运行独立命名，收尾只清这一个；CI 与非 CI 同规则。
+const SCHEMA = `m5t12_daily_${process.pid}_${Math.random().toString(16).slice(2, 10)}`;
 const url = base?.startsWith('postgres')
   ? `${base}${base.includes('?') ? '&' : '?'}schema=${encodeURIComponent(SCHEMA)}&connection_limit=3&pool_timeout=10`
   : null;
-if (process.env.M5T12_REQUIRE_DATABASE === 'true' && !url) {
-  throw new Error('DATABASE_URL must be a postgres URL when M5T12_REQUIRE_DATABASE=true');
-}
 const db = url ? new PrismaClient({ datasources: { db: { url } } }) : null;
-const skip = !db && 'no DATABASE_URL';
+const skip = !db && 'no M5T12_TEST_DATABASE_URL';
 
 const TZ = 'Asia/Shanghai';
 const REV = 2;
