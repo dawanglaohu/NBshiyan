@@ -444,7 +444,9 @@ test('hover pauses spin and a user pause survives hide and foreground', async ({
   test.setTimeout(90_000);
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   const first = await openProducts(page);
-  await expect(first).toHaveAttribute('data-spinning', '1');
+  // 初始 spinning 与后续同型：各自独立 7s 的实时页内 poll，读同一首节点、精确 '1'，缺节点必失败。
+  const expectSpinning = (expected: '0' | '1') => expectFirstViewportAttribute(page, 'data-spinning', expected);
+  await expectSpinning('1');
   // 三处 paused/spinning 合并为一次真实快照 + poll：仍用全局 7s 重试窗，且要求同阶段同时满足（比逐条更强）。
   // 读取在同一页内直接取 `[data-testid="product-viewport"]` 首个节点，与 `getByTestId(...).first()` 同一元素
   // （默认 data-testid、主文档、文档顺序），不再在窗内反复解析 locator。节点缺失返回 null（断言失败），
@@ -473,24 +475,13 @@ test('hover pauses spin and a user pause survives hide and foreground', async ({
       throw error;
     }
   };
-  // data-spinning 的三处断言换读取载体：仍是各自独立的 7s 窗、精确字符串、实时读同一首节点；
-  // 缺节点返回 null 必失败，不做缓存常量或 fallback，也不并发。
-  const expectSpinning = (expected: '0' | '1') =>
-    expect
-      .poll(
-        () =>
-          page.evaluate(() => {
-            const el = document.querySelectorAll('[data-testid="product-viewport"]')[0];
-            return el ? el.getAttribute('data-spinning') : null;
-          }),
-        { timeout: 7_000 },
-      )
-      .toBe(expected);
   console.log('[M5-T10][model345] stage=moved:start');
   // 一次页内顺序执行：先 500ms 方位角窗口，确认会转后再滚动取可达几何；moved 不成立立即返回，
   // 由 Node 先按原断言失败，不继续滚动或发输入。指针进入仍用真实几何坐标（hover 的 actionability
   // 与“进入即暂停”无关），命中与覆盖关系由 data-spinning 的结果断言把关。
-  const movedAndEnter = await first.evaluate(async (el) => {
+  const movedAndEnter = await page.evaluate(async () => {
+    const el = document.querySelectorAll('[data-testid="product-viewport"]')[0];
+    if (!el) throw new Error('首个 product-viewport 缺失');
     const start = el.getAttribute('data-azimuth');
     const t0 = performance.now();
     let frames = 0;
@@ -537,7 +528,9 @@ test('hover pauses spin and a user pause survives hide and foreground', async ({
   console.log('[M5-T10][model345] stage=held:start');
   // 300ms 观察结束后顺带取标题中心：h1 位置与 hover 无关，合并只减少一次往返；
   // h1 必须与原 page.locator('h1') 的严格单匹配一致（缺失/多匹配/零框都记未取得，不回退）。
-  const heldAndTitle = await first.evaluate(async (el) => {
+  const heldAndTitle = await page.evaluate(async () => {
+    const el = document.querySelectorAll('[data-testid="product-viewport"]')[0];
+    if (!el) throw new Error('首个 product-viewport 缺失');
     const start = el.getAttribute('data-azimuth');
     const t0 = performance.now();
     let frames = 0;
@@ -596,7 +589,9 @@ test('hover pauses spin and a user pause survives hide and foreground', async ({
   });
   await expectPaused('after-foreground');
   console.log('[M5-T10][model345] stage=still:start');
-  const still = await first.evaluate(async (el) => {
+  const still = await page.evaluate(async () => {
+    const el = document.querySelectorAll('[data-testid="product-viewport"]')[0];
+    if (!el) throw new Error('首个 product-viewport 缺失');
     const start = el.getAttribute('data-azimuth');
     const t0 = performance.now();
     let frames = 0;
