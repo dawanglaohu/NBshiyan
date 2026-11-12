@@ -424,9 +424,10 @@ describe('M4-T2 访客 GET 同步与 read 单调推进', { concurrency: false, s
     }
 
     // 并发窗口结束后，迟到的旧低目标也不得把读位置拉回去。
+    const beforeLate = await storedReadSeq();
     const late = ReadDTOSchema.parse((await json(await postRead(conversationId, { lastReadSeq: 1 }, { cookie }))).body);
-    assert.equal(late.lastReadSeq, lastSeq, '旧响应不能倒退读位置');
-    assert.equal(await storedReadSeq(), lastSeq);
+    assert.equal(late.lastReadSeq, beforeLate, '旧响应不能倒退读位置');
+    assert.equal(await storedReadSeq(), beforeLate);
   });
 
   test('轮询只更新收件游标：多次 GET 不推进 read，read 之后 GET 也不重复写', async () => {
