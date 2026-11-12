@@ -8,7 +8,7 @@ import { spawn } from 'node:child_process';
 import { Prisma, PrismaClient } from '@prisma/client';
 import { siteDayUtcBounds } from '../src/lib/analytics/day-boundaries';
 import { classifyDayCompleteness } from '../src/lib/analytics/daily-aggregate';
-import { runDailyAggregateRound } from '../src/lib/server/analytics/aggregate';
+import { runAggregateOnce, runDailyAggregateRound } from '../src/lib/server/analytics/aggregate';
 import { readDayState, readLiveMarkerVersions } from '../src/lib/server/analytics/aggregate-day-state';
 
 // 专属入口（M5-T12）：只认 M5T12_TEST_DATABASE_URL，不 fallback 通用 DATABASE_URL。
@@ -468,6 +468,36 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
     assert.equal(site?.pageViews, 2);
     state = await readDayState(requireDb(), { localDate: '2026-03-02', timezoneRevision: REV });
     assert.equal(state?.deferUntil, null);
+  });
+  test('原子回滚：新链已写入、同一事务内的旧链提交钩子失败，整组不落库', async () => {
+    await reset();
+    await insertEvent({ kind: 'page_view', browserHash: 'b1', path: '/en', occurredAt: new Date('2026-03-02T02:00:00Z') });
+    const failure = new Error('legacy_chain_failed');
+    await assert.rejects(
+      () => runAggregateOnce({
+        db: requireDb(),
+        now: new Date('2026-03-05T02:00:00.000Z'),
+        siteTimezone: TZ,
+        timezoneRevision: REV,
+        generation: 1,
+        currentDate: TODAY,
+        daily: { leaseOwner: 'test-lease', baseDates: ['2026-03-02'] },
+        commit: async () => { throw failure; },
+      }),
+      (error: unknown) => {
+        // 回调内失败＝确认回滚：原错误上抛，不包装成未知提交。
+        assert.equal(error, failure);
+        return true;
+      },
+    );
+    // 新链的行与旧链的行都必须随整组回滚，一个都不留。
+    assert.deepEqual(await dailyRows('2026-03-02'), []);
+    const rollup = await requireDb().$queryRaw<{ count: number }[]>`
+      SELECT COUNT(*)::int AS "count" FROM "AnalyticsDailyRollup" WHERE "siteDate" = ${'2026-03-02'}
+    `;
+    assert.equal(Number(rollup[0]?.count ?? 0), 0);
+    const state = await readDayState(requireDb(), { localDate: '2026-03-02', timezoneRevision: REV });
+    assert.equal(state, null, '整组回滚后不得留下本次的元数据行');
   });
 });
 // ---- 专属 DB 入口拒绝负控：spawn 真实入口文件，断言安全码、非 0 退出、不回显 DSN ----
