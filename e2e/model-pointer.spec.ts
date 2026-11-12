@@ -81,7 +81,7 @@ test('pointer capture, page wheel, modifier zoom, and release', async ({ page })
   await page.mouse.move(start.x, start.y);
   await page.mouse.down();
   await expect(page.locator('[data-capture-owner]')).toHaveAttribute('data-capture-owner', slugA!);
-  await page.mouse.move(other.x, other.y, { steps: 16 });
+  await page.mouse.move(other.x, other.y, { steps: 4 });
   await expect(first).not.toHaveAttribute('data-azimuth', azimuthA!);
   await expect(second).toHaveAttribute('data-azimuth', azimuthB!);
   await expect(page).toHaveURL(/\/en\/products$/);
