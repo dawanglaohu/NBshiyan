@@ -932,7 +932,7 @@ describe('M5-T12 retention-cleanup 整体消费者：批次 COMMIT 未知即停�
     summary: null,
   };
 
-  function build(mode: 'lost-receipt' | 'callback-fails') {
+  function build(mode: 'lost-receipt' | 'callback-fails' | 'event-zero') {
     const records = { completions: [] as Array<{ status: string; errorCode: string | null }>, renews: 0 };
     let transaction = 0;
     let batches = 0;
@@ -961,6 +961,8 @@ describe('M5-T12 retention-cleanup 整体消费者：批次 COMMIT 未知即停�
     const execute = async () => {
       batches += 1;
       if (mode === 'callback-fails' && batches === 2) throw new Error('batch_callback');
+      // 事件删除批次删到 0 行：已提交但没有删到任何行。
+      if (mode === 'event-zero') return 0;
       return 1;
     };
     const db = {
@@ -1033,6 +1035,16 @@ describe('M5-T12 retention-cleanup 整体消费者：批次 COMMIT 未知即停�
     }
   });
 
+  test('事件批次删到 0 行：已提交但 batches 与行数都不得记成 1', async () => {
+    const built = build('event-zero');
+    const result = await runRetentionCleanup(args(built) as never);
+    assert.equal(result.status, 'succeeded');
+    assert.equal(result.deletedEvents, 0, '0 行提交不能记成删到 1 行');
+    assert.equal(result.deletedRollupRows, 0);
+    assert.equal(result.batches, 0, '0 行提交不能记成 1 个确认批次');
+    // 0 行即停：不再继续开后续批次；终态仍是正常完成。
+    assert.deepEqual(built.records.completions.map((item) => item.status), ['SUCCEEDED']);
+  });
   test('对照：批次回调内失败是确认失败，finish(FAILED) 必须被记录', async () => {
     const built = build('callback-fails');
     const result = await runRetentionCleanup(args(built) as never);
