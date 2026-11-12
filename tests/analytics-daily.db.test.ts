@@ -631,14 +631,17 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
   test('closure 独立覆盖：闭包日不可重算时整笔回滚，只留独立 CAS 的 coverage 元数据', async () => {
     await reset();
     await seedGuards({ generation: 1, leaseOwner: 'test-lease', revision: REV, timezone: TZ, now: new Date('2026-03-05T02:00:00.000Z') });
-    // 可重算的终态日落 02-04；它的闭包是 start 所在的 02-03（日首 02-02T16:00Z 早于
-    // raw 下限 02-03T02:00Z，闭包时才发现该 start 日不可重算）。start 本身早于 rawCutoff。
+    // 可重算的终态日落 02-04；它的闭包是 start 所在的 02-03（该日首 02-02T16:00Z 早于
+    // raw 下限 02-03T02:00Z，闭包时才发现不可整日重算）。start 必须**可见**：occurredAt
+    // 落在 02-03 站点日，receivedAt 显式放在 rawCutoff(02-03T02:00Z) 之后，否则
+    // findEarliestStart 过滤不到它，闭包为空、根本走不到 coverage halt。
     await insertEvent({
       kind: 'model_view_start',
       browserHash: 'b1',
       viewId: 'v-closure',
       productSlug: 'cube',
       occurredAt: new Date('2026-02-03T01:00:00Z'),
+      receivedAt: new Date('2026-02-03T03:00:00Z'),
     });
     await insertEvent({
       kind: 'model_load_failure',
