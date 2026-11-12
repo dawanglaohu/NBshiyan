@@ -82,6 +82,8 @@ test('pointer capture, page wheel, modifier zoom, and release', async ({ page })
   await page.mouse.down();
   await expect(page.locator('[data-capture-owner]')).toHaveAttribute('data-capture-owner', slugA!);
   await page.mouse.move(other.x, other.y, { steps: 4 });
+  // 减采样后仍须证明跨卡移动没有丢 capture owner：移动后、mouseup 前 owner 仍是 A。
+  await expect(page.locator('[data-capture-owner]')).toHaveAttribute('data-capture-owner', slugA!);
   await expect(first).not.toHaveAttribute('data-azimuth', azimuthA!);
   await expect(second).toHaveAttribute('data-azimuth', azimuthB!);
   await expect(page).toHaveURL(/\/en\/products$/);
