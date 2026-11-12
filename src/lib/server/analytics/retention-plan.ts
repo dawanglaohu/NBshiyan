@@ -178,8 +178,7 @@ export function isRollupExpired(siteDate: string, now: Date, timeZone: string): 
   return siteDate <= rollupExpiryCutoff(now, timeZone);
 }
 
-export type RawCoveragePlan = {
-  /** 完整原始覆盖起点（UTC 瞬时，ISO）。早于它的站点日本地日原始事实可能已被部分清理。 */
+export type RawCoveragePlan = {  /** 完整原始覆盖起点（UTC 瞬时，ISO）。早于它的站点日本地日原始事实可能已被部分清理。 */
   completeRawCoverageStartUtc: string;
   /** 上述瞬时所在的站点本地日；这一天整日仍完整，更早的日子不一定。 */
   completeRawCoverageStartLocalDate: string;
@@ -339,3 +338,39 @@ export function createRetentionCandidateRepo(deps: {
     },
   };
 }
+
+/* ------------------------------------------------------------------------- *
+ * M5-T12 新三表保留（docs/data-retention.md「分析原始事件和汇总」表）
+ *
+ * - `AnalyticsDaily`：行内时区 13 个自然月，`expiresAt <= now`（等号到期），每轮至多 1,000 行。
+ * - `AnalyticsAggregateDayState`：自身时区 13 个自然月到期、且无未到期 `AnalyticsDaily` 才删；
+ *   坏时区只诊断并定向保留（保守不删）。
+ * - `AnalyticsDayChange`：UTC 日反推 13 个自然月＋2 天，严格 `<`；保留仍存续 state 覆盖的
+ *   UTC 日与 `markerVersions` 键；**先删 state，再删 marker**。
+ * ------------------------------------------------------------------------- */
+
+/** `AnalyticsDaily` 单轮删除上限；四个分析表合计仍受 `RETENTION_CLEANUP_MAX_PER_RUN` 约束。 */
+export const DAILY_RETENTION_MAX_PER_RUN = 1_000;
+
+/** 新表删除的候选扫描上限：与单轮上限同量级，避免只读查询无界。 */
+export const DAILY_RETENTION_SCAN_LIMIT = 2_000;
+
+/** state 到期日预筛的下界：`localDate < 今日 − 13 自然月`（真正的到期判定还要按行内时区正推）。 */
+export function stateRetentionFloor(todayLocalDate: string): string {
+  assertLocalDate(todayLocalDate);
+  return shiftCalendarMonths(todayLocalDate, -ROLLUP_RETENTION_MONTHS);
+}
+
+/** `AnalyticsDayChange` 的严格上界：`UTC 今日 − 13 自然月 − 2 天`。 */
+export function dayChangeRetentionCutoff(nowUtcDate: string): string {
+  assertLocalDate(nowUtcDate);
+  return shiftLocalDays(shiftCalendarMonths(nowUtcDate, -ROLLUP_RETENTION_MONTHS), -2);
+}
+
+/** `now` 的 UTC 自然日标签（marker 键就是 UTC 日，不能用站点时区折算）。 */
+export function utcDateOf(now: Date): string {
+  return assertInstant(now).toISOString().slice(0, 10);
+}
+
+export type AnalyticsDailyKey = { localDate: string; timezoneRevision: number; dimension: string };
+export type AnalyticsDayStateKey = { localDate: string; timezoneRevision: number };

@@ -646,10 +646,27 @@ test('cron 模板：04:30 单独调度 analytics-retention，命令行无密钥�
   assert.match(legacyLine, /^30 3 \* \* \* /);
 });
 
-test('delete 只落分析三张表，不碰询盘/聊天/审计/备份', () => {
+test('delete 只落分析六张表（旧三表 + 新三表），不碰询盘/聊天/审计/备份', () => {
   const src = readFileSync(new URL('../src/lib/server/analytics/retention.ts', import.meta.url), 'utf8');
   const targets = [...src.matchAll(/DELETE FROM "([A-Za-z]+)"/g)].map((match) => match[1]).sort();
-  assert.deepEqual(targets, ['AnalyticsDailyRollup', 'AnalyticsEvent', 'AnalyticsRollupDay']);
+  // M5-T12：04:30 的 analytics-retention 是 AnalyticsDaily 的唯一清理者，state/marker 依次在其后。
+  assert.deepEqual(targets, [
+    'AnalyticsAggregateDayState',
+    'AnalyticsDaily',
+    'AnalyticsDailyRollup',
+    'AnalyticsDayChange',
+    'AnalyticsEvent',
+    'AnalyticsRollupDay',
+  ]);
+  // 分析域之外一张都不许出现：审计、询盘、聊天、通知、邮件、账号、设置、作业状态。
+  const forbidden = [
+    'AuditLog', 'Inquiry', 'InquiryItem', 'InquiryMessage', 'InquiryNote',
+    'ChatConversation', 'ChatMessage', 'ChatReadCursor', 'ChatNotification', 'ChatVisitorSession',
+    'MailMessage', 'Contact', 'User', 'SiteSetting', 'JobState', 'Model3D', 'PublicAsset', 'LogoUpload',
+  ];
+  for (const table of forbidden) {
+    assert.equal(targets.includes(table), false, `保留清理不得删除业务表 ${table}`);
+  }
 });
 
 test('compose 点同时注册聚合作业与保留作业', async () => {

@@ -1,144 +1,256 @@
-﻿import { test } from 'node:test';
+import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  classifyDayCompleteness,
   computeDailyMetrics,
-  factKey,
-  isIncludedFact,
+  dedupeTerminalsByEventId,
   isSmokePath,
   meanDurationMs,
   normalizePath,
   partitionTerminals,
-  pickTerminalPerStart,
   successRate,
+  toVersion,
+  utcDatesCovered,
   type AnalyticsFact,
 } from '../src/lib/analytics/daily-aggregate';
 
-const at = (iso: string): Date => new Date(iso);
+const NOT_AFTER = new Date('2026-03-02T23:59:59.000Z');
 
-function fact(overrides: Partial<AnalyticsFact> & Pick<AnalyticsFact, 'eventId' | 'kind' | 'browserHash'>): AnalyticsFact {
+let seq = 0;
+function fact(input: Partial<AnalyticsFact> & { kind: AnalyticsFact['kind'] }): AnalyticsFact {
+  seq += 1;
   return {
-    viewId: null,
-    occurredAt: at('2026-11-10T10:00:00.000Z'),
-    durationMs: null,
-    locale: 'en',
-    productSlug: null,
-    path: null,
-    ...overrides,
+    eventId: input.eventId ?? `ev-${seq}`,
+    kind: input.kind,
+    browserHash: input.browserHash ?? `bh-${seq}`,
+    viewId: input.viewId ?? null,
+    occurredAt: input.occurredAt ?? new Date('2026-03-02T10:00:00.000Z'),
+    receivedAt: input.receivedAt ?? new Date('2026-03-02T10:00:01.000Z'),
+    durationMs: input.durationMs ?? null,
+    locale: input.locale ?? 'en',
+    productSlug: input.productSlug ?? null,
+    path: input.path ?? null,
   };
 }
 
-test('normalizePath 去掉 query 与 fragment', () => {
-  assert.equal(normalizePath('/en/products/corrugated-boxes?x=1#y'), '/en/products/corrugated-boxes');
-  assert.equal(normalizePath('/en/contact'), '/en/contact');
-  assert.equal(normalizePath(null), null);
-});
-
-test('冒烟谓词：整条或任一段以 nbs-smoke- 开头才排除，NULL 放行', () => {
-  assert.equal(isSmokePath(null), false);
-  assert.equal(isSmokePath('/nbs-smoke-home'), true);
-  assert.equal(isSmokePath('/en/nbs-smoke-about?x=1'), true);
-  assert.equal(isSmokePath('/en/products/nbs-smoke-x#h'), true);
-  assert.equal(isSmokePath('/en/nbs-smoke-x/child'), true);
-  assert.equal(isSmokePath('/en/foo-nbs-smoke-x'), false);
-  assert.equal(isSmokePath('/en/products/corrugated-boxes'), false);
-});
-
-test('isIncludedFact 只放行六类非冒烟事实', () => {
-  assert.equal(isIncludedFact(fact({ eventId: 'e1', kind: 'page_view', browserHash: 'b' })), true);
-  assert.equal(
-    isIncludedFact(fact({ eventId: 'e2', kind: 'page_view', browserHash: 'b', path: '/en/nbs-smoke-a' })),
-    false,
-  );
-  const foreign = fact({ eventId: 'e3', kind: 'page_view', browserHash: 'b' });
-  assert.equal(isIncludedFact({ ...foreign, kind: 'consent_granted' as never }), false);
-});
-
-test('终态按 occurredAt<=notAfter 分区，等号计入', () => {
-  const notAfter = at('2026-11-10T23:59:59.000Z');
-  const { counted, deferred } = partitionTerminals(
-    [
-      fact({ eventId: 't1', kind: 'model_load_success', browserHash: 'b', occurredAt: notAfter }),
-      fact({ eventId: 't2', kind: 'model_load_failure', browserHash: 'b', occurredAt: at('2026-11-11T00:00:00.001Z') }),
-    ],
-    notAfter,
-  );
-  assert.deepEqual(counted.map((f) => f.eventId), ['t1']);
-  assert.deepEqual(deferred.map((f) => f.eventId), ['t2']);
-});
-
-test('同键终态取最早，同刻按 eventId 稳定', () => {
-  const picked = pickTerminalPerStart([
-    fact({ eventId: 'z', kind: 'model_load_failure', browserHash: 'b', viewId: 'v', occurredAt: at('2026-11-10T12:00:00Z') }),
-    fact({ eventId: 'a', kind: 'model_load_success', browserHash: 'b', viewId: 'v', occurredAt: at('2026-11-10T11:00:00Z') }),
-  ]);
-  assert.equal(picked.get(factKey({ browserHash: 'b', viewId: 'v' })!)?.eventId, 'a');
-});
-
-test('站点行：UV/事件计数/配对终态与精确耗时总和', () => {
-  const facts: AnalyticsFact[] = [
-    fact({ eventId: 's1', kind: 'page_view', browserHash: 'b1' }),
-    fact({ eventId: 's2', kind: 'page_view', browserHash: 'b2' }),
-    fact({ eventId: 's3', kind: 'product_view', browserHash: 'b1', productSlug: 'box' }),
-    fact({ eventId: 's4', kind: 'model_view_start', browserHash: 'b1', viewId: 'v1', productSlug: 'box' }),
-    fact({ eventId: 's5', kind: 'chat_start', browserHash: 'b3' }),
-  ];
-  const terminals: AnalyticsFact[] = [
-    fact({ eventId: 't1', kind: 'model_load_success', browserHash: 'b1', viewId: 'v1', durationMs: 1200 }),
-    fact({ eventId: 't2', kind: 'model_load_failure', browserHash: 'b1', viewId: 'v9', durationMs: 800 }),
-  ];
-  const result = computeDailyMetrics(facts, terminals, { localDate: '2026-11-10', notAfter: at('2026-11-10T23:59:59Z') });
-  assert.deepEqual(result.site, {
-    dimension: 'site',
-    visitors: 3,
-    pageViews: 2,
-    productViews: 1,
-    modelStarts: 1,
-    modelSuccesses: 1,
-    modelFailures: 0,
-    chatStarts: 1,
-    durationMsSum: 1200n,
-    loadDurationSamples: 1,
+describe('M5-T12 日聚合纯函数', { concurrency: false }, () => {
+  test('冒烟路径规则：整段或任一段以 nbs-smoke- 开头，段中与 query/fragment 不算', () => {
+    assert.equal(isSmokePath(null), false);
+    assert.equal(isSmokePath('/en'), false);
+    assert.equal(isSmokePath('/nbs-smoke-home'), true);
+    assert.equal(isSmokePath('/en/products/nbs-smoke-x'), true);
+    assert.equal(isSmokePath('/en/nbs-smoke-x?from=nav'), true);
+    assert.equal(isSmokePath('/en/nbs-smoke-x#heap'), true);
+    assert.equal(isSmokePath('/en/x-nbs-smoke-y'), false);
+    assert.equal(isSmokePath('/en/products/foo?nbs-smoke-1'), false);
+    assert.equal(normalizePath('/en/products/foo?x=1#y'), '/en/products/foo');
   });
-  assert.deepEqual(result.unattributableTerminals.map((f) => f.eventId), ['t2']);
-});
 
-test('产品行：pageViews=NULL、UV 单独 distinct、同产品 en+ru 仍为 1', () => {
-  const resolve = (p: string) => (p.includes('/products/box') ? 'box' : null);
-  const facts: AnalyticsFact[] = [
-    fact({ eventId: 'a', kind: 'page_view', browserHash: 'b1', locale: 'en', path: '/en/products/box' }),
-    fact({ eventId: 'b', kind: 'page_view', browserHash: 'b1', locale: 'ru', path: '/ru/products/box' }),
-    fact({ eventId: 'c', kind: 'product_view', browserHash: 'b1', productSlug: 'box' }),
-    fact({ eventId: 'd', kind: 'model_view_start', browserHash: 'b2', viewId: 'v2', productSlug: 'box' }),
-  ];
-  const { products } = computeDailyMetrics(facts, [], { localDate: '2026-11-10', notAfter: at('2026-11-10T23:59:59Z'), resolveProductSlugFromPath: resolve });
-  const box = products.get('box');
-  assert.ok(box);
-  assert.equal(box.dimension, 'product:box');
-  assert.equal(box.pageViews, null);
-  assert.equal(box.visitors, 2);
-  assert.equal(box.productViews, 1);
-  assert.equal(box.modelStarts, 1);
-});
+  test('站点指标：UV 取当日全部计入事实（含终态），事件计数只取非终态', () => {
+    const facts = [
+      fact({ kind: 'page_view', browserHash: 'b1' }),
+      fact({ kind: 'product_view', browserHash: 'b1', productSlug: 'cube' }),
+      fact({ kind: 'model_view_start', browserHash: 'b2', viewId: 'v1', productSlug: 'cube' }),
+      fact({ kind: 'chat_start', browserHash: 'b3' }),
+      fact({ kind: 'model_load_success', browserHash: 'b4', viewId: 'v1', durationMs: 1200 }),
+    ];
+    const terminals = [facts[4]!];
+    const { site } = computeDailyMetrics(facts, terminals, { localDate: '2026-03-02', notAfter: NOT_AFTER });
+    assert.equal(site.dimension, 'site');
+    // 4 个 browserHash：b1/b2/b3 + 终态自身 b4（模型 compute_metrics 的 all_facts）。
+    assert.equal(site.visitors, 4);
+    assert.equal(site.pageViews, 1);
+    assert.equal(site.productViews, 1);
+    assert.equal(site.modelStarts, 1);
+    assert.equal(site.chatStarts, 1);
+    assert.equal(site.modelSuccesses, 1);
+    assert.equal(site.modelFailures, 0);
+    assert.equal(site.durationMsSum, 1200n);
+    assert.equal(site.loadDurationSamples, 1);
+    assert.equal(site.sourceThrough?.toISOString(), '2026-03-02T10:00:01.000Z');
+  });
 
-test('均值与成功率：samples=0 → null；有分母零成功 → 0%', () => {
-  assert.equal(meanDurationMs(0n, 0), null);
-  assert.equal(meanDurationMs(3600n, 3), 1200);
-  assert.equal(successRate(0, 0), null);
-  assert.equal(successRate(4, 0), 0);
-  assert.equal(successRate(4, 1), 0.25);
-});
+  test('配对终态按 eventId 去重；同一终态出现两次只计一次', () => {
+    const start = fact({ kind: 'model_view_start', browserHash: 'b1', viewId: 'v1', productSlug: 'cube' });
+    const terminal = fact({ kind: 'model_load_failure', eventId: 'term-1', browserHash: 'b1', viewId: 'v1', durationMs: 500 });
+    const { site } = computeDailyMetrics([start], [terminal, terminal], {
+      localDate: '2026-03-02',
+      notAfter: NOT_AFTER,
+    });
+    assert.equal(site.modelFailures, 1);
+    assert.equal(site.durationMsSum, 500n);
+    assert.equal(site.loadDurationSamples, 1);
+    assert.equal(dedupeTerminalsByEventId([terminal, terminal]).length, 1);
+  });
 
-test('拒绝/撤回类事件不进任何计算；冒烟事实与冒烟终态被过滤', () => {
-  const facts: AnalyticsFact[] = [
-    fact({ eventId: 'x1', kind: 'page_view', browserHash: 'b1', path: '/nbs-smoke-home' }),
-    fact({ eventId: 'x2', kind: 'consent_granted' as never, browserHash: 'b2' }),
-  ];
-  const terminals: AnalyticsFact[] = [
-    fact({ eventId: 'x3', kind: 'model_load_success', browserHash: 'b1', viewId: 'v1', durationMs: 500 }),
-  ];
-  const result = computeDailyMetrics(facts, terminals, { localDate: '2026-11-10', notAfter: at('2026-11-10T23:59:59Z') });
-  assert.equal(result.site.visitors, 0);
-  assert.equal(result.site.pageViews, 0);
-  assert.equal(result.site.modelSuccesses, 0);
-  assert.equal(result.site.loadDurationSamples, 0);
+  test('产品 UV 只取 product_view / model_view_start / 路径命中产品的 page_view；终态不加 UV', () => {
+    const resolve = (path: string, locale: string) =>
+      path === `/${locale}/products/cube` ? 'cube' : null;
+    const facts = [
+      fact({ kind: 'product_view', browserHash: 'b1', productSlug: 'cube' }),
+      fact({ kind: 'model_view_start', browserHash: 'b2', viewId: 'v1', productSlug: 'cube' }),
+      fact({ kind: 'page_view', browserHash: 'b3', path: '/en/products/cube' }),
+      fact({ kind: 'page_view', browserHash: 'b3', path: '/en/products/cube#reviews' }),
+      fact({ kind: 'model_load_success', browserHash: 'b9', viewId: 'v1', productSlug: 'cube', durationMs: 800 }),
+      fact({ kind: 'chat_start', browserHash: 'b8', productSlug: 'cube' }),
+    ];
+    const terminals = [facts[4]!];
+    const { products, site } = computeDailyMetrics(facts, terminals, {
+      localDate: '2026-03-02',
+      notAfter: NOT_AFTER,
+      resolveProductSlugFromPath: resolve,
+    });
+    const cube = products.get('cube');
+    assert.ok(cube);
+    assert.deepEqual([cube.visitors, cube.productViews, cube.modelStarts, cube.chatStarts], [3, 1, 1, 1]);
+    assert.equal(cube.modelSuccesses, 1);
+    assert.equal(cube.durationMsSum, 800n);
+    assert.equal(cube.pageViews, null);
+    // 终态自身 browserHash 只进站点 UV，不进产品 UV；chat_start 也不进产品 UV。
+    assert.equal(site.visitors, 5);
+  });
+
+  test('终态经 start 归属产品；缺 start 的终态用自身 productSlug 建行', () => {
+    const start = fact({ kind: 'model_view_start', browserHash: 'b1', viewId: 'v1', productSlug: 'cube' });
+    const terminal = fact({ kind: 'model_load_failure', browserHash: 'b1', viewId: 'v1', productSlug: 'lamp', durationMs: 100 });
+    const orphan = fact({ kind: 'model_load_success', browserHash: 'b2', viewId: 'v2', productSlug: 'lamp', durationMs: 200 });
+    const { products } = computeDailyMetrics([start, terminal, orphan], [terminal, orphan], {
+      localDate: '2026-03-02',
+      notAfter: NOT_AFTER,
+    });
+    assert.equal(products.get('cube')?.modelFailures, 1);
+    assert.equal(products.get('lamp')?.modelSuccesses, 1);
+    assert.equal(products.get('lamp')?.modelStarts, 0);
+  });
+
+  test('未配对终态（本日窗口内）单独列出，供 Q2/Q5/gap 判定', () => {
+    const paired = fact({ kind: 'model_load_success', browserHash: 'b1', viewId: 'v1' });
+    const orphan = fact({ kind: 'model_load_failure', browserHash: 'b2', viewId: 'v2' });
+    const noView = fact({ kind: 'model_load_failure', browserHash: 'b3', viewId: null });
+    const start = fact({ kind: 'model_view_start', browserHash: 'b1', viewId: 'v1', productSlug: 'cube' });
+    const { unattributableInDayTerminals } = computeDailyMetrics([start, paired, orphan, noView], [paired], {
+      localDate: '2026-03-02',
+      notAfter: NOT_AFTER,
+    });
+    assert.deepEqual(unattributableInDayTerminals.map((item) => item.eventId), [orphan.eventId, noView.eventId]);
+  });
+
+  test('终态按 occurredAt<=notAfter 分区：未来终态不计入、留给 defer', () => {
+    const start = fact({ kind: 'model_view_start', browserHash: 'b1', viewId: 'v1', productSlug: 'cube' });
+    const future = fact({
+      kind: 'model_load_success',
+      browserHash: 'b1',
+      viewId: 'v1',
+      productSlug: 'cube',
+      durationMs: 900,
+      occurredAt: new Date('2026-03-03T00:00:01.000Z'),
+    });
+    const partition = partitionTerminals([future], NOT_AFTER);
+    assert.equal(partition.counted.length, 0);
+    assert.equal(partition.deferred.length, 1);
+    const { site } = computeDailyMetrics([start, future], [future], { localDate: '2026-03-02', notAfter: NOT_AFTER });
+    assert.equal(site.modelSuccesses, 0);
+    assert.equal(site.durationMsSum, 0n);
+  });
+
+  test('无分母时均值/成功率为 null，零成功为 0%', () => {
+    assert.equal(meanDurationMs(0n, 0), null);
+    assert.equal(meanDurationMs(300n, 2), 150);
+    assert.equal(successRate(0, 0), null);
+    assert.equal(successRate(4, 0), 0);
+    assert.equal(successRate(4, 1), 0.25);
+  });
+
+  test('UTC 日映射：+05:30 落单日，+14 与 -11 跨两日', () => {
+    // Mumbai 2026-03-02 00:00 → 2026-03-01T18:30Z；次日 00:00 → 03-02T18:30Z。
+    assert.deepEqual(
+      utcDatesCovered({ startUtc: '2026-03-01T18:30:00.000Z', endUtc: '2026-03-02T18:30:00.000Z' }),
+      ['2026-03-01', '2026-03-02'],
+    );
+    // Kiritimati(+14) 2026-03-02 00:00 → 03-01T10:00Z；次日 → 03-02T10:00Z。
+    assert.deepEqual(
+      utcDatesCovered({ startUtc: '2026-03-01T10:00:00.000Z', endUtc: '2026-03-02T10:00:00.000Z' }),
+      ['2026-03-01', '2026-03-02'],
+    );
+    // Pago Pago(-11) 2026-03-02 → 03-02T11:00Z..03-03T11:00Z。
+    assert.deepEqual(
+      utcDatesCovered({ startUtc: '2026-03-02T11:00:00.000Z', endUtc: '2026-03-03T11:00:00.000Z' }),
+      ['2026-03-02', '2026-03-03'],
+    );
+  });
+
+  test('M6 分类：无 site 行 / 缺 state / gap / defer / marker 前进 / complete', () => {
+    const bounds = { startUtc: '2026-03-01T18:30:00.000Z', endUtc: '2026-03-02T18:30:00.000Z' };
+    const markers = { '2026-03-01': '7', '2026-03-02': '8' };
+    const liveSame = new Map([
+      ['2026-03-01', '7'],
+      ['2026-03-02', '8'],
+    ]);
+    assert.equal(
+      classifyDayCompleteness({ siteRow: null, state: null, bounds, liveVersions: liveSame }).reason,
+      'no_site_row',
+    );
+    assert.equal(
+      classifyDayCompleteness({ siteRow: { timezone: 'Asia/Kolkata' }, state: null, bounds, liveVersions: liveSame }).reason,
+      'state_missing',
+    );
+    assert.equal(
+      classifyDayCompleteness({
+        siteRow: { timezone: 'Asia/Kolkata' },
+        state: { markerVersions: markers, deferUntil: null, gapKind: 'late_unattributable' },
+        bounds,
+        liveVersions: liveSame,
+      }).reason,
+      'gap:late_unattributable',
+    );
+    assert.equal(
+      classifyDayCompleteness({
+        siteRow: { timezone: 'Asia/Kolkata' },
+        state: { markerVersions: markers, deferUntil: new Date('2026-03-03T00:00:00Z'), gapKind: null },
+        bounds,
+        liveVersions: liveSame,
+      }).reason,
+      'defer_pending',
+    );
+    const ahead = classifyDayCompleteness({
+      siteRow: { timezone: 'Asia/Kolkata' },
+      state: { markerVersions: markers, deferUntil: null, gapKind: null },
+      bounds,
+      liveVersions: new Map([
+        ['2026-03-01', '7'],
+        ['2026-03-02', '9'],
+      ]),
+    });
+    assert.equal(ahead.status, 'partial');
+    assert.equal(ahead.reason, 'live_marker_ahead');
+    assert.equal(ahead.utcDate, '2026-03-02');
+    assert.equal(ahead.live, '9');
+    assert.equal(ahead.consumed, '8');
+    // 缺键按 0 比：state 只消费了一个 UTC 日，另一个键缺省即 0。
+    assert.equal(
+      classifyDayCompleteness({
+        siteRow: { timezone: 'Asia/Kolkata' },
+        state: { markerVersions: { '2026-03-01': '7' }, deferUntil: null, gapKind: null },
+        bounds,
+        liveVersions: liveSame,
+      }).reason,
+      'live_marker_ahead',
+    );
+    assert.equal(
+      classifyDayCompleteness({
+        siteRow: { timezone: 'Asia/Kolkata' },
+        state: { markerVersions: markers, deferUntil: null, gapKind: null },
+        bounds,
+        liveVersions: liveSame,
+      }).status,
+      'complete',
+    );
+  });
+
+  test('版本按十进制字符串比较，超过 2^53 也不折叠', () => {
+    assert.equal(toVersion(undefined), '0');
+    assert.equal(toVersion('0012'), '12');
+    assert.equal(toVersion(12), '12');
+    assert.equal(toVersion('9007199254740993'), '9007199254740993');
+  });
 });

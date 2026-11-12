@@ -8,6 +8,7 @@ import {
 } from '../../contracts/analytics';
 import { isDbUnavailable } from '../designs';
 import { AppError } from '../http/errors';
+import type { AnalyticsDayMarkerSink } from './aggregate-day-state';
 import { AnalyticsPayloadConflict, type AnalyticsEventRepo, type NewAnalyticsEvent } from './event-repo';
 
 /** 目录产品的内部 key。分析事件不使用 categoryMeta 的本地化 URL slug。 */
@@ -33,6 +34,12 @@ export function createAnalyticsIngestService(deps: {
   repo: AnalyticsEventRepo;
   secret: Buffer | null;
   clock?: () => Date;
+  /**
+   * M5-T12：UTC 日 live marker 落点。**先于**事件落库调用——崩溃只留下「多一次重算」，
+   * 不会出现「事件已落库、版本没前进」导致当日被误判 complete。缺省不写 marker，
+   * 由集成任务（M6-T1）在组合点注入 `createAnalyticsDayMarkerSink(db)`。
+   */
+  markers?: AnalyticsDayMarkerSink;
 }): AnalyticsIngestService {
   const clock = deps.clock ?? (() => new Date());
   return {
@@ -54,6 +61,14 @@ export function createAnalyticsIngestService(deps: {
         throw new AppError('invalid', { fieldErrors: { productSlug: 'Must be a published product.' } });
       }
       const rows = parsed.data.events.map((event) => toRow(event, browserHash, deps.secret as Buffer, now));
+      if (deps.markers) {
+        try {
+          await deps.markers.bump(rows, now);
+        } catch (error) {
+          if (isDbUnavailable(error)) throw new AppError('service_unavailable');
+          throw error;
+        }
+      }
       let outcomes: Array<'created' | 'duplicate'>;
       try {
         outcomes = await deps.repo.saveAll(rows);
