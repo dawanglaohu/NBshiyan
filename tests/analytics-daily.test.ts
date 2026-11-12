@@ -587,6 +587,7 @@ describe('M5-T12 闭包 coverage：回滚后的独立 CAS 事务', { concurrency
 
 import { mergeDeferUntil } from "../src/lib/server/analytics/aggregate-day-state";
 import { runAggregateOnce, runDailyAggregateRound, AggregateDeadlineExceeded, AggregateCommitUnknown } from "../src/lib/server/analytics/aggregate";
+import { runRetentionBatch } from "../src/lib/server/analytics/retention-cleanup";
 
 describe('M5-T12 defer 合并按 notAfter 判定', { concurrency: false }, () => {
   const notAfter = new Date('2026-03-02T10:00:00.000Z');
@@ -863,5 +864,54 @@ describe('M5-T12 主事务未知时，已确认提交的 metadata 必须保留',
     assert.ok(result.metadata.length >= 1, '主事务未知不得抹掉已确认的 metadata 结果');
     assert.ok(result.metadata.some((item) => item.localDate === OLD_DAY));
     assert.equal(transactions, 2);
+  });
+});
+
+describe('M5-T12 GC 批次事务：COMMIT 未知与确认回滚分开', { concurrency: false }, () => {
+  function batchDb(mode: 'ok' | 'callback-throws' | 'lost-receipt' | 'pool-timeout') {
+    const db = {
+      $transaction: async (fn: (tx: unknown) => Promise<number>) => {
+        if (mode === 'pool-timeout') throw Object.assign(new Error('pool timeout'), { code: 'P2024' });
+        const value = await fn({ $executeRaw: async () => 7 });
+        if (mode === 'lost-receipt') throw new Error('reply lost after commit');
+        return value;
+      },
+    };
+    return db;
+  }
+
+  test('正常提交：返回受影响行数', async () => {
+    const count = await runRetentionBatch(batchDb('ok') as never, ['2026-03-01'], async (tx) => {
+      const affected = await (tx as unknown as { $executeRaw: () => Promise<number> }).$executeRaw();
+      return Number(affected);
+    });
+    assert.equal(count, 7);
+  });
+
+  test('回调内失败＝确认回滚：原错误上抛，不标 unknown', async () => {
+    const failure = new AggregateVersionConflict('stale_generation');
+    await assert.rejects(
+      () => runRetentionBatch(batchDb('callback-throws') as never, ['2026-03-01'], async () => { throw failure; }),
+      (error: unknown) => error instanceof AggregateVersionConflict,
+    );
+  });
+
+  test('模拟提交成功后丢回执＝unknown：保留 targets，交由调用方停止后续批次', async () => {
+    await assert.rejects(
+      () => runRetentionBatch(batchDb('lost-receipt') as never, ['2026-03-01'], async () => 7),
+      (error: unknown) => {
+        assert.ok(error instanceof AggregateCommitUnknown);
+        assert.equal(error.phase, 'metrics');
+        assert.deepEqual(error.unknownTargets, ['2026-03-01']);
+        return true;
+      },
+    );
+  });
+
+  test('P2024（事务未开）不算 unknown，原样上抛', async () => {
+    await assert.rejects(
+      () => runRetentionBatch(batchDb('pool-timeout') as never, ['2026-03-01'], async () => 7),
+      (error: unknown) => (error as { code?: string }).code === 'P2024',
+    );
   });
 });

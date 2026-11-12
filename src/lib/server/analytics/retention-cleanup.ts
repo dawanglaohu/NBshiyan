@@ -3,6 +3,7 @@ import { DayBoundaryError, siteDayUtcBounds } from '../../analytics/day-boundari
 import { audit as writeAudit } from '../admin/audit';
 import { createJobLeaseRepo, type JobLeaseRepo } from '../jobs/lease-repo';
 import type { ClaimResult } from '../jobs/types';
+import { AggregateCommitUnknown } from './aggregate';
 import {
   ANALYTICS_ROLLUP_JOB_KEY,
   isSiteDateRolledUp,
@@ -59,6 +60,53 @@ function utc(date: Date): Prisma.Sql {
 function errorName(error: unknown): string {
   if (error instanceof Error && /^[A-Za-z][A-Za-z0-9_]{0,40}$/.test(error.name)) return error.name;
   return 'Error';
+}
+
+/** 回调内失败：Prisma 必回滚，确认本批没有提交。 */
+class BatchCallbackFailure extends Error {
+  constructor(readonly original: unknown) {
+    super('batch_callback_failure');
+    this.name = 'BatchCallbackFailure';
+  }
+}
+
+/** P2024 在取连接/开事务阶段失败：BEGIN 未发出，确认没有提交。 */
+function isPreCommitFailure(error: unknown): boolean {
+  return error !== null && typeof error === 'object' && (error as { code?: unknown }).code === 'P2024';
+}
+
+/** 预算类错误（P2028 / statement_timeout / lock_timeout）：事务没跑完，同样确认无提交。 */
+function isBudgetLike(error: unknown): boolean {
+  if (error === null || typeof error !== 'object') return false;
+  if ((error as { code?: unknown }).code === 'P2028') return true;
+  const pgCode = (error as { meta?: { code?: unknown } }).meta?.code;
+  return pgCode === '57014' || pgCode === '55P03';
+}
+
+/**
+ * 单批删除事务：只有「回调内失败」与「事务没开起来」能说确认没提交。
+ *
+ * 回调已返回、`$transaction` 才抛＝COMMIT 答复未知：抛 AggregateCommitUnknown，
+ * 由调用方停止后续批次、只保留已确认批次的计数，且不写 FAILED 终态。
+ */
+export async function runRetentionBatch(
+  db: RetentionCleanupDb,
+  targets: string[],
+  work: (tx: Prisma.TransactionClient) => Promise<number>,
+): Promise<number> {
+  try {
+    return await db.$transaction(async (tx) => {
+      try {
+        return await work(tx);
+      } catch (error) {
+        throw new BatchCallbackFailure(error);
+      }
+    }, TX);
+  } catch (error) {
+    if (error instanceof BatchCallbackFailure) throw error.original;
+    if (isPreCommitFailure(error) || isBudgetLike(error)) throw error;
+    throw new AggregateCommitUnknown('metrics', targets.length > 0 ? targets : ['retention_cleanup']);
+  }
 }
 
 function errorCodeOf(error: unknown): 'invalid' | 'internal_error' | 'service_unavailable' {
@@ -148,7 +196,7 @@ async function deleteEventBatch(
   limit: number,
 ): Promise<number> {
   const bounds = siteDayUtcBounds(siteDate, timeZone);
-  const deleted = await db.$transaction(async (tx) => {
+  const deleted = await runRetentionBatch(db, [siteDate], async (tx) => {
     await repo.renew({ key: ANALYTICS_ROLLUP_JOB_KEY, owner: OWNER, generation: claim.generation }, tx);
     const cutoff = rawEventCutoff(now);
     return tx.$executeRaw`
@@ -160,7 +208,7 @@ async function deleteEventBatch(
         LIMIT ${limit}
       )
     `;
-  }, TX);
+  });
   return Number(deleted);
 }
 
@@ -171,7 +219,7 @@ async function deleteDailyBatch(
   before: string,
   limit: number,
 ): Promise<number> {
-  const deleted = await db.$transaction(async (tx) => {
+  const deleted = await runRetentionBatch(db, ['daily_rollup'], async (tx) => {
     await repo.renew({ key: ANALYTICS_ROLLUP_JOB_KEY, owner: OWNER, generation: claim.generation }, tx);
     return tx.$executeRaw`
       DELETE FROM "AnalyticsDailyRollup" AS target
@@ -187,7 +235,7 @@ async function deleteDailyBatch(
         AND target."locale" = picked."locale"
         AND target."productSlug" = picked."productSlug"
     `;
-  }, TX);
+  });
   return Number(deleted);
 }
 
@@ -198,7 +246,7 @@ async function deleteRollupDayBatch(
   before: string,
   limit: number,
 ): Promise<number> {
-  const deleted = await db.$transaction(async (tx) => {
+  const deleted = await runRetentionBatch(db, ['rollup_day'], async (tx) => {
     await repo.renew({ key: ANALYTICS_ROLLUP_JOB_KEY, owner: OWNER, generation: claim.generation }, tx);
     return tx.$executeRaw`
       DELETE FROM "AnalyticsRollupDay"
@@ -209,7 +257,7 @@ async function deleteRollupDayBatch(
         LIMIT ${limit}
       )
     `;
-  }, TX);
+  });
   return Number(deleted);
 }
 
@@ -359,6 +407,20 @@ export async function runRetentionCleanup(deps: {
     await finish(deps.db, repo, claim, 'SUCCEEDED', counts, null);
     return { status: 'succeeded', ...counts };
   } catch (error) {
+    if (error instanceof AggregateCommitUnknown) {
+      // 终态未确认：不写 FAILED 终态、不再开批次；只保留已确认批次的计数。
+      console.error('[cron] retention-cleanup commit_unknown', {
+        phase: error.phase,
+        targets: error.unknownTargets.length,
+        confirmedBatches: counts.batches,
+      });
+      return {
+        status: 'failed',
+        errorCode: 'service_unavailable',
+        deletedEvents: counts.deletedEvents,
+        deletedRollupRows: counts.deletedRollupRows,
+      };
+    }
     await finish(deps.db, repo, claim, 'FAILED', counts, errorCodeOf(error));
     return { status: 'failed', errorCode: errorCodeOf(error), deletedEvents: counts.deletedEvents, deletedRollupRows: counts.deletedRollupRows };
   }
