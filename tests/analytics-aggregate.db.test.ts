@@ -2,11 +2,11 @@
 //
 // 本文件被 CI 的「Analytics, chat, and other PostgreSQL regressions」步骤纳入
 // 按文件门禁（wanted / 命令行 / gate.files 三处）。因此：
-//   - PG 回归步骤会设 M5T3_REQUIRE_DATABASE=true 且注入 DATABASE_URL；该步骤缺库时
-//     顶层直接抛错，且按文件门禁要求 fail/skip/todo/cancelled 全为 0、pass>=1，
-//     杜绝「没库却报绿」。
+//   - PG 回归步骤会设 M5T12_REQUIRE_DATABASE=true 并注入 M5T12_TEST_DATABASE_URL；
+//     该步骤缺库时顶层直接抛错，且按文件门禁要求 fail/skip/todo/cancelled 全为 0、
+//     pass>=1，杜绝「没库却报绿」。其它 legacy 文件的 M5T3_REQUIRE_DATABASE 语义不变。
 //   - build-and-audit 的 `pnpm test`（glob tests/*.test.ts）也会扫到本文件，但那个
-//     job 没有数据库、也不设 M5T3_REQUIRE_DATABASE，此时按仓库既有 db 测试惯例整组
+//     job 没有数据库、也不设 M5T12_REQUIRE_DATABASE，此时按仓库既有 db 测试惯例整组
 //     skip，不误伤单元测试 job。
 //   - 每个 PG 用例都连真实库、真事务、真行锁，验证 generation 互斥与整组原子替换。
 import { after, before, describe, test } from 'node:test';
@@ -24,25 +24,41 @@ import { ANALYTICS_RECOMPUTE_KEY } from '../src/lib/server/analytics/settings-re
 const REQUIRE = process.env.M5T12_REQUIRE_DATABASE === 'true';
 const CI_FLAG = process.env.CI === 'true';
 const CI_MODE = process.env.M5T12_CI_MODE === 'true';
+/** DSN 解析与用户名解码失败一律给固定安全码，不把原始 URL 带进 TypeError/URIError。 */
+function parseDsn(raw: string): URL {
+  try {
+    return new URL(raw);
+  } catch {
+    throw new Error('E_M5T12_URL_UNPARSEABLE');
+  }
+}
+function dsnUsername(parsed: URL): string {
+  try {
+    return decodeURIComponent(parsed.username);
+  } catch {
+    throw new Error('E_M5T12_URL_UNPARSEABLE');
+  }
+}
+
 const base = process.env.M5T12_TEST_DATABASE_URL;
-const schemaParam = base === undefined ? null : new URL(base).searchParams.get('schema');
+const parsedDsn = base === undefined ? null : parseDsn(base);
+const schemaParam = parsedDsn === null ? null : parsedDsn.searchParams.get('schema');
 
 if (REQUIRE && base === undefined) throw new Error('E_M5T12_URL_MISSING');
-if (base !== undefined) {
+if (parsedDsn !== null) {
   if (!(CI_FLAG && CI_MODE && REQUIRE)) throw new Error('E_M5T12_LOCAL_DB_NOT_PROVISIONED');
-  const parsed = new URL(base);
-  if (!['127.0.0.1', 'localhost'].includes(parsed.hostname)) throw new Error('E_M5T12_HOST_NOT_LOOPBACK');
-  if (parsed.pathname.replace(/^\//, '') !== 'e2e') throw new Error('E_M5T12_DB_NOT_E2E');
-  if (decodeURIComponent(parsed.username) !== 'postgres') throw new Error('E_M5T12_USER_NOT_POSTGRES');
+  if (!['127.0.0.1', 'localhost'].includes(parsedDsn.hostname)) throw new Error('E_M5T12_HOST_NOT_LOOPBACK');
+  if (parsedDsn.pathname.replace(/^\//, '') !== 'e2e') throw new Error('E_M5T12_DB_NOT_E2E');
+  if (dsnUsername(parsedDsn) !== 'postgres') throw new Error('E_M5T12_USER_NOT_POSTGRES');
   if (schemaParam !== null) throw new Error('E_M5T12_URL_HAS_SCHEMA');
 }
 
 // 随机 owned schema：每次运行独立命名；正则与创建时的名字严格对应。
 const SCHEMA = `m5t12_aggregate_${process.pid}_${Math.random().toString(16).slice(2, 10)}`;
-const url = base === undefined
+const url = parsedDsn === null
   ? null
   : (() => {
-      const parsed = new URL(base);
+      const parsed = new URL(parsedDsn.toString());
       parsed.search = '';
       parsed.searchParams.set('schema', SCHEMA);
       parsed.searchParams.set('connection_limit', '5');
@@ -51,6 +67,8 @@ const url = base === undefined
     })();
 const db = url ? new PrismaClient({ datasources: { db: { url } } }) : null;
 const skip = !db && 'no M5T12_TEST_DATABASE_URL';
+/** 被入口探针 spawn 的子进程：只允许模块加载，绝不再跑 PG 组。 */
+const probeChild = process.env.M5T12_ENTRY_PROBE_CHILD === '1';
 
 const TZ = 'Asia/Shanghai';
 
@@ -66,7 +84,7 @@ let setupError: Error | null = null;
 /** 缺库/setup 失败时具名失败：CI 按文件门禁会把 fail>0 判红，不吞掉。 */
 function requireDb(): PrismaClient {
   if (setupError !== null) throw setupError;
-  if (!db) assert.fail('M5-T3 PG 回归必须连真实 PostgreSQL：M5T12_TEST_DATABASE_URL 缺失或 CI 开关不齐');
+  if (!db) assert.fail('M5-T12 一致快照聚合 PG 回归必须连真实 PostgreSQL：M5T12_TEST_DATABASE_URL 缺失或 CI 开关不齐');
   return db;
 }
 
@@ -82,24 +100,40 @@ after(async () => {
   }
 });
 
-describe('M5-T3 consistent-snapshot daily aggregate', { concurrency: false, skip, timeout: 120_000 }, () => {
+describe('M5-T12 consistent-snapshot daily aggregate', { concurrency: false, skip: probeChild ? 'entry probe child' : skip, timeout: 120_000 }, () => {
   before(async () => {
     // 不在这里抛错：before 抛错会把 8 个子测试全部 cancelled，CI 日志看不到具名的
     // 失败行。让每个用例自己的 reset()/requireDb() 去 assert.fail，逐条具名失败。
     if (!db) return;
     const conn = requireDb();
     // 只读身份核对必须早于任何 CREATE；错误只给安全码，不回显 DSN。
-    const identity = await conn.$queryRaw<{ db: string; user: string }[]>`
-      SELECT current_database() AS "db", current_user AS "user"
-    `;
+    let identity: Array<{ db: string; user: string }>;
+    try {
+      identity = await conn.$queryRaw<{ db: string; user: string }[]>`
+        SELECT current_database() AS "db", current_user AS "user"
+      `;
+    } catch {
+      setupError = new Error('E_M5T12_IDENTITY_UNAVAILABLE');
+      return;
+    }
     if (identity[0]?.db !== 'e2e' || identity[0]?.user !== 'postgres') {
       setupError = new Error('E_M5T12_IDENTITY_MISMATCH');
       return;
     }
     // 普通 CREATE（不用 IF NOT EXISTS）：碰撞/失败都不接管、不 DROP。
-    await conn.$executeRawUnsafe(`CREATE SCHEMA "${SCHEMA}"`);
+    try {
+      await conn.$executeRawUnsafe(`CREATE SCHEMA "${SCHEMA}"`);
+    } catch {
+      setupError = new Error('E_M5T12_SCHEMA_CREATE_FAILED');
+      return;
+    }
     schemaCreated = true;
-    await conn.$executeRawUnsafe(`SET search_path TO "${SCHEMA}"`);
+    try {
+      await conn.$executeRawUnsafe(`SET search_path TO "${SCHEMA}"`);
+    } catch {
+      setupError = new Error('E_M5T12_SEARCH_PATH_FAILED');
+      return;
+    }
     // 用 prisma db push 建表，避免手写 DDL 与 schema.prisma 漂移。
     try {
       const { execFileSync } = await import('node:child_process');

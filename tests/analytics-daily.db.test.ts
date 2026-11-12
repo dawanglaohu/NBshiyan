@@ -4,6 +4,7 @@
 // DATABASE_URL；其它 job 无库时整组 skip。本地未连库的部分（迁移、13 月 GC、多实例）不在此伪装。
 import { after, before, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
 import { Prisma, PrismaClient } from '@prisma/client';
 import { siteDayUtcBounds } from '../src/lib/analytics/day-boundaries';
 import { classifyDayCompleteness } from '../src/lib/analytics/daily-aggregate';
@@ -17,25 +18,41 @@ import { readDayState, readLiveMarkerVersions } from '../src/lib/server/analytic
 const REQUIRE = process.env.M5T12_REQUIRE_DATABASE === 'true';
 const CI_FLAG = process.env.CI === 'true';
 const CI_MODE = process.env.M5T12_CI_MODE === 'true';
+/** DSN 解析与用户名解码失败一律给固定安全码，不把原始 URL 带进 TypeError/URIError。 */
+function parseDsn(raw: string): URL {
+  try {
+    return new URL(raw);
+  } catch {
+    throw new Error('E_M5T12_URL_UNPARSEABLE');
+  }
+}
+function dsnUsername(parsed: URL): string {
+  try {
+    return decodeURIComponent(parsed.username);
+  } catch {
+    throw new Error('E_M5T12_URL_UNPARSEABLE');
+  }
+}
+
 const base = process.env.M5T12_TEST_DATABASE_URL;
-const schemaParam = base === undefined ? null : new URL(base).searchParams.get('schema');
+const parsedDsn = base === undefined ? null : parseDsn(base);
+const schemaParam = parsedDsn === null ? null : parsedDsn.searchParams.get('schema');
 
 if (REQUIRE && base === undefined) throw new Error('E_M5T12_URL_MISSING');
-if (base !== undefined) {
+if (parsedDsn !== null) {
   if (!(CI_FLAG && CI_MODE && REQUIRE)) throw new Error('E_M5T12_LOCAL_DB_NOT_PROVISIONED');
-  const parsed = new URL(base);
-  if (!['127.0.0.1', 'localhost'].includes(parsed.hostname)) throw new Error('E_M5T12_HOST_NOT_LOOPBACK');
-  if (parsed.pathname.replace(/^\//, '') !== 'e2e') throw new Error('E_M5T12_DB_NOT_E2E');
-  if (decodeURIComponent(parsed.username) !== 'postgres') throw new Error('E_M5T12_USER_NOT_POSTGRES');
+  if (!['127.0.0.1', 'localhost'].includes(parsedDsn.hostname)) throw new Error('E_M5T12_HOST_NOT_LOOPBACK');
+  if (parsedDsn.pathname.replace(/^\//, '') !== 'e2e') throw new Error('E_M5T12_DB_NOT_E2E');
+  if (dsnUsername(parsedDsn) !== 'postgres') throw new Error('E_M5T12_USER_NOT_POSTGRES');
   if (schemaParam !== null) throw new Error('E_M5T12_URL_HAS_SCHEMA');
 }
 
 // 随机 owned schema：每次运行独立命名，收尾只清这一个；正则与创建时的名字严格对应。
 const SCHEMA = `m5t12_daily_${process.pid}_${Math.random().toString(16).slice(2, 10)}`;
-const url = base === undefined
+const url = parsedDsn === null
   ? null
   : (() => {
-      const parsed = new URL(base);
+      const parsed = new URL(parsedDsn.toString());
       parsed.search = '';
       parsed.searchParams.set('schema', SCHEMA);
       parsed.searchParams.set('connection_limit', '3');
@@ -44,6 +61,8 @@ const url = base === undefined
     })();
 const db = url ? new PrismaClient({ datasources: { db: { url } } }) : null;
 const skip = !db && 'no M5T12_TEST_DATABASE_URL';
+/** 被入口探针 spawn 的子进程：只允许模块加载，绝不再跑 PG 组或再 spawn 一层。 */
+const probeChild = process.env.M5T12_ENTRY_PROBE_CHILD === '1';
 
 const TZ = 'Asia/Shanghai';
 const REV = 2;
@@ -74,21 +93,34 @@ after(async () => {
   }
 });
 
-describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: false, skip, timeout: 180_000 }, () => {
+describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: false, skip: probeChild ? 'entry probe child' : skip, timeout: 180_000 }, () => {
   before(async () => {
     if (!db) return;
     const conn = requireDb();
     // 只读身份核对必须早于任何 CREATE；错误只给安全码，不回显 DSN。
-    const identity = await conn.$queryRaw<{ db: string; user: string }[]>`
-      SELECT current_database() AS "db", current_user AS "user"
-    `;
+    let identity: Array<{ db: string; user: string }>;
+    try {
+      identity = await conn.$queryRaw<{ db: string; user: string }[]>`
+        SELECT current_database() AS "db", current_user AS "user"
+      `;
+    } catch {
+      throw new Error('E_M5T12_IDENTITY_UNAVAILABLE');
+    }
     if (identity[0]?.db !== 'e2e' || identity[0]?.user !== 'postgres') {
       throw new Error('E_M5T12_IDENTITY_MISMATCH');
     }
     // 普通 CREATE（不用 IF NOT EXISTS）：碰撞/失败都不接管、不 DROP。
-    await conn.$executeRawUnsafe(`CREATE SCHEMA "${SCHEMA}"`);
+    try {
+      await conn.$executeRawUnsafe(`CREATE SCHEMA "${SCHEMA}"`);
+    } catch {
+      throw new Error('E_M5T12_SCHEMA_CREATE_FAILED');
+    }
     schemaCreated = true;
-    await conn.$executeRawUnsafe(`SET search_path TO "${SCHEMA}"`);
+    try {
+      await conn.$executeRawUnsafe(`SET search_path TO "${SCHEMA}"`);
+    } catch {
+      throw new Error('E_M5T12_SEARCH_PATH_FAILED');
+    }
     try {
       const { execFileSync } = await import('node:child_process');
       const { createRequire } = await import('node:module');
@@ -437,4 +469,152 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
     state = await readDayState(requireDb(), { localDate: '2026-03-02', timezoneRevision: REV });
     assert.equal(state?.deferUntil, null);
   });
+});
+// ---- 专属 DB 入口拒绝负控：spawn 真实入口文件，断言安全码、非 0 退出、不回显 DSN ----
+// 子进程只拿白名单 env（父进程的 DATABASE_URL/M5T12_* 不继承），并带探针标记防止再 spawn。
+const ENTRY_PROBE_ENV = 'M5T12_ENTRY_PROBE_CHILD';
+const ENTRY_FILES = ['tests/analytics-daily.db.test.ts', 'tests/analytics-aggregate.db.test.ts'];
+const CHILD_ENV_KEEP = [
+  'PATH', 'Path', 'PATHEXT', 'SystemRoot', 'SYSTEMROOT', 'windir', 'ComSpec',
+  'TEMP', 'TMP', 'HOME', 'USERPROFILE', 'APPDATA', 'LOCALAPPDATA', 'LANG', 'LC_ALL', 'TERM',
+];
+
+const DUMMY_DSN = 'postgresql://postgres:password@localhost:5432/e2e';
+const GOOD_SWITCHES = { CI: 'true', M5T12_CI_MODE: 'true', M5T12_REQUIRE_DATABASE: 'true' };
+const MALFORMED_DSN = 'not-a-url-marker';
+
+const ENTRY_CASES: Array<{ name: string; env: Record<string, string | undefined>; code: string }> = [
+  { name: '缺专属 URL', env: { M5T12_REQUIRE_DATABASE: 'true' }, code: 'E_M5T12_URL_MISSING' },
+  { name: '非 CI 给了 URL', env: { M5T12_TEST_DATABASE_URL: DUMMY_DSN }, code: 'E_M5T12_LOCAL_DB_NOT_PROVISIONED' },
+  {
+    name: '缺 M5T12_CI_MODE',
+    env: { CI: 'true', M5T12_REQUIRE_DATABASE: 'true', M5T12_TEST_DATABASE_URL: DUMMY_DSN },
+    code: 'E_M5T12_LOCAL_DB_NOT_PROVISIONED',
+  },
+  {
+    name: '缺 REQUIRE 开关',
+    env: { CI: 'true', M5T12_CI_MODE: 'true', M5T12_TEST_DATABASE_URL: DUMMY_DSN },
+    code: 'E_M5T12_LOCAL_DB_NOT_PROVISIONED',
+  },
+  {
+    name: '非回环 host',
+    env: { ...GOOD_SWITCHES, M5T12_TEST_DATABASE_URL: 'postgresql://postgres:password@db.example.com:5432/e2e' },
+    code: 'E_M5T12_HOST_NOT_LOOPBACK',
+  },
+  {
+    name: '库名不是 e2e',
+    env: { ...GOOD_SWITCHES, M5T12_TEST_DATABASE_URL: 'postgresql://postgres:password@localhost:5432/analytics' },
+    code: 'E_M5T12_DB_NOT_E2E',
+  },
+  {
+    name: '用户不是 postgres',
+    env: { ...GOOD_SWITCHES, M5T12_TEST_DATABASE_URL: 'postgresql://someone:postgres@localhost:5432/e2e' },
+    code: 'E_M5T12_USER_NOT_POSTGRES',
+  },
+  {
+    name: 'URL 带 schema 参数',
+    env: { ...GOOD_SWITCHES, M5T12_TEST_DATABASE_URL: `${DUMMY_DSN}?schema=public` },
+    code: 'E_M5T12_URL_HAS_SCHEMA',
+  },
+  { name: '畸形 DSN', env: { ...GOOD_SWITCHES, M5T12_TEST_DATABASE_URL: MALFORMED_DSN }, code: 'E_M5T12_URL_UNPARSEABLE' },
+  {
+    name: '用户名字符非法',
+    env: { ...GOOD_SWITCHES, M5T12_TEST_DATABASE_URL: 'postgresql://%E0%A4%A:x@localhost:5432/e2e' },
+    code: 'E_M5T12_URL_UNPARSEABLE',
+  },
+];
+
+type EntryRun = { code: number | null; signal: NodeJS.Signals | null; out: string; timedOut: boolean };
+
+function entryChildEnv(extra: Record<string, string | undefined>): NodeJS.ProcessEnv {
+  const env: NodeJS.ProcessEnv = { NODE_ENV: 'test' };
+  for (const key of CHILD_ENV_KEEP) {
+    const value = process.env[key];
+    if (value !== undefined) env[key] = value;
+  }
+  env[ENTRY_PROBE_ENV] = '1';
+  for (const [key, value] of Object.entries(extra)) {
+    if (value === undefined) delete env[key];
+    else env[key] = value;
+  }
+  return env;
+}
+
+function spawnEntry(file: string, extra: Record<string, string | undefined>): Promise<EntryRun> {
+  return new Promise((resolve) => {
+    const child = spawn(process.execPath, ['--import', 'tsx', '--test', file], {
+      cwd: process.cwd(),
+      env: entryChildEnv(extra),
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    let out = '';
+    let timedOut = false;
+    let settled = false;
+    const timer = setTimeout(() => {
+      timedOut = true;
+      child.kill('SIGKILL');
+    }, 90_000);
+    const finish = (code: number | null, signal: NodeJS.Signals | null) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve({ code, signal, out, timedOut });
+    };
+    child.stdout?.setEncoding('utf8');
+    child.stdout?.on('data', (chunk: string) => { out += chunk; });
+    child.stderr?.setEncoding('utf8');
+    child.stderr?.on('data', (chunk: string) => { out += chunk; });
+    child.on('close', finish);
+    child.on('error', (error) => {
+      out += String(error);
+      finish(null, null);
+    });
+  });
+}
+
+/** 有界并发：每个用例一个子进程，最多 4 个同时跑。 */
+async function runEntryCases(file: string): Promise<Map<string, EntryRun>> {
+  const runs = new Map<string, EntryRun>();
+  const queue = [...ENTRY_CASES];
+  const workers = Array.from({ length: 4 }, async () => {
+    for (;;) {
+      const next = queue.shift();
+      if (!next) return;
+      runs.set(next.name, await spawnEntry(file, next.env));
+    }
+  });
+  await Promise.all(workers);
+  return runs;
+}
+
+for (const entryFile of ENTRY_FILES) {
+  test(`专属 DB 入口拒绝：${entryFile}`, {
+    skip: probeChild ? 'entry probe child' : false,
+    timeout: 300_000,
+  }, async () => {
+    const runs = await runEntryCases(entryFile);
+    for (const entryCase of ENTRY_CASES) {
+      const run = runs.get(entryCase.name);
+      assert.ok(run, `${entryCase.name}: 未执行`);
+      assert.equal(run.timedOut, false, `${entryCase.name}: 子进程超时`);
+      assert.notEqual(run.code, 0, `${entryCase.name}: 应拒绝并非 0 退出\n${run.out.slice(-1500)}`);
+      assert.match(run.out, new RegExp(entryCase.code), `${entryCase.name}: 缺少安全码 ${entryCase.code}\n${run.out.slice(-1500)}`);
+      // 拒绝必须发生在任何连接/迁移之前。
+      assert.equal(run.out.includes('E_M5T12_DBPUSH_FAILED'), false, `${entryCase.name}: 进了 dbpush`);
+      for (const marker of ['postgresql://', 'postgres:postgres', 'db.example.com', MALFORMED_DSN]) {
+        assert.equal(run.out.includes(marker), false, `${entryCase.name}: 输出回显了 ${marker}`);
+      }
+    }
+  });
+}
+
+test('专属 DB 入口：没有任何 M5T12 变量时整组 skip 且退出 0', {
+  skip: probeChild ? 'entry probe child' : false,
+  timeout: 180_000,
+}, async () => {
+  const run = await spawnEntry('tests/analytics-daily.db.test.ts', {});
+  assert.equal(run.timedOut, false);
+  assert.equal(run.code, 0, `应整组 skip 并退出 0\n${run.out.slice(-2000)}`);
+  assert.match(run.out, /# fail 0/);
+  assert.equal(run.out.includes('E_M5T12_'), false, '无库跳过时不应报入口错误码');
 });
