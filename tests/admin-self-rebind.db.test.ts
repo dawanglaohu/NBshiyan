@@ -348,8 +348,14 @@ const start = new Date('2026-11-12T09:00:00.000Z');
 let now = start;
 const clock = () => now;
 
-function codeAt(secret: string, at: Date): string {
-  return authenticator.clone({ epoch: at.getTime() }).generate(secret);
+/**
+ * TOTP 必须按**真实墙钟**生成：生产的 `consumeTotpStep`/`codeStillInWindow` 都用 `Date.now()` 取时间步，
+ * 注入的 `now` 只驱动账户/设备/过期窗口，不驱动验证码。
+ * `stepOffset` 只用于同一真实 30s 窗内需要第二次合法 challenge 的场景（生产 window=1，±1 步内有效）；
+ * 需要“同一码重放/并发”时复用同一个生成结果，不在这里重新生成。
+ */
+function wallCode(secret: string, stepOffset = 0): string {
+  return authenticator.clone({ epoch: Date.now() + stepOffset * 30_000 }).generate(secret);
 }
 
 before(async () => {
@@ -422,7 +428,7 @@ async function issueResetGrant(member: { user: User; deviceId: string; plain: st
     sid: member.deviceId,
     purpose: 'TOTP_RESET',
     password: PASSWORD,
-    totp: codeAt(member.plain, now),
+    totp: wallCode(member.plain),
   });
 }
 
@@ -777,10 +783,10 @@ describe('M3-T20 真实 PG：reset→enroll→confirm', { concurrency: 1, skip: 
     const secret = new URL(enrolled.otpauthUri).searchParams.get('secret');
     assert.ok(secret);
     const afterReset = await userRow(member.user.id);
-    const oldCodeAtNow = codeAt(member.plain, now);
-    assert.equal(authenticator.clone({ epoch: now.getTime() }).check(oldCodeAtNow, decrypt(afterReset.totpSecret as string)), true);
+    const oldCodeWall = wallCode(member.plain);
+    assert.equal(authenticator.clone({ epoch: Date.now() }).check(oldCodeWall, decrypt(afterReset.totpSecret as string)), true);
 
-    const completed = await recoveryEnrollment.confirm({ token, totp: codeAt(secret, now), ip: '203.0.113.12' });
+    const completed = await recoveryEnrollment.confirm({ token, totp: wallCode(secret), ip: '203.0.113.12' });
     assert.equal(completed.recoveryCodes.length, 10);
     assert.equal(new Set(completed.recoveryCodes).size, 10);
     const final = await userRow(member.user.id);
@@ -792,8 +798,8 @@ describe('M3-T20 真实 PG：reset→enroll→confirm', { concurrency: 1, skip: 
     for (let i = 0; i < completed.recoveryCodes.length; i += 1) {
       assert.equal(await verifySecret(final.recoveryCodes[i], completed.recoveryCodes[i]), true);
     }
-    assert.equal(authenticator.clone({ epoch: now.getTime() }).check(codeAt(member.plain, now), decrypt(final.totpSecret as string)), false);
-    assert.equal(authenticator.clone({ epoch: now.getTime() }).check(codeAt(secret, now), decrypt(final.totpSecret as string)), true);
+    assert.equal(authenticator.clone({ epoch: Date.now() }).check(wallCode(member.plain), decrypt(final.totpSecret as string)), false);
+    assert.equal(authenticator.clone({ epoch: Date.now() }).check(wallCode(secret), decrypt(final.totpSecret as string)), true);
 
     const session = await db.adminRecoverySession.findFirstOrThrow({ where: { userId: member.user.id } });
     assert.ok(session.completedAt, '受限会话已消费');
@@ -817,7 +823,7 @@ describe('M3-T20 真实 PG：reset→enroll→confirm', { concurrency: 1, skip: 
     const enrolled = await recoveryEnrollment.enroll({ token });
     const secret = new URL(enrolled.otpauthUri).searchParams.get('secret');
     assert.ok(secret);
-    const totp = codeAt(secret, now);
+    const totp = wallCode(secret);
     const settled = await Promise.allSettled([
       recoveryEnrollment.confirm({ token, totp }),
       recoveryEnrollment.confirm({ token, totp }),
@@ -846,10 +852,10 @@ describe('M3-T20 真实 PG：reset→enroll→confirm', { concurrency: 1, skip: 
   test('缺现密码/仅 TOTP 不能签 grant；recoveryCode 拒绝且不消费 grant', async () => {
     now = start;
     const member = await makeAccount();
-    assert.throws(() => classifySelfResetBody({ totp: codeAt(member.plain, now) }), (error) => error instanceof AppError && error.code === 'invalid');
+    assert.throws(() => classifySelfResetBody({ totp: wallCode(member.plain) }), (error) => error instanceof AppError && error.code === 'invalid');
     assert.throws(() => classifySelfResetBody({ recoveryCode: '0123456789' }), (error) => error instanceof AppError && error.code === 'invalid');
     await expectAppError(actionGrants.issue({
-      userId: member.user.id, sid: member.deviceId, purpose: 'TOTP_RESET', password: 'wrong-password', totp: codeAt(member.plain, now),
+      userId: member.user.id, sid: member.deviceId, purpose: 'TOTP_RESET', password: 'wrong-password', totp: wallCode(member.plain),
     }), 'bad_credentials');
     assert.equal((await db.adminActionGrant.count({ where: { userId: member.user.id } })), 0);
 
