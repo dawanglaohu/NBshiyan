@@ -143,7 +143,11 @@ test('pointer capture, page wheel, modifier zoom, and release', async ({ page })
 
   await first.focus();
   await expect(first).toHaveAttribute('data-focused', '1');
-  const focusedDistance = Number(await first.getAttribute('data-camera-distance'));
+  // 基线必须真实存在且有限：缺属性时 getAttribute 返回 null，Number(null)=0 或 NaN 会让
+  // 后面的“已变化”判定对任意有限值恒真，滚轮没生效也会过。
+  const rawFocused = await first.getAttribute('data-camera-distance');
+  const focusedDistance = Number(rawFocused);
+  if (rawFocused === null || !Number.isFinite(focusedDistance)) throw new Error('聚焦距离基线缺失或非有限值');
   const scrollAtFocus = await page.evaluate(() => window.scrollY);
   await page.keyboard.down('Control');
   const focusedPoint = await center(first);
