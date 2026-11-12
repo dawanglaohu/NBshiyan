@@ -163,11 +163,23 @@ test.describe('已登录的 ADMIN', () => {
 
   test('版本冲突：他处 ADMIN 推进 version 后旧保存获 409，显式读取最新才更新', async ({ page, playwright }) => {
     test.setTimeout(120_000);
+    // 页面自身的 GET 必须真的发生且 200；权威值另用真实认证 request 读，
+    // 不依赖页面响应体的生命周期（CI 上曾出现在 reload GET 上取 body 失败）。
+    const authoritative = async (): Promise<{ version: number; timezone: string; timezoneRevision: number }> => {
+      const state = await page.context().storageState();
+      const ctx = await playwright.request.newContext({ baseURL: BASE, storageState: state });
+      try {
+        const res = await ctx.get(API);
+        expect(res.status()).toBe(200);
+        return (await res.json()) as { version: number; timezone: string; timezoneRevision: number };
+      } finally {
+        await ctx.dispose();
+      }
+    };
     const initialResponse = page.waitForResponse((r) => new URL(r.url()).pathname === API && r.request().method() === 'GET');
     await page.goto('/admin/settings?section=analytics');
-    const initialRes = await initialResponse;
-    expect(initialRes.status()).toBe(200);
-    const before = (await initialRes.json()) as { version: number; timezone: string; timezoneRevision: number };
+    expect((await initialResponse).status()).toBe(200);
+    const before = await authoritative();
     const tzCell = page.getByTestId('analytics-settings-timezone');
     await expect(tzCell).toHaveText(before.timezone);
 
@@ -201,6 +213,7 @@ test.describe('已登录的 ADMIN', () => {
     await page.getByTestId('analytics-settings-save').click();
     const conflictRes = await conflictResponse;
     expect(conflictRes.status()).toBe(409);
+    await conflictRes.finished();
     expect(((await conflictRes.json()) as { error: string }).error).toBe('version_conflict');
 
     // 旧 UI 不自动接受新版本：输入与右栏都保留旧值，保存停用，且没有自动重试
@@ -212,12 +225,11 @@ test.describe('已登录的 ADMIN', () => {
     expect(patches, '409 后不应自动重试 PATCH').toBe(1);
     page.off('request', countPatch);
 
-    // 用户显式读取最新：右侧版本与站点时区才更新，输入仍保留
+    // 用户显式读取最新：页面自身 GET 必须被触发且 200；UI 更新与权威值的一致性分开断言
     const reloadResponse = page.waitForResponse((r) => new URL(r.url()).pathname === API && r.request().method() === 'GET');
     await page.getByRole('button', { name: '读取最新配置' }).click();
-    const reloadRes = await reloadResponse;
-    expect(reloadRes.status()).toBe(200);
-    const latest = (await reloadRes.json()) as { version: number; timezone: string };
+    expect((await reloadResponse).status()).toBe(200);
+    const latest = await authoritative();
     expect(latest.timezone).toBe(elsewhere);
     expect(latest.version).toBe(before.version + 1);
     await expect(tzCell).toHaveText(elsewhere);
