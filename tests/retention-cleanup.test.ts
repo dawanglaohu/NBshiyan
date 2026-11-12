@@ -231,23 +231,31 @@ test('retention-cleanup cron 在 03:30 调本机，命令行没有密钥，409 �
   assert.equal(busy.includes('reportFailure'), false);
 });
 
-test('没带密钥或密钥不对时返回 401，响应不缓存也不回显密钥', async () => {
+test('route 入口防线：无 token/错 token 直接 401，不触达清理服务也不告警', async () => {
   const previous = process.env.CRON_SECRET;
   process.env.CRON_SECRET = 'unit-test-cron-secret-not-a-real-value';
+  // 入口防线命中时，handler 的日志（服务调用/告警路径）一条都不该出现。
+  const logged: string[] = [];
+  const originalError = console.error;
+  const originalInfo = console.info;
+  console.error = (...args: unknown[]) => { logged.push(args.map(String).join(' ')); };
+  console.info = (...args: unknown[]) => { logged.push(args.map(String).join(' ')); };
   try {
     const missing = await GET(new Request('http://127.0.0.1/api/admin/cron/retention-cleanup'));
     const wrong = await POST(new Request('http://127.0.0.1/api/admin/cron/retention-cleanup', {
       method: 'POST',
       headers: { authorization: 'Bearer wrong-token' },
     }));
-    assert.equal(missing.status, 401);
-    assert.equal(wrong.status, 401);
-    assert.equal(missing.headers.get('cache-control'), 'no-store');
-    assert.equal(wrong.headers.get('cache-control'), 'no-store');
-    const body = await wrong.json() as { error: string };
-    assert.equal(body.error, 'unauthorized');
-    assert.equal(JSON.stringify(body).includes('unit-test-cron-secret'), false);
+    for (const response of [missing, wrong]) {
+      assert.equal(response.status, 401);
+      assert.equal(response.headers.get('cache-control'), 'no-store');
+      assert.deepEqual(await response.json(), { error: 'unauthorized' });
+    }
+    assert.deepEqual(logged, [], '未授权不得走到 handler 的任何分支（无服务调用、无告警、无成功日志）');
+    assert.equal(JSON.stringify(logged).includes('unit-test-cron-secret'), false);
   } finally {
+    console.error = originalError;
+    console.info = originalInfo;
     if (previous === undefined) delete process.env.CRON_SECRET;
     else process.env.CRON_SECRET = previous;
   }

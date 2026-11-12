@@ -23,6 +23,14 @@ function json(body: unknown, status = 200) {
   return NextResponse.json(body, { status, headers: { 'Cache-Control': 'no-store' } });
 }
 
+/**
+ * 未授权的标准响应：入口防线与 handler 内部防线共用同一实现，
+ * 保证 401 的 body 与 Cache-Control 完全一致，不会两处漂移。
+ */
+export function unauthorizedResponse(): Response {
+  return json({ error: 'unauthorized' }, 401);
+}
+
 function errorName(error: unknown): string {
   if (error instanceof Error && /^[A-Za-z][A-Za-z0-9_]{0,40}$/.test(error.name)) return error.name;
   return 'Error';
@@ -35,7 +43,7 @@ export function createRetentionCleanupHandler(deps: RetentionCleanupHandlerDeps)
     const auth = req.headers.get('authorization');
     const token = auth?.startsWith('Bearer ') ? auth.slice(7) : null;
     // 未授权不触达清理服务，也不发告警。
-    if (!secretMatches(token, process.env.CRON_SECRET)) return json({ error: 'unauthorized' }, 401);
+    if (!secretMatches(token, process.env.CRON_SECRET)) return unauthorizedResponse();
     try {
       const result = await runCleanup();
       // 租约被占用是正常运行里的跳过，不告警。
