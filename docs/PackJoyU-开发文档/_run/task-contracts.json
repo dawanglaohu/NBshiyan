@@ -1662,7 +1662,9 @@
         "tests/admin-self-rebind.http.test.ts",
         "src/lib/server/admin/recovery-enrollment.ts",
         "tests/admin-enroll-hardening-347-348.test.ts",
-        "tests/admin-enroll-token-347.test.ts"
+        "tests/admin-enroll-token-347.test.ts",
+        "tests/admin-self-rebind.db.test.ts",
+        ".github/workflows/ci.yml"
       ],
       "outputPaths": [
         "src/app/api/admin/account/2fa/reset/route.ts",

@@ -810,16 +810,15 @@
   },
   "M3-T20": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "785e543d1cad6c285d0234b8f697bf7c60cdafe62c9483093354b35a174d47f7",
+    "contractHash": "82461ad852bc32dcf2c5db642e9f08817926801bde37980fb6548762bf7dc23e",
     "evidence": [
-      "源变更仅 docs/PackJoyU-开发文档/_run/task-contracts.json：M3-T20 supportPaths 在既有 recovery-repo.ts/composition.ts/tests/admin-self-rebind.http.test.ts 后新增 src/lib/server/admin/recovery-enrollment.ts、tests/admin-enroll-hardening-347-348.test.ts、tests/admin-enroll-token-347.test.ts；git diff 为 3 行新增，outputPaths/requires/stage/wiring/sections 逐字段未变",
-      "三文件均已在 PR558 头 ac229af264147ef7f1324a0bb27a7a6193d0d91e 被跟踪（git ls-tree：blob 4b0f6b37…/80c65801…/6f1af772…，18,827/20,998/27,076 B），此前未在契约声明；补丁只补写域声明，不改 self-rebind.ts/recovery-enrollment.ts 等服务代码",
-      "依据：Chief 裁定在原 M3-T20 integration 任务补 support，用于实现既有 SELF_REAUTH enroll/confirm 承诺、保旧恢复协议与两旧测试覆盖；不重开已 done 的 M3-T5，不通过删旧断言过门；后台完整 session/HTTP 改密仍禁止",
-      "begin exit=0、sync exit=0（日志 01-begin.log、02-sync.log）；补丁 status=synced、sourceVersion=4cb4225d7bfc4c4efbbbe9000ad8bfdeaa997dd1d31e40a6be6fb1c969ad043f；sourceChanges 仅 _run/task-contracts.json",
-      "受影响 M3-T8/M3-T9/M3-T11/M3-T12/M3-T13/M3-T20/M3-T25/M7-T2/M7-T5/M7-T6/M7-T8/M7-T9/M7-T10 均为契约哈希传播（M3-T20 为直接源变更）；docs-data.js/build-manifest.json/build-state.json/dispatch.json/review.json 正常再生",
-      "边界：未改 ci.yml/schema/main/其他任务源码；未 --landed/Ready/merge/新 PR；未 push；PR558 远端 head 仍 ac229af2"
+      "源变更仅 docs/PackJoyU-开发文档/_run/task-contracts.json（git diff 2 行新增）：M3-T20 supportPaths 在既有 6 条后新增 tests/admin-self-rebind.db.test.ts、.github/workflows/ci.yml；两条此前均不存在，无重复；outputPaths/requires/stage/wiring/sections 逐字段未变",
+      "依据 Chief B10-M3T20-REALTEST-SUPPORT：原任务验收 1–2 的真实 PG/HTTP 需要独立 DB 测试与 CI 合法写域；新测试走 B10_M3T20_TEST_DATABASE_URL＋B10_M3T20_REQUIRE_DATABASE，不改 M3-T3 旧套件硬 schema=m3t3；CI 仅声明写域，源作者仍是全栈，本补丁不改 ci.yml",
+      "begin exit=0、sync exit=0（日志 support-patch-realtest-20261112/01-begin.log、02-sync.log）；补丁 status=synced、sourceVersion=b196671a034dd221ec2dab240f2ff045bf96e8df20a3d43094a35d8287aec8e0；sourceChanges 仅 _run/task-contracts.json",
+      "受影响 M3-T8/T9/T11/T12/T13/T20/T25、M7-T2/T5/T6/T8/T9/T10 均为契约哈希传播（M3-T20 为直接源变更）；docs-data/build-manifest/build-state/dispatch/review 正常再生",
+      "边界：起点 HEAD 240e16251d84bfd70fd0f51a584e737410f46d9e / tree 03db4586… clean（原测试 B1/B2 限定 PASS 头，19/31/34 keyless 真实分母由测试给）；未改服务/测试/CI/main；未 --landed/Ready/merge/新 PR；未 push"
     ],
-    "reviewed": "2026-11-12T08:58:41.044180+00:00",
+    "reviewed": "2026-11-12T10:03:50.147342+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
