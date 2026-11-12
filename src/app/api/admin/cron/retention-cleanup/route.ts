@@ -1,29 +1,15 @@
-import { NextResponse } from 'next/server';
 import { alertRetentionCleanupIssue } from '@/lib/server/cron-alert';
 import { audit } from '@/lib/server/admin/audit';
 import { prisma } from '@/lib/server/db';
 import { errorSummary, sendAdminAlert } from '@/lib/server/mail';
 import { runRetentionCleanup } from '@/lib/server/analytics/retention-cleanup';
-import { secretMatches } from '@/lib/server/uploads';
+import { createRetentionCleanupHandler } from '@/lib/server/analytics/retention-cleanup-handler';
 
 export const runtime = 'nodejs';
 /** 与 cleanup-uploads 相同的平台上限。真正停手的是分批上限和 cron 里的 AbortSignal。 */
 export const maxDuration = 300;
 
-/**
- * 分析数据保留清理（Authorization: Bearer $CRON_SECRET）。
- * 默认 dry-run：只统计会删的行并写审计。RETENTION_CLEANUP_MODE=delete 才删行。
- * 与按天汇总共用 analytics-aggregate 租约；租约被占用时返回 409。不删除询盘。
- */
-function json(body: unknown, status = 200) {
-  return NextResponse.json(body, { status, headers: { 'Cache-Control': 'no-store' } });
-}
-
-function errorName(error: unknown): string {
-  if (error instanceof Error && /^[A-Za-z][A-Za-z0-9_]{0,40}$/.test(error.name)) return error.name;
-  return 'Error';
-}
-
+/** 失败告警只带错误码，按日去重；审计写失败不改变响应。 */
 async function reportRetentionFailure(errorCode: string) {
   await alertRetentionCleanupIssue({ errorCode }, sendAdminAlert);
   try {
@@ -33,63 +19,17 @@ async function reportRetentionFailure(errorCode: string) {
   }
 }
 
-async function handle(req: Request) {
-  const auth = req.headers.get('authorization');
-  const token = auth?.startsWith('Bearer ') ? auth.slice(7) : null;
-  if (!secretMatches(token, process.env.CRON_SECRET)) return json({ error: 'unauthorized' }, 401);
-  try {
-    const result = await runRetentionCleanup({ db: prisma });
-    if (result.status === 'busy') return json({ error: 'job_busy' }, 409);
-    if (result.status === 'unknown') {
-      // COMMIT 答复未知：沿用既有 500 形状与告警通道，但明确分类为 commit_unknown。
-      // HTTP 500/告警都不等于「事务已回滚」；不写成功、不写假 FAILED、不补 gap。
-      console.error('[cron] retention-cleanup commit_unknown', {
-        phase: result.phase,
-        targets: result.targets.length,
-        confirmedDeletedEvents: result.deletedEvents,
-        confirmedDeletedRollupRows: result.deletedRollupRows,
-      });
-      await reportRetentionFailure('commit_unknown');
-      return json({ error: 'retention_cleanup_failed' }, 500);
-    }
-    if (result.status === 'failed') {
-      console.error('[cron] retention-cleanup failed', result.errorCode);
-      await reportRetentionFailure(result.errorCode);
-      return json({ error: 'retention_cleanup_failed' }, 500);
-    }
-    console.info('[cron] retention-cleanup', {
-      mode: result.mode,
-      candidateEvents: result.candidateEvents,
-      deletedEvents: result.deletedEvents,
-      candidateRollupRows: result.candidateRollupRows,
-      deletedRollupRows: result.deletedRollupRows,
-      skippedUnrolledDays: result.skippedUnrolledDays,
-      skippedRevisionMismatchDays: result.skippedRevisionMismatchDays,
-      skippedAfterGapDays: result.skippedAfterGapDays,
-      keptExpiredEvents: result.keptExpiredEvents,
-      batches: result.batches,
-    });
-    return json({
-      mode: result.mode,
-      status: 'succeeded',
-      candidateEvents: result.candidateEvents,
-      deletedEvents: result.deletedEvents,
-      candidateRollupRows: result.candidateRollupRows,
-      deletedRollupRows: result.deletedRollupRows,
-      skippedUnrolledDays: result.skippedUnrolledDays,
-      skippedRevisionMismatchDays: result.skippedRevisionMismatchDays,
-      skippedAfterGapDays: result.skippedAfterGapDays,
-      keptExpiredEvents: result.keptExpiredEvents,
-      batches: result.batches,
-      batchSize: result.batchSize,
-      maxPerRun: result.maxPerRun,
-    });
-  } catch (error) {
-    console.error('[cron] retention-cleanup failed', errorName(error));
-    await reportRetentionFailure('internal_error');
-    return json({ error: 'retention_cleanup_failed' }, 500);
-  }
-}
+/**
+ * 分析数据保留清理（Authorization: Bearer $CRON_SECRET）。
+ * 默认 dry-run：只统计会删的行并写审计。RETENTION_CLEANUP_MODE=delete 才删行。
+ * 与按天汇总共用 analytics-aggregate 租约；租约被占用时返回 409。不删除询盘。
+ *
+ * 分支处理在 `retention-cleanup-handler.ts`（server 内部模块），此处只绑定真实依赖。
+ */
+const handle = createRetentionCleanupHandler({
+  runCleanup: () => runRetentionCleanup({ db: prisma }),
+  reportFailure: reportRetentionFailure,
+});
 
 export const GET = handle;
 export const POST = handle;
