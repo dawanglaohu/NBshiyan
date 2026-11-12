@@ -1210,15 +1210,16 @@
   },
   "M5-T10": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "0c20a457ad28f4dedc313eba3037063b4dbbb4700d47d04ddaaa31890ba59dea",
+    "contractHash": "49d69d086b51dd2f3db5d8ef93bc8454ed9678a308db0f759710eb274031065f",
     "evidence": [
-      "源变更仅 docs/PackJoyU-开发文档/_run/task-contracts.json：M5-T10 supportPaths 在既有 src/components/admin/settings/SettingsSections.tsx 后新增 .github/workflows/ci.yml；git diff 为 1 行新增，outputPaths/requires/stage/wiring/sections 逐字段未变",
-      "依据为 run 43182287745：e2e step 15 A3 收集计数门 actual {all:244, main:213, model:14, consent:14, errors:2, flow:1} vs expected {all:239, main:208,...}；fdc64006 相对 12a2caf6 新增 1 条 409 恢复用例使 spec 4→5 例，增量恰 +1；修复点在 ci.yml 常量（621/656/658/669/752），属 CI 单写（M5-T12/全栈），本补丁只声明支持路径，不改 ci.yml 源",
-      "begin exit=0、sync exit=0（日志 support-patch-ci-20261112/01-begin.log、02-sync.log）；补丁 status=synced、sourceVersion=8575aa71b30c74afa5a139065e2e8ee127e377dfe5948027971226be47dc2544；sourceChanges 仅 _run/task-contracts.json",
-      "受影响任务 M3-T25/M5-T10/M7-T10/M7-T3/M7-T8/M7-T9 均为契约哈希传播（M5-T10 为直接源变更），无第二个源条款变更；派生 docs-data.js/build-manifest.json/build-state.json/dispatch.json/review.json 由项目 build 正常再生，revalidation.json 未变",
-      "边界：未改产品源码/测试/ci.yml/schema/main 分支；未 --landed/Ready/merge/新 PR；未 push；原 PR556 head 仍 12a2caf6，本地 fdc64006"
+      "源变更仅 docs/PackJoyU-开发文档/_run/task-contracts.json（git diff 1 行新增）：M5-T10 supportPaths 末尾新增 e2e/model-pointer.spec.ts，无重复；outputPaths/requires/stage/wiring/sections 逐字段未变",
+      "触发输入：前端 A 段在 clean e0dc43f6 上的新头 3180661099afc66815aa7c01b170268fc5112c2f / tree ba8bfd2fa35bd508691fa2f18d4ca19bc133271f / parent e0dc43f6，仅 e2e/analytics-settings.spec.ts +19/−7，git status 0 行；e2e/model-pointer.spec.ts 已在该 HEAD 跟踪",
+      "依据 Chief 预授权：B 阶段 model-pointer:343 的真实 mouse 几何动作需要该 spec 在有效写域；属原任务必要支持路径，验收标准、90s、统计用例数与既有 CI/其它源域均不变，不新增需求、不改产品源码/CI",
+      "begin exit=0、sync exit=0（日志 01-begin.log、02-sync.log）；补丁 status=synced、sourceVersion=196024907965edfd231427b17f8636dfbb022be5025fb024109877d2a85013bb；sourceChanges 仅 _run/task-contracts.json；该文件已进 effectivePaths",
+      "受影响 6 个：M3-T25/M5-T10/M7-T10/M7-T3/M7-T8/M7-T9，均为契约哈希传播（M5-T10 为直接源变更）；docs-data/build-manifest/build-state/dispatch/review 正常再生",
+      "边界：未改 e2e/analytics-settings.spec.ts、产品源码、ci.yml、schema、main；未 checkout/reset/rebase；未 --landed/Ready/merge/新 PR；未 push"
     ],
-    "reviewed": "2026-11-12T08:55:50.323078+00:00",
+    "reviewed": "2026-11-12T12:28:45.102778+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },

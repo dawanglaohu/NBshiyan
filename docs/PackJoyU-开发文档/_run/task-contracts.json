@@ -2905,7 +2905,8 @@
       ],
       "supportPaths": [
         "src/components/admin/settings/SettingsSections.tsx",
-        ".github/workflows/ci.yml"
+        ".github/workflows/ci.yml",
+        "e2e/model-pointer.spec.ts"
       ],
       "outputPaths": [
         "src/components/admin/stats/AnalyticsSettingsContainer.tsx",
