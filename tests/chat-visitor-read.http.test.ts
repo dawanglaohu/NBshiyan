@@ -294,6 +294,50 @@ describe('M4-T2 访客 GET 同步与 read 单调推进', { concurrency: false, s
     assert.equal(ids.length, 5);
   });
 
+  test('满页 100：101 条连续 seq 首屏恰 100 且升序，第二页补齐且 ID 恰一次（E-34/E-79）', async () => {
+    const visitor = await seedVisitor();
+    const { conversationId } = await createConversation(visitor, 'page-001');
+    for (let seq = 2; seq <= 101; seq += 1) {
+      await addMessage(conversationId, 'OPERATOR', `page-${String(seq).padStart(3, '0')}`);
+    }
+    const allSeq = Array.from({ length: 101 }, (_, index) => index + 1);
+
+    const first = ChatSyncDTOSchema.parse(
+      (await json(await getSync(conversationId, { cookie: cookieOf(visitor), afterSeq: 0, limit: 100 }))).body,
+    );
+    assert.equal(first.lastSeq, 101);
+    assert.equal(first.messages.length, 100, '首屏必须恰为上限 100 条');
+    assert.deepEqual(first.messages.map((message) => message.seq), allSeq.slice(0, 100), '首屏升序且从 1 开始');
+    assert.equal(first.nextAfterSeq, 100, 'nextAfterSeq 必须停在本页最后一条');
+    assert.equal(first.hasMore, true);
+    assert.equal(first.read.lastReadSeq, 0, 'GET 不得推进已读');
+    assert.ok(first.messages.every((message) => message.seq <= first.lastSeq), '首屏不得越过 lastSeq');
+
+    const second = ChatSyncDTOSchema.parse(
+      (await json(await getSync(conversationId, { cookie: cookieOf(visitor), afterSeq: first.nextAfterSeq, limit: 100 }))).body,
+    );
+    assert.equal(second.lastSeq, 101);
+    assert.deepEqual(second.messages.map((message) => message.seq), [101], '第二页只补剩余 1 条');
+    assert.equal(second.nextAfterSeq, 101);
+    assert.equal(second.hasMore, false);
+    assert.equal(second.read.lastReadSeq, 0, '两次 GET 后仍不得推进已读');
+
+    const seqs = [...first.messages, ...second.messages].map((message) => message.seq);
+    assert.deepEqual(seqs, allSeq, '两页合起来 101 条连续、无缺号、无重复');
+    const messageIds = [...first.messages, ...second.messages].map((message) => message.id);
+    assert.equal(messageIds.length, 101);
+    assert.equal(new Set(messageIds).size, 101, '消息 ID 在补齐范围内恰出现一次');
+    const overlap = first.messages.filter((head) => second.messages.some((tail) => tail.id === head.id));
+    assert.deepEqual(overlap, [], '两页不得重复返回同一条消息');
+
+    const stored = await db().chatConversation.findUniqueOrThrow({
+      where: { id: conversationId },
+      select: { visitorReadSeq: true, lastSeq: true },
+    });
+    assert.equal(stored.lastSeq, 101);
+    assert.equal(stored.visitorReadSeq, 0, 'GET 不写读位置');
+  });
+
   test('afterSeq 越过 lastSeq：空页、nextAfterSeq=lastSeq、hasMore=false，DTO 仍自洽', async () => {
     const visitor = await seedVisitor();
     const { conversationId } = await createConversation(visitor);
@@ -323,6 +367,66 @@ describe('M4-T2 访客 GET 同步与 read 单调推进', { concurrency: false, s
     const sync = ChatSyncDTOSchema.parse((await json(await getSync(conversationId, { cookie: cookieOf(visitor), afterSeq: 0 }))).body);
     assert.equal(sync.read.lastReadSeq, 3);
     assert.ok(sync.read.lastReadSeq <= sync.lastSeq);
+  });
+
+  test('两个 read 并发乱序：同时发起高低目标，落库恒取 MAX 且不越 lastSeq、不回退', async () => {
+    const visitor = await seedVisitor();
+    const cookie = cookieOf(visitor);
+    const { conversationId } = await createConversation(visitor, 'concurrent-1');
+    for (let seq = 2; seq <= 6; seq += 1) {
+      await addMessage(conversationId, 'OPERATOR', `concurrent-${seq}`);
+    }
+    const lastSeq = 6;
+
+    async function storedReadSeq(): Promise<number> {
+      const row = await db().chatConversation.findUniqueOrThrow({
+        where: { id: conversationId },
+        select: { visitorReadSeq: true, lastSeq: true },
+      });
+      assert.equal(row.lastSeq, lastSeq, '并发 read 不得改动 lastSeq');
+      assert.ok(row.visitorReadSeq <= row.lastSeq, '落库读位置不得超过 lastSeq');
+      assert.ok(row.visitorReadSeq >= 0, '读位置非负');
+      return row.visitorReadSeq;
+    }
+
+    // 两种发起次序都覆盖：先高后低 / 先低后高。两个请求在 await 之前都已发起。
+    const rounds = [
+      { first: 6, second: 2, expected: 6 },
+      { first: 2, second: 6, expected: 6 },
+      { first: 5, second: 3, expected: 5 },
+      { first: 3, second: 5, expected: 5 },
+    ] as const;
+
+    for (const round of rounds) {
+      // 只把被测列恢复到竞争前初值；真实 SQL，不是 mock。
+      await db().$executeRaw`UPDATE "ChatConversation" SET "visitorReadSeq" = 0 WHERE "id" = ${conversationId}`;
+
+      const firstPromise = postRead(conversationId, { lastReadSeq: round.first }, { cookie });
+      const secondPromise = postRead(conversationId, { lastReadSeq: round.second }, { cookie });
+      const [firstResponse, secondResponse] = await Promise.all([firstPromise, secondPromise]);
+
+      assert.equal(firstResponse.status, 200, `first(${round.first}) 应 200`);
+      assert.equal(secondResponse.status, 200, `second(${round.second}) 应 200`);
+      const firstDto = ReadDTOSchema.parse((await json(firstResponse)).body);
+      const secondDto = ReadDTOSchema.parse((await json(secondResponse)).body);
+
+      // 先落库者看到自己的值，后落库者看到 MAX；两者都不得低于自己的请求、不得越过 lastSeq。
+      assert.ok(
+        firstDto.lastReadSeq >= round.first && firstDto.lastReadSeq <= lastSeq,
+        `first 响应越界: ${firstDto.lastReadSeq}`,
+      );
+      assert.ok(
+        secondDto.lastReadSeq >= round.second && secondDto.lastReadSeq <= lastSeq,
+        `second 响应越界: ${secondDto.lastReadSeq}`,
+      );
+      assert.equal(Math.max(firstDto.lastReadSeq, secondDto.lastReadSeq), round.expected, '后落库者必须看到 MAX');
+      assert.equal(await storedReadSeq(), round.expected, `落库最终必须取 MAX(${round.first}, ${round.second})`);
+    }
+
+    // 并发窗口结束后，迟到的旧低目标也不得把读位置拉回去。
+    const late = ReadDTOSchema.parse((await json(await postRead(conversationId, { lastReadSeq: 1 }, { cookie }))).body);
+    assert.equal(late.lastReadSeq, lastSeq, '旧响应不能倒退读位置');
+    assert.equal(await storedReadSeq(), lastSeq);
   });
 
   test('轮询只更新收件游标：多次 GET 不推进 read，read 之后 GET 也不重复写', async () => {
@@ -373,7 +477,7 @@ describe('M4-T2 访客 GET 同步与 read 单调推进', { concurrency: false, s
 
     const before = await db().chatConversation.findUniqueOrThrow({
       where: { id: conversationId },
-      select: { retainUntil: true, lastActivityAt: true, lastSeq: true, visitorReadSeq: true },
+      select: { retainUntil: true, lastActivityAt: true, lastSeq: true, visitorReadSeq: true, updatedAt: true },
     });
     await getSync(conversationId, { cookie: cookieOf(visitor), afterSeq: 0 });
     await postRead(conversationId, { lastReadSeq: 1 }, { cookie: cookieOf(visitor) });
@@ -381,10 +485,11 @@ describe('M4-T2 访客 GET 同步与 read 单调推进', { concurrency: false, s
 
     const after = await db().chatConversation.findUniqueOrThrow({
       where: { id: conversationId },
-      select: { retainUntil: true, lastActivityAt: true, lastSeq: true, visitorReadSeq: true },
+      select: { retainUntil: true, lastActivityAt: true, lastSeq: true, visitorReadSeq: true, updatedAt: true },
     });
     assert.equal(after.retainUntil.toISOString(), before.retainUntil.toISOString(), 'GET/read 不能延长保留期');
     assert.equal(after.lastActivityAt.toISOString(), before.lastActivityAt.toISOString(), 'GET/read 不能改最后活动时间');
+    assert.equal(after.updatedAt.toISOString(), before.updatedAt.toISOString(), 'read 只写 visitorReadSeq，不能改 updatedAt');
     assert.equal(after.lastSeq, before.lastSeq, 'GET/read 不改 lastSeq');
     assert.equal(after.visitorReadSeq, 1);
   });
@@ -429,7 +534,9 @@ describe('M4-T2 访客 GET 同步与 read 单调推进', { concurrency: false, s
     });
 
     const expired = await seedVisitor({ absoluteExpired: true });
-    const response = await json(await getSync(conversationId, { cookie: cookieOf(expired) }));
+    const raw = await getSync(conversationId, { cookie: cookieOf(expired) });
+    assert.match(raw.headers.get('set-cookie') ?? '', /Max-Age=0/, '过期 cookie 必须被清除');
+    const response = await json(raw);
     assert.equal(response.status, 401);
 
     const after = await db().chatMessage.findMany({
