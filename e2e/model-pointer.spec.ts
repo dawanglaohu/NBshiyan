@@ -356,13 +356,34 @@ test('hover pauses spin and a user pause survives hide and foreground', async ({
   const first = await openProducts(page);
   await expect(first).toHaveAttribute('data-spinning', '1');
   // 三处 paused/spinning 合并为一次真实快照 + poll：仍用全局 7s 重试窗，且要求同阶段同时满足（比逐条更强）。
-  const expectPaused = () =>
-    expect
-      .poll(
-        () => first.evaluate((el) => ({ paused: el.getAttribute('data-user-paused'), spinning: el.getAttribute('data-spinning') })),
-        { timeout: 7_000 },
-      )
-      .toEqual({ paused: '1', spinning: '0' });
+  // 读取改在同一页内直接取 `[data-testid="product-viewport"]` 首个节点，与 `getByTestId(...).first()` 同一元素
+  // （默认 data-testid、主文档、文档顺序）；4e trace 里 poll 首个动作仅 locator 解析就花 6,416 ms，
+  // 几乎吃满 7s 窗，故不再在窗内反复解析 locator。节点缺失返回 null（断言失败），无任何 fallback；
+  // 失败时只回放本次 poll 缓存到的快照与耗时，不另发一次 CDP 读取去掩盖原时点。
+  let lastPausedSnapshot: { paused: string | null; spinning: string | null } | null = null;
+  const expectPaused = async (stage: string) => {
+    const startedAt = Date.now();
+    try {
+      await expect
+        .poll(
+          async () => {
+            lastPausedSnapshot = await page.evaluate(() => {
+              const el = document.querySelectorAll('[data-testid="product-viewport"]')[0];
+              if (!el) return null;
+              return { paused: el.getAttribute('data-user-paused'), spinning: el.getAttribute('data-spinning') };
+            });
+            return lastPausedSnapshot;
+          },
+          { timeout: 7_000 },
+        )
+        .toEqual({ paused: '1', spinning: '0' });
+    } catch (error) {
+      console.log(
+        `[M5-T10][model345] stage=paused:${stage}:fail elapsed=${Date.now() - startedAt}ms snapshot=${JSON.stringify(lastPausedSnapshot)}`,
+      );
+      throw error;
+    }
+  };
   console.log('[M5-T10][model345] stage=moved:start');
   const moved = await first.evaluate(async (el) => {
     const start = el.getAttribute('data-azimuth');
@@ -429,14 +450,14 @@ test('hover pauses spin and a user pause survives hide and foreground', async ({
   const pauseButton = page.locator('article.card').first().getByTestId('model-pause-rotation');
   const pausePoint = await center(pauseButton);
   await page.mouse.click(pausePoint.x, pausePoint.y);
-  await expectPaused();
+  await expectPaused('after-pause-click');
 
   await page.mouse.move(8, 8);
   await page.mouse.wheel(0, 2400);
   await expect(first).not.toBeInViewport();
   await page.evaluate(() => window.scrollTo(0, 0));
   await expect(first).toBeInViewport();
-  await expectPaused();
+  await expectPaused('after-scroll-back');
 
   await page.evaluate(() => {
     Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'hidden' });
@@ -447,7 +468,7 @@ test('hover pauses spin and a user pause survives hide and foreground', async ({
     Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'visible' });
     document.dispatchEvent(new Event('visibilitychange'));
   });
-  await expectPaused();
+  await expectPaused('after-foreground');
   console.log('[M5-T10][model345] stage=still:start');
   const still = await first.evaluate(async (el) => {
     const start = el.getAttribute('data-azimuth');
