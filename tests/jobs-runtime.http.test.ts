@@ -316,8 +316,10 @@ describe('M5-T8 jobs runtime + cron operations route', { concurrency: false, ski
     // 不靠第 N 次 clock 调用——新增的 metadata 守卫会多读一次钟，不能让失效提前到守卫。
     let leaseExpired = false;
     // 精确 JobState 行锁的出现次序：第 1 次是主 RR 前置 readLockedGeneration，
-    // 第 2 次才是 complete 自己的 FOR UPDATE。按**事务结构阶段**推进，不是按 clock 采样次数。
+    // 第 2 次是主 RR 内 repo.complete；失败后 fail() 还会再开一笔写 FAILED（第 3 次），
+    // 所以只记“过期首次生效”的序号，不断言总次数。按事务结构阶段推进，不是按 clock 采样次数。
     let jobStateLocks = 0;
+    let expiredAtLock = 0;
     const leaseClock = () => new Date(NOW.getTime() + (leaseExpired ? 120_000 : 0));
     const observedDb = new Proxy(conn, {
       get(target, prop) {
@@ -334,7 +336,11 @@ describe('M5-T8 jobs runtime + cron operations route', { concurrency: false, ski
                       // complete 与主 RR 前置的 JobState 行锁 SQL 文本相同：按出现次序区分阶段。
                       if (strings.join('?').includes('SELECT "generation" FROM "JobState"')) {
                         jobStateLocks += 1;
-                        if (jobStateLocks >= 2) leaseExpired = true;
+                        // 只在第 2 次（主 RR 内 complete）首次生效；之后 fail() 的重试用同一过期时钟。
+                        if (jobStateLocks === 2 && !leaseExpired) {
+                          leaseExpired = true;
+                          expiredAtLock = jobStateLocks;
+                        }
                       }
                       return rows;
                     };
@@ -363,9 +369,9 @@ describe('M5-T8 jobs runtime + cron operations route', { concurrency: false, ski
     const state = await readJobState();
     assert.equal(state.lastStatus, 'RUNNING', '终态未落库：保持已领取的 RUNNING，等租约自然到期');
     assert.equal(state.leaseOwner, 'analytics-job-runtime', '不得假释放租约');
-    // 阶段证明：确实走到 complete 的 JobState 行锁，过期只在那之后置位。
-    assert.equal(jobStateLocks, 2, 'JobState 行锁必须恰好两次：主 RR 前置 readLockedGeneration + complete');
-    assert.equal(leaseExpired, true, '过期必须在 complete 行锁之后触发，不能提前到主 RR 前置');
+    // 阶段证明：过期必须首次生效在主 RR 内 complete 的那次行锁（第 2 次），不能提前到前置。
+    assert.equal(expiredAtLock, 2, '过期必须首次生效在第 2 次 JobState 行锁（主 RR 内 complete），不能是前置');
+    assert.ok(jobStateLocks >= 2, `必须真实到达 complete 行锁（实际 ${jobStateLocks} 次）`);
   });
 
   test('claim 成功后设置读取抛错：FAILED 在预算内落库，不写 watermark', async () => {
