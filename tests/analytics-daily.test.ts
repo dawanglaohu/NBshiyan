@@ -814,3 +814,54 @@ describe('M5-T12 B7 包装返回：unknown 必须穿过真实 wrapper/作业入�
     assert.equal(count(), 1);
   });
 });
+
+describe('M5-T12 未知提交不得被 retention 当成确认回滚', { concurrency: false }, () => {
+  test('abortsRetentionRun 覆盖 CommitUnknown：不得继续写 gap/删除', async () => {
+    const { abortsRetentionRun } = await import("../src/lib/server/analytics/retention");
+    assert.equal(abortsRetentionRun(new AggregateCommitUnknown('metrics', ['2026-03-01'])), true);
+    assert.equal(abortsRetentionRun(new AggregateCommitUnknown('metadata', ['2026-03-01'])), true);
+    assert.equal(abortsRetentionRun(new AggregateVersionConflict('write_conflict')), true);
+    assert.equal(abortsRetentionRun(new Error('ordinary aggregate failure')), false);
+  });
+});
+
+describe('M5-T12 主事务未知时，已确认提交的 metadata 必须保留', { concurrency: false }, () => {
+  test('metadata 成功提交、main 丢回执：返回 unknown 且 metadata 结果仍在', async () => {
+    let transactions = 0;
+    const query = async (arg: unknown, ...rest: unknown[]) => {
+      const { text } = sqlOf(arg, rest);
+      if (text.includes('JobState')) return [{ generation: 7, leaseOwner: 'analytics-aggregate', lockedUntil: LIVE_LEASE }];
+      if (text.includes('SiteSetting')) return [{ value: { version: 1, timezone: 'UTC', timezoneRevision: 3 } }];
+      if (text.includes('AnalyticsDayChange')) return [{ utcDate: OLD_DAY, version: '2' }];
+      if (text.includes('AnalyticsAggregateDayState')) return [{ ...planState }];
+      return [];
+    };
+    const execute = async () => 1;
+    const db = {
+      $transaction: async (fn: (tx: unknown) => Promise<unknown>) => {
+        transactions += 1;
+        const value = await fn({ $queryRaw: query, $executeRaw: execute, $executeRawUnsafe: async () => 0 });
+        if (transactions === 2) throw new Error('reply lost after commit');
+        return value;
+      },
+      $queryRaw: query,
+      $executeRaw: execute,
+    };
+    const result = await runDailyAggregateRound({
+      now: PHASE_NOW,
+      siteTimezone: 'UTC',
+      currentDate: '2026-03-02',
+      timezoneRevision: 3,
+      generation: 7,
+      leaseOwner: 'analytics-aggregate',
+      baseDates: [],
+      db: db as never,
+    } as never);
+    assert.equal(result.status, 'unknown');
+    assert.equal(result.committed, null);
+    assert.equal(result.commitUnknown?.phase, 'metrics');
+    assert.ok(result.metadata.length >= 1, '主事务未知不得抹掉已确认的 metadata 结果');
+    assert.ok(result.metadata.some((item) => item.localDate === OLD_DAY));
+    assert.equal(transactions, 2);
+  });
+});

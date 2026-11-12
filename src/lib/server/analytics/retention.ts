@@ -18,6 +18,7 @@ import {
 } from '../jobs/registry';
 import {
   AggregateBatchExceeded,
+  AggregateCommitUnknown,
   AggregateDeadlineExceeded,
   AggregateGuardFailure,
   AggregateVersionConflict,
@@ -251,7 +252,9 @@ function errorName(error: unknown): string {
  * 校验通过之后的普通聚合失败不在此列，仍按契约记 gap。
  */
 export function abortsRetentionRun(error: unknown): boolean {
-  return error instanceof AggregateVersionConflict || error instanceof AggregateGuardFailure;
+  return error instanceof AggregateVersionConflict
+    || error instanceof AggregateGuardFailure
+    || error instanceof AggregateCommitUnknown;
 }
 
 function errorCodeOf(error: unknown): AppErrorCode {
@@ -762,6 +765,15 @@ export async function runAnalyticsRetention(deps: {
     const status: JobResultStatus = report.coverage === 'complete' ? 'SUCCEEDED' : 'PARTIAL';
     return persistHere(status, status === 'SUCCEEDED' ? null : 'source_unavailable', report);
   } catch (error) {
+    // COMMIT 答复未知：既不能记 FAILED（假“确认回滚”），也不能记 gap 或继续删除。
+    // 不写任何终态，交给租约到期后的下一轮；可能已落库的内容以数据库自身状态为准。
+    if (error instanceof AggregateCommitUnknown) {
+      console.error('[cron] analytics retention commit_unknown', {
+        phase: error.phase,
+        targets: error.unknownTargets.length,
+      });
+      return { kind: 'timeout' };
+    }
     if (error instanceof RetentionRunTimeout) return { kind: 'timeout' };
     if (error instanceof AggregateDeadlineExceeded || isBudgetTimeoutError(error) || budgetExhausted(budget)) {
       return { kind: 'timeout' };

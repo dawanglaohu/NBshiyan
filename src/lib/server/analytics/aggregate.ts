@@ -1271,6 +1271,19 @@ export async function runDailyAggregateRound(deps: {
       result.commitUnknown = { phase: commitUnknown.phase, targets: [...commitUnknown.unknownTargets] };
       return result;
     }
+    // 回调已经返回、$transaction 才抛：COMMIT 答复未知（与作业路径同一判别）。
+    if (!(error instanceof AggregateCallbackFailure)
+      && !isPreCommitFailure(error)
+      && !isBudgetFailure(error)
+      && !(error instanceof AggregateDeadlineExceeded)) {
+      result.status = 'unknown';
+      result.committed = null;
+      result.commitUnknown = {
+        phase: 'metrics',
+        targets: unknownTargetsOf([...baseDates, ...result.targets], 'job_state'),
+      };
+      return result;
+    }
     const unwrapped = error instanceof AggregateCallbackFailure ? error.original : error;
     const haltError = unwrapped instanceof DailyRoundHalt ? unwrapped : null;
     const halted = haltOf(unwrapped, today, 0);
