@@ -1,5 +1,6 @@
 import { Prisma, type PrismaClient } from '@prisma/client';
 import { planSnapshot, type CoverageState } from '../../analytics/aggregate-plan';
+import { utcDatesCovered } from '../../analytics/daily-aggregate';
 import { siteDayUtcBounds, siteLocalDate } from '../../analytics/day-boundaries';
 import type { AppErrorCode } from '../../contracts/errors';
 import type { JobCountsDTO, JobResultStatus } from '../../contracts/ops';
@@ -17,6 +18,7 @@ import {
 } from '../jobs/registry';
 import {
   AggregateBatchExceeded,
+  AggregateCommitUnknown,
   AggregateDeadlineExceeded,
   AggregateGuardFailure,
   AggregateVersionConflict,
@@ -24,13 +26,24 @@ import {
   assertCurrentTimezoneRevision,
   runAggregateOnce,
 } from './aggregate';
+import { dailyExpiresAt, parseMarkerVersions } from './aggregate-day-state';
 import {
+  DAILY_RETENTION_MAX_PER_RUN,
+  DAILY_RETENTION_SCAN_LIMIT,
+  METADATA_RETENTION_MAX_PER_TABLE,
+  METADATA_RETENTION_MAX_TOTAL,
+  NEW_TABLE_RETENTION_BATCH,
   RETENTION_CLEANUP_BATCH_SIZE,
   RETENTION_CLEANUP_MAX_PER_RUN,
+  candidateCountLabels,
   createRetentionCandidateRepo,
+  dayChangeRetentionCutoff,
   eventExpiryCutoff,
+  metadataRetentionCaps,
   rawCoveragePlan,
   rollupExpiryCutoff,
+  stateRetentionFloor,
+  utcDateOf,
   type RetentionCandidateCounts,
 } from './retention-plan';
 import { ANALYTICS_ROLLUP_JOB_KEY, readAnalyticsSiteClock } from './rollup';
@@ -115,6 +128,14 @@ export type AnalyticsRetentionReport = {
   deletedEvents: number;
   deletedRollupDailyRows: number;
   deletedRollupDays: number;
+  /** M5-T12 新表：`AnalyticsDaily`（唯一清理者，`expiresAt<=now`，每轮 ≤1,000 行）。 */
+  deletedDailyRows: number;
+  /** `AnalyticsAggregateDayState`：13 月到期且无未到期 daily 行才删。 */
+  deletedDayStates: number;
+  /** `AnalyticsDayChange`：UTC 日严格早于 13 自然月＋2 天且无存续 state 引用才删。 */
+  deletedDayChanges: number;
+  /** 坏时区被定向保留的 state 行数（只诊断，不删）。 */
+  retainedBadTimezoneStates: number;
   batches: number;
   /** 本轮综合覆盖度：历史受影响日与近期聚合取最坏值。 */
   coverage: CoverageState;
@@ -234,7 +255,9 @@ function errorName(error: unknown): string {
  * 校验通过之后的普通聚合失败不在此列，仍按契约记 gap。
  */
 export function abortsRetentionRun(error: unknown): boolean {
-  return error instanceof AggregateVersionConflict || error instanceof AggregateGuardFailure;
+  return error instanceof AggregateVersionConflict
+    || error instanceof AggregateGuardFailure
+    || error instanceof AggregateCommitUnknown;
 }
 
 function errorCodeOf(error: unknown): AppErrorCode {
@@ -250,10 +273,14 @@ function emptyReport(decision: RetentionModeDecision, requestedDelete: boolean, 
     mode: decision.mode,
     requestedDelete,
     authorized,
-    candidates: { events: 0, rollupDailyRows: 0, rollupDays: 0, total: 0 },
+    candidates: { events: 0, rollupDailyRows: 0, rollupDays: 0, total: 0, daily: 0, dayState: 0, dayChange: 0, totalAll: 0 },
     deletedEvents: 0,
     deletedRollupDailyRows: 0,
     deletedRollupDays: 0,
+    deletedDailyRows: 0,
+    deletedDayStates: 0,
+    deletedDayChanges: 0,
+    retainedBadTimezoneStates: 0,
     batches: 0,
     coverage: 'unavailable',
     history: {
@@ -273,7 +300,8 @@ function emptyReport(decision: RetentionModeDecision, requestedDelete: boolean, 
 }
 
 function countsFor(report: AnalyticsRetentionReport): JobCountsDTO {
-  const deleted = report.deletedEvents + report.deletedRollupDailyRows + report.deletedRollupDays;
+  const deleted = report.deletedEvents + report.deletedRollupDailyRows + report.deletedRollupDays
+    + report.deletedDailyRows + report.deletedDayStates + report.deletedDayChanges;
   return {
     candidateCount: report.candidates.total,
     deletedCount: deleted,
@@ -399,6 +427,20 @@ export async function runAnalyticsRetention(deps: {
     if (counted.kind === 'budget') return { kind: 'timeout' };
     if (counted.kind === 'error') throw counted.error;
     report.candidates = counted.value;
+    // 候选计数进生产日志：分栏按预算口径，metadata 不并入四表上限；dry-run 也打，便于对账。
+    // 只含计数、常量与截止值，不含行内容或连接信息。
+    console.info('[cron] analytics retention candidates', {
+      ...candidateCountLabels(report.candidates),
+      mode: decision.mode,
+      fourTableBudgetLimit: maxPerRun,
+      dailyCap: DAILY_RETENTION_MAX_PER_RUN,
+      stateScanLimit: DAILY_RETENTION_SCAN_LIMIT,
+      metadataPerTableCap: METADATA_RETENTION_MAX_PER_TABLE,
+      metadataTotalCap: METADATA_RETENTION_MAX_TOTAL,
+      dailyCutoff: now.toISOString(),
+      stateFloor: stateRetentionFloor(currentDate),
+      dayChangeCutoff: dayChangeRetentionCutoff(utcDateOf(now)),
+    });
 
     // 4. 默认路径：dry-run 或未授权删除请求。都不写一行。
     if (decision.mode === 'dry-run') {
@@ -542,8 +584,11 @@ export async function runAnalyticsRetention(deps: {
       if (!Number.isInteger(removed) || removed < 0 || removed > slice.length) {
         throw new Error('retention_batch_invalid');
       }
-      report.deletedEvents += removed;
-      report.batches += 1;
+      // 与 drain 同口径：只有真正删到行的已提交批次才计批次与行数；0 行说明候选已被别处删掉。
+      if (removed > 0) {
+        report.deletedEvents += removed;
+        report.batches += 1;
+      }
     }
 
     const remainingAfterEvents = maxPerRun - report.deletedEvents;
@@ -581,6 +626,146 @@ export async function runAnalyticsRetention(deps: {
       });
     }
 
+    // 6b. M5-T12 新三表。04:30 这条链是 `AnalyticsDaily` 的唯一清理者：
+    //     行内时区 13 个自然月、`expiresAt <= now`（等号到期）、每轮至多 1,000 行；
+    //     四表合计仍受 maxPerRun 约束。先删 daily，再删 state，最后删 marker
+    //     （marker 要按**仍存续**的 state 计算保留集）。
+    const deletedTotal = () => report.deletedEvents + report.deletedRollupDailyRows + report.deletedRollupDays
+      + report.deletedDailyRows + report.deletedDayStates + report.deletedDayChanges;
+
+    const dailyCap = Math.min(DAILY_RETENTION_MAX_PER_RUN, Math.max(0, maxPerRun - deletedTotal()));
+    if (dailyCap > 0) {
+      await drain(dailyCap, (limit) => runBatch((tx) => tx.$executeRaw(Prisma.sql`
+        DELETE FROM "AnalyticsDaily" AS target
+        USING (
+          SELECT "localDate", "timezoneRevision", "dimension"
+          FROM "AnalyticsDaily"
+          WHERE "expiresAt" <= ${utc(now)}
+          ORDER BY "expiresAt" ASC, "localDate" ASC, "timezoneRevision" ASC, "dimension" ASC
+          LIMIT ${limit}
+        ) AS picked
+        WHERE target."localDate" = picked."localDate"
+          AND target."timezoneRevision" = picked."timezoneRevision"
+          AND target."dimension" = picked."dimension"
+          AND target."expiresAt" <= ${utc(now)}
+      `)), (count) => {
+        report.deletedDailyRows += count;
+      });
+    }
+
+    // 6c. day-state：日期预筛后按**行内时区**正推到期；坏时区只诊断、定向保留；
+    //     仍有未到期 AnalyticsDaily 行（同 localDate+revision）的一律不删。
+    const stateCap = metadataRetentionCaps(0).stateCap;
+    if (stateCap > 0) {
+      const floor = stateRetentionFloor(currentDate);
+      const candidatesRead = await runWithinBudget(deps.db, budget, (tx) =>
+        tx.$queryRaw<{ localDate: string; timezoneRevision: number; timezone: string }[]>(Prisma.sql`
+          SELECT "localDate", "timezoneRevision", "timezone"
+          FROM "AnalyticsAggregateDayState"
+          WHERE "localDate" < ${floor}
+          ORDER BY "localDate" ASC, "timezoneRevision" ASC
+          LIMIT ${DAILY_RETENTION_SCAN_LIMIT}
+        `));
+      if (candidatesRead.kind === 'budget') return { kind: 'timeout' };
+      if (candidatesRead.kind === 'error') throw candidatesRead.error;
+
+      const expired: Array<{ localDate: string; timezoneRevision: number }> = [];
+      for (const row of candidatesRead.value) {
+        if (expired.length >= stateCap) break;
+        try {
+          if (dailyExpiresAt(row.localDate, row.timezone).getTime() > now.getTime()) continue;
+        } catch {
+          report.retainedBadTimezoneStates += 1;
+          continue;
+        }
+        expired.push({ localDate: row.localDate, timezoneRevision: Number(row.timezoneRevision) });
+      }
+
+      if (expired.length > 0) {
+        const pairs = expired.map((row) => Prisma.sql`(${row.localDate}, ${row.timezoneRevision})`);
+        const unexpiredRead = await runWithinBudget(deps.db, budget, (tx) =>
+          tx.$queryRaw<{ localDate: string; timezoneRevision: number }[]>(Prisma.sql`
+            SELECT DISTINCT "localDate", "timezoneRevision"
+            FROM "AnalyticsDaily"
+            WHERE "expiresAt" > ${utc(now)}
+              AND ("localDate", "timezoneRevision") IN (${Prisma.join(pairs)})
+          `));
+        if (unexpiredRead.kind === 'budget') return { kind: 'timeout' };
+        if (unexpiredRead.kind === 'error') throw unexpiredRead.error;
+        const blocked = new Set(unexpiredRead.value.map((row) => `${row.localDate}|${Number(row.timezoneRevision)}`));
+        const deletable = expired.filter((row) => !blocked.has(`${row.localDate}|${row.timezoneRevision}`));
+
+        for (let offset = 0; offset < deletable.length; offset += NEW_TABLE_RETENTION_BATCH) {
+          const slice = deletable.slice(offset, offset + NEW_TABLE_RETENTION_BATCH);
+          const removing = slice.map((row) => Prisma.sql`(${row.localDate}, ${row.timezoneRevision})`);
+          const removed = await runBatch((tx) => tx.$executeRaw(Prisma.sql`
+            DELETE FROM "AnalyticsAggregateDayState"
+            WHERE ("localDate", "timezoneRevision") IN (${Prisma.join(removing)})
+          `));
+          if (!Number.isInteger(removed) || removed < 0 || removed > slice.length) {
+            throw new Error('retention_batch_invalid');
+          }
+          // 与 drain 同一口径：只有真正删到行的已提交批次才计批次与行数；
+          // 0 行说明这批候选已被别处删掉，不当成一次确认删除。
+          if (removed > 0) {
+            report.deletedDayStates += removed;
+            report.batches += 1;
+          }
+        }
+      }
+    }
+
+    // 6d. marker：UTC 日严格早于「UTC 今日 − 13 自然月 − 2 天」；保留仍存续 state
+    //     覆盖的 UTC 日与 markerVersions 键。state 行读不全（超上限/坏时区）时整步跳过，
+    //     宁可不删也不误删仍被引用的 marker。
+    const markerCap = metadataRetentionCaps(report.deletedDayStates).markerCap;
+    if (markerCap > 0) {
+      const survivingRead = await runWithinBudget(deps.db, budget, (tx) =>
+        tx.$queryRaw<{ localDate: string; timezone: string; markerVersions: unknown }[]>(Prisma.sql`
+          SELECT "localDate", "timezone", "markerVersions"
+          FROM "AnalyticsAggregateDayState"
+          ORDER BY "localDate" ASC, "timezoneRevision" ASC
+          LIMIT ${DAILY_RETENTION_SCAN_LIMIT + 1}
+        `));
+      if (survivingRead.kind === 'budget') return { kind: 'timeout' };
+      if (survivingRead.kind === 'error') throw survivingRead.error;
+      const complete = survivingRead.value.length <= DAILY_RETENTION_SCAN_LIMIT;
+      const keepMarkers = new Set<string>();
+      let badTimezone = !complete;
+      if (complete) {
+        for (const row of survivingRead.value) {
+          for (const key of Object.keys(parseMarkerVersions(row.markerVersions))) keepMarkers.add(key);
+          try {
+            const bounds = siteDayUtcBounds(row.localDate, row.timezone);
+            for (const utcDate of utcDatesCovered(bounds)) keepMarkers.add(utcDate);
+          } catch {
+            badTimezone = true;
+            break;
+          }
+        }
+      }
+      if (badTimezone) {
+        report.retainedBadTimezoneStates += 1;
+      } else {
+        const cutoff = dayChangeRetentionCutoff(utcDateOf(now));
+        const keep = [...keepMarkers].sort();
+        const keepSql = keep.length === 0
+          ? Prisma.empty
+          : Prisma.sql`AND "utcDate" NOT IN (${Prisma.join(keep)})`;
+        await drain(markerCap, (limit) => runBatch((tx) => tx.$executeRaw(Prisma.sql`
+          DELETE FROM "AnalyticsDayChange"
+          WHERE "utcDate" IN (
+            SELECT "utcDate" FROM "AnalyticsDayChange"
+            WHERE "utcDate" < ${cutoff} ${keepSql}
+            ORDER BY "utcDate" ASC
+            LIMIT ${limit}
+          )
+        `)), (count) => {
+          report.deletedDayChanges += count;
+        });
+      }
+    }
+
     // 7. 清理后调用既有聚合服务：只重算 dayStart >= 完整原始覆盖起点的日，
     //    超范围的日子留在旧聚合里，用 coverage=partial/unavailable 上报。
     const aggregate = await runAggregateOnce({
@@ -590,6 +775,8 @@ export async function runAnalyticsRetention(deps: {
       currentDate,
       timezoneRevision: claim.timezoneRevision,
       generation: claim.generation,
+      // 与本次 claim/complete 同一时钟引用：日轮若在此路径启用，提交点用同一时间基准判租约。
+      clock,
       deadlineAt: budget.deadlineAt,
       occurredNotAfter: now,
       maxBatchDays: JOB_MAX_BATCH,
@@ -604,6 +791,16 @@ export async function runAnalyticsRetention(deps: {
     const status: JobResultStatus = report.coverage === 'complete' ? 'SUCCEEDED' : 'PARTIAL';
     return persistHere(status, status === 'SUCCEEDED' ? null : 'source_unavailable', report);
   } catch (error) {
+    // COMMIT 答复未知：既不能记 FAILED（假“确认回滚”），也不能记 gap 或继续删除。
+    // 不写任何终态，交给租约到期后的下一轮；可能已落库的内容以数据库自身状态为准。
+    if (error instanceof AggregateCommitUnknown) {
+      // 终态没有写进数据库（不是已证预算耗尽，也不能宣“未写/必回滚”）：交回 lease 到期后重试。
+      console.error('[cron] analytics retention commit_unknown', {
+        phase: error.phase,
+        targets: error.unknownTargets.length,
+      });
+      return { kind: 'finish_failed', report };
+    }
     if (error instanceof RetentionRunTimeout) return { kind: 'timeout' };
     if (error instanceof AggregateDeadlineExceeded || isBudgetTimeoutError(error) || budgetExhausted(budget)) {
       return { kind: 'timeout' };

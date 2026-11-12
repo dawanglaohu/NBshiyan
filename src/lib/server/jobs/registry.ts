@@ -3,9 +3,19 @@ import { NextResponse } from 'next/server';
 import type { JobCountsDTO, JobKey, JobResultStatus } from '../../contracts/ops';
 import { OperationsRequestSchema } from '../../contracts/ops';
 import type { AppErrorCode } from '../../contracts/errors';
+import { lateArrivalSiteDates } from '../../analytics/aggregate-plan';
 import { siteLocalDate } from '../../analytics/day-boundaries';
 import { secretMatches } from '../uploads';
-import { AggregateBatchExceeded, AggregateDeadlineExceeded, AggregateVersionConflict, runAggregateOnce } from '../analytics/aggregate';
+import {
+  AggregateBatchExceeded,
+  AggregateCommitUnknown,
+  AggregateDeadlineExceeded,
+  AggregateVersionConflict,
+  DailyRoundHalt,
+  runAggregateOnce,
+  writeDailyCoverageMetadata,
+  writeDailyGap,
+} from '../analytics/aggregate';
 import {
   classifyRecomputeBacklog,
   parseAnalyticsSettingsValue,
@@ -302,11 +312,20 @@ export function createAnalyticsAggregateJob(deps: {
           currentDate,
           timezoneRevision: claim.timezoneRevision,
           generation: claim.generation,
+          // 与 claim/renew/complete 同一个时钟引用：日轮提交点用同一时间基准判租约过期。
+          clock,
           deadlineAt: budget.deadlineAt,
           // 只计已发生的事实：准入窗口内 occurredAt 最多领先 now+5min 的未来事件，
           // 到其 occurredAt 前不得提前计入（E-60）。
           occurredNotAfter: now,
           maxBatchDays: JOB_MAX_BATCH,
+          // M5-T12：同一 RR 事务内跑无身份日轮；与旧链共享 500 上限与同一个 55s 预算。
+          daily: {
+            baseDates: [...lateArrivalSiteDates(now, settings.timezone), currentDate],
+            leaseOwner: ANALYTICS_AGGREGATE_OWNER,
+            notAfter: now,
+            maxDays: JOB_MAX_BATCH,
+          },
           ...(rebuildFrom !== undefined ? { rebuildFrom } : {}),
           commit: async (tx, summary) => {
             if (budgetExhausted(budget)) throw new AggregateDeadlineExceeded();
@@ -341,6 +360,100 @@ export function createAnalyticsAggregateJob(deps: {
         const written = result.days.filter((day) => day.written).length;
         return { kind: 'ran', status: 'SUCCEEDED', counts: { candidateCount: written } };
       } catch (error) {
+        // B7 COMMIT 答复未知：既不能声称整笔回滚，也不能写补偿 gap、重跑旧链或晚写假 FAILED/0 行。
+        // 不结算 JobState，租约到期后由下一次调度接管；可能已落库的内容以数据库自身状态为准。
+        if (error instanceof AggregateCommitUnknown) {
+          console.error('[cron] analytics.commit_unknown', {
+            phase: error.phase,
+            targets: error.unknownTargets.length,
+          });
+          // 「终态没有写进数据库」，不是已证预算耗尽：走既有的 finish_failed 语义，
+          // 不写 JobState、不补 gap、不宣未写或必回滚。
+          return { kind: 'finish_failed' };
+        }
+        // guard/budget 在日轮事务内抛出 → 整笔回滚（含旧链）；这里只落 PARTIAL，不宣 SUCCEEDED。
+        if (error instanceof DailyRoundHalt && error.halt.kind === 'coverage') {
+          // 闭包日不可重算：指标整笔已回滚（不宣 SUCCEEDED）。用该次 plan 的原 expected 在剩余
+          // 预算内独立 CAS 补 coverage 元数据，然后诚实 PARTIAL；下一轮该日已是 raw_partial，不再重入。
+          if (!budgetExhausted(budget)) {
+            try {
+              const writes = await writeDailyCoverageMetadata(deps.db, {
+                entries: error.coveragePending,
+                timezone: settings.timezone,
+                revision: claim.timezoneRevision,
+                now,
+                cutoff: now,
+                notAfter: now,
+                generation: claim.generation,
+                leaseOwner: ANALYTICS_AGGREGATE_OWNER,
+                leaseClock: clock,
+                deadlineAt: budget.deadlineAt,
+              });
+              console.error('[cron] analytics.daily_coverage', {
+                days: error.halt.days.length,
+                written: writes.length,
+              });
+            } catch (coverageError) {
+              console.error('[cron] analytics.daily_coverage_failed', {
+                reason: coverageError instanceof Error ? coverageError.name : 'unknown',
+              });
+            }
+          }
+          const persisted = await runWithinBudget(deps.db, budget, (tx) => repo.complete({
+            key: ANALYTICS_AGGREGATE_KEY,
+            owner: ANALYTICS_AGGREGATE_OWNER,
+            generation: claim.generation,
+            status: 'PARTIAL',
+            summary: {
+              counts: { candidateCount: 0 },
+              times: { aggregatedAt: now.toISOString() },
+              versions: { timezoneRevision: claim.timezoneRevision },
+            },
+            errorCode: null,
+            timezoneRevision: claim.timezoneRevision,
+          }, tx));
+          if (persisted.kind !== 'ok') return { kind: 'timeout' };
+          return { kind: 'ran', status: 'PARTIAL', counts: { candidateCount: 0 } };
+        }
+        if (error instanceof DailyRoundHalt) {
+          const status: JobResultStatus = 'PARTIAL';
+          // 与独立 wrapper 一致：先按**原 plan expected** 落 gap（租约仍在本次手里、complete 之前），
+          // 再结算 PARTIAL。预算耗尽不新开 CAS 事务；CAS 0 行不重读强写、也不假报已落地。
+          if (!budgetExhausted(budget)) {
+            const gapWrite = await writeDailyGap(deps.db, {
+              halt: error.halt,
+              timezone: settings.timezone,
+              revision: claim.timezoneRevision,
+              now,
+              cutoff: now,
+              notAfter: now,
+              generation: claim.generation,
+              leaseOwner: ANALYTICS_AGGREGATE_OWNER,
+              leaseClock: clock,
+              expected: error.planExpected,
+            });
+            console.error('[cron] analytics.daily_gap', {
+              localDate: error.halt.localDate,
+              kind: error.halt.kind,
+              write: gapWrite,
+            });
+          }
+          const persisted = await runWithinBudget(deps.db, budget, (tx) => repo.complete({
+            key: ANALYTICS_AGGREGATE_KEY,
+            owner: ANALYTICS_AGGREGATE_OWNER,
+            generation: claim.generation,
+            status,
+            summary: {
+              counts: { candidateCount: 0 },
+              times: { aggregatedAt: now.toISOString() },
+              versions: { timezoneRevision: claim.timezoneRevision },
+            },
+            errorCode: error.halt.kind === 'guard' ? 'internal_error' : 'source_unavailable',
+            timezoneRevision: claim.timezoneRevision,
+          }, tx));
+          if (persisted.kind !== 'ok') return { kind: 'timeout' };
+          return { kind: 'ran', status, counts: { candidateCount: 0 } };
+        }
         // 预算耗尽（含事务/语句/锁等待超时）：不新开失败写事务，也不晚写 JobState；
         // 保留原成功水位，租约到期后由下一次调度接管。
         if (error instanceof AggregateDeadlineExceeded || isBudgetTimeoutError(error) || budgetExhausted(budget)) {

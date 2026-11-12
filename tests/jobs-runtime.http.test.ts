@@ -47,6 +47,26 @@ function requireDb(): PrismaClient {
   return db;
 }
 
+/**
+ * Prisma 的 `$executeRaw`/`$queryRaw` 有两种合法调用形态：标签模板与真实 `Prisma.sql`。
+ * 观测器只按 SQL 文本匹配，必须先把参数归一；否则遇到 `Prisma.sql` 形态会在 `await` 之后
+ * 因 `strings.join` 不存在而抛 TypeError，把被测路径的中止点提前、污染观测。
+ *
+ * 两种合法形态之外一律 **loud fail**：静默返回空串会漏记 CAS 并掩盖调用形态变化。
+ */
+function rawSqlText(arg: unknown): string {
+  if (Array.isArray(arg)) {
+    // 标签模板：join 占位符即可得到可匹配文本。
+    return (arg as readonly string[]).join('?');
+  }
+  if (arg !== null && typeof arg === 'object' && typeof (arg as { text?: unknown }).text === 'string') {
+    // 真实 Prisma.Sql：provider 已生成带占位符的安全文本，直接取用。
+    return (arg as { text: string }).text;
+  }
+  throw new TypeError(`rawSqlText: 不支持的 raw SQL 参数形态（${arg === null ? 'null' : typeof arg}）`);
+}
+
+
 function post(body: unknown, authorization: string | null = `Bearer ${SECRET}`) {
   const headers: Record<string, string> = { 'content-type': 'application/json' };
   if (authorization !== null) headers.authorization = authorization;
@@ -312,12 +332,52 @@ describe('M5-T8 jobs runtime + cron operations route', { concurrency: false, ski
         ${`${day}T02:00:00.000Z`}::timestamptz AT TIME ZONE 'UTC'
       )
     `;
-    // 前两次取时（claim）用基准时刻，之后每次（complete）跳 120s，使租约在提交事务内已过期。
-    let calls = 0;
-    const base = NOW.getTime();
-    const advancing = () => new Date(base + (calls++ >= 2 ? 120_000 : 0));
+    // 租约时钟按**阶段**推进：complete 的 JobState 行锁读到后才过期（仍在提交事务内），
+    // 不靠第 N 次 clock 调用——新增的 metadata 守卫会多读一次钟，不能让失效提前到守卫。
+    let leaseExpired = false;
+    // 精确 JobState 行锁的出现次序：第 1 次是主 RR 前置 readLockedGeneration，
+    // 第 2 次是主 RR 内 repo.complete；失败后 fail() 还会再开一笔写 FAILED（第 3 次），
+    // 所以只记“过期首次生效”的序号，不断言总次数。按事务结构阶段推进，不是按 clock 采样次数。
+    let jobStateLocks = 0;
+    let expiredAtLock = 0;
+    const leaseClock = () => new Date(NOW.getTime() + (leaseExpired ? 120_000 : 0));
+    const observedDb = new Proxy(conn, {
+      get(target, prop) {
+        if (prop === '$transaction') {
+          return (fn: (tx: Prisma.TransactionClient) => Promise<unknown>, options?: { maxWait?: number; timeout?: number }) =>
+            target.$transaction((tx) => {
+              const wrapped = new Proxy(tx, {
+                get(txTarget, txProp) {
+                  const value = Reflect.get(txTarget, txProp, txTarget) as unknown;
+                  if (typeof value !== 'function') return value;
+                  if (txProp === '$queryRaw') {
+                    return async (arg: unknown, ...rest: unknown[]) => {
+                      const rows = await (value as (...args: unknown[]) => Promise<unknown>).call(txTarget, arg, ...rest);
+                      // complete 与主 RR 前置的 JobState 行锁 SQL 文本相同：按出现次序区分阶段。
+                      // 真实 caller 有模板与 Prisma.sql 两种形态，统一归一后再匹配。
+                      if (rawSqlText(arg).includes('SELECT "generation" FROM "JobState"')) {
+                        jobStateLocks += 1;
+                        // 只在第 2 次（主 RR 内 complete）首次生效；之后 fail() 的重试用同一过期时钟。
+                        if (jobStateLocks === 2 && !leaseExpired) {
+                          leaseExpired = true;
+                          expiredAtLock = jobStateLocks;
+                        }
+                      }
+                      return rows;
+                    };
+                  }
+                  return (value as (...args: unknown[]) => unknown).bind(txTarget);
+                },
+              });
+              return fn(wrapped as Prisma.TransactionClient);
+            }, options);
+        }
+        const value = Reflect.get(target, prop, target) as unknown;
+        return typeof value === 'function' ? (value as (...args: unknown[]) => unknown).bind(target) : value;
+      },
+    }) as PrismaClient;
     const res = await createOperationsHandler({
-      services: createJobServices({ db: conn, clock: advancing }).jobs,
+      services: createJobServices({ db: observedDb, clock: leaseClock }).jobs,
       clock: () => new Date(NOW),
       secret: SECRET,
     })(post({ jobKey: 'analytics-aggregate' }));
@@ -330,6 +390,9 @@ describe('M5-T8 jobs runtime + cron operations route', { concurrency: false, ski
     const state = await readJobState();
     assert.equal(state.lastStatus, 'RUNNING', '终态未落库：保持已领取的 RUNNING，等租约自然到期');
     assert.equal(state.leaseOwner, 'analytics-job-runtime', '不得假释放租约');
+    // 阶段证明：过期必须首次生效在主 RR 内 complete 的那次行锁（第 2 次），不能提前到前置。
+    assert.equal(expiredAtLock, 2, '过期必须首次生效在第 2 次 JobState 行锁（主 RR 内 complete），不能是前置');
+    assert.ok(jobStateLocks >= 2, `必须真实到达 complete 行锁（实际 ${jobStateLocks} 次）`);
   });
 
   test('claim 成功后设置读取抛错：FAILED 在预算内落库，不写 watermark', async () => {
@@ -678,26 +741,73 @@ describe('M5-T4 pending 分类与完整值 CAS 消费', { concurrency: false, sk
 
     // 记录事务内 CAS DELETE 实际执行与命中行数；不改 Prisma 行为，只在测试注入的客户端上旁路观测。
     const casDeletes: number[] = [];
+    // ---- 诊断（仅测试）：观察首个 callback 异常的安全字段，原样重抛，不改变控制流 ----
+    const VERSION_CONFLICT_REASONS = new Set(['stale_generation', 'stale_timezone_revision', 'watermark_regression', 'write_conflict']);
+    type SafeError = { name: string; message: string; code?: string; original?: { name: string; message: string; code?: string } };
+    let firstError: SafeError | 'none' | 'read_failed' = 'none';
+    let transactions = 0;
+    const safeCode = (value: unknown): string | undefined =>
+      typeof value === 'string' && /^(P\d{4}|\d{5})$/.test(value) ? value : undefined;
+    const describeError = (error: unknown): SafeError | null => {
+      if (error === null || typeof error !== 'object') return null;
+      const record = error as { name?: unknown; message?: unknown; code?: unknown; original?: unknown };
+      const name = typeof record.name === 'string' ? record.name : 'unknown';
+      const raw = typeof record.message === 'string' ? record.message : '';
+      // 只保留稳定枚举 reason；其它 Error.message 一律脱敏（可能含 SQL/参数/连接信息）。
+      const message = name === 'AggregateVersionConflict' && VERSION_CONFLICT_REASONS.has(raw) ? raw : '<redacted>';
+      const code = safeCode(record.code);
+      const inner = record.original === undefined || record.original === null ? null : describeError(record.original);
+      return {
+        name,
+        message,
+        ...(code !== undefined ? { code } : {}),
+        ...(inner !== null
+          ? { original: { name: inner.name, message: inner.message, ...(inner.code !== undefined ? { code: inner.code } : {}) } }
+          : {}),
+      };
+    };
+    const recordFirstError = (error: unknown): void => {
+      if (firstError !== 'none') return;
+      try {
+        firstError = describeError(error) ?? 'read_failed';
+      } catch {
+        firstError = 'read_failed';
+      }
+    };
+    // 租约时钟按**阶段**推进，不按 clock 调用次数：CAS DELETE 命中后才跳到 BASE+120s。
+    let leaseExpired = false;
     const observedDb = new Proxy(conn, {
       get(target, prop) {
         if (prop === '$transaction') {
           return (fn: (tx: Prisma.TransactionClient) => Promise<unknown>, options?: { maxWait?: number; timeout?: number }) =>
-            target.$transaction((tx) => {
+            target.$transaction(async (tx) => {
+              transactions += 1;
               const wrapped = new Proxy(tx, {
                 get(txTarget, txProp) {
                   const value = Reflect.get(txTarget, txProp, txTarget) as unknown;
                   if (typeof value !== 'function') return value;
                   if (txProp === '$executeRaw') {
-                    return async (strings: TemplateStringsArray, ...values: unknown[]) => {
-                      const removed = await (value as (...args: unknown[]) => Promise<number>).call(txTarget, strings, ...values);
-                      if (strings.join('?').includes('DELETE FROM "SiteSetting"')) casDeletes.push(Number(removed));
+                    return async (arg: unknown, ...rest: unknown[]) => {
+                      const removed = await (value as (...args: unknown[]) => Promise<number>).call(txTarget, arg, ...rest);
+                      // 真实 caller 有模板与 Prisma.sql 两种形态，统一归一后再匹配目标 DELETE。
+                      if (rawSqlText(arg).includes('DELETE FROM "SiteSetting"')) {
+                        casDeletes.push(Number(removed));
+                        // CAS DELETE 已真实执行：此刻才让租约过期，失效点落在其后的 repo.complete。
+                        leaseExpired = true;
+                      }
                       return removed;
                     };
                   }
                   return (value as (...args: unknown[]) => unknown).bind(txTarget);
                 },
               });
-              return fn(wrapped as Prisma.TransactionClient);
+              try {
+                return await fn(wrapped as Prisma.TransactionClient);
+              } catch (error) {
+                // 只记录首个异常的安全字段，然后**同一对象**重抛：不吞、不转换、不重试。
+                recordFirstError(error);
+                throw error;
+              }
             }, options);
         }
         const value = Reflect.get(target, prop, target) as unknown;
@@ -705,17 +815,33 @@ describe('M5-T4 pending 分类与完整值 CAS 消费', { concurrency: false, sk
       },
     }) as PrismaClient;
 
-    // 前两次取时（claim）用基准时刻，之后（CAS 后的 complete）跳 120s，使租约在提交事务内过期。
-    let calls = 0;
     const base = BASE.getTime();
-    const advancing = () => new Date(base + (calls++ >= 2 ? 120_000 : 0));
-    const outcome = await createAnalyticsAggregateJob({ db: observedDb, clock: advancing }).run({
+    const leaseClock = () => new Date(base + (leaseExpired ? 120_000 : 0));
+    const outcome = await createAnalyticsAggregateJob({ db: observedDb, clock: leaseClock }).run({
       now: new Date(BASE),
       deadlineAt: new Date(Date.now() + 30_000),
       signal: new AbortController().signal,
     });
     assert.notEqual(outcome.kind === 'ran' ? outcome.status : 'RUNNING', 'SUCCEEDED');
-    assert.deepEqual(casDeletes, [1], 'CAS DELETE 必须在提交失败前执行并命中完整待办');
+    // 诊断只用于定位中止阶段：读取失败记 read_failed，不跳过、不降级原 CAS 断言。
+    let diagnostics: string;
+    try {
+      const state = await jobState();
+      const safeOutcome = outcome.kind === 'ran'
+        ? { kind: outcome.kind, status: outcome.status, counts: outcome.counts }
+        : { kind: outcome.kind };
+      diagnostics = JSON.stringify({
+        outcome: safeOutcome,
+        lastStatus: state.lastStatus,
+        lastErrorCode: state.lastErrorCode,
+        firstError,
+        transactions,
+        casDeletes,
+      });
+    } catch {
+      diagnostics = '{"read_failed":true}';
+    }
+    assert.deepEqual(casDeletes, [1], `CAS DELETE 必须在提交失败前执行并命中完整待办；诊断=${diagnostics}`);
     assert.equal(await readBacklog(), originalBacklog, '失败回滚后完整六字段待办必须原样保留');
     assert.equal(await rollupCount(), 0, '聚合水位不得留下');
     const daily = await conn.$queryRaw<{ c: bigint }[]>`SELECT COUNT(*)::bigint AS c FROM "AnalyticsDailyRollup"`;

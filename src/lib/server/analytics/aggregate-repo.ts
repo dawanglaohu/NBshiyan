@@ -186,3 +186,205 @@ export async function runInRepeatableReadSnapshot<T>(
     timeout,
   });
 }
+
+/* ------------------------------------------------------------------------- *
+ * M5-T12 日聚合读取面（Q1–Q5）
+ *
+ * 语义取自 r5r3 设计 §4 与模型 `q1`–`q5`：
+ * - 同一 RR 快照、同一 `cutoff`；`receivedAt` 必须落在 `(eventCutoff, cutoff]`。
+ * - 冒烟谓词在 SQL 与应用层同一条：整条路径或以 `/` 分隔的任一段以 `nbs-smoke-` 开头。
+ * - Q1 只按站点日界读当日事实；Q3 终态**不按自身发生日过滤**（归 start 日）；
+ *   Q2/Q5 只投 occurredAt / receivedAt，不返回事件正文。
+ * ------------------------------------------------------------------------- */
+
+/** 与 `isSmokePath` 同一条规则的 SQL 形态；NULL 路径放行。 */
+export const NOT_SMOKE_SQL = Prisma.sql`( "path" IS NULL OR (
+  split_part(split_part("path", '?', 1), '#', 1) NOT LIKE 'nbs-smoke-%'
+  AND split_part(split_part("path", '?', 1), '#', 1) NOT LIKE '%/nbs-smoke-%'
+) )`;
+
+const DAILY_KINDS_SQL = Prisma.sql`'page_view'::"AnalyticsEventKind", 'product_view'::"AnalyticsEventKind",
+  'model_view_start'::"AnalyticsEventKind", 'model_load_success'::"AnalyticsEventKind",
+  'model_load_failure'::"AnalyticsEventKind", 'chat_start'::"AnalyticsEventKind"`;
+
+const FACT_COLUMNS = Prisma.sql`
+  "eventId",
+  "kind"::text AS "kind",
+  "browserHash",
+  "viewId",
+  to_char("occurredAt", ${ISO_FORMAT}) AS "occurredAt",
+  to_char("receivedAt", ${ISO_FORMAT}) AS "receivedAt",
+  "durationMs",
+  "locale",
+  "productSlug",
+  "path"
+`;
+
+/** 读回行：时间为 ISO 字符串，统一由 `mapFact` 转 Date。 */
+export type DailyFactRow = {
+  eventId: string;
+  kind: string;
+  browserHash: string;
+  viewId: string | null;
+  occurredAt: string;
+  receivedAt: string;
+  durationMs: number | null;
+  locale: string | null;
+  productSlug: string | null;
+  path: string | null;
+};
+
+export type DailyFact = Omit<DailyFactRow, 'occurredAt' | 'receivedAt'> & {
+  occurredAt: Date;
+  receivedAt: Date;
+};
+
+function mapFact(row: DailyFactRow): DailyFact {
+  return {
+    eventId: row.eventId,
+    kind: row.kind,
+    browserHash: row.browserHash,
+    viewId: row.viewId,
+    occurredAt: new Date(row.occurredAt),
+    receivedAt: new Date(row.receivedAt),
+    durationMs: row.durationMs,
+    locale: row.locale,
+    productSlug: row.productSlug,
+    path: row.path,
+  };
+}
+
+/** Q1：站点日内、`(eventCutoff, cutoff]` 可见、非冒烟的事实（含终态；纯函数再按 notAfter 分区）。 */
+export async function loadDailyDayFacts(
+  db: Query,
+  bounds: SiteDayBounds,
+  options: { cutoff: Date; eventCutoff: Date },
+): Promise<DailyFact[]> {
+  const rows = await db.$queryRaw<DailyFactRow[]>`
+    SELECT ${FACT_COLUMNS}
+    FROM "AnalyticsEvent"
+    WHERE "occurredAt" >= ${utc(new Date(bounds.startUtc))}
+      AND "occurredAt" < ${utc(new Date(bounds.endUtc))}
+      AND "receivedAt" > ${utc(options.eventCutoff)}
+      AND "receivedAt" <= ${utc(options.cutoff)}
+      AND "kind" IN (${DAILY_KINDS_SQL})
+      AND ${NOT_SMOKE_SQL}
+    ORDER BY "occurredAt" ASC, "eventId" ASC
+  `;
+  return rows.map(mapFact);
+}
+
+/** Q2：终态 → start 的归属查询；同键取 occurredAt 最早（同刻按 eventId 稳定）。 */
+export async function findEarliestStart(
+  db: Query,
+  args: { browserHash: string; viewId: string; cutoff: Date; eventCutoff: Date },
+): Promise<{ occurredAt: Date } | null> {
+  const rows = await db.$queryRaw<{ occurredAt: string }[]>`
+    SELECT to_char("occurredAt", ${ISO_FORMAT}) AS "occurredAt"
+    FROM "AnalyticsEvent"
+    WHERE "browserHash" = ${args.browserHash}
+      AND "viewId" = ${args.viewId}
+      AND "kind" = 'model_view_start'::"AnalyticsEventKind"
+      AND "receivedAt" > ${utc(args.eventCutoff)}
+      AND "receivedAt" <= ${utc(args.cutoff)}
+      AND ${NOT_SMOKE_SQL}
+    ORDER BY "occurredAt" ASC, "eventId" ASC
+    LIMIT 1
+  `;
+  const row = rows[0];
+  return row === undefined ? null : { occurredAt: new Date(row.occurredAt) };
+}
+
+export type StartKey = { browserHash: string; viewId: string };
+
+/** 单片键上限：行值 IN 列表过大会顶到参数上限，也失去有界查询的意义。 */
+export const PAIRED_KEYS_CHUNK = 400;
+
+/** Q3：本日 start 键的配对终态；不按终态自身发生日过滤，冒烟谓词一致。 */
+export async function loadPairedTerminals(
+  db: Query,
+  keys: readonly StartKey[],
+  options: { cutoff: Date; eventCutoff: Date },
+): Promise<DailyFact[]> {
+  const unique = new Map<string, StartKey>();
+  for (const key of keys) unique.set(`${key.browserHash}\u0000${key.viewId}`, key);
+  const list = [...unique.values()];
+  const out: DailyFact[] = [];
+  for (let offset = 0; offset < list.length; offset += PAIRED_KEYS_CHUNK) {
+    const slice = list.slice(offset, offset + PAIRED_KEYS_CHUNK);
+    const pairs = slice.map((key) => Prisma.sql`(${key.browserHash}, ${key.viewId})`);
+    const rows = await db.$queryRaw<DailyFactRow[]>(Prisma.sql`
+      SELECT ${FACT_COLUMNS}
+      FROM "AnalyticsEvent"
+      WHERE ("browserHash", "viewId") IN (${Prisma.join(pairs)})
+        AND "kind" IN ('model_load_success'::"AnalyticsEventKind", 'model_load_failure'::"AnalyticsEventKind")
+        AND "receivedAt" > ${utc(options.eventCutoff)}
+        AND "receivedAt" <= ${utc(options.cutoff)}
+        AND ${NOT_SMOKE_SQL}
+      ORDER BY "occurredAt" ASC, "eventId" ASC
+    `);
+    for (const row of rows) out.push(mapFact(row));
+  }
+  return out;
+}
+
+/** Q4：跨日可见倒置 guard——站点日内但 `receivedAt > cutoff` 的一行（非冒烟、raw 未删）。 */
+export async function probeCrossDayInversion(
+  db: Query,
+  bounds: SiteDayBounds,
+  options: { cutoff: Date; eventCutoff: Date },
+): Promise<{ eventId: string; kind: string; occurredAt: Date; receivedAt: Date } | null> {
+  const rows = await db.$queryRaw<{
+    eventId: string;
+    kind: string;
+    occurredAt: string;
+    receivedAt: string;
+  }[]>`
+    SELECT
+      "eventId",
+      "kind"::text AS "kind",
+      to_char("occurredAt", ${ISO_FORMAT}) AS "occurredAt",
+      to_char("receivedAt", ${ISO_FORMAT}) AS "receivedAt"
+    FROM "AnalyticsEvent"
+    WHERE "occurredAt" >= ${utc(new Date(bounds.startUtc))}
+      AND "occurredAt" < ${utc(new Date(bounds.endUtc))}
+      AND "receivedAt" > ${utc(options.cutoff)}
+      AND "receivedAt" > ${utc(options.eventCutoff)}
+      AND ${NOT_SMOKE_SQL}
+    LIMIT 1
+  `;
+  const row = rows[0];
+  if (row === undefined) return null;
+  return {
+    eventId: row.eventId,
+    kind: row.kind,
+    occurredAt: new Date(row.occurredAt),
+    receivedAt: new Date(row.receivedAt),
+  };
+}
+
+/**
+ * Q5：可见倒置探测——终态已可见、但其 start 的 `receivedAt > cutoff`（尚未进入本快照）。
+ * 命中说明这不是孤儿终态而是快照边界，必须让当日停手（guard），不能写成 late_unattributable。
+ */
+export async function probeFilteredStartInversion(
+  db: Query,
+  args: { browserHash: string; viewId: string; cutoff: Date; eventCutoff: Date },
+): Promise<{ occurredAt: Date; receivedAt: Date } | null> {
+  const rows = await db.$queryRaw<{ occurredAt: string; receivedAt: string }[]>`
+    SELECT
+      to_char("occurredAt", ${ISO_FORMAT}) AS "occurredAt",
+      to_char("receivedAt", ${ISO_FORMAT}) AS "receivedAt"
+    FROM "AnalyticsEvent"
+    WHERE "browserHash" = ${args.browserHash}
+      AND "viewId" = ${args.viewId}
+      AND "kind" = 'model_view_start'::"AnalyticsEventKind"
+      AND "receivedAt" > ${utc(args.cutoff)}
+      AND "receivedAt" > ${utc(args.eventCutoff)}
+      AND ${NOT_SMOKE_SQL}
+    ORDER BY "receivedAt" ASC, "eventId" ASC
+    LIMIT 1
+  `;
+  const row = rows[0];
+  return row === undefined ? null : { occurredAt: new Date(row.occurredAt), receivedAt: new Date(row.receivedAt) };
+}

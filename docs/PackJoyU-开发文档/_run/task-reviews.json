@@ -1237,22 +1237,16 @@
   },
   "M5-T12": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "160976ad5a9f3d8dbe2b32f64628f99268968e1abf54fde98acb7a68a98e23f7",
+    "contractHash": "5dd0bb1fd4a4c07e68455b124e79a3b405fbcfd40130808615dab7b9e029c84d",
     "evidence": [
-      "19 节新增 M5-T12 一行（M5-T11 后、M6-T1 前），依赖 M5-T3/M5-T11；卡片由生成器从该行派生，未手改 图谱/任务/M5-T12.md。",
-      "契约新增 M5-T12：provides analytics-anon-aggregate；10 outputPaths/6 supportPaths（含共享 src/lib/analytics/day-boundaries.ts 的 utcDatesCovered）/wiring [migrations]/integrationTask M6-T1；presentation taskPaths 9 条；有效范围=taskPaths+supportPaths+wiring 展开（17 条）。",
-      "09 节 L26 AnalyticsDaily 为替换而非新增同名行：durationMsSum BigInt、loadDurationSamples、pageViews Int?、sourceThrough DateTime?、行内 timezone/expiresAt、索引 [expiresAt]/[dimension, localDate]；紧随新增 AnalyticsAggregateDayState（timezone/索引）与 AnalyticsDayChange（utcDate 主键、version @default(0)、无 id）；R1 在三行行内均补“由 M5-T12 实施后生效；当前 schema 尚无此表”，ff2 原缺此标注已更正。",
-      "08/18/data-retention 同步四类数据表 20,000/5,000/1,000 与两元数据表各 500/合计 1,000 独立；03:30 旧三表、04:30 实施后唯一清理新三表、共用租约、不新增 cron；当前三表不存在，不写已上线。",
-      "M6-T1 依赖末尾追加 M5-T12、requires 追加 analytics-anon-aggregate；保留 M2-T4/M2-T7，不补 model-event-rules；输入/验收 1/2 按合稿追加；M6-T6/M7-T3 各加读取口径一句、不新增依赖。",
-      "M5-T12 仍 todo、未实施源码/测试/schema；真实 PG/性能/API/CI 未验；本 pass 仅为文档契约复核，不是业务或实现通过。",
-      "当前 hash 160976ad 与旧 pass 同值续接：main403 合入 M2-T7 后 M5-T12 契约 definition 与 main403 逐值相同，effectivePaths 相对 main403 0 漂移，故无需改写定义。",
-      "M2-T7 行现明示「平均耗时与samples、无样本null、零成功0%由 M6-T1 计算、M6-T6 输出、M7-T3 终验，不在本任务重复验收」；M5-T12 provides analytics-anon-aggregate，M6-T1 requires 含 {M5-T12, analytics-anon-aggregate}，原始事件（M2-T7）与统计聚合（M6-T1/M6-T6）分工不重叠。",
-      "09 三行仍标「由 M5-T12 实施后生效；当前 schema 尚无此表」；data-retention 原始 AnalyticsEvent 30 天、AnalyticsDaily/DayState 13 自然月、DayChange UTC 13 月＋2 天，03:30 旧三表与实施后 04:30 唯一清理者不冲突。",
-      "main403 集成后当前契约 hash 由生成器现算，与该任务在 7abc4b5c:docs/PackJoyU-开发文档/_run/task-contracts.json 一致；非作者差量独审复算 145/145 after=现算、98 条 revalidation 全匹配、manifest dict-equal 36/6、dispatch 145/23 与 86 任务批号 0 移动（独审 D:/xiangmu/.codex-plans/NBShiYan-m5-t12/testing-m5t12-main403-review-20261109/testing-m5t12-main403-review-20261109.md，D4C2093284994B969DBF030263834529CBEC6786F531745ACC97945F3D776314）。",
-      "19 手合保留：M6-T6/M7-T3 行=main 职责正文＋ours「读取口径」句（去该句即 main 行），M6-T1 行保留 ours（main 未改该行），M2-T7 行取 main；本任务职责、依赖与验收未因合并丢失或改写。",
-      "本文件只声明文档契约与 main403 集成核验：本轮未跑 PG/HTTP/CI，不声明三表或统计 API 已实现；M5-T12 仍 todo，98 条待复验未清；旧 pass 不是业务复验，新 hash 只代表当前契约已按真实源并集重核。"
+      "源变更仅 docs/PackJoyU-开发文档/_run/task-contracts.json（git diff 1 行新增）：M5-T12 supportPaths 末尾新增 src/lib/server/analytics/retention-cleanup-handler.ts，无重复；stage/wiring/outputPaths/requires/sections 未变；route 与 tests/retention-cleanup.test.ts 此前已支持，不重复加",
+      "触发输入：tree task/M5-T12 clean @ 755e5738e8b24251e04d8f7ac247e58e787910a3 / tree 3e5e074b4ee8b55f9aa8023dee9de587a7a415a4 / parent e828bb50…，git status 0 行；该 handler 尚不在 HEAD（由作者在 C 实现窗新建），supportPaths 仅作写域声明",
+      "依据 Chief 裁定：C 需要真实 handler 分支的执行验证；不得在 Next route.ts 额外导出 handleWith/createHandler（导出白名单影响 build），也不把 HTTP 控制器塞进聚合服务只为省路径；新增最小 server 内部 handler 模块作依赖注入缝，不新增公开 HTTP/ops 契约、不重开 M5-T11",
+      "begin exit=0、sync exit=0（日志 01-begin.log、02-sync.log）；补丁 status=synced、sourceVersion=735443977c46a099104f7c37401452b2ce94cbf19dafe1b068a144b4be50934f；sourceChanges 仅 _run/task-contracts.json；该路径已进 effectivePaths",
+      "受影响 24 个（M3-T6/T8/T9/T10/T11/T12/T13/T25、M5-T12、M6-T1..T7、M7-T2/T3/T5/T6/T7/T8/T9/T10），均为契约哈希传播；docs-data/build-manifest/build-state/dispatch/review 正常再生",
+      "边界：未 checkout/reset/rebase、未覆盖作者未提交内容；未改 route/业务源码/测试内容/CI/验收/status；未 --landed/Ready/merge/新 PR；未 push"
     ],
-    "reviewed": "2026-11-10T00:56:55.092436+00:00",
+    "reviewed": "2026-11-12T15:56:45.760080+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },

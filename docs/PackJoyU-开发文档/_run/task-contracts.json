@@ -2599,9 +2599,11 @@
           "capability": "analytics-retention"
         }
       ],
-      "stage": "primitive",
+      "stage": "integration",
       "wiring": [
-        "migrations"
+        "migrations",
+        "container",
+        "jobs"
       ],
       "supportPaths": [
         ".github/workflows/ci.yml",
@@ -2609,7 +2611,18 @@
         "src/lib/analytics/day-boundaries.ts",
         "src/lib/server/analytics/retention.ts",
         "tests/analytics-retention.db.test.ts",
-        "tests/analytics-aggregate.db.test.ts"
+        "tests/analytics-aggregate.db.test.ts",
+        "src/lib/server/analytics/event-repo.ts",
+        "src/lib/server/jobs/registry.ts",
+        "src/lib/server/composition.ts",
+        "tests/analytics-ingest.test.ts",
+        "tests/analytics-ingest.http.db.test.ts",
+        "tests/analytics-retention-plan.test.ts",
+        "tests/jobs-runtime.http.test.ts",
+        "src/lib/server/analytics/retention-cleanup.ts",
+        "src/app/api/admin/cron/retention-cleanup/route.ts",
+        "tests/retention-cleanup.test.ts",
+        "src/lib/server/analytics/retention-cleanup-handler.ts"
       ],
       "outputPaths": [
         "prisma/schema.prisma",
@@ -2636,8 +2649,7 @@
         16,
         17,
         18
-      ],
-      "integrationTask": "M6-T1"
+      ]
     },
     "M5-T5": {
       "provides": [

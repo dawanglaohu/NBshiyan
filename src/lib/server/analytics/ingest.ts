@@ -8,6 +8,7 @@ import {
 } from '../../contracts/analytics';
 import { isDbUnavailable } from '../designs';
 import { AppError } from '../http/errors';
+import type { AnalyticsDayMarkerSink } from './aggregate-day-state';
 import { AnalyticsPayloadConflict, type AnalyticsEventRepo, type NewAnalyticsEvent } from './event-repo';
 
 /** 目录产品的内部 key。分析事件不使用 categoryMeta 的本地化 URL slug。 */
@@ -33,6 +34,11 @@ export function createAnalyticsIngestService(deps: {
   repo: AnalyticsEventRepo;
   secret: Buffer | null;
   clock?: () => Date;
+  /**
+   * M5-T12：UTC 日 live marker 落点。**必填**，组合点默认注入；bump 与事件插入在
+   * `saveAll` 的同一个数据库事务里完成，任一方失败整批回滚。
+   */
+  markers: AnalyticsDayMarkerSink;
 }): AnalyticsIngestService {
   const clock = deps.clock ?? (() => new Date());
   return {
@@ -56,7 +62,9 @@ export function createAnalyticsIngestService(deps: {
       const rows = parsed.data.events.map((event) => toRow(event, browserHash, deps.secret as Buffer, now));
       let outcomes: Array<'created' | 'duplicate'>;
       try {
-        outcomes = await deps.repo.saveAll(rows);
+        outcomes = await deps.repo.saveAll(rows, {
+          onInserted: (tx, inserted) => deps.markers.bumpInTx(tx, inserted, now),
+        });
       } catch (error) {
         if (isPayloadConflict(error)) {
           throw new AppError('idempotency_conflict', {

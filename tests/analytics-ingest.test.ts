@@ -60,6 +60,7 @@ function service(repo: AnalyticsEventRepo) {
     repo,
     secret: SECRET,
     clock: () => new Date(NOW),
+    markers: { async bumpInTx() {} },
   });
 }
 

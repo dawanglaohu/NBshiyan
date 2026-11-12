@@ -22,6 +22,8 @@ import {
   rollupDeletionBefore,
 } from '../src/lib/server/analytics/retention-plan';
 import { GET, POST } from '../src/app/api/admin/cron/retention-cleanup/route';
+import { createRetentionCleanupHandler } from '../src/lib/server/analytics/retention-cleanup-handler';
+import type { RetentionCleanupResult } from '../src/lib/server/analytics/retention-cleanup';
 import { alertRetentionCleanupIssue } from '../src/lib/server/cron-alert';
 
 const NOW = new Date('2026-06-15T03:30:00.000Z');
@@ -210,33 +212,50 @@ test('retention-cleanup cron 在 03:30 调本机，命令行没有密钥，409 �
   assert.doesNotMatch(line, /RETENTION_CLEANUP_MODE/);
   assert.match(line, />> @DATA_DIR@\/cron-retention-cleanup\.log 2>&1$/);
   assert.match(text, /dry-run/);
+  // route 只是薄接线：唯一的 handler 来自 server 内部模块，并且绑定真实 prisma/服务/告警去重。
   const route = readFileSync('src/app/api/admin/cron/retention-cleanup/route.ts', 'utf8');
-  assert.match(route, /secretMatches\(token, process\.env\.CRON_SECRET\)/);
-  assert.match(route, /no-store/);
-  assert.match(route, /ANALYTICS_ROLLUP_JOB_KEY|runRetentionCleanup/);
+  assert.match(route, /createRetentionCleanupHandler\(\{/);
+  assert.match(route, /runCleanup: \(\) => runRetentionCleanup\(\{ db: prisma \}\)/);
+  assert.match(route, /reportFailure: reportRetentionFailure/);
   assert.equal((route.match(/alertRetentionCleanupIssue\(/g) ?? []).length, 1);
-  assert.equal((route.match(/reportRetentionFailure\(/g) ?? []).length, 3);
-  const busy = route.slice(route.indexOf("result.status === 'busy'"), route.indexOf("result.status === 'failed'"));
-  assert.equal(busy.includes('reportRetentionFailure'), false);
+  // Next 路由导出白名单：route 不得再导出构造器/处理器。
+  const exported = [...route.matchAll(/^export (?:const|async function|function) (\w+)/gm)].map((m) => m[1]);
+  assert.deepEqual(exported.sort(), ['GET', 'POST', 'maxDuration', 'runtime']);
+  // 分支与鉴权都在 handler 模块里（行为由本文件后半段的真实调用覆盖）。
+  const handler = readFileSync('src/lib/server/analytics/retention-cleanup-handler.ts', 'utf8');
+  assert.match(handler, /secretMatches\(token, process\.env\.CRON_SECRET\)/);
+  assert.match(handler, /no-store/);
+  assert.match(handler, /result\.status === 'unknown'/);
+  assert.match(handler, /reportFailure\('commit_unknown'\)/);
+  const busy = handler.slice(handler.indexOf("result.status === 'busy'"), handler.indexOf("result.status === 'unknown'"));
+  assert.equal(busy.includes('reportFailure'), false);
 });
 
-test('没带密钥或密钥不对时返回 401，响应不缓存也不回显密钥', async () => {
+test('route 入口防线：无 token/错 token 直接 401，不触达清理服务也不告警', async () => {
   const previous = process.env.CRON_SECRET;
   process.env.CRON_SECRET = 'unit-test-cron-secret-not-a-real-value';
+  // 入口防线命中时，handler 的日志（服务调用/告警路径）一条都不该出现。
+  const logged: string[] = [];
+  const originalError = console.error;
+  const originalInfo = console.info;
+  console.error = (...args: unknown[]) => { logged.push(args.map(String).join(' ')); };
+  console.info = (...args: unknown[]) => { logged.push(args.map(String).join(' ')); };
   try {
     const missing = await GET(new Request('http://127.0.0.1/api/admin/cron/retention-cleanup'));
     const wrong = await POST(new Request('http://127.0.0.1/api/admin/cron/retention-cleanup', {
       method: 'POST',
       headers: { authorization: 'Bearer wrong-token' },
     }));
-    assert.equal(missing.status, 401);
-    assert.equal(wrong.status, 401);
-    assert.equal(missing.headers.get('cache-control'), 'no-store');
-    assert.equal(wrong.headers.get('cache-control'), 'no-store');
-    const body = await wrong.json() as { error: string };
-    assert.equal(body.error, 'unauthorized');
-    assert.equal(JSON.stringify(body).includes('unit-test-cron-secret'), false);
+    for (const response of [missing, wrong]) {
+      assert.equal(response.status, 401);
+      assert.equal(response.headers.get('cache-control'), 'no-store');
+      assert.deepEqual(await response.json(), { error: 'unauthorized' });
+    }
+    assert.deepEqual(logged, [], '未授权不得走到 handler 的任何分支（无服务调用、无告警、无成功日志）');
+    assert.equal(JSON.stringify(logged).includes('unit-test-cron-secret'), false);
   } finally {
+    console.error = originalError;
+    console.info = originalInfo;
     if (previous === undefined) delete process.env.CRON_SECRET;
     else process.env.CRON_SECRET = previous;
   }
@@ -262,4 +281,158 @@ test('保留清理失败告警只含任务名和错误码，发送失败不抛�
   assert.equal(JSON.stringify(dirty).includes('postgres://'), false);
   assert.equal(dirty[0]?.lines['错误码'], 'internal_errorpostgres:secret');
   await assert.doesNotReject(alertRetentionCleanupIssue({ errorCode: 'invalid' }, async () => { throw new Error('down'); }));
+});
+
+const TEST_CRON_SECRET = 'unit-test-cron-secret-not-a-real-value';
+
+async function withCronSecret<T>(fn: () => Promise<T>): Promise<T> {
+  const previous = process.env.CRON_SECRET;
+  process.env.CRON_SECRET = TEST_CRON_SECRET;
+  try {
+    return await fn();
+  } finally {
+    if (previous === undefined) delete process.env.CRON_SECRET;
+    else process.env.CRON_SECRET = previous;
+  }
+}
+
+function authorizedRequest(method = 'GET') {
+  return new Request('http://127.0.0.1/api/admin/cron/retention-cleanup', {
+    method,
+    headers: { authorization: `Bearer ${TEST_CRON_SECRET}` },
+  });
+}
+
+/** 真实 handler + 注入的清理服务/告警记录器：分支必须实跑，不看源码字符串。 */
+function cronHandler(runCleanup: () => Promise<RetentionCleanupResult>, alerts: string[]) {
+  return createRetentionCleanupHandler({
+    runCleanup,
+    reportFailure: async (errorCode) => { alerts.push(errorCode); },
+  });
+}
+
+test('真实 handler：COMMIT 未知返回 500，phase/targets 不被折叠，不写 success/假 FAILED', async () => {
+  const errors: string[] = [];
+  const original = console.error;
+  console.error = (...args: unknown[]) => {
+    errors.push(args.map((arg) => (typeof arg === 'string' ? arg : JSON.stringify(arg))).join(' '));
+  };
+  try {
+    await withCronSecret(async () => {
+      const alerts: string[] = [];
+      const handle = cronHandler(async () => ({
+        status: 'unknown',
+        phase: 'metrics',
+        targets: ['RawEvent', 'AnalyticsDailyRollup'],
+        deletedEvents: 3,
+        deletedRollupRows: 7,
+      }), alerts);
+      const response = await handle(authorizedRequest());
+      assert.equal(response.status, 500);
+      assert.equal(response.headers.get('cache-control'), 'no-store');
+      const body = await response.json() as Record<string, unknown>;
+      // 兼容既有 HTTP 错误形状：只有 error；没有 status/committed，也不假装已回滚。
+      assert.deepEqual(body, { error: 'retention_cleanup_failed' });
+      assert.equal('committed' in body, false);
+      assert.equal('status' in body, false);
+      // 走既有告警通道，但分类是 commit_unknown（HTTP 500 不等于事务已回滚）。
+      assert.deepEqual(alerts, ['commit_unknown']);
+      const logged = errors.join('\n');
+      assert.match(logged, /commit_unknown/);
+      assert.match(logged, /"phase":"metrics"/);
+      assert.match(logged, /"targets":2/);
+      assert.match(logged, /"confirmedDeletedEvents":3/);
+      assert.match(logged, /"confirmedDeletedRollupRows":7/);
+    });
+  } finally {
+    console.error = original;
+  }
+});
+
+test('真实 handler：未授权返回 401，不调用清理服务也不告警', async () => {
+  await withCronSecret(async () => {
+    const alerts: string[] = [];
+    let ran = 0;
+    const handle = createRetentionCleanupHandler({
+      runCleanup: async () => { ran += 1; return { status: 'busy' }; },
+      reportFailure: async (errorCode) => { alerts.push(errorCode); },
+    });
+    const missing = await handle(new Request('http://127.0.0.1/api/admin/cron/retention-cleanup'));
+    const wrong = await handle(new Request('http://127.0.0.1/api/admin/cron/retention-cleanup', {
+      method: 'POST',
+      headers: { authorization: 'Bearer wrong-token' },
+    }));
+    for (const response of [missing, wrong]) {
+      assert.equal(response.status, 401);
+      assert.equal(response.headers.get('cache-control'), 'no-store');
+      assert.deepEqual(await response.json(), { error: 'unauthorized' });
+    }
+    assert.equal(ran, 0);
+    assert.deepEqual(alerts, []);
+  });
+});
+
+test('真实 handler：租约被占用返回 409，且不告警', async () => {
+  await withCronSecret(async () => {
+    const alerts: string[] = [];
+    const handle = cronHandler(async () => ({ status: 'busy' }), alerts);
+    const response = await handle(authorizedRequest());
+    assert.equal(response.status, 409);
+    assert.deepEqual(await response.json(), { error: 'job_busy' });
+    assert.deepEqual(alerts, []);
+  });
+});
+
+test('真实 handler：普通失败沿原告警通道返回 500', async () => {
+  await withCronSecret(async () => {
+    const alerts: string[] = [];
+    const handle = cronHandler(async () => ({
+      status: 'failed',
+      errorCode: 'service_unavailable',
+      deletedEvents: 2,
+      deletedRollupRows: 1,
+    }), alerts);
+    const response = await handle(authorizedRequest());
+    assert.equal(response.status, 500);
+    assert.deepEqual(await response.json(), { error: 'retention_cleanup_failed' });
+    assert.deepEqual(alerts, ['service_unavailable']);
+  });
+});
+
+const SUCCEEDED_COUNTS = {
+  mode: 'delete',
+  candidateEvents: 120,
+  deletedEvents: 100,
+  candidateRollupRows: 8,
+  deletedRollupRows: 6,
+  skippedUnrolledDays: 1,
+  skippedRevisionMismatchDays: 2,
+  skippedAfterGapDays: 0,
+  keptExpiredEvents: 4,
+  batches: 2,
+  batchSize: 5_000,
+  maxPerRun: 20_000,
+} as const;
+
+test('真实 handler：成功响应保持原字段，且不告警', async () => {
+  await withCronSecret(async () => {
+    const alerts: string[] = [];
+    const handle = cronHandler(async () => ({ status: 'succeeded', ...SUCCEEDED_COUNTS }), alerts);
+    const response = await handle(authorizedRequest('POST'));
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get('cache-control'), 'no-store');
+    assert.deepEqual(await response.json(), { ...SUCCEEDED_COUNTS, status: 'succeeded' });
+    assert.deepEqual(alerts, []);
+  });
+});
+
+test('真实 handler：清理服务抛错仍收口为 500，并按内部错误告警', async () => {
+  await withCronSecret(async () => {
+    const alerts: string[] = [];
+    const handle = cronHandler(async () => { throw new Error('boom'); }, alerts);
+    const response = await handle(authorizedRequest());
+    assert.equal(response.status, 500);
+    assert.deepEqual(await response.json(), { error: 'retention_cleanup_failed' });
+    assert.deepEqual(alerts, ['internal_error']);
+  });
 });

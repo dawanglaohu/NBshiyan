@@ -385,6 +385,11 @@ jobs:
           M3T3_REQUIRE_DATABASE: 'true'
           # M5-T3 专用 PG 回归只在 e2e job 设此 flag；缺库即抛错，且按文件门禁要求具名通过。
           M5T3_REQUIRE_DATABASE: 'true'
+          # M5-T12 无身份日聚合/日状态真实 PG 回归：只在 e2e job 设 flag；缺库即具名失败，不靠默认 skip。
+          # 专属入口：只认下面两条新变量 + CI=true，不回退通用 DATABASE_URL；本机库/角色未分配。
+          M5T12_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
+          M5T12_REQUIRE_DATABASE: 'true'
+          M5T12_CI_MODE: 'true'
           # M5-T8 固定作业运行时/预算回归：只在 e2e job 设此 flag，缺库即失败，不靠默认 skip。
           M5T8_REQUIRE_DATABASE: 'true'
           # M5-T5 专用 PG 回归：只在 e2e job 设地址与 require；缺地址必须失败，不能静默 skip。
@@ -416,6 +421,8 @@ jobs:
               'tests/analytics-settings.http.test.ts',
               'tests/analytics-ingest.http.db.test.ts',
               'tests/analytics-aggregate.db.test.ts',
+              'tests/analytics-daily.db.test.ts',
+              'tests/analytics-day-state.db.test.ts',
               'tests/jobs-runtime.http.test.ts',
               'tests/analytics-rollup.http.db.test.ts',
               'tests/retention-cleanup.http.db.test.ts',
@@ -467,6 +474,8 @@ jobs:
             tests/analytics-settings.http.test.ts \
             tests/analytics-ingest.http.db.test.ts \
             tests/analytics-aggregate.db.test.ts \
+            tests/analytics-daily.db.test.ts \
+            tests/analytics-day-state.db.test.ts \
             tests/jobs-runtime.http.test.ts \
             tests/analytics-rollup.http.db.test.ts \
             tests/retention-cleanup.http.db.test.ts \
@@ -504,6 +513,8 @@ jobs:
             'tests/analytics-settings.http.test.ts',
             'tests/analytics-ingest.http.db.test.ts',
             'tests/analytics-aggregate.db.test.ts',
+              'tests/analytics-daily.db.test.ts',
+              'tests/analytics-day-state.db.test.ts',
             'tests/jobs-runtime.http.test.ts',
             'tests/analytics-rollup.http.db.test.ts',
             'tests/retention-cleanup.http.db.test.ts',

@@ -3,6 +3,7 @@ import { DayBoundaryError, siteDayUtcBounds } from '../../analytics/day-boundari
 import { audit as writeAudit } from '../admin/audit';
 import { createJobLeaseRepo, type JobLeaseRepo } from '../jobs/lease-repo';
 import type { ClaimResult } from '../jobs/types';
+import { AggregateCommitUnknown } from './aggregate';
 import {
   ANALYTICS_ROLLUP_JOB_KEY,
   isSiteDateRolledUp,
@@ -30,6 +31,12 @@ type Query = Pick<PrismaClient, '$queryRaw' | '$executeRaw'>;
 export type RetentionCleanupDb = Query & Pick<PrismaClient, '$transaction'>;
 type Acquired = Extract<ClaimResult, { acquired: true }>;
 
+/**
+ * 本次运行实际消费的三个租约方法。假 repo 只实现这三个，不需要 `as any`；
+ * 注入缝仅在 server 内部（测试用），不从 HTTP/ENV/公开 ops 配置接。
+ */
+type RetentionLeaseRepo = Pick<JobLeaseRepo, 'claimPreservingStatus' | 'renew' | 'completeSeparately'>;
+
 export type RetentionCleanupCounts = {
   mode: RetentionCleanupMode;
   candidateEvents: number;
@@ -48,7 +55,12 @@ export type RetentionCleanupCounts = {
 export type RetentionCleanupResult =
   | { status: 'busy' }
   | ({ status: 'succeeded' } & RetentionCleanupCounts)
-  | { status: 'failed'; errorCode: 'invalid' | 'internal_error' | 'service_unavailable'; deletedEvents: number; deletedRollupRows: number };
+  | { status: 'failed'; errorCode: 'invalid' | 'internal_error' | 'service_unavailable'; deletedEvents: number; deletedRollupRows: number }
+  /**
+   * COMMIT 答复未知（B7）：既不能报成功，也不能报「已确认 FAILED」。
+   * `phase`/`targets` 只是内部诊断，不新增公开 ops 字段；HTTP 500 不等于事务已回滚。
+   */
+  | { status: 'unknown'; phase: 'metadata' | 'metrics'; targets: string[]; deletedEvents: number; deletedRollupRows: number };
 
 type AuditWrite = (entry: { action: string; meta?: Prisma.InputJsonValue }) => Promise<void>;
 
@@ -59,6 +71,45 @@ function utc(date: Date): Prisma.Sql {
 function errorName(error: unknown): string {
   if (error instanceof Error && /^[A-Za-z][A-Za-z0-9_]{0,40}$/.test(error.name)) return error.name;
   return 'Error';
+}
+
+/** 回调内失败：Prisma 必回滚，确认本批没有提交。 */
+class BatchCallbackFailure extends Error {
+  constructor(readonly original: unknown) {
+    super('batch_callback_failure');
+    this.name = 'BatchCallbackFailure';
+  }
+}
+
+
+
+/**
+ * 单批删除事务：只有「回调内失败」与「事务没开起来」能说确认没提交。
+ *
+ * 回调已返回、`$transaction` 才抛＝COMMIT 答复未知：抛 AggregateCommitUnknown，
+ * 由调用方停止后续批次、只保留已确认批次的计数，且不写 FAILED 终态。
+ */
+export async function runRetentionBatch(
+  db: RetentionCleanupDb,
+  targets: string[],
+  work: (tx: Prisma.TransactionClient) => Promise<number>,
+): Promise<number> {
+  // 按**执行位置**判别，不看错误码：P2028/57014/55P03 若发生在回调之后，一律是未知提交。
+  let started = false;
+  try {
+    return await db.$transaction(async (tx) => {
+      started = true;
+      try {
+        return await work(tx);
+      } catch (error) {
+        throw new BatchCallbackFailure(error);
+      }
+    }, TX);
+  } catch (error) {
+    if (error instanceof BatchCallbackFailure) throw error.original; // 回调内失败＝Prisma 必回滚
+    if (!started) throw error;                                      // BEGIN 前失败（含 P2024）＝确认无提交
+    throw new AggregateCommitUnknown('metrics', targets.length > 0 ? targets : ['retention_cleanup']);
+  }
 }
 
 function errorCodeOf(error: unknown): 'invalid' | 'internal_error' | 'service_unavailable' {
@@ -94,7 +145,7 @@ function summaryFor(counts: RetentionCleanupCounts, timezoneRevision: number) {
 
 async function finish(
   db: RetentionCleanupDb,
-  repo: JobLeaseRepo,
+  repo: RetentionLeaseRepo,
   claim: Acquired,
   status: 'SUCCEEDED' | 'FAILED',
   counts: RetentionCleanupCounts,
@@ -118,7 +169,7 @@ async function finish(
   }
 }
 
-async function renew(db: RetentionCleanupDb, repo: JobLeaseRepo, claim: Acquired): Promise<void> {
+async function renew(db: RetentionCleanupDb, repo: RetentionLeaseRepo, claim: Acquired): Promise<void> {
   await db.$transaction(async (tx) => {
     await repo.renew({ key: ANALYTICS_ROLLUP_JOB_KEY, owner: OWNER, generation: claim.generation }, tx);
   }, TX);
@@ -140,7 +191,7 @@ function deletableEventFilter(start: Date, end: Date, cutoff: Date): Prisma.Sql 
 }
 async function deleteEventBatch(
   db: RetentionCleanupDb,
-  repo: JobLeaseRepo,
+  repo: RetentionLeaseRepo,
   claim: Acquired,
   siteDate: string,
   timeZone: string,
@@ -148,7 +199,7 @@ async function deleteEventBatch(
   limit: number,
 ): Promise<number> {
   const bounds = siteDayUtcBounds(siteDate, timeZone);
-  const deleted = await db.$transaction(async (tx) => {
+  const deleted = await runRetentionBatch(db, [siteDate], async (tx) => {
     await repo.renew({ key: ANALYTICS_ROLLUP_JOB_KEY, owner: OWNER, generation: claim.generation }, tx);
     const cutoff = rawEventCutoff(now);
     return tx.$executeRaw`
@@ -160,18 +211,18 @@ async function deleteEventBatch(
         LIMIT ${limit}
       )
     `;
-  }, TX);
+  });
   return Number(deleted);
 }
 
 async function deleteDailyBatch(
   db: RetentionCleanupDb,
-  repo: JobLeaseRepo,
+  repo: RetentionLeaseRepo,
   claim: Acquired,
   before: string,
   limit: number,
 ): Promise<number> {
-  const deleted = await db.$transaction(async (tx) => {
+  const deleted = await runRetentionBatch(db, ['daily_rollup'], async (tx) => {
     await repo.renew({ key: ANALYTICS_ROLLUP_JOB_KEY, owner: OWNER, generation: claim.generation }, tx);
     return tx.$executeRaw`
       DELETE FROM "AnalyticsDailyRollup" AS target
@@ -187,18 +238,18 @@ async function deleteDailyBatch(
         AND target."locale" = picked."locale"
         AND target."productSlug" = picked."productSlug"
     `;
-  }, TX);
+  });
   return Number(deleted);
 }
 
 async function deleteRollupDayBatch(
   db: RetentionCleanupDb,
-  repo: JobLeaseRepo,
+  repo: RetentionLeaseRepo,
   claim: Acquired,
   before: string,
   limit: number,
 ): Promise<number> {
-  const deleted = await db.$transaction(async (tx) => {
+  const deleted = await runRetentionBatch(db, ['rollup_day'], async (tx) => {
     await repo.renew({ key: ANALYTICS_ROLLUP_JOB_KEY, owner: OWNER, generation: claim.generation }, tx);
     return tx.$executeRaw`
       DELETE FROM "AnalyticsRollupDay"
@@ -209,13 +260,18 @@ async function deleteRollupDayBatch(
         LIMIT ${limit}
       )
     `;
-  }, TX);
+  });
   return Number(deleted);
 }
 
 type Budget = { removed: number; batches: number; batchSize: number; maxPerRun: number };
 
-async function drain(budget: Budget, deleteBatch: (limit: number) => Promise<number>): Promise<number> {
+async function drain(
+  budget: Budget,
+  deleteBatch: (limit: number) => Promise<number>,
+  /** 每个**已确认提交**的批次立刻记账：后续批次未知时，先前确认的计数不会丢。 */
+  onConfirmed: (count: number) => void = () => {},
+): Promise<number> {
   let deleted = 0;
   while (budget.removed < budget.maxPerRun) {
     const limit = Math.min(budget.batchSize, budget.maxPerRun - budget.removed);
@@ -224,6 +280,7 @@ async function drain(budget: Budget, deleteBatch: (limit: number) => Promise<num
     if (count === 0) break;
     budget.removed += count;
     budget.batches += 1;
+    onConfirmed(count);
     deleted += count;
     if (count < limit) break;
   }
@@ -243,6 +300,8 @@ export async function runRetentionCleanup(deps: {
   batchSize?: number;
   maxPerRun?: number;
   audit?: AuditWrite;
+  /** 仅 server 内部注入（测试）：默认仍用真实 `createJobLeaseRepo`。 */
+  repoFactory?: (deps: { db: RetentionCleanupDb; clock: () => Date }) => RetentionLeaseRepo;
 }): Promise<RetentionCleanupResult> {
   const mode = deps.mode ?? retentionCleanupMode();
   const batchSize = deps.batchSize ?? RETENTION_CLEANUP_BATCH_SIZE;
@@ -255,7 +314,7 @@ export async function runRetentionCleanup(deps: {
     return { status: 'failed', errorCode: 'invalid', deletedEvents: 0, deletedRollupRows: 0 };
   }
   const leaseClock = deps.clock ?? (() => new Date());
-  const repo = createJobLeaseRepo({ db: deps.db, clock: leaseClock });
+  const repo = (deps.repoFactory ?? createJobLeaseRepo)({ db: deps.db, clock: leaseClock });
   const claim = await repo.claimPreservingStatus({ key: ANALYTICS_ROLLUP_JOB_KEY, owner: OWNER });
   if (!claim.acquired) {
     if (claim.reason === 'busy') return { status: 'busy' };
@@ -329,13 +388,25 @@ export async function runRetentionCleanup(deps: {
     counts.candidateRollupRows = Number(dailyRows[0]?.count ?? 0) + Number(dayRows[0]?.count ?? 0);
     if (mode === 'delete') {
       const budget: Budget = { removed: 0, batches: 0, batchSize, maxPerRun };
+      // 每批**已确认提交**后立刻把行数与批次数写进 counts：后续批次回执未知时，
+      // 外层 catch 拿到的必须是首批的真实确认结果，而不是全部 drain 结束才同步的旧值。
       for (const siteDate of confirmed) {
-        counts.deletedEvents += await drain(budget, (limit) => deleteEventBatch(deps.db, repo, claim, siteDate, clock.timezone, now, limit));
+        await drain(
+          budget,
+          (limit) => deleteEventBatch(deps.db, repo, claim, siteDate, clock.timezone, now, limit),
+          (count) => { counts.deletedEvents += count; counts.batches += 1; },
+        );
       }
-      const deletedDaily = await drain(budget, (limit) => deleteDailyBatch(deps.db, repo, claim, rollupBefore, limit));
-      const deletedDays = await drain(budget, (limit) => deleteRollupDayBatch(deps.db, repo, claim, rollupBefore, limit));
-      counts.deletedRollupRows = deletedDaily + deletedDays;
-      counts.batches = budget.batches;
+      await drain(
+        budget,
+        (limit) => deleteDailyBatch(deps.db, repo, claim, rollupBefore, limit),
+        (count) => { counts.deletedRollupRows += count; counts.batches += 1; },
+      );
+      await drain(
+        budget,
+        (limit) => deleteRollupDayBatch(deps.db, repo, claim, rollupBefore, limit),
+        (count) => { counts.deletedRollupRows += count; counts.batches += 1; },
+      );
     }
     try {
       await (deps.audit ?? defaultAudit)({
@@ -359,6 +430,24 @@ export async function runRetentionCleanup(deps: {
     await finish(deps.db, repo, claim, 'SUCCEEDED', counts, null);
     return { status: 'succeeded', ...counts };
   } catch (error) {
+    if (error instanceof AggregateCommitUnknown) {
+      // 终态未确认：不写 FAILED 终态、不再开批次；只保留已确认批次的计数。
+      console.error('[cron] retention-cleanup commit_unknown', {
+        phase: error.phase,
+        targets: error.unknownTargets.length,
+        confirmedBatches: counts.batches,
+        confirmedDeletedEvents: counts.deletedEvents,
+        confirmedDeletedRollupRows: counts.deletedRollupRows,
+      });
+      // 不写 FAILED 终态、不补 gap；已确认批次的行数如实带出，未知批次不计。
+      return {
+        status: 'unknown',
+        phase: error.phase,
+        targets: [...error.unknownTargets],
+        deletedEvents: counts.deletedEvents,
+        deletedRollupRows: counts.deletedRollupRows,
+      };
+    }
     await finish(deps.db, repo, claim, 'FAILED', counts, errorCodeOf(error));
     return { status: 'failed', errorCode: errorCodeOf(error), deletedEvents: counts.deletedEvents, deletedRollupRows: counts.deletedRollupRows };
   }

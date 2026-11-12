@@ -58,6 +58,8 @@
 
 入口：`GET|POST /api/admin/cron/retention-cleanup`。`deploy/cron.nbshiyan` 每天 03:30 在容器内请求 `http://127.0.0.1:3000`，密钥只从 `CRON_SECRET` 读取。和汇总任务共用 `analytics-aggregate` 租约，清理结果单独写在 `analytics-retention`。拿不到租约返回 409，cron 把 409 当成正常跳过，不重试。失败时发一封保留清理告警。
 
+新三表（`AnalyticsDaily`、`AnalyticsAggregateDayState`、`AnalyticsDayChange`）由每天 **04:30** 的固定作业 `analytics-retention` 清理，仍共用 `analytics-aggregate` 租约；03:30 的 `retention-cleanup` 只删旧三表，新表行不挂到旧清理链上。删除顺序固定为 daily → state → marker：state 只有在「按行内时区 13 个自然月已到期」且「没有未到期的 `AnalyticsDaily` 行」时才删，marker 再按仍存续 state 覆盖的 UTC 日与 `markerVersions` 键保留。
+
 **实施后新增（M5-T12）**：`04:30` 的 `operations {jobKey:'analytics-retention'}` 在实施后才成为 `AnalyticsDaily`、`AnalyticsAggregateDayState`、`AnalyticsDayChange` 的唯一清理者；55s HTTP/54.75s 工作预算、90s 租约、每批事务＋续租＋revision 复核；metadata 在四表删除后执行，state 先于 marker；两表各 500/轮、合计 1,000/轮；只有已确认提交的批次计数，提交未知不计数并停止 metadata 阶段。当前三张新表不存在，03:30 只跑旧链。
 
 **默认 dry-run。** `RETENTION_CLEANUP_MODE` 未设置或为 `dry-run` 时只统计候选行数并写审计 `cron.retention_cleanup`，不删除分析行。要真正删除，在容器环境里把 `RETENTION_CLEANUP_MODE` 设为 `delete` 并重启应用。这个值不写进 crontab。每批最多 5000 行，每次运行最多 20000 行，每批单独提交。截止时刻用数据库当前时间减保留时长，以 timestamptz 绑定。
