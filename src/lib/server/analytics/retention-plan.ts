@@ -247,11 +247,34 @@ export type ExpiredRollupDailyKey = {
   productSlug: string;
 };
 
+/**
+ * dry-run 候选计数。
+ *
+ * `events/rollupDailyRows/rollupDays/total` 保持旧语义（三张老表）；
+ * `daily/dayState/dayChange` 是 M5-T12 新三表的候选；`totalAll` 是六表合计。
+ * 新三表各有独立额度（Daily ≤1,000 并计入四表 20k；state/marker 各 ≤500、合 ≤1,000），
+ * 因此 `totalAll` 只作读数，不做任何一批的预算判定。
+ */
 export type RetentionCandidateCounts = {
   events: number;
   rollupDailyRows: number;
   rollupDays: number;
+  /** 旧三表合计，语义不变。 */
   total: number;
+  /** `AnalyticsDaily` 中 `expiresAt <= now` 的到期行（等号到期）。 */
+  daily: number;
+  /**
+   * `AnalyticsAggregateDayState` 中按**行内时区**已到期、且没有未到期 AnalyticsDaily
+   * 同 (localDate, revision) 行的行数；扫描窗口与删除阶段同一上限。
+   */
+  dayState: number;
+  /**
+   * `AnalyticsDayChange` 中 UTC 日严格早于「UTC 今日 −13 自然月 −2 天」的行数**上界**：
+   * 仍被存续 state 覆盖的 UTC 日由删除阶段排除，这里不减，故只作读数。
+   */
+  dayChange: number;
+  /** 六表合计读数；不用于额度判定。 */
+  totalAll: number;
 };
 
 /**
@@ -293,11 +316,64 @@ export function createRetentionCandidateRepo(deps: {
       const eventCount = Number(events[0]?.count ?? 0);
       const dailyCount = Number(daily[0]?.count ?? 0);
       const dayCount = Number(days[0]?.count ?? 0);
+      const legacyTotal = eventCount + dailyCount + dayCount;
+
+      // M5-T12 新三表：与删除阶段同一判据（只是只读），额度各自独立，不进 legacy total。
+      const dailyTableRows = await db.$queryRaw<{ count: number }[]>(Prisma.sql`
+        SELECT COUNT(*)::int AS "count" FROM "AnalyticsDaily" WHERE "expiresAt" <= ${utc(deps.now)}
+      `);
+      const dailyTable = Number(dailyTableRows[0]?.count ?? 0);
+
+      const stateFloor = stateRetentionFloor(siteLocalDate(deps.now, deps.siteTimezone));
+      const stateCandidates = await db.$queryRaw<
+        { localDate: string; timezoneRevision: number; timezone: string }[]
+      >(Prisma.sql`
+        SELECT "localDate", "timezoneRevision", "timezone"
+        FROM "AnalyticsAggregateDayState"
+        WHERE "localDate" < ${stateFloor}
+        ORDER BY "localDate" ASC, "timezoneRevision" ASC
+        LIMIT ${DAILY_RETENTION_SCAN_LIMIT}
+      `);
+      const expiredStates: Array<{ localDate: string; timezoneRevision: number }> = [];
+      for (const row of stateCandidates) {
+        try {
+          // 行内时区正推 13 个自然月后那一日的起点；与 aggregate-day-state.dailyExpiresAt 同式。
+          if (new Date(siteDayUtcBounds(rollupExpiresAt(row.localDate), row.timezone).startUtc).getTime() > deps.now.getTime()) {
+            continue;
+          }
+        } catch {
+          continue; // 坏时区只诊断，不计入候选（删除阶段也定向保留）。
+        }
+        expiredStates.push({ localDate: row.localDate, timezoneRevision: Number(row.timezoneRevision) });
+      }
+      let dayState = expiredStates.length;
+      if (expiredStates.length > 0) {
+        const pairs = expiredStates.map((row) => Prisma.sql`(${row.localDate}, ${row.timezoneRevision})`);
+        const unexpired = await db.$queryRaw<{ localDate: string; timezoneRevision: number }[]>(Prisma.sql`
+          SELECT DISTINCT "localDate", "timezoneRevision"
+          FROM "AnalyticsDaily"
+          WHERE "expiresAt" > ${utc(deps.now)}
+            AND ("localDate", "timezoneRevision") IN (${Prisma.join(pairs)})
+        `);
+        const blocked = new Set(unexpired.map((row) => `${row.localDate}|${Number(row.timezoneRevision)}`));
+        dayState = expiredStates.filter((row) => !blocked.has(`${row.localDate}|${row.timezoneRevision}`)).length;
+      }
+
+      const dayChangeRows = await db.$queryRaw<{ count: number }[]>(Prisma.sql`
+        SELECT COUNT(*)::int AS "count" FROM "AnalyticsDayChange"
+        WHERE "utcDate" < ${dayChangeRetentionCutoff(utcDateOf(deps.now))}
+      `);
+      const dayChange = Number(dayChangeRows[0]?.count ?? 0);
+
       return {
         events: eventCount,
         rollupDailyRows: dailyCount,
         rollupDays: dayCount,
-        total: eventCount + dailyCount + dayCount,
+        total: legacyTotal,
+        daily: dailyTable,
+        dayState,
+        dayChange,
+        totalAll: legacyTotal + dailyTable + dayState + dayChange,
       };
     },
     async eventIds(limit) {

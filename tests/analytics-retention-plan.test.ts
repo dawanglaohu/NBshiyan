@@ -172,8 +172,17 @@ test('候选统计只返回数量，不删除也不导出身份列', async () =>
   });
   const repo = createRetentionCandidateRepo({ db, now, siteTimezone: TZ });
   const counts = await repo.counts();
-  assert.deepEqual(counts, { events: 7, rollupDailyRows: 3, rollupDays: 2, total: 12 });
-  assert.equal(calls.length, 3);
+  assert.deepEqual(counts, {
+    events: 7,
+    rollupDailyRows: 3,
+    rollupDays: 2,
+    total: 12,
+    daily: 2,
+    dayState: 0,
+    dayChange: 2,
+    totalAll: 16,
+  });
+  assert.equal(calls.length, 6);
   assert.match(sqlText(calls[0]), /FROM "AnalyticsEvent" WHERE "receivedAt" <= \$1::timestamptz AT TIME ZONE 'UTC'/);
   assert.match(sqlText(calls[1]), /FROM "AnalyticsDailyRollup" WHERE "siteDate" <= \$1/);
   assert.match(sqlText(calls[2]), /FROM "AnalyticsRollupDay" WHERE "siteDate" <= \$1/);
@@ -240,9 +249,9 @@ test('候选仓储构造后固定同一套截止值，重复查询口径一致',
   const repo = createRetentionCandidateRepo({ db, now, siteTimezone: TZ });
   await repo.counts();
   await repo.counts();
-  assert.equal(calls.length, 6);
-  assert.equal(calls[0].values[0], calls[3].values[0]);
-  assert.equal(calls[1].values[0], calls[4].values[0]);
+  assert.equal(calls.length, 12);
+  assert.equal(calls[0].values[0], calls[6].values[0]);
+  assert.equal(calls[1].values[0], calls[7].values[0]);
 });
 
 test('B1：月末夹取时截止日以正推 expiresAt 为准（Jan31 → Feb28）', () => {
@@ -368,4 +377,46 @@ test('B1 真实 PG：月末截止日行命中、次日未到期行排除（计�
     await db.$executeRawUnsafe(`DROP SCHEMA IF EXISTS "${schema}" CASCADE`).catch(() => undefined);
     await db.$disconnect();
   }
+});
+
+test('dry-run 候选分账：新三表独立计数，旧三表语义不变', async () => {
+  const db = {
+    $queryRaw: async (strings: unknown, ...values: unknown[]) => {
+      const arg = strings as { strings?: readonly string[] } | readonly string[];
+      const text = Array.isArray(arg)
+        ? (arg as readonly string[]).join('?')
+        : ((arg as { strings?: readonly string[] }).strings ?? []).join('?');
+      if (text.includes('FROM "AnalyticsEvent"')) return [{ count: 11 }];
+      if (text.includes('FROM "AnalyticsDailyRollup"')) return [{ count: 5 }];
+      if (text.includes('FROM "AnalyticsRollupDay"')) return [{ count: 4 }];
+      if (text.includes('FROM "AnalyticsDaily"') && text.includes('"expiresAt" >')) {
+        return [{ localDate: '2025-01-02', timezoneRevision: 1 }];
+      }
+      if (text.includes('FROM "AnalyticsDaily"')) return [{ count: 7 }];
+      if (text.includes('FROM "AnalyticsAggregateDayState"')) {
+        return [
+          { localDate: '2025-01-01', timezoneRevision: 1, timezone: 'UTC' },
+          { localDate: '2025-01-02', timezoneRevision: 1, timezone: 'UTC' },
+          { localDate: '2027-01-01', timezoneRevision: 1, timezone: 'UTC' },
+        ];
+      }
+      if (text.includes('FROM "AnalyticsDayChange"')) return [{ count: 3 }];
+      void values;
+      return [];
+    },
+  };
+  const repo = createRetentionCandidateRepo({
+    db: db as never,
+    now: new Date('2026-05-01T00:00:00.000Z'),
+    siteTimezone: 'UTC',
+  });
+  const counts = await repo.counts();
+  assert.equal(counts.events, 11);
+  assert.equal(counts.rollupDailyRows, 5);
+  assert.equal(counts.rollupDays, 4);
+  assert.equal(counts.total, 20, '旧三表合计语义不变');
+  assert.equal(counts.daily, 7);
+  assert.equal(counts.dayState, 1, '2027 未到期、2025-01-02 被未到期 Daily 挡住');
+  assert.equal(counts.dayChange, 3);
+  assert.equal(counts.totalAll, 31);
 });
