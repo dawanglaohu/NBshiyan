@@ -24,7 +24,9 @@ import { decrypt, encrypt, hashSecret, verifySecret } from '../src/lib/server/ad
 import { ADMIN_SESSION_POLICY } from '../src/lib/server/config';
 import { AppError } from '../src/lib/server/http/errors';
 import { MemoryStore, setRateLimitStore } from '../src/lib/server/ratelimit';
-import { classifySelfResetBody } from '../src/lib/server/admin/self-rebind';
+// 注意：`admin/self-rebind` 会在模块加载时值导入 `@/lib/server/db`（构造并缓存业务 Prisma）。
+// 本文件必须先建好 owned schema 并把 `DATABASE_URL` 指到它，再加载该模块；因此这里只用类型，
+// 运行时从 before 钩子里的同一次动态 import 取（见 `classifySelfResetBody` 的赋值处）。
 
 process.env.APP_ENV ??= 'test';
 process.env.AUTH_SECRET ??= 'm3t20-test-auth-secret-32b-0001';
@@ -340,6 +342,7 @@ let actionGrants: import('../src/lib/server/admin/action-grant').ActionGrantServ
 let selfRebind: import('../src/lib/server/admin/self-rebind').SelfRebindService;
 let recoveryEnrollment: import('../src/lib/server/admin/recovery-enrollment').RecoveryEnrollmentService;
 let recoveryRepo: import('../src/lib/server/admin/recovery-repo').RecoveryRepo;
+let classifySelfResetBody: typeof import('../src/lib/server/admin/self-rebind')['classifySelfResetBody'];
 
 const start = new Date('2026-11-12T09:00:00.000Z');
 let now = start;
@@ -366,6 +369,7 @@ before(async () => {
   if (rows[0].schema !== schema) throw new Error('M3T20_SCHEMA_PATH_MISMATCH');
   const grantMod = await import('../src/lib/server/admin/action-grant');
   const rebindMod = await import('../src/lib/server/admin/self-rebind');
+  classifySelfResetBody = rebindMod.classifySelfResetBody;
   const enrollMod = await import('../src/lib/server/admin/recovery-enrollment');
   const repoMod = await import('../src/lib/server/admin/recovery-repo');
   recoveryRepo = repoMod.createRecoveryRepo();
