@@ -547,22 +547,6 @@ export async function runAggregateOnce(deps: {
           resolveProduct: daily.resolveProductSlugFromPath ?? defaultProductSlugFromPath,
         });
       }
-      if (dailyCapture.value !== null) {
-        // 元数据写在**同一事务内、commit 钩子之前**：此时租约仍由本次持有、代次未变，
-        // 不会出现「作业已 SUCCEEDED、metadata CAS 才失败」的丢状态窗口。
-        for (const item of dailyCapture.value.metadataDays) {
-          await writeDailyMetadataInTx(tx, {
-            date: item.date, action: item.action, timezone: deps.siteTimezone,
-            revision: deps.timezoneRevision, now: deps.now, cutoff: plan.cutoff,
-          });
-        }
-        for (const date of dailyCapture.value.closureMeta) {
-          await writeDailyMetadataInTx(tx, {
-            date, action: 'coverage', timezone: deps.siteTimezone,
-            revision: deps.timezoneRevision, now: deps.now, cutoff: plan.cutoff,
-          });
-        }
-      }
       if (deps.commit) {
         let dataThrough: string | null = null;
         let sourceThrough: string | null = null;
@@ -935,6 +919,24 @@ export async function runDailyInTx(
     ...coverageDays.map((date) => ({ date, action: 'coverage' as const })),
     ...bootstrapDays.map((date) => ({ date, action: 'bootstrap' as const })),
   ].slice(0, DAILY_METADATA_MAX_ROWS);
+  // B3：元数据一律用 **plan 阶段** 读到的 state 作 expected 做 CAS，晚到的成功提交不会被覆盖。
+  const expectedOf = (date: string) => {
+    const state = states.get(date) ?? null;
+    return { markers: state?.markerVersions ?? {}, updatedAt: state?.updatedAt ?? null };
+  };
+  for (const item of metadataDays) {
+    const write = await writeDailyMetadataInTx(tx, {
+      date: item.date, action: item.action, timezone, revision, now, cutoff,
+      expected: expectedOf(item.date),
+    });
+    result.metadata.push({ localDate: item.date, action: item.action, result: write });
+  }
+  for (const date of closureMeta) {
+    const write = await writeDailyMetadataInTx(tx, {
+      date, action: 'coverage', timezone, revision, now, cutoff, expected: expectedOf(date),
+    });
+    result.metadata.push({ localDate: date, action: 'coverage', result: write });
+  }
   return { result, metadataDays, closureMeta };
 }
 
@@ -1024,13 +1026,8 @@ export async function runDailyAggregateRound(deps: {
     }
   }
 
-  for (const item of metadataDays) {
-    const write = await writeDailyMetadata(deps.db, {
-      date: item.date, action: item.action, timezone, revision, now, cutoff,
-    });
-    result.metadata.push({ localDate: item.date, action: item.action, result: write });
-  }
-  await writeClosureMeta(deps.db, { days: closureMeta, timezone, revision, now, cutoff, result });
+  void metadataDays;
+  void closureMeta;
   return result;
 }
 
@@ -1310,13 +1307,20 @@ async function writeDailyMetadataInTx(
     revision: number;
     now: Date;
     cutoff: Date;
+    /** plan 阶段的期望值；给了就只按它 CAS，不再读当前行（B3）。 */
+    expected?: { markers: Record<string, string>; updatedAt: Date | null };
   },
 ): Promise<'inserted' | 'updated' | 'conflict_noop' | 'cas_failed'> {
   const bounds = siteDayUtcBounds(args.date, args.timezone);
   const markers: Record<string, string> = {};
   const liveRows = await readLiveMarkerVersions(tx);
   for (const utcDate of utcDatesCovered(bounds)) markers[utcDate] = liveVersionOf(liveRows, utcDate);
-  const state = await readDayState(tx, { localDate: args.date, timezoneRevision: args.revision });
+  const state = args.expected === undefined
+    ? await readDayState(tx, { localDate: args.date, timezoneRevision: args.revision })
+    : null;
+  const expectedMarkers = args.expected?.markers ?? state?.markerVersions ?? {};
+  const expectedUpdatedAt = args.expected === undefined ? (state?.updatedAt ?? null) : args.expected.updatedAt;
+  const previousDefer = args.expected === undefined ? (state?.deferUntil ?? null) : null;
   const gapKind = args.action === 'coverage' ? 'raw_partial' : 'not_backfilled';
 
   if (args.action === 'bootstrap') {
@@ -1338,11 +1342,11 @@ async function writeDailyMetadataInTx(
     timezoneRevision: args.revision,
     timezone: args.timezone,
     markerVersions: markers,
-    deferUntil: state?.deferUntil ?? null,
+    deferUntil: previousDefer,
     gapKind,
     gapSince: args.now,
-    expectedMarkers: state?.markerVersions ?? {},
-    expectedUpdatedAt: state?.updatedAt ?? null,
+    expectedMarkers,
+    expectedUpdatedAt,
     now: args.now,
   });
   if (affected !== 1) return 'cas_failed';
