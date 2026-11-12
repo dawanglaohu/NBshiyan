@@ -12,6 +12,8 @@ import { AggregateVersionConflict, DailyRoundHalt, runAggregateOnce, runDailyAgg
 import { isDateRecomputable, planSnapshot, shiftLocalDate } from '../src/lib/analytics/aggregate-plan';
 import { AGGREGATE_JOB_KEY } from '../src/lib/server/analytics/aggregate-repo';
 import { readDayState, readLiveMarkerVersions } from '../src/lib/server/analytics/aggregate-day-state';
+import { runAnalyticsRetention } from '../src/lib/server/analytics/retention';
+import { rollupExpiryCutoff } from '../src/lib/server/analytics/retention-plan';
 
 // 专属入口（M5-T12）：只认 M5T12_TEST_DATABASE_URL，不 fallback 通用 DATABASE_URL。
 // 本机库名/角色尚未分配：非 CI 即使给了 URL 也拒绝，不靠“看起来不像保留库”推断授权。
@@ -798,6 +800,300 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
         return true;
       },
     );
+  });
+
+  // ---- B2：真实 PostgreSQL 上的保留额度（四表 20k / Daily 1k / metadata 独立 500×2 / 扫描窗 2k） ----
+  // 全部走生产 `runAnalyticsRetention` 的真实删除链：真租约、真 settings revision、真 DELETE。
+  // 额度只看 report 与库内实际行数，不用纯函数预算或复制算法替代。
+
+  /** 固定业务时钟：事件 30 天、汇总 13 个月、marker 13 个月+2 天都由它推出，夹具日期可复算。 */
+  const B2_NOW = new Date('2026-03-15T04:00:00.000Z');
+  const B2_ROLLUP_THROUGH = rollupExpiryCutoff(B2_NOW, TZ);
+
+  /** 真实 settings 行：领取租约与写前时区守卫都读它；缺行/代次不符会 fail-closed。 */
+  async function seedRetentionSettings(): Promise<void> {
+    const conn = requireDb();
+    await conn.$executeRaw`
+      INSERT INTO "SiteSetting" ("key", "value")
+      VALUES ('analytics.settings', ${JSON.stringify({
+        version: 1,
+        timezone: TZ,
+        timezoneRevision: REV,
+        changedAt: B2_NOW.toISOString(),
+        updatedBy: null,
+      })}::jsonb)
+      ON CONFLICT ("key") DO UPDATE SET "value" = EXCLUDED."value"
+    `;
+  }
+
+  /** 30 天规则下已到期的事件：一条有界 INSERT…SELECT，不逐行往返。 */
+  async function insertExpiredEvents(count: number): Promise<void> {
+    const conn = requireDb();
+    const receivedAt = new Date('2024-01-01T02:00:00.000Z');
+    await conn.$executeRaw(Prisma.sql`
+      INSERT INTO "AnalyticsEvent" (
+        "eventId", "semanticKey", "payloadHash", "browserHash", "kind", "locale", "occurredAt", "receivedAt"
+      )
+      SELECT
+        'b2-ev-' || g::text,
+        'b2-sk-' || g::text,
+        ${'p'.repeat(64)},
+        'b2-bh-' || g::text,
+        'page_view'::"AnalyticsEventKind",
+        'en',
+        ${utc(receivedAt)},
+        ${utc(receivedAt)}
+      FROM generate_series(1, ${count}::int) AS g
+    `);
+  }
+
+  /** 13 个月规则下已到期的旧链日汇总：190 天 × 100 个 product key，主键天然唯一。 */
+  async function insertExpiredRollupDaily(count: number): Promise<void> {
+    const conn = requireDb();
+    await conn.$executeRaw(Prisma.sql`
+      INSERT INTO "AnalyticsDailyRollup" (
+        "siteDate", "kind", "locale", "productSlug", "count", "uniqueBrowsers", "updatedAt"
+      )
+      SELECT
+        to_char(DATE '2024-01-01' + (g / 100)::int, 'YYYY-MM-DD'),
+        'page_view'::"AnalyticsEventKind",
+        'en',
+        'p' || lpad((g % 100)::text, 3, '0'),
+        1,
+        1,
+        ${utc(B2_NOW)}
+      FROM generate_series(0, ${count - 1}::int) AS g
+    `);
+  }
+
+  /** `expiresAt <= now` 的新链日指标行：dimension 唯一，删除只按到期时刻选。 */
+  async function insertExpiredDailyRows(count: number): Promise<void> {
+    const conn = requireDb();
+    await conn.$executeRaw(Prisma.sql`
+      INSERT INTO "AnalyticsDaily" (
+        "localDate", "timezoneRevision", "timezone", "dimension",
+        "visitors", "pageViews", "productViews", "modelStarts", "modelSuccesses",
+        "modelFailures", "chatStarts", "durationMsSum", "loadDurationSamples",
+        "sourceThrough", "aggregatedAt", "expiresAt"
+      )
+      SELECT
+        '2024-06-01', ${REV}, ${TZ},
+        'b2-d-' || lpad(g::text, 5, '0'),
+        1, 1, 0, 0, 0, 0, 0, 0::bigint, 0,
+        NULL, ${utc(B2_NOW)}, ${utc(new Date('2025-06-01T00:00:00.000Z'))}
+      FROM generate_series(0, ${count - 1}::int) AS g
+    `);
+  }
+
+  /** 行内时区正推 13 个月后已到期的 day-state：localDate 全部 < 今日−13 月预筛下界。 */
+  async function insertExpiredDayStates(count: number): Promise<void> {
+    const conn = requireDb();
+    await conn.$executeRaw(Prisma.sql`
+      INSERT INTO "AnalyticsAggregateDayState" (
+        "localDate", "timezoneRevision", "timezone", "markerVersions",
+        "deferUntil", "gapKind", "gapSince", "updatedAt"
+      )
+      SELECT
+        to_char(DATE '2025-02-14' - g::int, 'YYYY-MM-DD'),
+        ${REV}, ${TZ}, '{}'::jsonb, NULL, NULL, NULL, ${utc(B2_NOW)}
+      FROM generate_series(0, ${count - 1}::int) AS g
+    `);
+  }
+
+  /** UTC 日严格早于「今日−13 月−2 天」的 marker：2022–2023 的日期与上面 state 不重叠。 */
+  async function insertExpiredDayChanges(count: number): Promise<void> {
+    const conn = requireDb();
+    await conn.$executeRaw(Prisma.sql`
+      INSERT INTO "AnalyticsDayChange" ("utcDate", "version", "updatedAt")
+      SELECT to_char(DATE '2023-11-30' - g::int, 'YYYY-MM-DD'), 0::bigint, ${utc(B2_NOW)}
+      FROM generate_series(0, ${count - 1}::int) AS g
+    `);
+  }
+
+  type CountedTable =
+    | 'AnalyticsEvent'
+    | 'AnalyticsDaily'
+    | 'AnalyticsAggregateDayState'
+    | 'AnalyticsDayChange'
+    | 'AnalyticsRollupDay'
+    | 'AnalyticsDailyRollup';
+
+  async function countRows(table: CountedTable): Promise<number> {
+    const rows = await requireDb().$queryRawUnsafe<{ count: number }[]>(
+      `SELECT COUNT(*)::int AS "count" FROM "${table}"`,
+    );
+    return Number(rows[0]?.count ?? 0);
+  }
+
+  /** 删后近期聚合会给当前窗口补写 0 事件水位；旧链额度只看本轮到期域内（siteDate <= 截止）。 */
+  async function countExpiredRollupRows(table: 'AnalyticsRollupDay' | 'AnalyticsDailyRollup'): Promise<number> {
+    const rows = await requireDb().$queryRawUnsafe<{ count: number }[]>(
+      `SELECT COUNT(*)::int AS "count" FROM "${table}" WHERE "siteDate" <= $1`,
+      B2_ROLLUP_THROUGH,
+    );
+    return Number(rows[0]?.count ?? 0);
+  }
+
+  /** 生产默认 batchSize/额度直接跑：不注入替身，不缩小批量来绕过真实上限。 */
+  function runRetention() {
+    return runAnalyticsRetention({
+      db: requireDb(),
+      context: {
+        now: B2_NOW,
+        deadlineAt: new Date(Date.now() + 55_000),
+        signal: new AbortController().signal,
+        dryRun: false,
+      },
+      clock: () => B2_NOW,
+      deleteAuthorized: true,
+    });
+  }
+
+  test('B2 四表共用 20k：旧链 19,000 先删，Daily 只剩 1,000 额度', async () => {
+    await reset();
+    await seedRetentionSettings();
+    await insertExpiredRollupDaily(19_000);
+    await insertExpiredDailyRows(5_000);
+
+    const run = await runRetention();
+    if (run.kind !== 'completed') assert.fail(`保留清理必须写终态，实际 ${run.kind}`);
+    const report = run.report;
+    assert.equal(run.status, 'SUCCEEDED');
+    assert.equal(report.mode, 'delete');
+    assert.equal(report.deletedEvents, 0);
+    assert.equal(report.deletedRollupDays, 0);
+    assert.equal(report.candidates.rollupDailyRows, 19_000);
+    assert.equal(report.candidates.daily, 5_000);
+    assert.equal(report.deletedRollupDailyRows, 19_000);
+    assert.equal(report.deletedDailyRows, 1_000);
+    assert.equal(report.deletedRollupDailyRows + report.deletedDailyRows, 20_000);
+    assert.equal(await countExpiredRollupRows('AnalyticsDailyRollup'), 0);
+    assert.equal(await countRows('AnalyticsDaily'), 4_000, 'Daily 只再让 1,000 行到期删除');
+  });
+
+  test('B2 四表共用 20k：旧链 25,000 已占满，Daily 一行不删', async () => {
+    await reset();
+    await seedRetentionSettings();
+    await insertExpiredRollupDaily(25_000);
+    await insertExpiredDailyRows(5_000);
+
+    const run = await runRetention();
+    if (run.kind !== 'completed') assert.fail(`保留清理必须写终态，实际 ${run.kind}`);
+    const report = run.report;
+    assert.equal(run.status, 'SUCCEEDED');
+    assert.equal(report.deletedRollupDailyRows, 20_000);
+    assert.equal(report.deletedDailyRows, 0);
+    assert.equal(report.candidates.daily, 5_000, '候选仍到期；额度满不等于没有候选');
+    assert.equal(report.deletedRollupDailyRows + report.deletedDailyRows, 20_000);
+    assert.equal(await countExpiredRollupRows('AnalyticsDailyRollup'), 5_000);
+    assert.equal(await countRows('AnalyticsDaily'), 5_000);
+  });
+
+  test('B2 四表共用 20k：事件 5,000 先删，旧链只剩 15,000，Daily 0', async () => {
+    await reset();
+    await seedRetentionSettings();
+    await insertExpiredEvents(5_000);
+    await insertExpiredRollupDaily(15_000);
+    await insertExpiredDailyRows(5_000);
+
+    const run = await runRetention();
+    if (run.kind !== 'completed') assert.fail(`保留清理必须写终态，实际 ${run.kind}`);
+    const report = run.report;
+    assert.equal(run.status, 'SUCCEEDED');
+    assert.equal(report.candidates.events, 5_000);
+    assert.equal(report.deletedEvents, 5_000);
+    assert.equal(report.deletedRollupDailyRows, 15_000);
+    assert.equal(report.deletedDailyRows, 0);
+    assert.equal(report.deletedEvents + report.deletedRollupDailyRows + report.deletedDailyRows, 20_000);
+    assert.equal(await countRows('AnalyticsEvent'), 0);
+    assert.equal(await countExpiredRollupRows('AnalyticsDailyRollup'), 0);
+    assert.equal(await countRows('AnalyticsDaily'), 5_000);
+  });
+
+  test('B2 metadata 独立额度：state/marker 各 500、合计 1,000，不动四表', async () => {
+    await reset();
+    await seedRetentionSettings();
+    await insertExpiredDayStates(600);
+    await insertExpiredDayChanges(600);
+
+    const run = await runRetention();
+    if (run.kind !== 'completed') assert.fail(`保留清理必须写终态，实际 ${run.kind}`);
+    const report = run.report;
+    assert.equal(run.status, 'SUCCEEDED');
+    assert.equal(report.candidates.dayState, 600);
+    assert.equal(report.candidates.dayChange, 600);
+    assert.equal(report.deletedDayStates, 500);
+    assert.equal(report.deletedDayChanges, 500);
+    assert.equal(report.deletedEvents + report.deletedRollupDailyRows + report.deletedRollupDays + report.deletedDailyRows, 0);
+    assert.equal(await countRows('AnalyticsAggregateDayState'), 100);
+    assert.equal(await countRows('AnalyticsDayChange'), 100);
+  });
+
+  test('B2 metadata 单侧：只有 state 候选时 marker 额度不被借用', async () => {
+    await reset();
+    await seedRetentionSettings();
+    await insertExpiredDayStates(600);
+
+    const run = await runRetention();
+    if (run.kind !== 'completed') assert.fail(`保留清理必须写终态，实际 ${run.kind}`);
+    const report = run.report;
+    assert.equal(run.status, 'SUCCEEDED');
+    assert.equal(report.deletedDayStates, 500);
+    assert.equal(report.deletedDayChanges, 0);
+    assert.equal(await countRows('AnalyticsAggregateDayState'), 100);
+    assert.equal(await countRows('AnalyticsDayChange'), 0);
+  });
+
+  test('B2 metadata 单侧：只有 marker 候选时 state 额度不被借用', async () => {
+    await reset();
+    await seedRetentionSettings();
+    await insertExpiredDayChanges(600);
+
+    const run = await runRetention();
+    if (run.kind !== 'completed') assert.fail(`保留清理必须写终态，实际 ${run.kind}`);
+    const report = run.report;
+    assert.equal(run.status, 'SUCCEEDED');
+    assert.equal(report.deletedDayStates, 0);
+    assert.equal(report.deletedDayChanges, 500);
+    assert.equal(await countRows('AnalyticsAggregateDayState'), 0);
+    assert.equal(await countRows('AnalyticsDayChange'), 100);
+  });
+
+  test('B2 扫描窗 2,000：候选 2,000 只删 500，扫描上限不是删除额度', async () => {
+    await reset();
+    await seedRetentionSettings();
+    await insertExpiredDayStates(2_000);
+
+    const run = await runRetention();
+    if (run.kind !== 'completed') assert.fail(`保留清理必须写终态，实际 ${run.kind}`);
+    const report = run.report;
+    assert.equal(run.status, 'SUCCEEDED');
+    assert.equal(report.candidates.dayState, 2_000, '扫描窗读满 2,000 个到期候选');
+    assert.equal(report.deletedDayStates, 500, '单轮 state 删除上限仍是 500');
+    assert.equal(await countRows('AnalyticsAggregateDayState'), 1_500);
+  });
+
+  test('B2 四表与 metadata 独立：四表 20,000 同时 metadata 仍 500/500', async () => {
+    await reset();
+    await seedRetentionSettings();
+    await insertExpiredRollupDaily(19_000);
+    await insertExpiredDailyRows(5_000);
+    await insertExpiredDayStates(600);
+    await insertExpiredDayChanges(600);
+
+    const run = await runRetention();
+    if (run.kind !== 'completed') assert.fail(`保留清理必须写终态，实际 ${run.kind}`);
+    const report = run.report;
+    assert.equal(run.status, 'SUCCEEDED');
+    assert.equal(report.deletedRollupDailyRows, 19_000);
+    assert.equal(report.deletedDailyRows, 1_000);
+    assert.equal(report.deletedRollupDailyRows + report.deletedDailyRows, 20_000);
+    assert.equal(report.deletedDayStates, 500);
+    assert.equal(report.deletedDayChanges, 500);
+    assert.equal(await countExpiredRollupRows('AnalyticsDailyRollup'), 0);
+    assert.equal(await countRows('AnalyticsDaily'), 4_000);
+    assert.equal(await countRows('AnalyticsAggregateDayState'), 100);
+    assert.equal(await countRows('AnalyticsDayChange'), 100);
   });
 });
 // ---- 专属 DB 入口拒绝负控：spawn 真实入口文件，断言安全码、非 0 退出、不回显 DSN ----
