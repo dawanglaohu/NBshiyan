@@ -259,8 +259,13 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
     `;
   }
 
-  function roundRun(overrides: Partial<Parameters<typeof runDailyAggregateRound>[0]> = {}) {
-    return runDailyAggregateRound({
+  /**
+   * 真实入口的共用入口：守卫 fail-closed，所以按**本用例自己的**
+   * now/TZ/revision/generation/owner 先写真实租约与时区设置行，再跑一轮。
+   * 负控需要坏前提时直接调 runDailyAggregateRound，不要走这里。
+   */
+  async function roundRun(overrides: Partial<Parameters<typeof runDailyAggregateRound>[0]> = {}) {
+    const args = {
       db: requireDb(),
       now: new Date('2026-03-05T02:00:00.000Z'),
       siteTimezone: TZ,
@@ -269,7 +274,15 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
       leaseOwner: 'test-lease',
       currentDate: TODAY,
       ...overrides,
+    };
+    await seedGuards({
+      generation: args.generation,
+      leaseOwner: args.leaseOwner,
+      revision: args.timezoneRevision,
+      timezone: args.siteTimezone,
+      now: args.now,
     });
+    return runDailyAggregateRound(args);
   }
 
   test('基本日聚合：站点/产品行、BigInt 总和、sourceThrough、13 月 expiresAt', async () => {
@@ -537,13 +550,20 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
     });
     // 重算窗口之外的既有结果：整组回滚不得动它。
     const outside = '2026-01-01';
+    // `createdAt`/`updatedAt` 没有数据库默认值（@updatedAt 在客户端侧），必须显式给。
     await requireDb().$executeRaw`
-      INSERT INTO "AnalyticsRollupDay" ("siteDate", "timezoneRevision", "completedAt", "eventCount", "sourceMaxReceivedAt")
-      VALUES (${outside}, ${REV}, ${utc(now)}, ${7}, ${utc(now)})
+      INSERT INTO "AnalyticsRollupDay" (
+        "siteDate", "timezoneRevision", "completedAt", "eventCount", "sourceMaxReceivedAt", "createdAt", "updatedAt"
+      ) VALUES (
+        ${outside}, ${REV}, ${utc(now)}, ${7}, ${utc(now)}, ${utc(now)}, ${utc(now)}
+      )
     `;
     await requireDb().$executeRaw`
-      INSERT INTO "AnalyticsDailyRollup" ("siteDate", "kind", "locale", "productSlug", "count", "uniqueBrowsers")
-      VALUES (${outside}, ${'page_view'}::"AnalyticsEventKind", ${'en'}, ${''}, ${7}, ${3})
+      INSERT INTO "AnalyticsDailyRollup" (
+        "siteDate", "kind", "locale", "productSlug", "count", "uniqueBrowsers", "createdAt", "updatedAt"
+      ) VALUES (
+        ${outside}, ${'page_view'}::"AnalyticsEventKind", ${'en'}, ${''}, ${7}, ${3}, ${utc(now)}, ${utc(now)}
+      )
     `;
 
     const failure = new Error('caller_lease_settlement_failed');
