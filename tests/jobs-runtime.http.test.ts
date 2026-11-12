@@ -720,13 +720,47 @@ describe('M5-T4 pending 分类与完整值 CAS 消费', { concurrency: false, sk
 
     // 记录事务内 CAS DELETE 实际执行与命中行数；不改 Prisma 行为，只在测试注入的客户端上旁路观测。
     const casDeletes: number[] = [];
+    // ---- 诊断（仅测试）：观察首个 callback 异常的安全字段，原样重抛，不改变控制流 ----
+    const VERSION_CONFLICT_REASONS = new Set(['stale_generation', 'stale_timezone_revision', 'watermark_regression', 'write_conflict']);
+    type SafeError = { name: string; message: string; code?: string; original?: { name: string; message: string; code?: string } };
+    let firstError: SafeError | 'none' | 'read_failed' = 'none';
+    let transactions = 0;
+    const safeCode = (value: unknown): string | undefined =>
+      typeof value === 'string' && /^(P\d{4}|\d{5})$/.test(value) ? value : undefined;
+    const describeError = (error: unknown): SafeError | null => {
+      if (error === null || typeof error !== 'object') return null;
+      const record = error as { name?: unknown; message?: unknown; code?: unknown; original?: unknown };
+      const name = typeof record.name === 'string' ? record.name : 'unknown';
+      const raw = typeof record.message === 'string' ? record.message : '';
+      // 只保留稳定枚举 reason；其它 Error.message 一律脱敏（可能含 SQL/参数/连接信息）。
+      const message = name === 'AggregateVersionConflict' && VERSION_CONFLICT_REASONS.has(raw) ? raw : '<redacted>';
+      const code = safeCode(record.code);
+      const inner = record.original === undefined || record.original === null ? null : describeError(record.original);
+      return {
+        name,
+        message,
+        ...(code !== undefined ? { code } : {}),
+        ...(inner !== null
+          ? { original: { name: inner.name, message: inner.message, ...(inner.code !== undefined ? { code: inner.code } : {}) } }
+          : {}),
+      };
+    };
+    const recordFirstError = (error: unknown): void => {
+      if (firstError !== 'none') return;
+      try {
+        firstError = describeError(error) ?? 'read_failed';
+      } catch {
+        firstError = 'read_failed';
+      }
+    };
     // 租约时钟按**阶段**推进，不按 clock 调用次数：CAS DELETE 命中后才跳到 BASE+120s。
     let leaseExpired = false;
     const observedDb = new Proxy(conn, {
       get(target, prop) {
         if (prop === '$transaction') {
           return (fn: (tx: Prisma.TransactionClient) => Promise<unknown>, options?: { maxWait?: number; timeout?: number }) =>
-            target.$transaction((tx) => {
+            target.$transaction(async (tx) => {
+              transactions += 1;
               const wrapped = new Proxy(tx, {
                 get(txTarget, txProp) {
                   const value = Reflect.get(txTarget, txProp, txTarget) as unknown;
@@ -745,7 +779,13 @@ describe('M5-T4 pending 分类与完整值 CAS 消费', { concurrency: false, sk
                   return (value as (...args: unknown[]) => unknown).bind(txTarget);
                 },
               });
-              return fn(wrapped as Prisma.TransactionClient);
+              try {
+                return await fn(wrapped as Prisma.TransactionClient);
+              } catch (error) {
+                // 只记录首个异常的安全字段，然后**同一对象**重抛：不吞、不转换、不重试。
+                recordFirstError(error);
+                throw error;
+              }
             }, options);
         }
         const value = Reflect.get(target, prop, target) as unknown;
@@ -761,7 +801,25 @@ describe('M5-T4 pending 分类与完整值 CAS 消费', { concurrency: false, sk
       signal: new AbortController().signal,
     });
     assert.notEqual(outcome.kind === 'ran' ? outcome.status : 'RUNNING', 'SUCCEEDED');
-    assert.deepEqual(casDeletes, [1], 'CAS DELETE 必须在提交失败前执行并命中完整待办');
+    // 诊断只用于定位中止阶段：读取失败记 read_failed，不跳过、不降级原 CAS 断言。
+    let diagnostics: string;
+    try {
+      const state = await jobState();
+      const safeOutcome = outcome.kind === 'ran'
+        ? { kind: outcome.kind, status: outcome.status, counts: outcome.counts }
+        : { kind: outcome.kind };
+      diagnostics = JSON.stringify({
+        outcome: safeOutcome,
+        lastStatus: state.lastStatus,
+        lastErrorCode: state.lastErrorCode,
+        firstError,
+        transactions,
+        casDeletes,
+      });
+    } catch {
+      diagnostics = '{"read_failed":true}';
+    }
+    assert.deepEqual(casDeletes, [1], `CAS DELETE 必须在提交失败前执行并命中完整待办；诊断=${diagnostics}`);
     assert.equal(await readBacklog(), originalBacklog, '失败回滚后完整六字段待办必须原样保留');
     assert.equal(await rollupCount(), 0, '聚合水位不得留下');
     const daily = await conn.$queryRaw<{ c: bigint }[]>`SELECT COUNT(*)::bigint AS c FROM "AnalyticsDailyRollup"`;
