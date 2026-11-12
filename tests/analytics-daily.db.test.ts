@@ -6,7 +6,7 @@ import { after, before, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { Prisma, PrismaClient } from '@prisma/client';
-import { siteDayUtcBounds } from '../src/lib/analytics/day-boundaries';
+import { siteDayUtcBounds, siteLocalDate } from '../src/lib/analytics/day-boundaries';
 import { classifyDayCompleteness } from '../src/lib/analytics/daily-aggregate';
 import { AggregateVersionConflict, DailyRoundHalt, runAggregateOnce, runDailyAggregateRound, writeDailyCoverageMetadata } from '../src/lib/server/analytics/aggregate';
 import { isDateRecomputable, planSnapshot, shiftLocalDate } from '../src/lib/analytics/aggregate-plan';
@@ -776,10 +776,13 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
     assert.notEqual(overlap.daily?.status, 'budget', '并集等于上限时不得触发 max_days_initial');
 
     // 超限对照：再加一个旧链计划外、但**真正可重算**的已结束日 → 并集 = limit + 1。
-    // 不能直接用 earliestRecomputableDate：该日首瞬时可能早于 raw 下限，会归 coverage 不进 targets。
-    const outside = shiftLocalDate(plan.earliestRecomputableDate, 1);
+    // earliestRecomputableDate 是 ISO 瞬时，不是 YYYY-MM-DD：必须先映射成站点本地日再 +1；
+    // 直接用该本地日也可能早于 raw 下限（归 coverage 不进 targets），所以再断言可重算。
+    const earliestLocalDate = siteLocalDate(new Date(plan.earliestRecomputableDate), TZ);
+    const outside = shiftLocalDate(earliestLocalDate, 1);
     assert.equal(isDateRecomputable(outside, TZ, plan.earliestRecomputableDate), true, '超限日必须真正可重算');
     assert.ok(!reserved.includes(outside), '超限日必须落在旧链计划之外');
+    assert.ok(outside >= earliestLocalDate && outside < currentDate, '超限日必须在可重算域内且已结束');
     await insertEvent({ kind: 'page_view', browserHash: 'b-extra', path: '/en', occurredAt: new Date(`${outside}T02:00:00Z`) });
     // runAggregateOnce 这条路径上，超限是包装器内的 DailyRoundHalt → 被原样抛出，不返回 daily.budget。
     await assert.rejects(
