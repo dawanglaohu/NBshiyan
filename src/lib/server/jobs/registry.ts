@@ -365,7 +365,9 @@ export function createAnalyticsAggregateJob(deps: {
             phase: error.phase,
             targets: error.unknownTargets.length,
           });
-          return { kind: 'timeout' };
+          // 「终态没有写进数据库」，不是已证预算耗尽：走既有的 finish_failed 语义，
+          // 不写 JobState、不补 gap、不宣未写或必回滚。
+          return { kind: 'finish_failed' };
         }
         // guard/budget 在日轮事务内抛出 → 整笔回滚（含旧链）；这里只落 PARTIAL，不宣 SUCCEEDED。
         if (error instanceof DailyRoundHalt && error.halt.kind === 'coverage') {

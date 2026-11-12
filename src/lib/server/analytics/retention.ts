@@ -768,11 +768,12 @@ export async function runAnalyticsRetention(deps: {
     // COMMIT 答复未知：既不能记 FAILED（假“确认回滚”），也不能记 gap 或继续删除。
     // 不写任何终态，交给租约到期后的下一轮；可能已落库的内容以数据库自身状态为准。
     if (error instanceof AggregateCommitUnknown) {
+      // 终态没有写进数据库（不是已证预算耗尽，也不能宣“未写/必回滚”）：交回 lease 到期后重试。
       console.error('[cron] analytics retention commit_unknown', {
         phase: error.phase,
         targets: error.unknownTargets.length,
       });
-      return { kind: 'timeout' };
+      return { kind: 'finish_failed', report };
     }
     if (error instanceof RetentionRunTimeout) return { kind: 'timeout' };
     if (error instanceof AggregateDeadlineExceeded || isBudgetTimeoutError(error) || budgetExhausted(budget)) {
