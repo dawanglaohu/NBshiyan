@@ -12,6 +12,7 @@ import {
   AggregateVersionConflict,
   DailyRoundHalt,
   runAggregateOnce,
+  writeDailyCoverageMetadata,
   writeDailyGap,
 } from '../analytics/aggregate';
 import {
@@ -357,6 +358,47 @@ export function createAnalyticsAggregateJob(deps: {
         return { kind: 'ran', status: 'SUCCEEDED', counts: { candidateCount: written } };
       } catch (error) {
         // guard/budget 在日轮事务内抛出 → 整笔回滚（含旧链）；这里只落 PARTIAL，不宣 SUCCEEDED。
+        if (error instanceof DailyRoundHalt && error.halt.kind === 'coverage') {
+          // 闭包日不可重算：指标整笔已回滚（不宣 SUCCEEDED）。用该次 plan 的原 expected 在剩余
+          // 预算内独立 CAS 补 coverage 元数据，然后诚实 PARTIAL；下一轮该日已是 raw_partial，不再重入。
+          if (!budgetExhausted(budget)) {
+            try {
+              const writes = await writeDailyCoverageMetadata(deps.db, {
+                entries: error.coveragePending,
+                timezone: settings.timezone,
+                revision: claim.timezoneRevision,
+                now,
+                cutoff: now,
+                generation: claim.generation,
+                leaseOwner: ANALYTICS_AGGREGATE_OWNER,
+                deadlineAt: budget.deadlineAt,
+              });
+              console.error('[cron] analytics.daily_coverage', {
+                days: error.halt.days.length,
+                written: writes.length,
+              });
+            } catch (coverageError) {
+              console.error('[cron] analytics.daily_coverage_failed', {
+                reason: coverageError instanceof Error ? coverageError.name : 'unknown',
+              });
+            }
+          }
+          const persisted = await runWithinBudget(deps.db, budget, (tx) => repo.complete({
+            key: ANALYTICS_AGGREGATE_KEY,
+            owner: ANALYTICS_AGGREGATE_OWNER,
+            generation: claim.generation,
+            status: 'PARTIAL',
+            summary: {
+              counts: { candidateCount: 0 },
+              times: { aggregatedAt: now.toISOString() },
+              versions: { timezoneRevision: claim.timezoneRevision },
+            },
+            errorCode: null,
+            timezoneRevision: claim.timezoneRevision,
+          }, tx));
+          if (persisted.kind !== 'ok') return { kind: 'timeout' };
+          return { kind: 'ran', status: 'PARTIAL', counts: { candidateCount: 0 } };
+        }
         if (error instanceof DailyRoundHalt) {
           const status: JobResultStatus = 'PARTIAL';
           // 与独立 wrapper 一致：先按**原 plan expected** 落 gap（租约仍在本次手里、complete 之前），

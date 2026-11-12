@@ -327,7 +327,7 @@ describe('M5-T12 assertDailyAggregateGuards fail-closed', { concurrency: false }
  * 这些用例命中 14e 的两个新缺陷（future defer 被清空、CAS 0 静默）与 B3 的 gap 读后写。
  * ------------------------------------------------------------------------- */
 
-import { writeDailyMetadataPhase, writeDailyGap, type DailyStateExpectation } from "../src/lib/server/analytics/aggregate";
+import { writeDailyMetadataPhase, writeDailyCoverageMetadata, writeDailyGap, type DailyStateExpectation } from "../src/lib/server/analytics/aggregate";
 
 type SqlCall = { kind: 'query' | 'execute'; sql: string; values: unknown[] };
 
@@ -528,4 +528,51 @@ describe('M5-T12 gap 写：只按原 plan expected，不读当前行', { concurr
   });
 });
 
+
+
+describe('M5-T12 闭包 coverage：回滚后的独立 CAS 事务', { concurrency: false }, () => {
+  test('逐日按原 plan expected 写，且写前不读 day-state', async () => {
+    const { db, calls } = stubDb({
+      jobState: [{ generation: 7, leaseOwner: 'analytics-aggregate', lockedUntil: LIVE_LEASE }],
+      stateQueries: [],
+      live: [{ utcDate: OLD_DAY, version: '2' }],
+      affected: 1,
+    });
+    const writes = await writeDailyCoverageMetadata(db as never, {
+      entries: [{
+        date: OLD_DAY,
+        expected: { markers: { [OLD_DAY]: '1' }, updatedAt: new Date('2026-03-01T00:00:00.000Z'), deferUntil: new Date('2026-03-05T00:00:00.000Z') },
+      }],
+      timezone: 'UTC',
+      revision: 3,
+      now: PHASE_NOW,
+      cutoff: PHASE_NOW,
+      generation: 7,
+      leaseOwner: 'analytics-aggregate',
+    });
+    assert.equal(writes.length, 1);
+    assert.equal(writes[0]?.result, 'updated');
+    assert.ok(calls.filter((call) => call.kind === 'query').every((call) => !call.sql.includes('AnalyticsAggregateDayState')));
+    const write = calls.find((call) => call.kind === 'execute' && call.sql.includes('AnalyticsAggregateDayState'));
+    assert.ok(write !== undefined);
+    const values = flattenValues(write.values);
+    assert.ok(values.includes(JSON.stringify({ [OLD_DAY]: '1' })));
+    assert.ok(values.includes('2026-03-05T00:00:00.000Z'));
+  });
+
+  test('没有闭包日时不写库、不开事务', async () => {
+    const { db, calls } = stubDb({ jobState: [], stateQueries: [], live: [] });
+    const writes = await writeDailyCoverageMetadata(db as never, {
+      entries: [],
+      timezone: 'UTC',
+      revision: 3,
+      now: PHASE_NOW,
+      cutoff: PHASE_NOW,
+      generation: 7,
+      leaseOwner: 'analytics-aggregate',
+    });
+    assert.deepEqual(writes, []);
+    assert.equal(calls.length, 0);
+  });
+});
 
