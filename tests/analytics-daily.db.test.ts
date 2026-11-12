@@ -9,6 +9,8 @@ import { Prisma, PrismaClient } from '@prisma/client';
 import { siteDayUtcBounds } from '../src/lib/analytics/day-boundaries';
 import { classifyDayCompleteness } from '../src/lib/analytics/daily-aggregate';
 import { runAggregateOnce, runDailyAggregateRound } from '../src/lib/server/analytics/aggregate';
+import { planSnapshot } from '../src/lib/analytics/aggregate-plan';
+import { AGGREGATE_JOB_KEY } from '../src/lib/server/analytics/aggregate-repo';
 import { readDayState, readLiveMarkerVersions } from '../src/lib/server/analytics/aggregate-day-state';
 
 // 专属入口（M5-T12）：只认 M5T12_TEST_DATABASE_URL，不 fallback 通用 DATABASE_URL。
@@ -140,10 +142,57 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
 
   async function reset() {
     const conn = requireDb();
+    // 只清本 owned schema 的相关表；不动其它 schema 或其它任务数据。
     await conn.$executeRawUnsafe(`DELETE FROM "AnalyticsDaily"`);
     await conn.$executeRawUnsafe(`DELETE FROM "AnalyticsAggregateDayState"`);
     await conn.$executeRawUnsafe(`DELETE FROM "AnalyticsDayChange"`);
     await conn.$executeRawUnsafe(`DELETE FROM "AnalyticsEvent"`);
+    await conn.$executeRawUnsafe(`DELETE FROM "AnalyticsDailyRollup"`);
+    await conn.$executeRawUnsafe(`DELETE FROM "AnalyticsRollupDay"`);
+    await conn.$executeRawUnsafe(`DELETE FROM "JobState"`);
+    await conn.$executeRawUnsafe(`DELETE FROM "SiteSetting"`);
+  }
+
+  /**
+   * 真实守卫行：analytics-aggregate 租约 + analytics.settings 时区代次。
+   * 守卫 fail-closed，缺行会 `stale_generation`/`stale_timezone_revision`，所以必须真写，
+   * 不能用 always-pass 桩。
+   */
+  async function seedGuards(input: {
+    generation: number;
+    leaseOwner: string;
+    revision: number;
+    timezone: string;
+    now: Date;
+  }) {
+    const conn = requireDb();
+    const until = new Date(Date.now() + 60_000);
+    await conn.$executeRaw`
+      INSERT INTO "JobState" (
+        "key", "leaseOwner", "generation", "lockedUntil", "lastStartedAt",
+        "lastStatus", "lastErrorCode", "summary", "createdAt", "updatedAt"
+      ) VALUES (
+        ${AGGREGATE_JOB_KEY}, ${input.leaseOwner}, ${input.generation}, ${utc(until)}, ${utc(input.now)},
+        ${'RUNNING'}::"JobRunStatus", NULL, NULL, ${utc(input.now)}, ${utc(input.now)}
+      )
+      ON CONFLICT ("key") DO UPDATE SET
+        "leaseOwner" = EXCLUDED."leaseOwner",
+        "generation" = EXCLUDED."generation",
+        "lockedUntil" = EXCLUDED."lockedUntil",
+        "lastStatus" = EXCLUDED."lastStatus",
+        "updatedAt" = EXCLUDED."updatedAt"
+    `;
+    await conn.$executeRaw`
+      INSERT INTO "SiteSetting" ("key", "value")
+      VALUES ('analytics.settings', ${JSON.stringify({
+        version: 1,
+        timezone: input.timezone,
+        timezoneRevision: input.revision,
+        changedAt: input.now.toISOString(),
+        updatedBy: null,
+      })}::jsonb)
+      ON CONFLICT ("key") DO UPDATE SET "value" = EXCLUDED."value"
+    `;
   }
 
   let seq = 0;
@@ -469,20 +518,60 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
     state = await readDayState(requireDb(), { localDate: '2026-03-02', timezoneRevision: REV });
     assert.equal(state?.deferUntil, null);
   });
-  test('原子回滚：新链已写入、同一事务内的旧链提交钩子失败，整组不落库', async () => {
+  test('原子回滚：两条链在同一 RR 已实际写入后，租约结算钩子失败 → 本次写全部不落库', async () => {
     await reset();
-    await insertEvent({ kind: 'page_view', browserHash: 'b1', path: '/en', occurredAt: new Date('2026-03-02T02:00:00Z') });
-    const failure = new Error('legacy_chain_failed');
+    const now = new Date('2026-03-03T02:00:00.000Z');
+    const currentDate = '2026-03-03';
+    const generation = 1;
+    const leaseOwner = 'test-lease';
+    await seedGuards({ generation, leaseOwner, revision: REV, timezone: TZ, now });
+    // 旧链目标由真实 planSnapshot 决定，不手填日期。
+    const plan = planSnapshot({ now, siteTimezone: TZ, currentDate });
+    assert.ok(plan.siteDates.length > 0, '真实 planSnapshot 必须给出旧链站点日');
+    const day = plan.siteDates[0]!;
+    await insertEvent({
+      kind: 'page_view',
+      browserHash: 'b1',
+      path: '/en',
+      occurredAt: new Date(`${day}T02:00:00Z`),
+    });
+    // 重算窗口之外的既有结果：整组回滚不得动它。
+    const outside = '2026-01-01';
+    await requireDb().$executeRaw`
+      INSERT INTO "AnalyticsRollupDay" ("siteDate", "timezoneRevision", "completedAt", "eventCount", "sourceMaxReceivedAt")
+      VALUES (${outside}, ${REV}, ${utc(now)}, ${7}, ${utc(now)})
+    `;
+    await requireDb().$executeRaw`
+      INSERT INTO "AnalyticsDailyRollup" ("siteDate", "kind", "locale", "productSlug", "count", "uniqueBrowsers")
+      VALUES (${outside}, ${'page_view'}::"AnalyticsEventKind", ${'en'}, ${''}, ${7}, ${3})
+    `;
+
+    const failure = new Error('caller_lease_settlement_failed');
     await assert.rejects(
       () => runAggregateOnce({
         db: requireDb(),
-        now: new Date('2026-03-05T02:00:00.000Z'),
+        now,
         siteTimezone: TZ,
         timezoneRevision: REV,
-        generation: 1,
-        currentDate: TODAY,
-        daily: { leaseOwner: 'test-lease', baseDates: ['2026-03-02'] },
-        commit: async () => { throw failure; },
+        generation,
+        currentDate,
+        daily: { leaseOwner, baseDates: [day] },
+        commit: async (tx) => {
+          // 先证明两条链在**同一事务**里已真实写入，再抛错；不是空断言。
+          const daily = await tx.$queryRaw<{ count: number }[]>`
+            SELECT COUNT(*)::int AS "count" FROM "AnalyticsDaily" WHERE "localDate" = ${day}
+          `;
+          const rollup = await tx.$queryRaw<{ count: number }[]>`
+            SELECT COUNT(*)::int AS "count" FROM "AnalyticsDailyRollup" WHERE "siteDate" = ${day}
+          `;
+          const watermark = await tx.$queryRaw<{ count: number }[]>`
+            SELECT COUNT(*)::int AS "count" FROM "AnalyticsRollupDay" WHERE "siteDate" = ${day}
+          `;
+          assert.ok(Number(daily[0]?.count ?? 0) > 0, '新链 AnalyticsDaily 必须已在本轮事务里写入');
+          assert.ok(Number(rollup[0]?.count ?? 0) > 0, '旧链 AnalyticsDailyRollup 必须已在本轮事务里写入');
+          assert.ok(Number(watermark[0]?.count ?? 0) > 0, '旧链水位 AnalyticsRollupDay 必须已在本轮事务里写入');
+          throw failure;
+        },
       }),
       (error: unknown) => {
         // 回调内失败＝确认回滚：原错误上抛，不包装成未知提交。
@@ -490,18 +579,36 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
         return true;
       },
     );
-    // 新链的行与旧链的行都必须随整组回滚，一个都不留。
-    assert.deepEqual(await dailyRows('2026-03-02'), []);
-    const rollup = await requireDb().$queryRaw<{ count: number }[]>`
-      SELECT COUNT(*)::int AS "count" FROM "AnalyticsDailyRollup" WHERE "siteDate" = ${'2026-03-02'}
+
+    // 两条链本次写的都必须随整组回滚，逐实际 plan 日期检查。
+    for (const localDate of plan.siteDates) {
+      assert.deepEqual(await dailyRows(localDate), [], `新链 ${localDate} 不得残留`);
+      const rollup = await requireDb().$queryRaw<{ count: number }[]>`
+        SELECT COUNT(*)::int AS "count" FROM "AnalyticsDailyRollup" WHERE "siteDate" = ${localDate}
+      `;
+      assert.equal(Number(rollup[0]?.count ?? 0), 0, `旧链 rollup ${localDate} 不得残留`);
+      const watermark = await requireDb().$queryRaw<{ count: number }[]>`
+        SELECT COUNT(*)::int AS "count" FROM "AnalyticsRollupDay" WHERE "siteDate" = ${localDate}
+      `;
+      assert.equal(Number(watermark[0]?.count ?? 0), 0, `旧链水位 ${localDate} 不得残留`);
+    }
+    const state = await readDayState(requireDb(), { localDate: day, timezoneRevision: REV });
+    assert.equal(state, null, '主 RR 本次创建的 DayState 必须跟随回滚');
+
+    // 窗口外的既有结果必须原样保留。
+    const keptRollup = await requireDb().$queryRaw<{ count: number }[]>`
+      SELECT "count" FROM "AnalyticsDailyRollup" WHERE "siteDate" = ${outside}
     `;
-    assert.equal(Number(rollup[0]?.count ?? 0), 0);
-    const state = await readDayState(requireDb(), { localDate: '2026-03-02', timezoneRevision: REV });
-    assert.equal(state, null, '整组回滚后不得留下本次的元数据行');
+    assert.equal(Number(keptRollup[0]?.count ?? 0), 7, '既有旧链 rollup 不得被回滚波及');
+    const keptWatermark = await requireDb().$queryRaw<{ eventCount: number }[]>`
+      SELECT "eventCount" FROM "AnalyticsRollupDay" WHERE "siteDate" = ${outside}
+    `;
+    assert.equal(Number(keptWatermark[0]?.eventCount ?? 0), 7, '既有旧链水位不得被回滚波及');
   });
 
   test('closure 独立覆盖：闭包日不可重算时整笔回滚，只留独立 CAS 的 coverage 元数据', async () => {
     await reset();
+    await seedGuards({ generation: 1, leaseOwner: 'test-lease', revision: REV, timezone: TZ, now: new Date('2026-03-05T02:00:00.000Z') });
     // start 在 2026-02-01，终态在次日；闭包日早于本轮可重算下限，闭包才发现不可重算。
     await insertEvent({
       kind: 'model_view_start',
