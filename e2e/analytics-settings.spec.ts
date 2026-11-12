@@ -69,7 +69,7 @@ test.describe('已登录的 ADMIN', () => {
     const target = initial.timezone === 'Asia/Tokyo' ? 'Europe/Berlin' : 'Asia/Tokyo';
     await page.getByTestId('analytics-settings-input').fill(target);
     const patchResponse = page.waitForResponse((r) => new URL(r.url()).pathname === API && r.request().method() === 'PATCH');
-    const patchRequest = page.waitForRequest((r) => new URL(r.url()).pathname === API && r.request().method() === 'PATCH');
+    const patchRequest = page.waitForRequest((r) => new URL(r.url()).pathname === API && r.method() === 'PATCH');
     await page.getByTestId('analytics-settings-save').click();
     const req = await patchRequest;
     expect(req.postDataJSON()).toEqual({ timezone: target, expectedVersion: initial.version });
