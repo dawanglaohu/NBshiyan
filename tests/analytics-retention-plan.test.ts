@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { Prisma, PrismaClient } from '@prisma/client';
 import {
   RETENTION_CLEANUP_MAX_PER_RUN,
+  candidateCountLabels,
   classifyRetentionDays,
   createRetentionCandidateRepo,
   deletionBatchSizes,
@@ -419,4 +420,30 @@ test('dry-run 候选分账：新三表独立计数，旧三表语义不变', asy
   assert.equal(counts.dayState, 1, '2027 未到期、2025-01-02 被未到期 Daily 挡住');
   assert.equal(counts.dayChange, 3);
   assert.equal(counts.totalAll, 31);
+});
+
+test('候选计数的生产日志口径：metadata 不进四表上限，上界与六表读数是分开的标签', () => {
+  const counts = {
+    events: 11,
+    rollupDailyRows: 5,
+    rollupDays: 4,
+    total: 20,
+    daily: 7,
+    dayState: 1,
+    dayChange: 3,
+    totalAll: 31,
+  };
+  assert.deepEqual(candidateCountLabels(counts), {
+    legacyThreeTables: 20,
+    newDaily: 7,
+    // 四表 20k 口径 = 旧三表 + AnalyticsDaily；metadata 两表不在这里。
+    fourTableBudget: 27,
+    metadataState: 1,
+    metadataDayChangeUpperBound: 3,
+    metadataTotal: 4,
+    totalAllSixTables: 31,
+  });
+  const labels = candidateCountLabels(counts);
+  assert.notEqual(labels.fourTableBudget, labels.totalAllSixTables);
+  assert.equal(labels.fourTableBudget + labels.metadataTotal, labels.totalAllSixTables);
 });

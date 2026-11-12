@@ -30,9 +30,12 @@ import { dailyExpiresAt, parseMarkerVersions } from './aggregate-day-state';
 import {
   DAILY_RETENTION_MAX_PER_RUN,
   DAILY_RETENTION_SCAN_LIMIT,
+  METADATA_RETENTION_MAX_PER_TABLE,
+  METADATA_RETENTION_MAX_TOTAL,
   NEW_TABLE_RETENTION_BATCH,
   RETENTION_CLEANUP_BATCH_SIZE,
   RETENTION_CLEANUP_MAX_PER_RUN,
+  candidateCountLabels,
   createRetentionCandidateRepo,
   dayChangeRetentionCutoff,
   eventExpiryCutoff,
@@ -424,6 +427,20 @@ export async function runAnalyticsRetention(deps: {
     if (counted.kind === 'budget') return { kind: 'timeout' };
     if (counted.kind === 'error') throw counted.error;
     report.candidates = counted.value;
+    // 候选计数进生产日志：分栏按预算口径，metadata 不并入四表上限；dry-run 也打，便于对账。
+    // 只含计数、常量与截止值，不含行内容或连接信息。
+    console.info('[cron] analytics retention candidates', {
+      ...candidateCountLabels(report.candidates),
+      mode: decision.mode,
+      fourTableBudgetLimit: maxPerRun,
+      dailyCap: DAILY_RETENTION_MAX_PER_RUN,
+      stateScanLimit: DAILY_RETENTION_SCAN_LIMIT,
+      metadataPerTableCap: METADATA_RETENTION_MAX_PER_TABLE,
+      metadataTotalCap: METADATA_RETENTION_MAX_TOTAL,
+      dailyCutoff: now.toISOString(),
+      stateFloor: stateRetentionFloor(currentDate),
+      dayChangeCutoff: dayChangeRetentionCutoff(utcDateOf(now)),
+    });
 
     // 4. 默认路径：dry-run 或未授权删除请求。都不写一行。
     if (decision.mode === 'dry-run') {
@@ -685,8 +702,12 @@ export async function runAnalyticsRetention(deps: {
           if (!Number.isInteger(removed) || removed < 0 || removed > slice.length) {
             throw new Error('retention_batch_invalid');
           }
-          report.deletedDayStates += removed;
-          report.batches += 1;
+          // 与 drain 同一口径：只有真正删到行的已提交批次才计批次与行数；
+          // 0 行说明这批候选已被别处删掉，不当成一次确认删除。
+          if (removed > 0) {
+            report.deletedDayStates += removed;
+            report.batches += 1;
+          }
         }
       }
     }

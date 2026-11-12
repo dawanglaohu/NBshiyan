@@ -278,6 +278,31 @@ export type RetentionCandidateCounts = {
 };
 
 /**
+ * 生产日志口径：候选计数按**预算栏位**分列，避免把 metadata 算进四表 20k，
+ * 也避免把 `dayChange` 上界当精确值、把 `totalAll` 当额度。
+ *
+ * 只做标签与算术，不含任何行内容或连接信息。
+ */
+export function candidateCountLabels(counts: RetentionCandidateCounts) {
+  return {
+    /** 旧三表（事件、日汇总、水位）合计，`total` 语义不变。 */
+    legacyThreeTables: counts.total,
+    /** `AnalyticsDaily` 到期行：单表 ≤1,000，并且计入四表每轮上限。 */
+    newDaily: counts.daily,
+    /** 四表共用每轮 `RETENTION_CLEANUP_MAX_PER_RUN` 的计数口径；metadata 不在其中。 */
+    fourTableBudget: counts.total + counts.daily,
+    /** `AnalyticsAggregateDayState` 到期行，走独立额度。 */
+    metadataState: counts.dayState,
+    /** `AnalyticsDayChange` 的上界读数：仍被存续 state 覆盖的 UTC 日没有减。 */
+    metadataDayChangeUpperBound: counts.dayChange,
+    /** metadata 两表合计，只受各 500 与合计 1,000 约束。 */
+    metadataTotal: counts.dayState + counts.dayChange,
+    /** 六表合计读数，不参与任何额度判定。 */
+    totalAllSixTables: counts.totalAll,
+  };
+}
+
+/**
  * 只读候选仓储：不提供删除方法，不选 browserHash、path、payloadHash 或任何事件正文，
  * 只返回 eventId、日期、种类、语言与产品内部 key，够 M5-T11 计数与分批定位。
  */
