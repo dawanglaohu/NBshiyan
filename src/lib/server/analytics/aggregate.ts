@@ -788,14 +788,29 @@ export function splitDailyCandidates(args: {
   return { targets, coverageDays, bootstrapDays };
 }
 
+/** COMMIT 答复未知时保留的最小对象集合与阶段；只有 `status === ''unknown''` 才会出现。 */
+export type DailyCommitUnknownInfo = {
+  phase: 'metadata' | 'metrics';
+  /** 可能已落库的站点日（永不为空数组）。 */
+  targets: string[];
+};
+
 export type DailyAggregateRoundResult = {
-  /** `partial`：闭包日的 coverage 元数据已独立落盘、指标整笔回滚（下一轮补齐）。 */
-  status: 'ok' | 'guard' | 'budget' | 'partial' | 'failed';
+  /**
+   * `partial`：闭包日的 coverage 元数据已独立落盘、指标整笔回滚（下一轮补齐）。
+   * `unknown`：COMMIT 答复未知——既不能声称提交，也不能声称回滚。
+   */
+  status: 'ok' | 'guard' | 'budget' | 'partial' | 'failed' | 'unknown';
   cutoff: string;
   /** 本轮入队的目标日（含闭包并入日）。 */
   targets: string[];
-  /** 真正提交的日；guard/budget 时为 0 个。 */
-  committed: string[];
+  /**
+   * 真正提交的日。`status===''unknown''` 时为 `null`：不允许用 `[]` 冒充“确认没写”，
+   * 消费者必须先判空再取 `length`。
+   */
+  committed: string[] | null;
+  /** 非 null 当且仅当 `status===''unknown''`。 */
+  commitUnknown: DailyCommitUnknownInfo | null;
   /** 每个提交日的行数与 gap 分类（site 行 1 + 产品行）。 */
   days: Array<{ localDate: string; rows: number; gapKind: string | null }>;
   gaps: DailyAggregateGapWrite[];
@@ -936,8 +951,15 @@ export type DailyInTxArgs = {
   resolveProduct: (normalizedPath: string, locale: string) => string | null;
 };
 
+/** `runDailyInTx` 只在事务内跑：它永远不知道 COMMIT 结果，因此对外只能返回确认形态。 */
+export type DailyInTxRound = DailyAggregateRoundResult & {
+  status: 'ok';
+  committed: string[];
+  commitUnknown: null;
+};
+
 export type DailyInTxResult = {
-  result: DailyAggregateRoundResult;
+  result: DailyInTxRound;
   /** 本轮 plan 认出的覆盖/bootstrap 日；实际写入由主事务前的独立阶段完成（验收 6）。 */
   metadataDays: Array<{ date: string; action: 'coverage' | 'bootstrap' }>;
   /** 闭包并入但不可重算的 start 日：只能在重算目标日时发现，随本次指标同事务提交。 */
@@ -950,6 +972,7 @@ function emptyDailyResult(cutoff: Date): DailyAggregateRoundResult {
     cutoff: cutoff.toISOString(),
     targets: [],
     committed: [],
+    commitUnknown: null,
     days: [],
     gaps: [],
     metadata: [],
@@ -971,7 +994,7 @@ export async function runDailyInTx(
   args: DailyInTxArgs,
 ): Promise<DailyInTxResult> {
   const { now, cutoff, timezone, revision, floor, today, maxDays } = args;
-  const result = emptyDailyResult(cutoff);
+  const result: DailyInTxRound = { ...emptyDailyResult(cutoff), status: 'ok', committed: [], commitUnknown: null };
 
   await assertDailyAggregateGuards(tx, {
     timezoneRevision: revision,
@@ -1185,8 +1208,11 @@ export async function runDailyAggregateRound(deps: {
   } catch (error) {
     // 元数据阶段 COMMIT 答复未知：主指标阶段不得继续；已确认的先前阶段结果仍如实保留。
     if (error instanceof AggregateCommitUnknown) {
-      result.status = 'failed';
+      // COMMIT 答复未知：内层已确认的阶段结果如实保留，但提交列表必须是 null，不能冒充 0。
+      result.status = 'unknown';
       result.errorCode = 'commit_unknown';
+      result.committed = null;
+      result.commitUnknown = { phase: error.phase, targets: [...error.unknownTargets] };
       return result;
     }
     const mapped = asVersionConflict(error);
@@ -1232,17 +1258,20 @@ export async function runDailyAggregateRound(deps: {
     result.metadata.push(...metadataWrites);
   } catch (error) {
     // 主事务 COMMIT 答复未知：不得声称指标/旧链/JobState 必回滚，不写补偿 gap。
-    if (error instanceof AggregateCommitUnknown) {
-      result.status = 'failed';
+    const commitUnknown = error instanceof AggregateCommitUnknown
+      ? error
+      : (error instanceof AggregateCallbackFailure && error.original instanceof AggregateCommitUnknown
+        ? error.original
+        : null);
+    if (commitUnknown !== null) {
+      // 主事务 COMMIT 答复未知：不得声称指标/旧链/JobState 必回滚，也不写补偿 gap。
+      result.status = 'unknown';
       result.errorCode = 'commit_unknown';
+      result.committed = null;
+      result.commitUnknown = { phase: commitUnknown.phase, targets: [...commitUnknown.unknownTargets] };
       return result;
     }
     const unwrapped = error instanceof AggregateCallbackFailure ? error.original : error;
-    if (error instanceof AggregateCallbackFailure && unwrapped instanceof AggregateCommitUnknown) {
-      result.status = 'failed';
-      result.errorCode = 'commit_unknown';
-      return result;
-    }
     const haltError = unwrapped instanceof DailyRoundHalt ? unwrapped : null;
     const halted = haltOf(unwrapped, today, 0);
     if (halted !== null) {

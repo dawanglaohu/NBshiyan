@@ -586,7 +586,7 @@ describe('M5-T12 闭包 coverage：回滚后的独立 CAS 事务', { concurrency
  * ------------------------------------------------------------------------- */
 
 import { mergeDeferUntil } from "../src/lib/server/analytics/aggregate-day-state";
-import { runAggregateOnce, AggregateDeadlineExceeded, AggregateCommitUnknown } from "../src/lib/server/analytics/aggregate";
+import { runAggregateOnce, runDailyAggregateRound, AggregateDeadlineExceeded, AggregateCommitUnknown } from "../src/lib/server/analytics/aggregate";
 
 describe('M5-T12 defer 合并按 notAfter 判定', { concurrency: false }, () => {
   const notAfter = new Date('2026-03-02T10:00:00.000Z');
@@ -733,5 +733,84 @@ describe('M5-T12 B7：COMMIT 答复未知与确认回滚必须分开', { concurr
     );
     const dayStateWrites = writes.filter((arg) => sqlOf(arg, []).text.includes('AnalyticsAggregateDayState'));
     assert.equal(dayStateWrites.length, 1, '回调已经写过一行：提交可能已落库');
+  });
+});
+
+describe('M5-T12 B7 包装返回：unknown 必须穿过真实 wrapper/作业入口', { concurrency: false }, () => {
+  function dailyDb(mode: 'lost-receipt' | 'rollback') {
+    let transactions = 0;
+    const query = async (arg: unknown, ...rest: unknown[]) => {
+      const { text } = sqlOf(arg, rest);
+      if (text.includes('JobState')) {
+        if (mode === 'rollback') throw new AggregateVersionConflict('stale_generation');
+        return [{ generation: 7, leaseOwner: 'analytics-aggregate', lockedUntil: LIVE_LEASE }];
+      }
+      if (text.includes('SiteSetting')) return [{ value: { version: 1, timezone: 'UTC', timezoneRevision: 3 } }];
+      if (text.includes('AnalyticsDayChange')) return [{ utcDate: OLD_DAY, version: '2' }];
+      if (text.includes('AnalyticsAggregateDayState')) return [{ ...planState }];
+      return [];
+    };
+    const execute = async () => 1;
+    const db = {
+      $transaction: async (fn: (tx: unknown) => Promise<unknown>) => {
+        transactions += 1;
+        const value = await fn({ $queryRaw: query, $executeRaw: execute, $executeRawUnsafe: async () => 0 });
+        if (mode === 'lost-receipt') throw new Error('reply lost after commit');
+        return value;
+      },
+      $queryRaw: query,
+      $executeRaw: execute,
+    };
+    return { db, count: () => transactions };
+  }
+
+  const roundArgs = () => ({
+    now: PHASE_NOW,
+    siteTimezone: 'UTC',
+    currentDate: '2026-03-02',
+    timezoneRevision: 3,
+    generation: 7,
+    leaseOwner: 'analytics-aggregate',
+    baseDates: [OLD_DAY] as string[],
+  });
+
+  test('metadata 提交后丢回执：wrapper 返回 status=unknown、committed=null、targets 保留、主事务 0 次', async () => {
+    const { db, count } = dailyDb('lost-receipt');
+    const result = await runDailyAggregateRound({ ...roundArgs(), db: db as never } as never);
+    assert.equal(result.status, 'unknown');
+    assert.equal(result.committed, null, '未知提交不能用 [] 冒充没写');
+    assert.equal(result.commitUnknown?.phase, 'metadata');
+    assert.deepEqual(result.commitUnknown?.targets, [OLD_DAY]);
+    assert.equal(count(), 1, '主指标阶段不得在 metadata 未知后开启');
+  });
+
+  test('回调内失败：wrapper 返回确认回滚（committed=[]、commitUnknown=null）', async () => {
+    const { db } = dailyDb('rollback');
+    const result = await runDailyAggregateRound({ ...roundArgs(), db: db as never } as never);
+    assert.equal(result.status, 'failed');
+    assert.deepEqual(result.committed, []);
+    assert.equal(result.commitUnknown, null);
+  });
+
+  test('作业入口：metadata 丢回执时抛出带 phase/targets 的 AggregateCommitUnknown，主事务 0 次', async () => {
+    const { db, count } = dailyDb('lost-receipt');
+    await assert.rejects(
+      () => runAggregateOnce({
+        now: PHASE_NOW,
+        siteTimezone: 'UTC',
+        currentDate: '2026-03-02',
+        timezoneRevision: 3,
+        generation: 7,
+        daily: { baseDates: [OLD_DAY], leaseOwner: 'analytics-aggregate' },
+        db: db as never,
+      } as never),
+      (error: unknown) => {
+        assert.ok(error instanceof AggregateCommitUnknown);
+        assert.equal(error.phase, 'metadata');
+        assert.deepEqual(error.unknownTargets, [OLD_DAY]);
+        return true;
+      },
+    );
+    assert.equal(count(), 1);
   });
 });

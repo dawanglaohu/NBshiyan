@@ -345,6 +345,7 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
 
     const run = await roundRun({ baseDates: ['2026-03-02'] });
     assert.equal(run.status, 'ok');
+    assert.ok(run.committed !== null, '确认提交时必须有列表');
     assert.deepEqual([...run.committed].sort(), ['2026-03-01', '2026-03-02']);
 
     const startDay = await dailyRows('2026-03-01');
