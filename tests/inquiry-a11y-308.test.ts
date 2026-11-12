@@ -90,12 +90,13 @@ test('#308 RU: no bare "email" in RU copy (use «e-mail»)', () => {
   assert.deepEqual(bad, []);
 });
 
-test('#308 CSS: chips ≥44px, ✓ + heavier border when checked, 2 columns ≤767; wizard centred max 640', () => {
+test('#308 CSS: chips ≥44px, ✓ + heavier border when checked, 2 columns ≤767; wizard left-aligned max 800 with 320 rail', () => {
   assert.match(css, /\.chips label\{display:inline-flex;align-items:center;gap:6px;min-height:44px;/);
   assert.match(css, /\.chips label:has\(input:checked\)::before\{content:"✓";content:"✓" \/ "";/);
   assert.match(css, /\.chips label:has\(input:checked\)\{[^}]*box-shadow:0 0 0 1px var\(--ink\)/);
   assert.match(css, /@media \(max-width:767px\)\{\.chips\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)\}\.chips label\{[^}]*hyphens:auto;overflow-wrap:break-word\}/);
-  assert.match(css, /\.wizard\{[^}]*max-width:640px;margin-inline:auto\}/);
+  assert.match(css, /\.wizard\{[^}]*max-width:800px;margin-inline:0\}/);
+  assert.match(css, /\.contact-body\{[^}]*grid-template-columns:minmax\(0,800px\) 320px/);
 });
 
 test('#308 UX review: scroll-margin on summary + every field = measured nav height (73px) + 16px (16px when nav is static ≤767)', () => {

@@ -96,7 +96,7 @@ section.block h2{font-size:var(--fs-h2);margin:0 0 24px}
 .drawer footer{padding:16px 20px;border-top:1px solid var(--line)}
 .linkbtn{background:none;border:0;color:var(--accent-text);font:inherit;cursor:pointer;padding:4px}
 /* 询价向导 */
-.wizard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:28px;max-width:640px;margin-inline:auto} /* #308 P3-6：卡片居中、最宽 640px */
+.wizard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:28px;max-width:800px;margin-inline:0} /* 11-UI:217：操作面左对齐、最宽 800px（#308 的 640 居中为 2026-10-20 前的旧验收，规范已改） */
 /* 产品卡入口带到向导的来源产品与规格（与卡片同源 Products.names/specs） */
 .wizard .iq-product-context{border:2px solid var(--pj-border);border-radius:var(--pj-radius);background:var(--pj-bg);color:var(--pj-fg);padding:12px 16px}
 .wizard .iq-product-context-name{margin:0;font-size:16px;line-height:24px;font-weight:600}
@@ -104,6 +104,12 @@ section.block h2{font-size:var(--fs-h2);margin:0 0 24px}
 .contact-intro{max-width:640px;color:var(--ink-2)}
 .contact-human{max-width:640px;margin:0 0 24px;color:var(--ink-2)}
 .contact-human a{font-weight:600;text-decoration:underline;text-underline-offset:2px}
+/* 11-UI:217 contact 询盘主体：操作面左对齐 minmax(0,800px) 表单 + 320px 联系方式旁栏；窄屏顺序堆叠。 */
+.contact-surface{max-width:1240px;margin-left:0;margin-right:auto;padding:48px 20px 96px}
+.contact-body{display:grid;grid-template-columns:minmax(0,800px) 320px;gap:24px;align-items:start}
+.contact-body>*{min-width:0}
+.contact-rail .contact-human{max-width:none;margin:0}
+@media (max-width:1023px){.contact-body{grid-template-columns:minmax(0,1fr);gap:16px}}
 /* 填充只跟 aria-checked。id 压过 tokens 里的按钮 :hover，悬停只在能悬停的设备上加下划线。 */
 .contact-chat-line{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:12px;width:100%}
 /* 状态句在所有宽度独占一行，避免 768 与 1280 切换开关时折行跳动。 */

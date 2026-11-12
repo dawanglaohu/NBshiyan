@@ -14,12 +14,19 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations('Contact');
+  // 11-UI:217：询盘主体为操作面——左对齐表单 + 320px 联系方式旁栏，窄屏顺序堆叠（不采用居中窄卡外壳）。
   return (
-    <main className="container" style={{ padding: '48px 20px 96px' }}>
+    <main className="container contact-surface">
       <h1 style={{ fontSize: 'var(--fs-h2)', marginTop: 0 }}>{t('title')}</h1>
       <p className="contact-intro">{t('intro')}</p>
-      <HumanContactNotice />
-      <InquiryWizard />
+      <div className="contact-body">
+        <div className="contact-form">
+          <InquiryWizard />
+        </div>
+        <aside className="contact-rail">
+          <HumanContactNotice />
+        </aside>
+      </div>
     </main>
   );
 }

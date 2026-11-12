@@ -1919,6 +1919,25 @@
     "scope": "task-contract",
     "verdict": "pass"
   },
+  "R9-T71605271": {
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "9a8a92b6cd7dd6368be4fa3e312e69f2baf94161e28b2cd664395b9b0d8cd47b",
+    "evidence": [
+      "11-UI.md:217 defines the contact inquiry body as an operation surface: left-aligned minmax(0,800px) form plus a 320px contact rail, stacking on narrow screens; R9 acceptance item 1 matches this contract wording.",
+      "11-UI.md:232 D2 is executable as density_probe --type form with fill >= 0.55 and leftGap <= gutter + 24; R9 acceptance cites this instrument, and real geometry is not claimed by this registration.",
+      "R9 effectivePaths has four entries including tests/inquiry-a11y-308.test.ts; handoff.contracts, context.effectivePaths, definition.supportPaths and repairTasks[0].paths each list the same four paths.",
+      "Dependency M2-T5 is done; readiness reports no blockers and only the semantic-review reason; implLocked=false is consistent with status todo, empty waitingOn and repair tasks excluded from batchLayers.",
+      "Privacy and POST constraints remain in force: the single POST /api/inquiries at InquiryWizard.tsx:251 is reached only after validateContact at :218-221, and consent stays required.",
+      "Product name and the three specs remain in the wizard at InquiryWizard.tsx:322-325 with unchanged data-testid values; the 320px rail may only reuse existing HumanContactNotice content and adds no new copy.",
+      "The legacy 640 layout assertion at tests/inquiry-a11y-308.test.ts:98 and the test title at :93 are the only intended test change points; focus, ARIA, privacy, 44px, chips and scroll-margin assertions stay unchanged.",
+      "No spec revision is required: issuecomment-6231817626 (2026-10-17) predates the 11-UI:217 800+320 contract introduced by c78cde2e (2026-10-20), so the old 640 layout is not the current contract.",
+      "Semantic review evidence is sealed in wrapup planning: SEMANTIC-REVIEW.md, SEMANTIC-REVIEW.json and the evidence template with SHA256SUMS-LF.txt 92E6FD5B (3/3)."
+    ],
+    "notes": "Contract-semantics registration only. Implementation, geometry, GIF and CI are reviewed separately; this record does not mark the task done and does not claim landed.",
+    "reviewed": "2026-11-11T22:21:33.592943+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
   "RETENTION-CLEANUP": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
     "contractHash": "4528df41440af7abef09c64724859be9bbe2592952289e84670ac129013c591c",
