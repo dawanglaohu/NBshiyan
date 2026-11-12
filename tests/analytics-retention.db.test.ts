@@ -1051,7 +1051,17 @@ describe('analytics retention job', { concurrency: false, skip, timeout: 180_000
     assert.equal(run.status, 'SUCCEEDED');
     assert.equal(run.errorCode, null);
     assert.equal(run.report.mode, 'dry-run');
-    assert.deepEqual(run.report.candidates, { events: 1, rollupDailyRows: 2, rollupDays: 2, total: 5 });
+    // 八字段候选：total 仍是旧三表合计；新三表在 dry-run 下没有到期行，totalAll = total。
+    assert.deepEqual(run.report.candidates, {
+      events: 1,
+      rollupDailyRows: 2,
+      rollupDays: 2,
+      total: 5,
+      daily: 0,
+      dayState: 0,
+      dayChange: 0,
+      totalAll: 5,
+    });
     assert.equal(run.report.deletedEvents, 0);
     assert.equal(run.report.deletedRollupDailyRows, 0);
     assert.equal(run.report.deletedRollupDays, 0);

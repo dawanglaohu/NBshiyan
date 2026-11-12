@@ -367,7 +367,17 @@ test('B1 真实 PG：月末截止日行命中、次日未到期行排除（计�
 
     const repo = createRetentionCandidateRepo({ db, now, siteTimezone: TZ });
     const counts = await repo.counts();
-    assert.deepEqual(counts, { events: 1, rollupDailyRows: 1, rollupDays: 2, total: 4 });
+    // 候选计数扩为八字段（旧三表 + AnalyticsDaily + state + dayChange 上界 + 六表合计）：	otal 仍是旧三表语义。 + 
+    assert.deepEqual(counts, {
+      events: 1,
+      rollupDailyRows: 1,
+      rollupDays: 2,
+      total: 4,
+      daily: 0,
+      dayState: 0,
+      dayChange: 0,
+      totalAll: 4,
+    });
     assert.deepEqual(await repo.rollupDays(10), ['2026-01-30', '2026-01-31']);
     assert.deepEqual(
       (await repo.rollupDailyKeys(10)).map((key) => key.siteDate),
