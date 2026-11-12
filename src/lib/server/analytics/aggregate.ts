@@ -214,12 +214,10 @@ function isBudgetFailure(error: unknown): boolean {
 }
 
 /**
- * 并发写冲突：原生 PG connector 只把 40001（序列化失败）映射成 P2034；40P01（死锁）落
- * QueryError，不映射 P2034。原始 SQL 错误的 SQLSTATE 直接挂在 `meta.code`（40001/40P01）。
- *
- * 本仓聚合事务是 RepeatableRead：40001 由 Serializable 的 pre-commit 检查在 COMMIT 时抛出，
- * 当前 RR 路径上没有可信的 commit-time P2034 来源，因此 post-callback 一律按 unknown 处理；
- * 隔离级别/adapter 变化时要重新验证这一前提。
+ * 并发写冲突：本仓 Prisma 6.19.3 原生 PG 引擎将 40001 映射为 P2034；
+ * raw 查询的 40001/40P01 保留在 meta.code，40P01 不映射为 P2034。
+ * 40001 可以在 RR 语句执行时出现；COMMIT 的 SSI 检查属于 Serializable。
+ * 当前 RR 路径的 post-callback 错误仍按 unknown 处理；引擎、隔离级别或 adapter 变化时重验。
  */
 function isWriteConflict(error: unknown): boolean {
   if (!error || typeof error !== 'object') return false;
