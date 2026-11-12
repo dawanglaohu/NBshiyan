@@ -1,4 +1,4 @@
-import { describe, test } from 'node:test';
+﻿import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   classifyDayCompleteness,
@@ -321,3 +321,211 @@ describe('M5-T12 assertDailyAggregateGuards fail-closed', { concurrency: false }
     );
   });
 });
+
+/* ------------------------------------------------------------------------- *
+ * 阶段序列回归（纯桩、不连 PG）：独立元数据 CAS 必须先于主事务，并按 plan expected 写。
+ * 这些用例命中 14e 的两个新缺陷（future defer 被清空、CAS 0 静默）与 B3 的 gap 读后写。
+ * ------------------------------------------------------------------------- */
+
+import { writeDailyMetadataPhase, writeDailyGap, type DailyStateExpectation } from "../src/lib/server/analytics/aggregate";
+
+type SqlCall = { kind: 'query' | 'execute'; sql: string; values: unknown[] };
+
+function flattenValues(values: readonly unknown[]): unknown[] {
+  const out: unknown[] = [];
+  for (const value of values) {
+    if (value !== null && typeof value === 'object' && Array.isArray((value as { values?: unknown[] }).values)) {
+      out.push(...flattenValues((value as { values: unknown[] }).values));
+    } else {
+      out.push(value);
+    }
+  }
+  return out;
+}
+
+function sqlOf(arg: unknown, values: unknown[]): { text: string; values: unknown[] } {
+  if (Array.isArray(arg)) return { text: arg.join('?'), values };
+  const object = arg as { strings?: readonly string[]; values?: unknown[] } | null;
+  if (object !== null && typeof object === 'object' && Array.isArray(object.strings)) {
+    return { text: object.strings.join('?'), values: object.values ?? [] };
+  }
+  return { text: String(arg), values };
+}
+
+function stubDb(options: {
+  jobState: unknown[];
+  stateQueries: unknown[][];
+  live: Array<{ utcDate: string; version: string }>;
+  siteRows?: Array<{ localDate: string }>;
+  affected?: number | ((index: number) => number);
+}) {
+  const calls: SqlCall[] = [];
+  const stateQueue = [...options.stateQueries];
+  const execute = async (arg: unknown, ...rest: unknown[]) => {
+    const { text, values } = sqlOf(arg, rest);
+    calls.push({ kind: 'execute', sql: text, values });
+    if (text.startsWith('SET LOCAL')) return 0;
+    const writes = calls.filter((call) => call.kind === 'execute' && !call.sql.startsWith('SET LOCAL'));
+    if (typeof options.affected === 'function') return options.affected(writes.length - 1);
+    return options.affected ?? 1;
+  };
+  const query = async (arg: unknown, ...rest: unknown[]) => {
+    const { text, values } = sqlOf(arg, rest);
+    calls.push({ kind: 'query', sql: text, values });
+    if (text.includes('JobState')) return options.jobState;
+    if (text.includes('SiteSetting')) {
+      return [{ value: { version: 1, timezone: 'UTC', timezoneRevision: 3, changedAt: '2026-03-02T10:00:00.000Z', updatedBy: null } }];
+    }
+    if (text.includes('AnalyticsDayChange')) return options.live;
+    if (text.includes('AnalyticsAggregateDayState')) return stateQueue.shift() ?? [];
+    if (text.includes('AnalyticsDaily')) return options.siteRows ?? [];
+    return [];
+  };
+  const db = {
+    $transaction: async (fn: (tx: unknown) => Promise<unknown>) => fn({
+      $queryRaw: query,
+      $executeRaw: execute,
+      $executeRawUnsafe: async (arg: unknown) => {
+        const { text } = sqlOf(arg, []);
+        if (text.startsWith('SET LOCAL')) return 0;
+        return execute(arg);
+      },
+    }),
+    $queryRaw: query,
+    $executeRaw: execute,
+  };
+  return { db, calls };
+}
+
+const PHASE_NOW = new Date('2026-03-02T10:00:00.000Z');
+const OLD_DAY = '2026-01-15';
+const LIVE_LEASE = new Date(Date.now() + 120_000).toISOString();
+const planState = {
+  localDate: OLD_DAY,
+  timezoneRevision: 3,
+  timezone: 'UTC',
+  markerVersions: { [OLD_DAY]: '1' },
+  deferUntil: new Date('2026-03-05T00:00:00.000Z').toISOString(),
+  gapKind: null,
+  gapSince: null,
+  updatedAt: '2026-03-01T00:00:00.000Z',
+};
+
+function phaseArgs() {
+  return {
+    now: PHASE_NOW,
+    cutoff: PHASE_NOW,
+    timezone: 'UTC',
+    revision: 3,
+    floor: '2026-01-01',
+    today: '2026-03-02',
+    baseDates: new Set([OLD_DAY]),
+    generation: 7,
+    leaseOwner: 'analytics-aggregate',
+  };
+}
+
+describe('M5-T12 覆盖元数据：独立 CAS 阶段按 plan expected 写', { concurrency: false }, () => {
+  test('coverage 用 plan 快照的 markers/updatedAt 做 CAS，且不清空 future defer', async () => {
+    const { db, calls } = stubDb({
+      jobState: [{ generation: 7, leaseOwner: 'analytics-aggregate', lockedUntil: LIVE_LEASE }],
+      stateQueries: [[planState]],
+      live: [{ utcDate: OLD_DAY, version: '2' }],
+      affected: 1,
+    });
+    const phase = await writeDailyMetadataPhase(db as never, phaseArgs());
+    assert.equal(phase.written.length, 1);
+    assert.equal(phase.written[0]?.action, 'coverage');
+    assert.equal(phase.written[0]?.result, 'updated');
+    assert.deepEqual([...phase.handled], [OLD_DAY]);
+    // 守卫先于任何写：第一条语句是 JobState 行锁，第一次写之前没有别的写。
+    assert.ok(calls[0]?.sql.includes('JobState'));
+    const write = calls.find((call) => call.kind === 'execute' && call.sql.includes('AnalyticsAggregateDayState'));
+    assert.ok(write !== undefined);
+    const values = flattenValues(write.values);
+    // 期望值来自 plan（'1'），不是当时 live 的 '2'。
+    assert.ok(values.includes(JSON.stringify({ [OLD_DAY]: '1' })));
+    // future defer 保留：仍按「旧 defer 仅 > now 才保留」。
+    assert.ok(values.includes('2026-03-05T00:00:00.000Z'));
+    assert.ok(values.includes('2026-03-01T00:00:00.000Z'));
+  });
+
+  test('CAS 0 行且该行已被并发成功写者终止 → conflict_noop，不抛、不重写', async () => {
+    const { db, calls } = stubDb({
+      jobState: [{ generation: 7, leaseOwner: 'analytics-aggregate', lockedUntil: LIVE_LEASE }],
+      stateQueries: [[planState], [{ ...planState, gapKind: 'raw_partial', markerVersions: { [OLD_DAY]: '2' } }]],
+      live: [{ utcDate: OLD_DAY, version: '2' }],
+      affected: 0,
+    });
+    const phase = await writeDailyMetadataPhase(db as never, phaseArgs());
+    assert.equal(phase.written[0]?.result, 'conflict_noop');
+    assert.equal(phase.handled.size, 1);
+    const writes = calls.filter((call) => call.kind === 'execute' && call.sql.includes('AnalyticsAggregateDayState'));
+    assert.equal(writes.length, 1); // 不重读后强写：只有最初那一次 CAS 尝试
+  });
+
+  test('CAS 0 行且仍需重算 → 版本冲突，不静默成功', async () => {
+    const { db } = stubDb({
+      jobState: [{ generation: 7, leaseOwner: 'analytics-aggregate', lockedUntil: LIVE_LEASE }],
+      stateQueries: [[planState], [{ ...planState, gapKind: 'budget', markerVersions: {} }]],
+      live: [{ utcDate: OLD_DAY, version: '2' }],
+      affected: 0,
+    });
+    await assert.rejects(() => writeDailyMetadataPhase(db as never, phaseArgs()), AggregateVersionConflict);
+  });
+
+  test('租约守卫不通过时一条元数据都不写', async () => {
+    const { db, calls } = stubDb({ jobState: [], stateQueries: [[planState]], live: [] });
+    await assert.rejects(() => writeDailyMetadataPhase(db as never, phaseArgs()), AggregateVersionConflict);
+    assert.equal(calls.filter((call) => call.kind === 'execute').length, 0);
+  });
+});
+
+describe('M5-T12 gap 写：只按原 plan expected，不读当前行', { concurrency: false }, () => {
+  const gapArgs = (expected: DailyStateExpectation | null) => ({
+    halt: { kind: 'budget' as const, localDate: OLD_DAY, reason: 'deadline' as const, queued: 1 },
+    timezone: 'UTC',
+    revision: 3,
+    now: PHASE_NOW,
+    cutoff: PHASE_NOW,
+    generation: 7,
+    leaseOwner: 'analytics-aggregate',
+    expected,
+  });
+
+  test('有 plan expected：只出现 JobState 守卫查询，没有 day-state 读', async () => {
+    const { db, calls } = stubDb({
+      jobState: [{ generation: 7, leaseOwner: 'analytics-aggregate', lockedUntil: LIVE_LEASE }],
+      stateQueries: [],
+      live: [],
+      affected: 1,
+    });
+    const result = await writeDailyGap(db as never, gapArgs({
+      markers: { [OLD_DAY]: '1' },
+      updatedAt: new Date('2026-03-01T00:00:00.000Z'),
+      deferUntil: new Date('2026-03-05T00:00:00.000Z'),
+    }));
+    assert.equal(result, 'written');
+    const queries = calls.filter((call) => call.kind === 'query');
+    assert.ok(queries.every((call) => !call.sql.includes('AnalyticsAggregateDayState')), '不得在写前读当前 day-state');
+    const write = calls.find((call) => call.kind === 'execute' && call.sql.includes('AnalyticsAggregateDayState'));
+    assert.ok(write !== undefined);
+    const values = flattenValues(write.values);
+    assert.ok(values.includes(JSON.stringify({ [OLD_DAY]: '1' })));
+    assert.ok(values.includes('2026-03-05T00:00:00.000Z'));
+  });
+
+  test('plan 当时确认无该行：冲突即 cas_failed，不读当前行也不强写', async () => {
+    const { db, calls } = stubDb({
+      jobState: [{ generation: 7, leaseOwner: 'analytics-aggregate', lockedUntil: LIVE_LEASE }],
+      stateQueries: [],
+      live: [],
+      affected: 0,
+    });
+    const result = await writeDailyGap(db as never, gapArgs(null));
+    assert.equal(result, 'cas_failed');
+    assert.ok(calls.filter((call) => call.kind === 'query').every((call) => !call.sql.includes('AnalyticsAggregateDayState')));
+  });
+});
+
+

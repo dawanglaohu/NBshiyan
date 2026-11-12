@@ -12,6 +12,7 @@ import {
   AggregateVersionConflict,
   DailyRoundHalt,
   runAggregateOnce,
+  writeDailyGap,
 } from '../analytics/aggregate';
 import {
   classifyRecomputeBacklog,
@@ -358,6 +359,25 @@ export function createAnalyticsAggregateJob(deps: {
         // guard/budget 在日轮事务内抛出 → 整笔回滚（含旧链）；这里只落 PARTIAL，不宣 SUCCEEDED。
         if (error instanceof DailyRoundHalt) {
           const status: JobResultStatus = 'PARTIAL';
+          // 与独立 wrapper 一致：先按**原 plan expected** 落 gap（租约仍在本次手里、complete 之前），
+          // 再结算 PARTIAL。预算耗尽不新开 CAS 事务；CAS 0 行不重读强写、也不假报已落地。
+          if (!budgetExhausted(budget)) {
+            const gapWrite = await writeDailyGap(deps.db, {
+              halt: error.halt,
+              timezone: settings.timezone,
+              revision: claim.timezoneRevision,
+              now,
+              cutoff: now,
+              generation: claim.generation,
+              leaseOwner: ANALYTICS_AGGREGATE_OWNER,
+              expected: error.planExpected,
+            });
+            console.error('[cron] analytics.daily_gap', {
+              localDate: error.halt.localDate,
+              kind: error.halt.kind,
+              write: gapWrite,
+            });
+          }
           const persisted = await runWithinBudget(deps.db, budget, (tx) => repo.complete({
             key: ANALYTICS_AGGREGATE_KEY,
             owner: ANALYTICS_AGGREGATE_OWNER,
