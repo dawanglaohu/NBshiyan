@@ -241,7 +241,7 @@ describe('M5-T12 analytics day-state CAS and live markers', { concurrency: false
     assert.deepEqual(row?.markerVersions, { '2026-02-20': '2' });
   });
 
-  test('marker bump：同日重复只前进 1；终态额外 bump 配对 start 的 UTC 日', async () => {
+  test('marker bump：一次调用内同日去重、跨调用继续推进；终态额外 bump 配对 start 的 UTC 日', async () => {
     await reset();
     const conn = requireDb();
     const now = new Date('2026-03-02T06:00:00.000Z');
