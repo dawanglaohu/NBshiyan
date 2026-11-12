@@ -239,7 +239,9 @@ jobs:
   e2e:
     runs-on: ubuntu-24.04
     # 浏览器依赖安装、构建和完整测试共享此作业总预算；各用例超时与验收门禁保持不变。
-    timeout-minutes: 45
+    # run 43194460655（head 1917c598）实测 45m33s 被本上限截断：collect 已过，主段 28.4m，
+    # 三尺寸段未执行；五段串行正常流程装不下 45m，故按实测提到上限 60，不改任何用例/分区/门禁。
+    timeout-minutes: 60
     services:
       postgres:
         image: postgres:17
