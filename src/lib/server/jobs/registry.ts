@@ -429,6 +429,7 @@ export function createAnalyticsAggregateJob(deps: {
               notAfter: now,
               generation: claim.generation,
               leaseOwner: ANALYTICS_AGGREGATE_OWNER,
+              leaseClock: clock,
               expected: error.planExpected,
             });
             console.error('[cron] analytics.daily_gap', {
