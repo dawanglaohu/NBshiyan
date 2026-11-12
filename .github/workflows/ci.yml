@@ -239,7 +239,9 @@ jobs:
   e2e:
     runs-on: ubuntu-24.04
     # 浏览器依赖安装、构建和完整测试共享此作业总预算；各用例超时与验收门禁保持不变。
-    timeout-minutes: 45
+    # 45m 在 T2 本头已被截断（run 43206120590：e2e 45m02s cancelled），T10 同五段实跑 53m21s；
+    # 五段正常串行需要 60m 上限。不改任何用例 90/180s 限时、重试、分区与执行范围。
+    timeout-minutes: 60
     services:
       postgres:
         image: postgres:17
@@ -375,6 +377,12 @@ jobs:
       - name: Analytics, chat, and other PostgreSQL regressions
         env:
           ADMIN_RESET_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
+          # M3-T20 真实 PG：专属 URL（CI 固定 e2e/postgres）+ require + 显式 CI 模式；不回退通用 DATABASE_URL。
+          # 本步在 build 前，不提供 standalone，只跑 DB-only 16；HTTP 17 另需 build 后步骤。
+          B10_M3T20_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
+          B10_M3T20_REQUIRE_DATABASE: 'true'
+          B10_M3T20_CI_MODE: 'true'
+          CI: 'true'
           CHAT_SESSION_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
           # M4-T1 首消息真实 PG 回归：专属变量 + require；缺地址必须失败，绝不回退通用 DATABASE_URL。
           B9_M4T1_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
@@ -435,6 +443,7 @@ jobs:
               'tests/admin-recovery-confirm.db.test.ts',
               'tests/admin-account-mode-password.http.test.ts',
               'tests/admin-device-management.http.test.ts',
+              'tests/admin-self-rebind.db.test.ts',
               'tests/analytics-retention-plan.test.ts',
               'tests/analytics-retention.db.test.ts',
               'tests/mail-queue-schedule.integration.test.ts',
@@ -486,6 +495,7 @@ jobs:
             tests/admin-recovery-confirm.db.test.ts \
             tests/admin-account-mode-password.http.test.ts \
             tests/admin-device-management.http.test.ts \
+            tests/admin-self-rebind.db.test.ts \
             tests/analytics-retention-plan.test.ts \
             tests/analytics-retention.db.test.ts \
             tests/mail-queue-schedule.integration.test.ts \
@@ -523,6 +533,7 @@ jobs:
             'tests/admin-recovery-confirm.db.test.ts',
             'tests/admin-account-mode-password.http.test.ts',
             'tests/admin-device-management.http.test.ts',
+            'tests/admin-self-rebind.db.test.ts',
             'tests/analytics-retention-plan.test.ts',
             'tests/analytics-retention.db.test.ts',
             'tests/mail-queue-schedule.integration.test.ts',
@@ -549,6 +560,9 @@ jobs:
           }
           if (bad) process.exit(1);
           EOF
+          # M3-T20 DB-only 分母 16（2 URL/CI + 7 安全前置 + 7 真 PG）；本步无 standalone，HTTP suite 级 skip 不进 summary。
+          # 精确断言 16：17（HTTP 意外执行）、9（DB skip）、缺文件/取消都不能被 pass>=1 的宽门吞掉。
+          grep -Fqx $'tests/admin-self-rebind.db.test.ts\tpass=16\tfail=0\tskip=0\ttodo=0\tcancelled=0' /tmp/m3t2-file-gate.txt
       - name: Action grant PostgreSQL lock-wait evidence
         run: |
           node --input-type=module <<'EOF'
@@ -616,6 +630,47 @@ jobs:
           mkdir -p .next/standalone/.next
           cp -r .next/static .next/standalone/.next/static
           cp -r public .next/standalone/public
+      # M3-T20 真实 socket/Auth.js：同一构建产物就绪后跑同一文件，期望 17（DB-only 16 + 1 条 HTTP 全链）。
+      # 专属 URL + require + 显式 CI 模式与 DB 步骤成对；不 fallback 通用 DATABASE_URL，不读真实 env。
+      - name: M3-T20 真实 HTTP 回归（standalone 就绪后，17）
+        env:
+          B10_M3T20_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
+          B10_M3T20_REQUIRE_DATABASE: 'true'
+          B10_M3T20_CI_MODE: 'true'
+          B10_M3T20_STANDALONE_DIR: ${{ github.workspace }}/.next/standalone
+          CI: 'true'
+        run: |
+          set -o pipefail
+          # 只给目录字符串不算就绪：先核产物真的在，再跑。
+          test -f .next/standalone/server.js
+          cat > /tmp/m3t20-http-gate.cjs <<'EOF'
+          'use strict';
+          module.exports = async function* httpGate(source) {
+            const counts = new Map();
+            for await (const event of source) {
+              if (event.type !== 'test:summary' || !event.data?.file || !event.data.counts) continue;
+              counts.set(String(event.data.file), event.data.counts);
+            }
+            const wanted = 'tests/admin-self-rebind.db.test.ts';
+            const hit = [...counts.entries()].filter(([file]) => file.endsWith(wanted));
+            if (hit.length !== 1) {
+              console.error(`GATE missing ${wanted}`);
+              return;
+            }
+            yield `${wanted}\tpass=${hit[0][1].passed}\tfail=${hit[0][1].failed}\tskip=${hit[0][1].skipped}\ttodo=${hit[0][1].todo}\tcancelled=${hit[0][1].cancelled}\n`;
+          };
+          EOF
+          node --import tsx --test --test-concurrency=1 \
+            --test-reporter=tap \
+            --test-reporter=/tmp/m3t20-http-gate.cjs \
+            --test-reporter-destination=/tmp/m3t20-http.tap \
+            --test-reporter-destination=/tmp/m3t20-http-gate.txt \
+            tests/admin-self-rebind.db.test.ts \
+            || { status=$?; cat /tmp/m3t20-http.tap /tmp/m3t20-http-gate.txt; exit "$status"; }
+          grep -qx '# skipped 0' /tmp/m3t20-http.tap
+          grep -qx '# fail 0' /tmp/m3t20-http.tap
+          # 精确 17：16（DB-only）或 18（重复执行）都不能被 pass>=1 的宽门吞掉。
+          grep -Fqx $'tests/admin-self-rebind.db.test.ts\tpass=17\tfail=0\tskip=0\ttodo=0\tcancelled=0' /tmp/m3t20-http-gate.txt
       # 五段使用同一构建产物与 PG，各自重启 Playwright 管理的应用，隔离 memory 限流。
       # 建单源码预算 5/3/3，认证源码预算 29/7/7；不是服务器请求实测计数。
       - name: 核对 A3 收集分区并准备执行器（208 + 14 + 14 + 2 + 1 = 239）

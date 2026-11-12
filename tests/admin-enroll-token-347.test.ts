@@ -156,9 +156,14 @@ test('link base: only NEXT_PUBLIC_SITE_URL, https bare origin; http only for loc
   for (const f of ['src/app/api/admin/users/route.ts', 'src/app/api/admin/account/2fa/reset/route.ts']) {
     const src = readFileSync(f, 'utf8');
     assert.match(src, /const base = enrollLinkBase\(\);[^\n]*\n\s*if \(!base\) return jsonErr\('site_url_invalid', 500\);/, f);
-    assert.ok(src.indexOf('enrollLinkBase()') < src.indexOf('newEnrollToken('), f);
     assert.ok(!/headers\.get\('host'\)|req\.url\)\.origin|x-forwarded-host/i.test(src), f);
   }
+  // users 仍签发绑定令牌；M3-T20 的 2fa/reset 只返回受限页，站点地址仍须先于 grant 消费校验。
+  const usersRoute = readFileSync('src/app/api/admin/users/route.ts', 'utf8');
+  assert.ok(usersRoute.indexOf('enrollLinkBase()') < usersRoute.indexOf('newEnrollToken('));
+  const resetRoute = readFileSync('src/app/api/admin/account/2fa/reset/route.ts', 'utf8');
+  assert.doesNotMatch(resetRoute, /newEnrollToken|issueResponse|auditTokenIssued/);
+  assert.ok(resetRoute.indexOf('enrollLinkBase()') < resetRoute.indexOf('selfRebind.rebind('));
   const alias = readFileSync('src/app/api/admin/users/[id]/reset-2fa/route.ts', 'utf8');
   assert.doesNotMatch(alias, /enrollLinkBase|newEnrollToken|issueResponse|enrollToken/);
   assert.ok(!/headers|req\.url/.test(readFileSync('src/lib/server/admin/enroll-token.ts', 'utf8')));
@@ -325,21 +330,24 @@ test('token never appears in audit rows or console output; only the issue respon
   assert.ok(!/console\./.test(src));
 });
 
-test('issue points: create / self reset-2fa write the hash in the same write and return the link once', () => {
-  // M3-T4 起 users/[id]/reset-2fa 不再是签发入口；旧 admin_reset_2fa 审计来源已随旧旁路删除。
-  const routes = {
-    'src/app/api/admin/users/route.ts': 'admin_create',
-    'src/app/api/admin/account/2fa/reset/route.ts': 'self_reset_2fa',
-  };
-  for (const [f, source] of Object.entries(routes)) {
-    const src = readFileSync(f, 'utf8');
-    assert.equal(src.split('...issueResponse(t, base)').length - 1, 1, `${f}: link returned exactly once`);
-    assert.equal(src.split('newEnrollToken(').length - 1, 1, f);
-    assert.match(src, /\.\.\.t\.data/, `${f}: hash written with the account change`);
-    assert.match(src, new RegExp(`auditTokenIssued\\([^)]*'${source}'`), f);
-    assert.ok(!/console\.|t\.token/.test(src), `${f}: token never logged or used directly`);
-    assert.ok(src.indexOf('requireAdmin(') < src.indexOf('newEnrollToken('), `${f}: issued only after the guard`);
-  }
+test('issue points: create writes the hash and returns the link once; self reset-2fa only returns the restricted page', () => {
+  // M3-T4 起 users/[id]/reset-2fa 不再是签发入口；M3-T20 起 account/2fa/reset 也不再签发绑定令牌，
+  // 只建 SELF_REAUTH 受限会话并返回受限重绑页。
+  const usersSrc = readFileSync('src/app/api/admin/users/route.ts', 'utf8');
+  assert.equal(usersSrc.split('...issueResponse(t, base)').length - 1, 1, 'users: link returned exactly once');
+  assert.equal(usersSrc.split('newEnrollToken(').length - 1, 1, 'users');
+  assert.match(usersSrc, /\.\.\.t\.data/, 'users: hash written with the account change');
+  assert.match(usersSrc, /auditTokenIssued\([^)]*'admin_create'/, 'users');
+  assert.ok(!/console\.|t\.token/.test(usersSrc), 'users: token never logged or used directly');
+  assert.ok(usersSrc.indexOf('requireAdmin(') < usersSrc.indexOf('newEnrollToken('), 'users: issued only after the guard');
+
+  const resetSrc = readFileSync('src/app/api/admin/account/2fa/reset/route.ts', 'utf8');
+  assert.equal(resetSrc.split('enrollLink:').length - 1, 1, 'reset: restricted link returned exactly once');
+  assert.equal(resetSrc.split('recoverySetCookie(').length - 1, 1, 'reset: restricted cookie set exactly once');
+  assert.doesNotMatch(resetSrc, /newEnrollToken|issueResponse|auditTokenIssued|\.\.\.t\.data/);
+  assert.ok(!/console\.|\bt\.token\b/.test(resetSrc), 'reset: token never logged or used directly');
+  assert.ok(resetSrc.indexOf('requireAdmin(') < resetSrc.indexOf('selfRebind.rebind('), 'reset: guarded before rebind');
+  assert.ok(resetSrc.indexOf('enrollLinkBase()') < resetSrc.indexOf('selfRebind.rebind('), 'reset: site_url before consuming the grant');
   // 恢复 permit 别名不签发、不记录任何绑定令牌
   const alias = readFileSync('src/app/api/admin/users/[id]/reset-2fa/route.ts', 'utf8');
   assert.doesNotMatch(alias, /enrollLink|issueResponse|enrollToken|auditTokenIssued/);
