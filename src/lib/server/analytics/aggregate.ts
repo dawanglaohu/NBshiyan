@@ -638,8 +638,11 @@ export async function runAggregateOnce(deps: {
       return written;
   };
 
+  // 按**执行位置**判别，不看错误码：回调已进入后的任何非回调包装错误都是未知提交。
+  let mainStarted = false;
   try {
     days = await runInRepeatableReadSnapshot(deps.db, async (tx) => {
+      mainStarted = true;
       try {
         return await runMain(tx);
       } catch (error) {
@@ -651,9 +654,8 @@ export async function runAggregateOnce(deps: {
       // 回调内失败＝Prisma 必回滚：旧快照下的并发写冲突仍按版本冲突上抛，不能降级成普通失败。
       throw asVersionConflict(error.original);
     }
-    // 事务没开起来（预算/连接/P2024/版本冲突）：确认没有提交。
-    if (error instanceof AggregateDeadlineExceeded) throw error;
-    if (isPreCommitFailure(error) || isBudgetFailure(error)) throw asVersionConflict(error);
+    // 回调尚未进入（BEGIN 前失败，含预算/P2024/连接问题）：确认没有提交。
+    if (!mainStarted) throw asVersionConflict(error);
     // COMMIT 答复未知（B7）：不得声称新旧指标或 JobState 必回滚，也不写补偿 gap/假 FAILED。
     throw new AggregateCommitUnknown(
       'metrics',
@@ -1614,8 +1616,10 @@ export async function writeDailyMetadataPhase(
   };
 
   let written: DailyAggregateMetadataWrite[];
+  let phaseStarted = false;
   try {
     written = await runInRepeatableReadSnapshot(db, async (tx) => {
+      phaseStarted = true;
       try {
         return await runPhase(tx);
       } catch (error) {
@@ -1624,9 +1628,8 @@ export async function writeDailyMetadataPhase(
     }, txOptionsFor(deadlineMs));
   } catch (error) {
     if (error instanceof AggregateCallbackFailure) throw error.original;
-    // 事务连开都没开起来（预算/连接/P2024/版本冲突）：确认无提交，不算 unknown。
-    if (error instanceof AggregateDeadlineExceeded || error instanceof AggregateVersionConflict) throw error;
-    if (isPreCommitFailure(error) || isBudgetFailure(error)) throw error;
+    // 回调尚未进入（预算/连接/P2024/版本冲突）：确认无提交，不算 unknown。
+    if (!phaseStarted) throw error;
     throw new AggregateCommitUnknown('metadata', unknownTargetsOf(planned, 'metadata'));
   }
 

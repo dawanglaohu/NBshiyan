@@ -76,18 +76,7 @@ class BatchCallbackFailure extends Error {
   }
 }
 
-/** P2024 在取连接/开事务阶段失败：BEGIN 未发出，确认没有提交。 */
-function isPreCommitFailure(error: unknown): boolean {
-  return error !== null && typeof error === 'object' && (error as { code?: unknown }).code === 'P2024';
-}
 
-/** 预算类错误（P2028 / statement_timeout / lock_timeout）：事务没跑完，同样确认无提交。 */
-function isBudgetLike(error: unknown): boolean {
-  if (error === null || typeof error !== 'object') return false;
-  if ((error as { code?: unknown }).code === 'P2028') return true;
-  const pgCode = (error as { meta?: { code?: unknown } }).meta?.code;
-  return pgCode === '57014' || pgCode === '55P03';
-}
 
 /**
  * 单批删除事务：只有「回调内失败」与「事务没开起来」能说确认没提交。
@@ -100,8 +89,11 @@ export async function runRetentionBatch(
   targets: string[],
   work: (tx: Prisma.TransactionClient) => Promise<number>,
 ): Promise<number> {
+  // 按**执行位置**判别，不看错误码：P2028/57014/55P03 若发生在回调之后，一律是未知提交。
+  let started = false;
   try {
     return await db.$transaction(async (tx) => {
+      started = true;
       try {
         return await work(tx);
       } catch (error) {
@@ -109,8 +101,8 @@ export async function runRetentionBatch(
       }
     }, TX);
   } catch (error) {
-    if (error instanceof BatchCallbackFailure) throw error.original;
-    if (isPreCommitFailure(error) || isBudgetLike(error)) throw error;
+    if (error instanceof BatchCallbackFailure) throw error.original; // 回调内失败＝Prisma 必回滚
+    if (!started) throw error;                                      // BEGIN 前失败（含 P2024）＝确认无提交
     throw new AggregateCommitUnknown('metrics', targets.length > 0 ? targets : ['retention_cleanup']);
   }
 }

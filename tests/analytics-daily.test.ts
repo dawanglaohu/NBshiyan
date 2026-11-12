@@ -1021,3 +1021,78 @@ describe('M5-T12 retention-cleanup 整体消费者：批次 COMMIT 未知即停�
     assert.equal(result.deletedEvents, 1);
   });
 });
+
+describe('M5-T12 阶段证据：按执行位置判别，不用错误码白名单', { concurrency: false }, () => {
+  const codes = [
+    { code: 'P2028' },
+    { meta: { code: '57014' } },
+    { meta: { code: '55P03' } },
+  ];
+
+  test('回调内 57014＝确认回滚：原错误上抛，不是 unknown', async () => {
+    const failure = Object.assign(new Error('statement timeout'), { meta: { code: '57014' } });
+    const db = { $transaction: async (fn: (tx: unknown) => Promise<number>) => fn({ $executeRaw: async () => 1 }) };
+    await assert.rejects(
+      () => runRetentionBatch(db as never, ['2026-03-01'], async () => { throw failure; }),
+      (error: unknown) => error === failure,
+    );
+  });
+
+  test('回调返回后三种码（P2028/57014/55P03）一律 unknown', async () => {
+    for (const shape of codes) {
+      const db = { $transaction: async (fn: (tx: unknown) => Promise<number>) => { await fn({ $executeRaw: async () => 1 }); throw Object.assign(new Error('post-callback'), shape); } };
+      await assert.rejects(
+        () => runRetentionBatch(db as never, ['2026-03-01'], async () => 1),
+        (error: unknown) => {
+          assert.ok(error instanceof AggregateCommitUnknown);
+          assert.deepEqual(error.unknownTargets, ['2026-03-01']);
+          return true;
+        },
+      );
+    }
+  });
+
+  test('BEGIN 前 P2024＝确认无提交，原错误上抛不算 unknown', async () => {
+    const db = { $transaction: async () => { throw Object.assign(new Error('pool timeout'), { code: 'P2024' }); } };
+    await assert.rejects(
+      () => runRetentionBatch(db as never, ['2026-03-01'], async () => 1),
+      (error: unknown) => !(error instanceof AggregateCommitUnknown) && (error as { code?: string }).code === 'P2024',
+    );
+  });
+
+  test('aggregate 元数据阶段：回调返回后 57014 也必须落 unknown', async () => {
+    const db = {
+      $transaction: async (fn: (tx: unknown) => Promise<unknown>) => {
+        await fn({
+          $queryRaw: async (arg: unknown) => {
+            const text = Array.isArray(arg) ? arg.join('?') : ((arg as { strings?: readonly string[] }).strings ?? []).join('?');
+            if (text.includes('JobState')) return [{ generation: 7, leaseOwner: 'analytics-aggregate', lockedUntil: new Date(Date.now() + 60_000).toISOString() }];
+            if (text.includes('SiteSetting')) return [{ value: { version: 1, timezone: 'UTC', timezoneRevision: 3, changedAt: '2026-03-02T10:00:00.000Z', updatedBy: null } }];
+            return [];
+          },
+          $executeRaw: async () => 1,
+          $executeRawUnsafe: async () => 0,
+        });
+        throw Object.assign(new Error('statement timeout'), { meta: { code: '57014' } });
+      },
+      $queryRaw: async () => [],
+      $executeRaw: async () => 1,
+    };
+    await assert.rejects(
+      () => runAggregateOnce({
+        now: PHASE_NOW,
+        siteTimezone: 'UTC',
+        currentDate: '2026-03-02',
+        timezoneRevision: 3,
+        generation: 7,
+        daily: { baseDates: [], leaseOwner: 'analytics-aggregate' },
+        db: db as never,
+      } as never),
+      (error: unknown) => {
+        assert.ok(error instanceof AggregateCommitUnknown);
+        assert.equal(error.phase, 'metadata');
+        return true;
+      },
+    );
+  });
+});
