@@ -223,8 +223,11 @@ export type AnalyticsDayMarkerEvent = {
 };
 
 export type AnalyticsDayMarkerSink = {
-  /** 先于事件落库调用：崩溃只会多一次重算，不会漏掉版本前进。 */
-  bump(events: readonly AnalyticsDayMarkerEvent[], at: Date): Promise<void>;
+  /**
+   * 必须在**事件落库的同一个事务**里调用：先落库再 bump 或先 bump 再落库都会留下
+   * 「marker 被聚合消费、事件未提交」或「事件已提交、marker 未前进」的漏脏窗口。
+   */
+  bumpInTx(tx: StateDb, events: readonly AnalyticsDayMarkerEvent[], at: Date): Promise<void>;
 };
 
 /**
@@ -233,9 +236,9 @@ export type AnalyticsDayMarkerSink = {
  * 与模型 `Db.add` 一致：终态会让 **start 那一天**重新变脏，否则两天前的 start 日
  * 永远等不到配对终态更新。smoke 事件同样 bump（它不计数，但会让当日重算一次并消费版本）。
  */
-export function createAnalyticsDayMarkerSink(db: StateDb): AnalyticsDayMarkerSink {
+export function createAnalyticsDayMarkerSink(): AnalyticsDayMarkerSink {
   return {
-    async bump(events, at) {
+    async bumpInTx(tx, events, at) {
       if (events.length === 0) return;
       const dates: string[] = [];
       for (const event of events) {
@@ -247,15 +250,15 @@ export function createAnalyticsDayMarkerSink(db: StateDb): AnalyticsDayMarkerSin
       ).filter((event) => event.viewId !== null);
       if (terminalKeys.length > 0) {
         const pairs = terminalKeys.map((event) => Prisma.sql`(${event.browserHash}, ${event.viewId})`);
-        const rows = await db.$queryRaw<{ utcDate: string }[]>(Prisma.sql`
-          SELECT DISTINCT to_char(("occurredAt" AT TIME ZONE 'UTC'), 'YYYY-MM-DD') AS "utcDate"
+        const rows = await tx.$queryRaw<{ utcDate: string }[]>(Prisma.sql`
+          SELECT DISTINCT to_char((("occurredAt" AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'), 'YYYY-MM-DD') AS "utcDate"
           FROM "AnalyticsEvent"
           WHERE "kind" = 'model_view_start'::"AnalyticsEventKind"
             AND ("browserHash", "viewId") IN (${Prisma.join(pairs)})
         `);
         for (const row of rows) dates.push(row.utcDate);
       }
-      await bumpDayChangeVersions(db, dates, at);
+      await bumpDayChangeVersions(tx, dates, at);
     },
   };
 }

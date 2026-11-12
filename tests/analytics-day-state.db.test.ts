@@ -259,8 +259,8 @@ describe('M5-T12 analytics day-state CAS and live markers', { concurrency: false
       viewId: 'v-1',
       occurredAt: new Date('2026-03-02T01:00:00.000Z'),
     });
-    const sink = createAnalyticsDayMarkerSink(conn);
-    await sink.bump([
+    const sink = createAnalyticsDayMarkerSink();
+    await sink.bumpInTx(conn, [
       {
         kind: 'model_load_success',
         browserHash: 'bh-start',
