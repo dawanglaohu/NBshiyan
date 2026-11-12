@@ -1210,13 +1210,14 @@
   },
   "M5-T10": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "f6b993cc773d8b7cd346cc544da4c50fdb988ac5c9bf7ba401c2a9e2e97a9c15",
+    "contractHash": "23ecfbef33eb886367342aa452e3cf512a155aa0cbee83b59c4beb71da4973c3",
     "evidence": [
-      "固定对象：L bed4436b7bb26d67583373c24777eb2953f19cc3 / tree ace1e3fc305c882758b406ffb2cd00d5012aea0c / 唯一父 K 81cdb260224d359bb04bb6d35306c2e944a6958f；task/M5-T4 工作树 clean；本登记只写本补丁证据、task-reviews 与正常派生，不改 task-contracts.json、任务状态、源码/测试/CI/包锁/schema 与生成器。",
-      "本键为传播变更：契约对象在 K→L 逐字节相同（对象摘要 11e313b80e0086b6 = 11e313b80e0086b6）；provides=1/requires=3/sections=14/supportPaths=0/outputPaths=4 全为原值；当前契约 hash f6b993cc773d8b7cd346cc544da4c50fdb988ac5c9bf7ba401c2a9e2e97a9c15 变化仅因依赖闭包含 M5-T4（直连 requires 含 M5-T4），能力与接口未变。",
-      "范围限定：本记录只是 L 当前契约语义复核，不证明该任务已实现、不改变其 todo/status；M5-T4 亦不证明真实 PG 用例 15./16. 通过、不证明新 CI 转绿；未重验 P2/O1 或旧 43，未顺手清理既有 stale。"
+      "源变更唯一：task-contracts.json 的 M5-T10.supportPaths 4→5，仅追加 e2e/model-events.spec.ts；同任务 outputPaths/requires/provides/stage/wiring/sections 逐字段相等，86 个任务条目中除 M5-T10 外 0 变化",
+      "依据为本 run 43255374758 的真实失败：e2e/model-events.spec.ts:697 旧 viewId 终态 0、新终态 POST 在断言时仍在途（DB 归因 FINAL-697-ROOT-CAUSE.md）；697 的有界 poll 实施需该 spec 进 M5-T10 有效写域，属原任务必要支持路径，不新增需求、不改产品源码/CI",
+      "派生结构不变：progress 105 键相等、batchRecords（含 B9 fixed）相等、repairTasks 相等、groups/pres/index 相等；变化仅为契约哈希传播（受影响 6 个：M3-T25/M5-T10/M7-T10/M7-T3/M7-T8/M7-T9）与据此重算的提示词/清单摘要",
+      "验收标准、90s 测试预算、用例集合与既有 CI 源均未变；本补丁只改声明，不代表 697 或任何 spec 已通过"
     ],
-    "reviewed": "2026-11-11T05:34:58.660575+00:00",
+    "reviewed": "2026-11-12T17:41:27.093975+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },

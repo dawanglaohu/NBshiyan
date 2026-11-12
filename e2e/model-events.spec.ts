@@ -286,6 +286,8 @@ test('M2-T7 真实浏览器：产品访问、model start 与 success 分别落�
   const succeeded = successes[0];
   const started = succeeded ? starts.find((row) => row.viewId === succeeded.viewId) : undefined;
   if (!started || !succeeded) throw new Error('expected a success paired with its start');
+  // viewId 是终态与 start 的唯一关联键；为空说明事件本身不完整，直接失败，不用断言或类型强转兜。
+  if (!succeeded.viewId) throw new Error('expected a viewId on the success event');
 
   // product_view：一条来自产品页（gift-cards），一条来自本页真实 GLB 发起的卡片。
   expect(productViews.some((row) => row.productSlug === 'gift-cards' && row.path === '/en/products/custom-greeting-cards')).toBe(true);
@@ -715,12 +717,29 @@ test('M2-T7 R2 旧访问的迟到回调不串入新访问', async ({ page }) => 
   await page.mouse.move(320, 260);
   await expect.poll(async () => (await rowsSince(since, 'model_view_start')).length, { timeout: 90_000 }).toBeGreaterThan(firstStarts.length);
   const starts = await rowsSince(since, 'model_view_start');
-  const returned = starts.find((row) => row.viewId !== first.viewId && row.navigationId !== first.navigationId);
-  if (!returned) throw new Error('expected a start in the returned visit');
+  // 两条 start 的 occurredAt 可能完全相同（4e trace：返回访问两条均为 13.147），只按 DB 顺序 .find
+  // 会随机落到不同模型；用已有 productSlug 把新 view 绑定到与旧访问同一个模型——迟到回调要考察的正是这一对。
+  // first.productSlug 缺失时直接失败（不匹配 null，也不泛化取任意新 view）。
+  const returned = starts.find(
+    (row) =>
+      row.viewId !== first.viewId &&
+      row.navigationId !== first.navigationId &&
+      first.productSlug !== null &&
+      row.productSlug === first.productSlug,
+  );
+  if (!returned) throw new Error('expected the same product start in the returned visit');
 
   // 等旧请求的 15s 延迟结束，再核终态只属于新访问。
   await page.waitForTimeout(16_000);
+  // 终态由真实 GLB 解析后异步 POST：16s 只保证旧请求窗口已结束，不等于新终态已落库。
+  // 有界等待同一 returned.viewId 的终态出现，再读最终 rows 断精确计数，并显式核 kind——
+  // 30s 的 model_load_failure(TIMEOUT) 不能充作成功。
+  await expect
+    .poll(async () => terminalsOf(await rowsSince(since), returned.viewId!).length, { timeout: 10_000 })
+    .toBe(1);
   const rows = await rowsSince(since);
   expect(terminalsOf(rows, first.viewId!)).toHaveLength(0);
-  expect(terminalsOf(rows, returned.viewId!)).toHaveLength(1);
+  const returnedTerminals = terminalsOf(rows, returned.viewId!);
+  expect(returnedTerminals).toHaveLength(1);
+  expect(returnedTerminals[0].kind).toBe('model_load_success');
 });

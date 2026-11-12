@@ -28,6 +28,49 @@ async function center(locator: Locator) {
   return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
 }
 
+/** 同一阶段的合并读取：首个 product-viewport 的距离 + 当前 scrollY；距离缺失/空白/非有限直接失败。 */
+async function readDistanceAndScroll(page: Page): Promise<{ distance: string; scrollY: number }> {
+  const read = await page.evaluate(() => {
+    const el = document.querySelectorAll('[data-testid="product-viewport"]')[0];
+    return { distance: el?.getAttribute('data-camera-distance') ?? null, scrollY: window.scrollY };
+  });
+  if (read.distance === null || read.distance.trim() === '') throw new Error('相机距离缺失或空白');
+  if (!Number.isFinite(Number(read.distance))) throw new Error('相机距离非有限值');
+  return { distance: read.distance, scrollY: read.scrollY };
+}
+
+/** 页面内实时读唯一根节点属性：多匹配或缺失返回 null（断言失败），不做 fallback。 */
+async function expectUniqueAttribute(page: Page, selector: string, name: string, expected: string) {
+  await expect
+    .poll(
+      () =>
+        page.evaluate(
+          ({ selector, name }: { selector: string; name: string }) => {
+            const nodes = document.querySelectorAll(selector);
+            if (nodes.length !== 1) return null;
+            return nodes[0].getAttribute(name);
+          },
+          { selector, name },
+        ),
+      { timeout: 7_000 },
+    )
+    .toBe(expected);
+}
+
+/** 页面内实时读首个 product-viewport 的属性：缺节点返回 null（断言失败）。 */
+async function expectFirstViewportAttribute(page: Page, name: string, expected: string) {
+  await expect
+    .poll(
+      () =>
+        page.evaluate((attribute: string) => {
+          const el = document.querySelectorAll('[data-testid="product-viewport"]')[0];
+          return el ? el.getAttribute(attribute) : null;
+        }, name),
+      { timeout: 7_000 },
+    )
+    .toBe(expected);
+}
+
 test.beforeEach(async ({ page }) => {
   // 本地 next dev 的热更新要 eval，而站点 CSP 不含 unsafe-eval，客户端不会水合。
   // CI 用生产构建，不设这个变量，CSP 保持原样。
@@ -47,8 +90,12 @@ test('pointer capture, page wheel, modifier zoom, and release', async ({ page })
   const second = page.getByTestId('product-viewport').nth(1);
   await expect(second).toHaveAttribute('data-framed', '1', { timeout: 25_000 });
   await expect(page.locator('[data-direct-rotate]')).toHaveAttribute('data-direct-rotate', '1');
-  const slugA = await first.getAttribute('data-slug');
-  const slugB = await second.getAttribute('data-slug');
+  // 同一阶段的两条非重试 getAttribute 合并为一次页内读取：选择器与 `getByTestId('product-viewport')`
+  // 相同（默认 data-testid、主文档、文档顺序），不跨用户动作/帧窗口，断言仍是原来的严格比较。
+  const [slugA, slugB] = await page.evaluate(() => {
+    const views = document.querySelectorAll('[data-testid="product-viewport"]');
+    return [views[0]?.getAttribute('data-slug') ?? null, views[1]?.getAttribute('data-slug') ?? null];
+  });
   expect(slugA && slugB && slugA !== slugB).toBe(true);
 
   const card = page.locator('article.card').first();
@@ -72,16 +119,39 @@ test('pointer capture, page wheel, modifier zoom, and release', async ({ page })
   });
   expect(hoverHeld).toBe(true);
   expect(await first.getAttribute('data-camera-distance')).toBe(distanceBeforeHover);
-  await expect(page.locator('[data-capture-owner]')).toHaveAttribute('data-capture-owner', '');
+  await expectUniqueAttribute(page, '[data-capture-owner]', 'data-capture-owner', '');
 
-  const azimuthA = await first.getAttribute('data-azimuth');
-  const azimuthB = await second.getAttribute('data-azimuth');
-  const start = await center(first);
-  const other = await center(second);
+  // 同一阶段的非重试读取合成一次页内快照：azimuth 基线与两卡中心都取原 first/second 节点，
+  // 中心仍用 getBoundingClientRect 的视口坐标公式；任一视口缺失或框为零直接失败，不回退。
+  const openingStage = await page.evaluate(() => {
+    const views = document.querySelectorAll('[data-testid="product-viewport"]');
+    const firstEl = views[0];
+    const secondEl = views[1];
+    if (!firstEl || !secondEl) return null;
+    const centerOf = (el: Element) => {
+      const r = el.getBoundingClientRect();
+      if (!(r.width > 0 && r.height > 0)) return null;
+      return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+    };
+    const start = centerOf(firstEl);
+    const other = centerOf(secondEl);
+    if (!start || !other) return null;
+    return {
+      azimuthA: firstEl.getAttribute('data-azimuth'),
+      azimuthB: secondEl.getAttribute('data-azimuth'),
+      start,
+      other,
+    };
+  });
+  if (!openingStage) throw new Error('首屏两卡视口缺失或尺寸为零');
+  const { azimuthA, azimuthB, start, other } = openingStage;
   await page.mouse.move(start.x, start.y);
   await page.mouse.down();
-  await expect(page.locator('[data-capture-owner]')).toHaveAttribute('data-capture-owner', slugA!);
-  await page.mouse.move(other.x, other.y, { steps: 16 });
+  await expectUniqueAttribute(page, '[data-capture-owner]', 'data-capture-owner', slugA!);
+  // steps 2：中间步只影响采样密度，终点仍是第二张卡中心，捕获与所有断言不变。
+  await page.mouse.move(other.x, other.y, { steps: 2 });
+  // 减采样后仍须证明跨卡移动没有丢 capture owner：移动后、mouseup 前 owner 仍是 A。
+  await expectUniqueAttribute(page, '[data-capture-owner]', 'data-capture-owner', slugA!);
   await expect(first).not.toHaveAttribute('data-azimuth', azimuthA!);
   await expect(second).toHaveAttribute('data-azimuth', azimuthB!);
   await expect(page).toHaveURL(/\/en\/products$/);
@@ -93,11 +163,11 @@ test('pointer capture, page wheel, modifier zoom, and release', async ({ page })
   expect(locked.body).not.toBe('hidden');
   expect(locked.touch).toContain('pan-y');
   await page.mouse.up();
-  await expect(page.locator('[data-capture-owner]')).toHaveAttribute('data-capture-owner', '');
+  await expectUniqueAttribute(page, '[data-capture-owner]', 'data-capture-owner', '');
 
   await page.evaluate(() => window.scrollTo(0, 0));
-  const plainDistance = await first.getAttribute('data-camera-distance');
-  const scrollBefore = await page.evaluate(() => window.scrollY);
+  // 同一阶段一次页内快照：距离与 scrollY 一起读；距离缺失/空白/非有限立即失败，不用 Number(null)/NaN 兜。
+  const { distance: plainDistance, scrollY: scrollBefore } = await readDistanceAndScroll(page);
   const back = await center(first);
   await page.mouse.move(back.x, back.y);
   await page.mouse.wheel(0, 480);
@@ -115,20 +185,38 @@ test('pointer capture, page wheel, modifier zoom, and release', async ({ page })
   expect(Math.abs(clamped - minDistance)).toBeLessThan(0.05);
 
   await first.focus();
-  await expect(first).toHaveAttribute('data-focused', '1');
-  const focusedDistance = Number(await first.getAttribute('data-camera-distance'));
-  const scrollAtFocus = await page.evaluate(() => window.scrollY);
+  await expectFirstViewportAttribute(page, 'data-focused', '1');
+  // 基线必须真实存在且有限：缺失、trim 后空白、非有限一律失败，否则 Number(null)=0 / NaN 会让
+  // 后面的“已变化”判定对任意有限值恒真，滚轮没生效也会过。距离与 scrollY 同一次页内快照读取。
+  const { distance: rawFocused, scrollY: scrollAtFocus } = await readDistanceAndScroll(page);
+  const focusedDistance = Number(rawFocused);
   await page.keyboard.down('Control');
   const focusedPoint = await center(first);
   await page.mouse.move(focusedPoint.x, focusedPoint.y);
   await page.mouse.wheel(0, -80);
   await page.keyboard.up('Control');
-  await expect.poll(async () => Number(await first.getAttribute('data-camera-distance'))).not.toBe(focusedDistance);
+  // 实时页内读同一 first 节点的距离：缺失、空白、非数字、非有限值一律视为未满足，返回 null；
+  // 不能用 Number(null)=0 或 Number('')=0 或 NaN 与旧值不等形成假绿，只有真实存在且有限且发生变化才过。
+  await expect
+    .poll(
+      async () => {
+        const value = await page.evaluate(() => {
+          const el = document.querySelectorAll('[data-testid="product-viewport"]')[0];
+          const raw = el?.getAttribute('data-camera-distance') ?? null;
+          if (raw === null || raw.trim() === '') return null;
+          const parsed = Number(raw);
+          return Number.isFinite(parsed) ? parsed : null;
+        });
+        return value !== null && value !== focusedDistance;
+      },
+      { timeout: 7_000, message: '相机距离未取得有限值或未发生变化' },
+    )
+    .toBe(true);
   expect(await page.evaluate(() => window.scrollY)).toBe(scrollAtFocus);
 
   await page.keyboard.press('Escape');
   await expect(first).toHaveAttribute('data-focused', '0');
-  await expect(page.locator('[data-focused-model]')).toHaveAttribute('data-focused-model', '');
+  await expectUniqueAttribute(page, '[data-focused-model]', 'data-focused-model', '');
   const afterEscape = await first.getAttribute('data-camera-distance');
   await page.keyboard.down('Control');
   await page.mouse.wheel(0, -80);
@@ -138,9 +226,9 @@ test('pointer capture, page wheel, modifier zoom, and release', async ({ page })
   const again = await center(first);
   await page.mouse.move(again.x, again.y);
   await page.mouse.down();
-  await expect(page.locator('[data-capture-owner]')).toHaveAttribute('data-capture-owner', slugA!);
+  await expectUniqueAttribute(page, '[data-capture-owner]', 'data-capture-owner', slugA!);
   await first.dispatchEvent('pointercancel');
-  await expect(page.locator('[data-capture-owner]')).toHaveAttribute('data-capture-owner', '');
+  await expectUniqueAttribute(page, '[data-capture-owner]', 'data-capture-owner', '');
   await page.mouse.up();
 
   await second.focus();
@@ -149,7 +237,7 @@ test('pointer capture, page wheel, modifier zoom, and release', async ({ page })
   const next = await center(second);
   await page.mouse.move(next.x, next.y);
   await page.mouse.down();
-  await expect(page.locator('[data-capture-owner]')).toHaveAttribute('data-capture-owner', slugB!);
+  await expectUniqueAttribute(page, '[data-capture-owner]', 'data-capture-owner', slugB!);
   await page.mouse.up();
 
   await page.locator('[data-testid="home-link"]:visible').first().click();
@@ -158,13 +246,25 @@ test('pointer capture, page wheel, modifier zoom, and release', async ({ page })
   await expect(page).toHaveURL(/\/en\/products$/);
   const returned = page.getByTestId('product-viewport').nth(1);
   await expect(returned).toHaveAttribute('data-framed', '1', { timeout: 25_000 });
-  const returnedSlug = await returned.getAttribute('data-slug');
-  const point = await center(returned);
+  // 同一阶段一次页内快照：第二张卡的 slug 与中心；缺节点、零框、空 slug 都直接失败，不回退。
+  const returnedStage = await page.evaluate(() => {
+    const el = document.querySelectorAll('[data-testid="product-viewport"]')[1];
+    if (!el) return null;
+    const slug = el.getAttribute('data-slug');
+    const r = el.getBoundingClientRect();
+    if (!(r.width > 0 && r.height > 0)) return null;
+    return { slug, x: r.x + r.width / 2, y: r.y + r.height / 2 };
+  });
+  if (!returnedStage || returnedStage.slug === null || returnedStage.slug.trim() === '') {
+    throw new Error('返回后第二张卡 slug/几何缺失或尺寸为零');
+  }
+  const returnedSlug = returnedStage.slug;
+  const point = { x: returnedStage.x, y: returnedStage.y };
   await page.mouse.move(point.x, point.y);
   await page.mouse.down();
-  await expect(page.locator('[data-capture-owner]')).toHaveAttribute('data-capture-owner', returnedSlug!);
+  await expectUniqueAttribute(page, '[data-capture-owner]', 'data-capture-owner', returnedSlug);
   await page.mouse.up();
-  await expect(page.locator('[data-capture-owner]')).toHaveAttribute('data-capture-owner', '');
+  await expectUniqueAttribute(page, '[data-capture-owner]', 'data-capture-owner', '');
 });
 
 /**
@@ -344,64 +444,167 @@ test('hover pauses spin and a user pause survives hide and foreground', async ({
   test.setTimeout(90_000);
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   const first = await openProducts(page);
-  await expect(first).toHaveAttribute('data-spinning', '1');
-  const moved = await first.evaluate(async (el) => {
+  // 初始 spinning 与后续同型：各自独立 7s 的实时页内 poll，读同一首节点、精确 '1'，缺节点必失败。
+  const expectSpinning = (expected: '0' | '1') => expectFirstViewportAttribute(page, 'data-spinning', expected);
+  await expectSpinning('1');
+  // 三处 paused/spinning 合并为一次真实快照 + poll：仍用全局 7s 重试窗，且要求同阶段同时满足（比逐条更强）。
+  // 读取在同一页内直接取 `[data-testid="product-viewport"]` 首个节点，与 `getByTestId(...).first()` 同一元素
+  // （默认 data-testid、主文档、文档顺序），不再在窗内反复解析 locator。节点缺失返回 null（断言失败），
+  // 无任何 fallback；失败时只回放本次 poll 缓存到的快照与耗时，不另发一次 CDP 读取去掩盖原时点。
+  let lastPausedSnapshot: { paused: string | null; spinning: string | null } | null = null;
+  const expectPaused = async (stage: string) => {
+    const startedAt = Date.now();
+    try {
+      await expect
+        .poll(
+          async () => {
+            lastPausedSnapshot = await page.evaluate(() => {
+              const el = document.querySelectorAll('[data-testid="product-viewport"]')[0];
+              if (!el) return null;
+              return { paused: el.getAttribute('data-user-paused'), spinning: el.getAttribute('data-spinning') };
+            });
+            return lastPausedSnapshot;
+          },
+          { timeout: 7_000 },
+        )
+        .toEqual({ paused: '1', spinning: '0' });
+    } catch (error) {
+      console.log(
+        `[M5-T10][model345] stage=paused:${stage}:fail elapsed=${Date.now() - startedAt}ms snapshot=${JSON.stringify(lastPausedSnapshot)}`,
+      );
+      throw error;
+    }
+  };
+  console.log('[M5-T10][model345] stage=moved:start');
+  // 一次页内顺序执行：先 500ms 方位角窗口，确认会转后再滚动取可达几何；moved 不成立立即返回，
+  // 由 Node 先按原断言失败，不继续滚动或发输入。指针进入仍用真实几何坐标（hover 的 actionability
+  // 与“进入即暂停”无关），命中与覆盖关系由 data-spinning 的结果断言把关。
+  const movedAndEnter = await page.evaluate(async () => {
+    const el = document.querySelectorAll('[data-testid="product-viewport"]')[0];
+    if (!el) throw new Error('首个 product-viewport 缺失');
     const start = el.getAttribute('data-azimuth');
     const t0 = performance.now();
+    let frames = 0;
+    let moved = false;
     while (performance.now() - t0 < 500) {
       await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
-      if (el.getAttribute('data-azimuth') !== start) return true;
+      frames += 1;
+      if (el.getAttribute('data-azimuth') !== start) {
+        moved = true;
+        break;
+      }
     }
-    return false;
+    const movedResult = { moved, frames, elapsed: Math.round(performance.now() - t0) };
+    if (!moved) return { moved: movedResult, enter: null };
+    const enterT0 = performance.now();
+    const fullyVisible = () => {
+      const r = el.getBoundingClientRect();
+      return r.width > 0 && r.height > 0 && r.top >= 0 && r.left >= 0
+        && r.bottom <= window.innerHeight && r.right <= window.innerWidth;
+    };
+    if (!fullyVisible()) el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
+    let previous = '';
+    let stable = 0;
+    for (let i = 0; i < 60 && stable < 2; i += 1) {
+      await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
+      const r = el.getBoundingClientRect();
+      const key = [r.x, r.y, r.width, r.height].map((n) => Math.round(n)).join(',');
+      stable = key === previous ? stable + 1 : 0;
+      previous = key;
+    }
+    const box = el.getBoundingClientRect();
+    const x = box.x + box.width / 2;
+    const y = box.y + box.height / 2;
+    if (!(box.width > 0 && box.height > 0)) throw new Error('模型视口没有非零可达框');
+    if (!(x > 0 && y > 0 && x < window.innerWidth && y < window.innerHeight)) throw new Error('模型中心不在视口内');
+    return { moved: movedResult, enter: { x, y, elapsed: Math.round(performance.now() - enterT0) } };
   });
-  expect(moved).toBe(true);
-
-  await first.hover();
-  await expect(first).toHaveAttribute('data-spinning', '0');
-  const held = await first.evaluate(async (el) => {
+  console.log(`[M5-T10][model345] stage=moved:done ${JSON.stringify(movedAndEnter.moved)}`);
+  expect(movedAndEnter.moved.moved).toBe(true);
+  if (!movedAndEnter.enter) throw new Error('模型视口几何未取得');
+  const enter = movedAndEnter.enter;
+  await page.mouse.move(enter.x, enter.y);
+  await expectSpinning('0');
+  console.log('[M5-T10][model345] stage=held:start');
+  // 300ms 观察结束后顺带取标题中心：h1 位置与 hover 无关，合并只减少一次往返；
+  // h1 必须与原 page.locator('h1') 的严格单匹配一致（缺失/多匹配/零框都记未取得，不回退）。
+  const heldAndTitle = await page.evaluate(async () => {
+    const el = document.querySelectorAll('[data-testid="product-viewport"]')[0];
+    if (!el) throw new Error('首个 product-viewport 缺失');
     const start = el.getAttribute('data-azimuth');
     const t0 = performance.now();
+    let frames = 0;
+    let held = true;
     while (performance.now() - t0 < 300) {
       await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
-      if (el.getAttribute('data-azimuth') !== start) return false;
+      frames += 1;
+      if (el.getAttribute('data-azimuth') !== start) {
+        held = false;
+        break;
+      }
     }
-    return true;
+    const heldResult = { held, frames, elapsed: Math.round(performance.now() - t0) };
+    const titles = document.querySelectorAll('h1');
+    if (titles.length !== 1) return { held: heldResult, title: null, titleIssue: `h1 count=${titles.length}` };
+    const box = titles[0].getBoundingClientRect();
+    if (!(box.width > 0 && box.height > 0)) return { held: heldResult, title: null, titleIssue: 'h1 box is zero' };
+    return { held: heldResult, title: { x: box.x + box.width / 2, y: box.y + box.height / 2 }, titleIssue: null };
   });
-  expect(held).toBe(true);
-
-  await page.locator('h1').hover();
-  await expect(first).toHaveAttribute('data-spinning', '1');
-  await page.locator('article.card').first().getByTestId('model-pause-rotation').click();
-  await expect(first).toHaveAttribute('data-user-paused', '1');
-  await expect(first).toHaveAttribute('data-spinning', '0');
+  console.log(`[M5-T10][model345] stage=held:done ${JSON.stringify(heldAndTitle.held)}`);
+  expect(heldAndTitle.held.held).toBe(true);
+  if (!heldAndTitle.title) throw new Error(`标题中心未取得：${heldAndTitle.titleIssue}`);
+  const title = heldAndTitle.title;
+  await page.mouse.move(title.x, title.y);
+  await expectSpinning('1');
+  // 离开 hover 之后再取一次新鲜坐标：没有源码/CSS 证据表明离开 hover 不改变按钮布局，保留这次必需的新读。
+  // 取首个 article.card 内唯一 pause 按钮，等价原 scoped locator；缺失、多匹配、零框都直接失败，不兜底。
+  const pausePoint = await page.evaluate(() => {
+    const card = document.querySelector('article.card');
+    if (!card) return null;
+    const buttons = card.querySelectorAll('[data-testid="model-pause-rotation"]');
+    if (buttons.length !== 1) return null;
+    const r = buttons[0].getBoundingClientRect();
+    if (!(r.width > 0 && r.height > 0)) return null;
+    return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+  });
+  if (!pausePoint) throw new Error('暂停按钮缺失、多匹配或尺寸为零');
+  await page.mouse.click(pausePoint.x, pausePoint.y);
+  await expectPaused('after-pause-click');
 
   await page.mouse.move(8, 8);
   await page.mouse.wheel(0, 2400);
   await expect(first).not.toBeInViewport();
   await page.evaluate(() => window.scrollTo(0, 0));
   await expect(first).toBeInViewport();
-  await expect(first).toHaveAttribute('data-user-paused', '1');
-  await expect(first).toHaveAttribute('data-spinning', '0');
+  await expectPaused('after-scroll-back');
 
   await page.evaluate(() => {
     Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'hidden' });
     document.dispatchEvent(new Event('visibilitychange'));
   });
-  await expect(first).toHaveAttribute('data-spinning', '0');
+  await expectSpinning('0');
   await page.evaluate(() => {
     Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'visible' });
     document.dispatchEvent(new Event('visibilitychange'));
   });
-  await expect(first).toHaveAttribute('data-user-paused', '1');
-  await expect(first).toHaveAttribute('data-spinning', '0');
-  const still = await first.evaluate(async (el) => {
+  await expectPaused('after-foreground');
+  console.log('[M5-T10][model345] stage=still:start');
+  const still = await page.evaluate(async () => {
+    const el = document.querySelectorAll('[data-testid="product-viewport"]')[0];
+    if (!el) throw new Error('首个 product-viewport 缺失');
     const start = el.getAttribute('data-azimuth');
     const t0 = performance.now();
+    let frames = 0;
     while (performance.now() - t0 < 300) {
       await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
-      if (el.getAttribute('data-azimuth') !== start) return false;
+      frames += 1;
+      if (el.getAttribute('data-azimuth') !== start) return { paused: false, frames, elapsed: Math.round(performance.now() - t0) };
     }
-    return el.getAttribute('data-user-paused') === '1';
+    return { paused: el.getAttribute('data-user-paused') === '1', frames, elapsed: Math.round(performance.now() - t0) };
   });
-  expect(still).toBe(true);
+  console.log(`[M5-T10][model345] stage=still:done ${JSON.stringify(still)}`);
+  expect(still.paused).toBe(true);
+  console.log(
+    `[M5-T10][model345] moved=${JSON.stringify(movedAndEnter.moved)} enter=${JSON.stringify(movedAndEnter.enter)} held=${JSON.stringify(heldAndTitle.held)} still=${JSON.stringify(still)}`,
+  );
 });
