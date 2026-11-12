@@ -1210,13 +1210,14 @@
   },
   "M5-T10": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "f6b993cc773d8b7cd346cc544da4c50fdb988ac5c9bf7ba401c2a9e2e97a9c15",
+    "contractHash": "bdfb3f944a94605eb98ee88e2f323203bf0a77ffdcdb66df05919c7d256a7ee4",
     "evidence": [
-      "固定对象：L bed4436b7bb26d67583373c24777eb2953f19cc3 / tree ace1e3fc305c882758b406ffb2cd00d5012aea0c / 唯一父 K 81cdb260224d359bb04bb6d35306c2e944a6958f；task/M5-T4 工作树 clean；本登记只写本补丁证据、task-reviews 与正常派生，不改 task-contracts.json、任务状态、源码/测试/CI/包锁/schema 与生成器。",
-      "本键为传播变更：契约对象在 K→L 逐字节相同（对象摘要 11e313b80e0086b6 = 11e313b80e0086b6）；provides=1/requires=3/sections=14/supportPaths=0/outputPaths=4 全为原值；当前契约 hash f6b993cc773d8b7cd346cc544da4c50fdb988ac5c9bf7ba401c2a9e2e97a9c15 变化仅因依赖闭包含 M5-T4（直连 requires 含 M5-T4），能力与接口未变。",
-      "范围限定：本记录只是 L 当前契约语义复核，不证明该任务已实现、不改变其 todo/status；M5-T4 亦不证明真实 PG 用例 15./16. 通过、不证明新 CI 转绿；未重验 P2/O1 或旧 43，未顺手清理既有 stale。"
+      "docs/PackJoyU-开发文档/_run/task-contracts.json：M5-T10 supportPaths 由 [] 仅新增 src/components/admin/settings/SettingsSections.tsx；outputPaths/requires/stage/wiring/sections 逐字段未变（sync 源变更文件仅 _run/task-contracts.json）",
+      "PR556 head 12a2caf689f627c84f4d1a4b4f88a67a65a72fa5 的实际 diff 含 src/components/admin/settings/SettingsSections.tsx 5+/3-，是接入 settings 第三分区导航的必要支持文件；本补丁只补声明、不扩大 UI/API 要求",
+      "begin/sync 记录：patches/b10-m5t10-nav-support-20261111.json status=synced、sourceVersion=b232fdac…；受影响任务为 M3-T25/M5-T10/M7-T10/M7-T3/M7-T8/M7-T9，均为契约哈希传播，非源变更扩大",
+      "派生核对：docs-data.js/build-manifest.json/build-state.json/dispatch.json/review.json 由项目 build 正常再生；revalidation.json 未新增（M5-T10 仍 todo）；main 23148287 与任务源码未改"
     ],
-    "reviewed": "2026-11-11T05:34:58.660575+00:00",
+    "reviewed": "2026-11-12T07:43:35.010313+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },

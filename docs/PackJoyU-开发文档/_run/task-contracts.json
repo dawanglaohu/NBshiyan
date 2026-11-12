@@ -2903,7 +2903,9 @@
       "wiring": [
         "frontendRoutes"
       ],
-      "supportPaths": [],
+      "supportPaths": [
+        "src/components/admin/settings/SettingsSections.tsx"
+      ],
       "outputPaths": [
         "src/components/admin/stats/AnalyticsSettingsContainer.tsx",
         "src/app/admin/settings/",
