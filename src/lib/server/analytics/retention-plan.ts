@@ -352,6 +352,22 @@ export function createRetentionCandidateRepo(deps: {
 /** `AnalyticsDaily` 单轮删除上限；四个分析表合计仍受 `RETENTION_CLEANUP_MAX_PER_RUN` 约束。 */
 export const DAILY_RETENTION_MAX_PER_RUN = 1_000;
 
+/** 两张元数据表各自单轮上限。 */
+export const METADATA_RETENTION_MAX_PER_TABLE = 500;
+
+/** 两张元数据表单轮合计上限（独立于四表 20k）。 */
+export const METADATA_RETENTION_MAX_TOTAL = 1_000;
+
+/** 元数据表删除批大小：固定 500，不跟随可配 `batchSize`。 */
+export const NEW_TABLE_RETENTION_BATCH = 500;
+
+/** state/marker 本轮各自还能删多少：各自 ≤500，合计 ≤1,000，与四表预算无关。 */
+export function metadataRetentionCaps(deletedStates: number): { stateCap: number; markerCap: number } {
+  const stateCap = METADATA_RETENTION_MAX_PER_TABLE;
+  const totalLeft = Math.max(0, METADATA_RETENTION_MAX_TOTAL - Math.max(0, deletedStates));
+  return { stateCap, markerCap: Math.min(METADATA_RETENTION_MAX_PER_TABLE, totalLeft) };
+}
+
 /** 新表删除的候选扫描上限：与单轮上限同量级，避免只读查询无界。 */
 export const DAILY_RETENTION_SCAN_LIMIT = 2_000;
 

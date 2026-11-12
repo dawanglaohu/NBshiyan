@@ -29,11 +29,13 @@ import { dailyExpiresAt, parseMarkerVersions } from './aggregate-day-state';
 import {
   DAILY_RETENTION_MAX_PER_RUN,
   DAILY_RETENTION_SCAN_LIMIT,
+  NEW_TABLE_RETENTION_BATCH,
   RETENTION_CLEANUP_BATCH_SIZE,
   RETENTION_CLEANUP_MAX_PER_RUN,
   createRetentionCandidateRepo,
   dayChangeRetentionCutoff,
   eventExpiryCutoff,
+  metadataRetentionCaps,
   rawCoveragePlan,
   rollupExpiryCutoff,
   stateRetentionFloor,
@@ -630,7 +632,7 @@ export async function runAnalyticsRetention(deps: {
 
     // 6c. day-state：日期预筛后按**行内时区**正推到期；坏时区只诊断、定向保留；
     //     仍有未到期 AnalyticsDaily 行（同 localDate+revision）的一律不删。
-    const stateCap = Math.min(DAILY_RETENTION_MAX_PER_RUN, Math.max(0, maxPerRun - deletedTotal()));
+    const stateCap = metadataRetentionCaps(0).stateCap;
     if (stateCap > 0) {
       const floor = stateRetentionFloor(currentDate);
       const candidatesRead = await runWithinBudget(deps.db, budget, (tx) =>
@@ -670,8 +672,8 @@ export async function runAnalyticsRetention(deps: {
         const blocked = new Set(unexpiredRead.value.map((row) => `${row.localDate}|${Number(row.timezoneRevision)}`));
         const deletable = expired.filter((row) => !blocked.has(`${row.localDate}|${row.timezoneRevision}`));
 
-        for (let offset = 0; offset < deletable.length; offset += batchSize) {
-          const slice = deletable.slice(offset, offset + batchSize);
+        for (let offset = 0; offset < deletable.length; offset += NEW_TABLE_RETENTION_BATCH) {
+          const slice = deletable.slice(offset, offset + NEW_TABLE_RETENTION_BATCH);
           const removing = slice.map((row) => Prisma.sql`(${row.localDate}, ${row.timezoneRevision})`);
           const removed = await runBatch((tx) => tx.$executeRaw(Prisma.sql`
             DELETE FROM "AnalyticsAggregateDayState"
@@ -689,7 +691,7 @@ export async function runAnalyticsRetention(deps: {
     // 6d. marker：UTC 日严格早于「UTC 今日 − 13 自然月 − 2 天」；保留仍存续 state
     //     覆盖的 UTC 日与 markerVersions 键。state 行读不全（超上限/坏时区）时整步跳过，
     //     宁可不删也不误删仍被引用的 marker。
-    const markerCap = Math.min(DAILY_RETENTION_MAX_PER_RUN, Math.max(0, maxPerRun - deletedTotal()));
+    const markerCap = metadataRetentionCaps(report.deletedDayStates).markerCap;
     if (markerCap > 0) {
       const survivingRead = await runWithinBudget(deps.db, budget, (tx) =>
         tx.$queryRaw<{ localDate: string; timezone: string; markerVersions: unknown }[]>(Prisma.sql`
