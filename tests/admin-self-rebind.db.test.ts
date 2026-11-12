@@ -349,13 +349,17 @@ let now = start;
 const clock = () => now;
 
 /**
- * TOTP 必须按**真实墙钟**生成：生产的 `consumeTotpStep`/`codeStillInWindow` 都用 `Date.now()` 取时间步，
- * 注入的 `now` 只驱动账户/设备/过期窗口，不驱动验证码。
- * `stepOffset` 只用于同一真实 30s 窗内需要第二次合法 challenge 的场景（生产 window=1，±1 步内有效）；
- * 需要“同一码重放/并发”时复用同一个生成结果，不在这里重新生成。
+ * 两条链的 TOTP 判定钟不同，夹具必须跟着各自的钟生成：
+ * - `issue` → `consumeTotpStep`（`login.ts:124`）用 `Date.now()` 取时间步；
+ * - `recoveryEnrollment.confirm`（`recovery-enrollment.ts:184/200`）用注入的 `clock()`。
+ * 注入的 `now` 仍只驱动账户/设备/过期窗口；这里只按各自链路选对时钟。
+ * 需要“同一码重放/并发”时复用同一个生成结果，不重新生成。
  */
-function wallCode(secret: string, stepOffset = 0): string {
-  return authenticator.clone({ epoch: Date.now() + stepOffset * 30_000 }).generate(secret);
+function wallCode(secret: string): string {
+  return authenticator.clone({ epoch: Date.now() }).generate(secret);
+}
+function serviceCode(secret: string, at: Date = now): string {
+  return authenticator.clone({ epoch: at.getTime() }).generate(secret);
 }
 
 before(async () => {
@@ -786,7 +790,7 @@ describe('M3-T20 真实 PG：reset→enroll→confirm', { concurrency: 1, skip: 
     const oldCodeWall = wallCode(member.plain);
     assert.equal(authenticator.clone({ epoch: Date.now() }).check(oldCodeWall, decrypt(afterReset.totpSecret as string)), true);
 
-    const completed = await recoveryEnrollment.confirm({ token, totp: wallCode(secret), ip: '203.0.113.12' });
+    const completed = await recoveryEnrollment.confirm({ token, totp: serviceCode(secret), ip: '203.0.113.12' });
     assert.equal(completed.recoveryCodes.length, 10);
     assert.equal(new Set(completed.recoveryCodes).size, 10);
     const final = await userRow(member.user.id);
@@ -823,7 +827,7 @@ describe('M3-T20 真实 PG：reset→enroll→confirm', { concurrency: 1, skip: 
     const enrolled = await recoveryEnrollment.enroll({ token });
     const secret = new URL(enrolled.otpauthUri).searchParams.get('secret');
     assert.ok(secret);
-    const totp = wallCode(secret);
+    const totp = serviceCode(secret);
     const settled = await Promise.allSettled([
       recoveryEnrollment.confirm({ token, totp }),
       recoveryEnrollment.confirm({ token, totp }),
