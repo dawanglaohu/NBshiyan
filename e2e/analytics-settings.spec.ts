@@ -208,13 +208,50 @@ test.describe('已登录的 ADMIN', () => {
       if (new URL(r.url()).pathname === API && r.method() === 'PATCH') patches += 1;
     };
     page.on('request', countPatch);
+    // 同一实际 PATCH 的 body 旁路：clone 原生 Response 只读文本，原请求/响应不改；
+    // 不再依赖 Playwright 对页面响应体的无界 finished()/json()（CI 上曾挂起 120s）。
+    await page.evaluate(() => {
+      const w = window as Window & { __m5t10PatchBodies?: string[] };
+      if (w.__m5t10PatchBodies) return;
+      const bodies: string[] = [];
+      w.__m5t10PatchBodies = bodies;
+      const original = window.fetch;
+      window.fetch = async (...args: Parameters<typeof fetch>) => {
+        const response = await original(...args);
+        try {
+          const input = args[0];
+          const url = typeof input === 'string' ? input : input instanceof Request ? input.url : String(input);
+          const method = (args[1]?.method ?? (input instanceof Request ? input.method : 'GET')).toUpperCase();
+          if (method === 'PATCH' && new URL(url, window.location.origin).pathname === '/api/admin/settings/analytics') {
+            response
+              .clone()
+              .text()
+              .then((text) => bodies.push(text))
+              .catch(() => bodies.push('__CLONE_FAILED__'));
+          }
+        } catch {
+          bodies.push('__CLONE_FAILED__');
+        }
+        return response;
+      };
+    });
     await page.getByTestId('analytics-settings-input').fill(mine);
     const conflictResponse = page.waitForResponse((r) => new URL(r.url()).pathname === API && r.request().method() === 'PATCH');
     await page.getByTestId('analytics-settings-save').click();
     const conflictRes = await conflictResponse;
     expect(conflictRes.status()).toBe(409);
-    await conflictRes.finished();
-    expect(((await conflictRes.json()) as { error: string }).error).toBe('version_conflict');
+    // 有界读取旁路快照；取不到就明确失败，不退回 UI 文案、不补发第二个 PATCH。
+    await expect
+      .poll(
+        () => page.evaluate(() => (window as Window & { __m5t10PatchBodies?: string[] }).__m5t10PatchBodies?.length ?? 0),
+        { timeout: 7_000, message: '未观测到本次 PATCH 的响应体旁路' },
+      )
+      .toBeGreaterThanOrEqual(1);
+    const patchBodies = await page.evaluate(
+      () => (window as Window & { __m5t10PatchBodies?: string[] }).__m5t10PatchBodies ?? [],
+    );
+    const conflictBody = JSON.parse(patchBodies[patchBodies.length - 1]!) as { error?: string };
+    expect(conflictBody.error).toBe('version_conflict');
 
     // 旧 UI 不自动接受新版本：输入与右栏都保留旧值，保存停用，且没有自动重试
     await expect(page.getByTestId('analytics-settings-alert')).toContainText('配置已被其他会话修改');
