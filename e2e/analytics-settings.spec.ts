@@ -215,20 +215,28 @@ test.describe('已登录的 ADMIN', () => {
       if (w.__m5t10PatchBodies) return;
       const bodies: string[] = [];
       w.__m5t10PatchBodies = bodies;
-      const original = window.fetch;
+      // 原生 fetch 绑定 window 后再调用：保持 this 不变，请求参数原样透传。
+      const original = window.fetch.bind(window);
+      const isTargetPatch = (input: RequestInfo | URL, init?: RequestInit): boolean => {
+        try {
+          const method = (init?.method ?? (input instanceof Request ? input.method : 'GET')).toUpperCase();
+          if (method !== 'PATCH') return false;
+          const raw = typeof input === 'string' ? input : input instanceof Request ? input.url : String(input);
+          return new URL(raw, window.location.origin).pathname === '/api/admin/settings/analytics';
+        } catch {
+          // 判定失败不写旁路数组：非目标请求的异常不得污染本次 case 的 body 快照。
+          return false;
+        }
+      };
       window.fetch = async (...args: Parameters<typeof fetch>) => {
         const response = await original(...args);
+        if (!isTargetPatch(args[0], args[1])) return response;
         try {
-          const input = args[0];
-          const url = typeof input === 'string' ? input : input instanceof Request ? input.url : String(input);
-          const method = (args[1]?.method ?? (input instanceof Request ? input.method : 'GET')).toUpperCase();
-          if (method === 'PATCH' && new URL(url, window.location.origin).pathname === '/api/admin/settings/analytics') {
-            response
-              .clone()
-              .text()
-              .then((text) => bodies.push(text))
-              .catch(() => bodies.push('__CLONE_FAILED__'));
-          }
+          response
+            .clone()
+            .text()
+            .then((text) => bodies.push(text))
+            .catch(() => bodies.push('__CLONE_FAILED__'));
         } catch {
           bodies.push('__CLONE_FAILED__');
         }
