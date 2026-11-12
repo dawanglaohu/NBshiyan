@@ -31,6 +31,12 @@ type Query = Pick<PrismaClient, '$queryRaw' | '$executeRaw'>;
 export type RetentionCleanupDb = Query & Pick<PrismaClient, '$transaction'>;
 type Acquired = Extract<ClaimResult, { acquired: true }>;
 
+/**
+ * 本次运行实际消费的三个租约方法。假 repo 只实现这三个，不需要 `as any`；
+ * 注入缝仅在 server 内部（测试用），不从 HTTP/ENV/公开 ops 配置接。
+ */
+type RetentionLeaseRepo = Pick<JobLeaseRepo, 'claimPreservingStatus' | 'renew' | 'completeSeparately'>;
+
 export type RetentionCleanupCounts = {
   mode: RetentionCleanupMode;
   candidateEvents: number;
@@ -142,7 +148,7 @@ function summaryFor(counts: RetentionCleanupCounts, timezoneRevision: number) {
 
 async function finish(
   db: RetentionCleanupDb,
-  repo: JobLeaseRepo,
+  repo: RetentionLeaseRepo,
   claim: Acquired,
   status: 'SUCCEEDED' | 'FAILED',
   counts: RetentionCleanupCounts,
@@ -166,7 +172,7 @@ async function finish(
   }
 }
 
-async function renew(db: RetentionCleanupDb, repo: JobLeaseRepo, claim: Acquired): Promise<void> {
+async function renew(db: RetentionCleanupDb, repo: RetentionLeaseRepo, claim: Acquired): Promise<void> {
   await db.$transaction(async (tx) => {
     await repo.renew({ key: ANALYTICS_ROLLUP_JOB_KEY, owner: OWNER, generation: claim.generation }, tx);
   }, TX);
@@ -188,7 +194,7 @@ function deletableEventFilter(start: Date, end: Date, cutoff: Date): Prisma.Sql 
 }
 async function deleteEventBatch(
   db: RetentionCleanupDb,
-  repo: JobLeaseRepo,
+  repo: RetentionLeaseRepo,
   claim: Acquired,
   siteDate: string,
   timeZone: string,
@@ -214,7 +220,7 @@ async function deleteEventBatch(
 
 async function deleteDailyBatch(
   db: RetentionCleanupDb,
-  repo: JobLeaseRepo,
+  repo: RetentionLeaseRepo,
   claim: Acquired,
   before: string,
   limit: number,
@@ -241,7 +247,7 @@ async function deleteDailyBatch(
 
 async function deleteRollupDayBatch(
   db: RetentionCleanupDb,
-  repo: JobLeaseRepo,
+  repo: RetentionLeaseRepo,
   claim: Acquired,
   before: string,
   limit: number,
@@ -291,6 +297,8 @@ export async function runRetentionCleanup(deps: {
   batchSize?: number;
   maxPerRun?: number;
   audit?: AuditWrite;
+  /** 仅 server 内部注入（测试）：默认仍用真实 `createJobLeaseRepo`。 */
+  repoFactory?: (deps: { db: RetentionCleanupDb; clock: () => Date }) => RetentionLeaseRepo;
 }): Promise<RetentionCleanupResult> {
   const mode = deps.mode ?? retentionCleanupMode();
   const batchSize = deps.batchSize ?? RETENTION_CLEANUP_BATCH_SIZE;
@@ -303,7 +311,7 @@ export async function runRetentionCleanup(deps: {
     return { status: 'failed', errorCode: 'invalid', deletedEvents: 0, deletedRollupRows: 0 };
   }
   const leaseClock = deps.clock ?? (() => new Date());
-  const repo = createJobLeaseRepo({ db: deps.db, clock: leaseClock });
+  const repo = (deps.repoFactory ?? createJobLeaseRepo)({ db: deps.db, clock: leaseClock });
   const claim = await repo.claimPreservingStatus({ key: ANALYTICS_ROLLUP_JOB_KEY, owner: OWNER });
   if (!claim.acquired) {
     if (claim.reason === 'busy') return { status: 'busy' };
