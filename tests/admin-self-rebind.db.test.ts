@@ -10,8 +10,9 @@
 import { execFileSync } from 'node:child_process';
 import { spawn, type ChildProcess } from 'node:child_process';
 import { createRequire } from 'node:module';
-import { once } from 'node:events';
+import { EventEmitter, once } from 'node:events';
 import { existsSync } from 'node:fs';
+import { createServer, type Server } from 'node:net';
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { before, after, describe, test } from 'node:test';
@@ -26,18 +27,26 @@ import { MemoryStore, setRateLimitStore } from '../src/lib/server/ratelimit';
 import { classifySelfResetBody } from '../src/lib/server/admin/self-rebind';
 
 process.env.APP_ENV ??= 'test';
-process.env.AUTH_SECRET ??= 'm3t20-db-test-secret-32b';
+process.env.AUTH_SECRET ??= 'm3t20-test-auth-secret-32b-0001';
 process.env.ADMIN_TOTP_KEY ??= Buffer.alloc(32, 11).toString('base64');
 authenticator.options = { window: 1, step: 30 };
 
-const PASSWORD = 'm3t20-db-test-pw-20261112';
+const PASSWORD = 'm3t20-test-pw-0001';
 const REQUIRE_DB = process.env.B10_M3T20_REQUIRE_DATABASE === 'true';
+const LOCAL_DB = 'b10_m3t20_20261112';
+const LOCAL_USER = 'b10_m3t20_app';
+const CI_DB = 'e2e';
+const CI_USER = 'postgres';
+const CI_MODE = process.env.B10_M3T20_CI_MODE === 'true';
+if (CI_MODE && process.env.CI !== 'true') throw new Error('M3T20_CI_MODE_REQUIRES_CI');
+const EXPECTED_IDENTITY = { database: CI_MODE ? CI_DB : LOCAL_DB, user: CI_MODE ? CI_USER : LOCAL_USER };
 
 /**
  * 只接受 loopback 基础库 URL，且不得自带 schema（schema 由本测试独占创建）。
- * 不回退通用 DATABASE_URL；不打印 URL 或口令。
+ * local 模式固定本卡 b10_m3t20_20261112 / b10_m3t20_app；CI 模式必须先显式 B10_M3T20_CI_MODE=true 且 CI=true，
+ * 只接受一次性 e2e/postgres。不回退通用 DATABASE_URL；不打印 URL 或口令。
  */
-export function validateBaseDatabaseUrl(raw: string | undefined): string {
+export function validateBaseDatabaseUrl(raw: string | undefined, mode: 'local' | 'ci' = 'local'): string {
   if (!raw) throw new Error('B10_M3T20_TEST_DATABASE_URL is required when B10_M3T20_REQUIRE_DATABASE=true');
   let parsed: URL;
   try {
@@ -54,18 +63,26 @@ export function validateBaseDatabaseUrl(raw: string | undefined): string {
   if (parsed.searchParams.has('schema')) {
     throw new Error('B10_M3T20_TEST_DATABASE_URL must not carry schema; the test creates its own');
   }
-  if (!parsed.pathname.replace(/^\//, '')) throw new Error('B10_M3T20_TEST_DATABASE_URL must name a database');
+  const database = decodeURIComponent(parsed.pathname.replace(/^\//, ''));
+  const user = decodeURIComponent(parsed.username);
+  if (!database) throw new Error('B10_M3T20_TEST_DATABASE_URL must name a database');
+  if (mode === 'local' && (database !== LOCAL_DB || user !== LOCAL_USER)) {
+    throw new Error('B10_M3T20_TEST_DATABASE_URL must target b10_m3t20_20261112 as b10_m3t20_app');
+  }
+  if (mode === 'ci' && (database !== CI_DB || user !== CI_USER)) {
+    throw new Error('M3T20_CI_DATABASE_MISMATCH');
+  }
   return raw;
 }
 
 const rawDatabaseUrl = process.env.B10_M3T20_TEST_DATABASE_URL;
 const baseDatabaseUrl = rawDatabaseUrl
-  ? validateBaseDatabaseUrl(rawDatabaseUrl)
-  : (REQUIRE_DB ? validateBaseDatabaseUrl(undefined) : '');
+  ? validateBaseDatabaseUrl(rawDatabaseUrl, CI_MODE ? 'ci' : 'local')
+  : (REQUIRE_DB ? validateBaseDatabaseUrl(undefined, CI_MODE ? 'ci' : 'local') : '');
 const skipDatabase = !baseDatabaseUrl && 'no dedicated B10_M3T20_TEST_DATABASE_URL';
 
 const schema = `m3t20_${process.pid}_${randomBytes(4).toString('hex')}`;
-if (!/^[a-z][a-z0-9_]{0,40}$/.test(schema)) throw new Error('invalid test schema name');
+if (!/^[a-z][a-z0-9_]{0,40}$/.test(schema)) throw new Error('M3T20_SCHEMA_NAME_INVALID');
 
 let databaseUrl = '';
 if (baseDatabaseUrl) {
@@ -73,9 +90,104 @@ if (baseDatabaseUrl) {
   parsed.searchParams.set('schema', schema);
   databaseUrl = parsed.toString();
 }
-const databaseName = baseDatabaseUrl ? decodeURIComponent(new URL(baseDatabaseUrl).pathname.replace(/^\//, '')) : '';
-const databaseUser = baseDatabaseUrl ? decodeURIComponent(new URL(baseDatabaseUrl).username) : '';
 
+type Identity = { database: string; user: string };
+type SchemaAdmin = {
+  $queryRawUnsafe: (query: string) => Promise<unknown>;
+  $executeRawUnsafe: (query: string) => Promise<unknown>;
+};
+
+export function assertIdentity(identity: Identity | undefined, expected: Identity): void {
+  if (!identity || identity.database !== expected.database || identity.user !== expected.user) {
+    throw new Error('M3T20_DATABASE_IDENTITY_MISMATCH');
+  }
+}
+
+export async function createOwnedSchema(admin: SchemaAdmin, name: string): Promise<{ created: boolean }> {
+  if (!/^[a-z][a-z0-9_]{0,40}$/.test(name)) throw new Error('M3T20_SCHEMA_NAME_INVALID');
+  try {
+    await admin.$executeRawUnsafe(`CREATE SCHEMA "${name}"`);
+  } catch {
+    throw new Error('M3T20_SCHEMA_CREATE_FAILED');
+  }
+  return { created: true };
+}
+
+/** 只清理本次 CREATE 明确成功的 schema；既有同名 schema 绝不接管/删除。 */
+export async function cleanupOwnedSchema(admin: SchemaAdmin, name: string, owned: boolean): Promise<void> {
+  if (!owned) return;
+  try {
+    await admin.$executeRawUnsafe(`DROP SCHEMA "${name}" CASCADE`);
+  } catch {
+    throw new Error('M3T20_SCHEMA_DROP_FAILED');
+  }
+}
+
+/** 身份（只读）必须在任何 CREATE/db push 之前；失败不产生副作用。 */
+export async function prepareSchema(
+  admin: SchemaAdmin,
+  expected: Identity,
+  name: string,
+): Promise<{ created: boolean }> {
+  const rows = await admin.$queryRawUnsafe(
+    'SELECT current_database() AS database, current_user AS "user"',
+  ) as Identity[];
+  assertIdentity(rows[0], expected);
+  return createOwnedSchema(admin, name);
+}
+
+type ExecLike = (
+  file: string,
+  args: string[],
+  options: { cwd: string; env: NodeJS.ProcessEnv; stdio: ['ignore', 'ignore', 'ignore'] },
+) => unknown;
+
+/** db push 失败只给安全码；不把 raw 异常/stderr/DSN 带到测试输出。 */
+export function pushSchema(url: string, run: ExecLike = execFileSync as unknown as ExecLike): void {
+  const prismaCli = createRequire(import.meta.url).resolve('prisma/build/index.js');
+  try {
+    run(process.execPath, [prismaCli, 'db', 'push', '--skip-generate'], {
+      cwd: process.cwd(),
+      env: { ...process.env, DATABASE_URL: url },
+      stdio: ['ignore', 'ignore', 'ignore'],
+    });
+  } catch {
+    throw new Error('M3T20_DBPUSH_FAILED');
+  }
+}
+
+/** 绑定 127.0.0.1:0 取空闲端口；EADDRINUSE/无端口只报安全码。 */
+export async function pickFreePort(factory: () => Server = () => createServer()): Promise<number> {
+  return await new Promise<number>((resolve, reject) => {
+    const server = factory();
+    const fail = () => {
+      try { server.close(); } catch { /* ignore */ }
+      reject(new Error('M3T20_PORT_UNAVAILABLE'));
+    };
+    server.once('error', fail);
+    server.listen(0, '127.0.0.1', () => {
+      const address = server.address();
+      const port = address && typeof address === 'object' ? address.port : 0;
+      server.close((error) => {
+        if (error || !port) reject(new Error('M3T20_PORT_UNAVAILABLE'));
+        else resolve(port);
+      });
+    });
+  });
+}
+
+/** 有界停止本次子进程；SIGTERM 超时再 SIGKILL，仍不 exit 则安全码失败。 */
+export async function stopChild(child: ChildProcess, graceMs = 10_000, killMs = 5_000): Promise<void> {
+  if (child.exitCode !== null) return;
+  child.kill('SIGTERM');
+  const exited = await Promise.race([once(child, 'exit').then(() => true), delay(graceMs).then(() => false)]);
+  if (exited || child.exitCode !== null) return;
+  child.kill('SIGKILL');
+  const killed = await Promise.race([once(child, 'exit').then(() => true), delay(killMs).then(() => false)]);
+  if (!killed && child.exitCode === null) throw new Error('M3T20_STANDALONE_KILL_FAILED');
+}
+
+let schemaCreated = false;
 let adminDb: PrismaClient | null = null;
 let db: PrismaClient = null as unknown as PrismaClient;
 let actionGrants: import('../src/lib/server/admin/action-grant').ActionGrantService;
@@ -95,20 +207,17 @@ before(async () => {
   if (!baseDatabaseUrl) return;
   setRateLimitStore(new MemoryStore());
   adminDb = new PrismaClient({ datasourceUrl: baseDatabaseUrl });
-  await adminDb.$executeRawUnsafe(`CREATE SCHEMA "${schema}"`);
-  const prismaCli = createRequire(import.meta.url).resolve('prisma/build/index.js');
-  execFileSync(process.execPath, [prismaCli, 'db', 'push', '--skip-generate'], {
-    cwd: process.cwd(), env: { ...process.env, DATABASE_URL: databaseUrl }, stdio: ['ignore', 'pipe', 'pipe'],
-  });
+  const prepared = await prepareSchema(adminDb as unknown as SchemaAdmin, EXPECTED_IDENTITY, schema);
+  schemaCreated = prepared.created;
+  pushSchema(databaseUrl);
   process.env.DATABASE_URL = databaseUrl;
   const loaded = await import('../src/lib/server/db');
   db = loaded.prisma;
-  const [identity] = await db.$queryRawUnsafe<{ database: string; user: string; schema: string }[]>(
+  const rows = await db.$queryRawUnsafe<{ database: string; user: string; schema: string }[]>(
     'SELECT current_database() AS database, current_user AS "user", current_schema() AS schema',
   );
-  assert.equal(identity.database, databaseName, 'current_database must match the dedicated URL');
-  assert.equal(identity.user, databaseUser, 'current_user must match the dedicated URL');
-  assert.equal(identity.schema, schema, 'search_path must resolve to the owned schema');
+  assertIdentity(rows[0], EXPECTED_IDENTITY);
+  if (rows[0].schema !== schema) throw new Error('M3T20_SCHEMA_PATH_MISMATCH');
   const grantMod = await import('../src/lib/server/admin/action-grant');
   const rebindMod = await import('../src/lib/server/admin/self-rebind');
   const enrollMod = await import('../src/lib/server/admin/recovery-enrollment');
@@ -120,11 +229,26 @@ before(async () => {
 });
 
 after(async () => {
-  await db?.$disconnect?.();
-  if (adminDb) {
-    await adminDb.$executeRawUnsafe(`DROP SCHEMA IF EXISTS "${schema}" CASCADE`).catch(() => undefined);
-    await adminDb.$disconnect().catch(() => undefined);
+  let failure = '';
+  try {
+    await stopStandalone();
+  } catch {
+    failure = 'M3T20_STANDALONE_KILL_FAILED';
   }
+  await db?.$disconnect?.().catch(() => undefined);
+  if (adminDb && schemaCreated) {
+    if (failure) {
+      failure = 'M3T20_SCHEMA_DROP_SKIPPED_SERVER_LIVE';
+    } else {
+      try {
+        await cleanupOwnedSchema(adminDb as unknown as SchemaAdmin, schema, schemaCreated);
+      } catch {
+        failure = 'M3T20_SCHEMA_DROP_FAILED';
+      }
+    }
+  }
+  await adminDb?.$disconnect?.().catch(() => undefined);
+  if (failure) throw new Error(failure);
 });
 
 async function makeAccount(): Promise<{ user: User; deviceId: string; plain: string }> {
@@ -174,16 +298,132 @@ async function userRow(userId: string) {
 }
 
 describe('M3-T20 隔离库 URL 校验（无库可跑）', () => {
-  test('只接受 loopback、无 schema、非空库名、postgres scheme', () => {
+  test('只接受 loopback、无 schema、本卡固定库/角色、postgres scheme', () => {
     assert.throws(() => validateBaseDatabaseUrl(undefined), /required/);
-    assert.throws(() => validateBaseDatabaseUrl('postgresql://u:p@db.example.com:5432/e2e'), /loopback/);
-    assert.throws(() => validateBaseDatabaseUrl('postgresql://u:p@127.0.0.1:5432/e2e?schema=m3t20'), /must not carry schema/);
-    assert.throws(() => validateBaseDatabaseUrl('postgresql://u:p@127.0.0.1:5432/'), /name a database/);
-    assert.throws(() => validateBaseDatabaseUrl('mysql://u:p@127.0.0.1:5432/e2e'), /postgres/);
+    assert.throws(() => validateBaseDatabaseUrl('postgresql://b10_m3t20_app:p@db.example.com:5432/b10_m3t20_20261112'), /loopback/);
+    assert.throws(() => validateBaseDatabaseUrl('postgresql://b10_m3t20_app:p@127.0.0.1:5432/b10_m3t20_20261112?schema=m3t20'), /must not carry schema/);
+    assert.throws(() => validateBaseDatabaseUrl('postgresql://b10_m3t20_app:p@127.0.0.1:5432/'), /name a database/);
+    assert.throws(() => validateBaseDatabaseUrl('mysql://b10_m3t20_app:p@127.0.0.1:5432/b10_m3t20_20261112'), /postgres/);
+    assert.throws(() => validateBaseDatabaseUrl('postgresql://b10_m3t20_app:p@127.0.0.1:5432/other'), /must target/);
+    assert.throws(() => validateBaseDatabaseUrl('postgresql://postgres:p@127.0.0.1:5432/b10_m3t20_20261112'), /must target/);
     assert.equal(
-      validateBaseDatabaseUrl('postgresql://u:p@127.0.0.1:5432/b10_m3t20_20261112'),
-      'postgresql://u:p@127.0.0.1:5432/b10_m3t20_20261112',
+      validateBaseDatabaseUrl('postgresql://b10_m3t20_app:p@127.0.0.1:5432/b10_m3t20_20261112'),
+      'postgresql://b10_m3t20_app:p@127.0.0.1:5432/b10_m3t20_20261112',
     );
+  });
+
+  test('CI 模式只接受显式 e2e/postgres', () => {
+    assert.equal(
+      validateBaseDatabaseUrl('postgresql://postgres:p@127.0.0.1:5432/e2e', 'ci'),
+      'postgresql://postgres:p@127.0.0.1:5432/e2e',
+    );
+    assert.throws(() => validateBaseDatabaseUrl('postgresql://postgres:p@127.0.0.1:5432/other', 'ci'), /M3T20_CI_DATABASE_MISMATCH/);
+    assert.throws(() => validateBaseDatabaseUrl('postgresql://b10_m3t20_app:p@127.0.0.1:5432/b10_m3t20_20261112', 'ci'), /M3T20_CI_DATABASE_MISMATCH/);
+  });
+});
+
+describe('M3-T20 安全前置负控（无库/无监听）', () => {
+  function responseWithCookies(...values: string[]): Response {
+    const headers = new Headers();
+    for (const value of values) headers.append('set-cookie', value);
+    return new Response(null, { headers });
+  }
+
+  test('CookieJar 识别安全/非安全 session 与合法 chunk，拒相似前缀，清除后不算会话', () => {
+    const SECURE = '__' + 'Secure-';
+    const accepted = new CookieJar();
+    accepted.absorb(responseWithCookies(
+      'authjs.session-token=plain; Path=/',
+      `${SECURE}authjs.session-token.1=secure-chunk; Path=/`,
+    ));
+    assert.equal(accepted.hasSession(), true);
+
+    const lookalike = new CookieJar();
+    lookalike.absorb(responseWithCookies(
+      'look-alike.session-token',
+      `${SECURE}authjs.session-token.0.1=y; Path=/`,
+      'xauthjs.session-token=z; Path=/',
+    ));
+    assert.equal(lookalike.hasSession(), false);
+
+    const cleared = new CookieJar();
+    cleared.absorb(responseWithCookies(
+      'authjs.session-token=gone; Path=/',
+      'authjs.session-token=; Max-Age=0; Path=/',
+    ));
+    assert.equal(cleared.hasSession(), false);
+  });
+
+  test('身份只读校验先于 CREATE；失败不建 schema；只 drop 本次创建', async () => {
+    const calls: string[] = [];
+    const admin = {
+      $queryRawUnsafe: async () => { calls.push('identity'); return [{ database: LOCAL_DB, user: LOCAL_USER }]; },
+      $executeRawUnsafe: async (query: string) => { calls.push(query.startsWith('CREATE') ? 'create' : 'drop'); },
+    };
+    const prepared = await prepareSchema(admin as never, { database: LOCAL_DB, user: LOCAL_USER }, 'm3t20_abc');
+    assert.deepEqual(calls, ['identity', 'create']);
+    assert.equal(prepared.created, true);
+
+    const wrongCalls: string[] = [];
+    const wrong = {
+      $queryRawUnsafe: async () => { wrongCalls.push('identity'); return [{ database: 'other', user: 'postgres' }]; },
+      $executeRawUnsafe: async () => { wrongCalls.push('create'); },
+    };
+    await assert.rejects(
+      prepareSchema(wrong as never, { database: LOCAL_DB, user: LOCAL_USER }, 'm3t20_abc'),
+      /M3T20_DATABASE_IDENTITY_MISMATCH/,
+    );
+    assert.deepEqual(wrongCalls, ['identity']);
+
+    const failCalls: string[] = [];
+    const failCreate = {
+      $queryRawUnsafe: async () => [{ database: LOCAL_DB, user: LOCAL_USER }],
+      $executeRawUnsafe: async () => { failCalls.push('create'); throw new Error('duplicate schema'); },
+    };
+    await assert.rejects(createOwnedSchema(failCreate as never, 'm3t20_abc'), /M3T20_SCHEMA_CREATE_FAILED/);
+    assert.deepEqual(failCalls, ['create']);
+
+    const dropCalls: string[] = [];
+    const dropAdmin = {
+      $queryRawUnsafe: async () => [],
+      $executeRawUnsafe: async (query: string) => { dropCalls.push(query); },
+    };
+    await cleanupOwnedSchema(dropAdmin as never, 'm3t20_abc', false);
+    assert.equal(dropCalls.length, 0, '既有 schema 不得接管/删除');
+    await cleanupOwnedSchema(dropAdmin as never, 'm3t20_abc', true);
+    assert.equal(dropCalls.length, 1);
+    assert.match(dropCalls[0], /^DROP SCHEMA "m3t20_abc" CASCADE$/);
+  });
+
+  test('dbpush 失败只给安全码，不带原始 stderr/DSN', () => {
+    const secretish = ['postgresql://user:', 'not-a-credential', '@127.0.0.1:5432/e2e'].join('');
+    let thrown: Error | null = null;
+    try {
+      pushSchema(secretish, () => {
+        throw Object.assign(new Error('spawn failed'), { stderr: secretish });
+      });
+    } catch (error) {
+      thrown = error as Error;
+    }
+    assert.ok(thrown);
+    assert.equal(thrown.message, 'M3T20_DBPUSH_FAILED');
+    assert.equal(thrown.message.includes('not-a-credential'), false);
+    assert.equal(thrown.message.includes('postgresql://'), false);
+  });
+
+  test('端口占用与 kill 失败都只给安全码', async () => {
+    const busy = new EventEmitter() as unknown as Server;
+    Object.assign(busy, {
+      listen: () => {
+        queueMicrotask(() => busy.emit('error', Object.assign(new Error('busy'), { code: 'EADDRINUSE' })));
+      },
+      close: () => undefined,
+    });
+    await assert.rejects(pickFreePort(() => busy), /M3T20_PORT_UNAVAILABLE/);
+
+    const stuck = new EventEmitter() as unknown as ChildProcess;
+    Object.assign(stuck, { exitCode: null, kill: () => true });
+    await assert.rejects(stopChild(stuck, 5, 5), /M3T20_STANDALONE_KILL_FAILED/);
   });
 });
 
@@ -379,8 +619,11 @@ const skipHttp = skipDatabase || (!standaloneDir && 'no B10_M3T20_STANDALONE_DIR
 let httpBase = '';
 let standalone: ChildProcess | null = null;
 
-function freePort(): number {
-  return 3400 + (process.pid % 200);
+async function stopStandalone(): Promise<void> {
+  if (!standalone) return;
+  const child = standalone;
+  standalone = null;
+  await stopChild(child);
 }
 
 async function waitForServer(child: ChildProcess, base: string): Promise<void> {
@@ -396,6 +639,8 @@ async function waitForServer(child: ChildProcess, base: string): Promise<void> {
   }
   throw new Error('standalone did not become ready within 120s');
 }
+
+const SESSION_COOKIE_NAME = /^(?:__Secure-)?authjs\.session-token(?:\.\d+)?$/;
 
 class CookieJar {
   private readonly cookies = new Map<string, string>();
@@ -427,7 +672,7 @@ class CookieJar {
   }
 
   hasSession(): boolean {
-    return [...this.cookies.keys()].some((name) => /^authjs\.session-token/.test(name));
+    return [...this.cookies.keys()].some((name) => SESSION_COOKIE_NAME.test(name));
   }
 
   has(name: string): boolean {
@@ -476,7 +721,7 @@ describe('M3-T20 真实 socket/Next HTTP（实例阶段）', { concurrency: 1, s
     if (!standaloneDir) return;
     const serverJs = path.join(standaloneDir, 'server.js');
     if (!existsSync(serverJs)) throw new Error('B10_M3T20_STANDALONE_DIR must contain server.js');
-    const port = freePort();
+    const port = await pickFreePort();
     httpBase = `http://127.0.0.1:${port}`;
     standalone = spawn(process.execPath, [serverJs], {
       cwd: standaloneDir,
@@ -485,21 +730,21 @@ describe('M3-T20 真实 socket/Next HTTP（实例阶段）', { concurrency: 1, s
         DATABASE_URL: databaseUrl,
         PORT: String(port),
         HOSTNAME: '127.0.0.1',
+        NODE_ENV: 'production',
         APP_ENV: 'test',
+        AUTH_URL: httpBase,
         AUTH_TRUST_HOST: 'true',
+        ORIGIN: httpBase,
         NEXTAUTH_URL: httpBase,
         NEXT_PUBLIC_SITE_URL: httpBase,
       },
-      stdio: ['ignore', 'pipe', 'pipe'],
+      stdio: ['ignore', 'ignore', 'ignore'],
     });
     await waitForServer(standalone, httpBase);
   });
 
   after(async () => {
-    if (!standalone || standalone.exitCode !== null) return;
-    standalone.kill('SIGTERM');
-    await Promise.race([once(standalone, 'exit'), delay(10_000)]);
-    if (standalone.exitCode === null) standalone.kill('SIGKILL');
+    await stopStandalone();
   });
 
   test('登录→reauth 签 grant→reset→受限 enroll/confirm→旧 TOTP 拒/新 TOTP 可登录', { timeout: 300_000 }, async () => {
@@ -509,7 +754,11 @@ describe('M3-T20 真实 socket/Next HTTP（实例阶段）', { concurrency: 1, s
     assert.equal(loginSucceeded(first), true, '旧 TOTP 应能先登录');
     assert.equal((await http('/api/admin/account', {}, first.jar)).status, 200);
 
-    // 仅 TOTP / 仅会话不能签 grant
+    // 仅登录会话（空 body）、仅 TOTP、仅密码都不能签 grant
+    const onlySession = await http('/api/admin/account/reauth', {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}',
+    }, first.jar);
+    assert.equal(onlySession.status, 401);
     const onlyTotp = await http('/api/admin/account/reauth', {
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ purpose: 'TOTP_RESET', totp: authenticator.clone({ epoch: Date.now() + 30_000 }).generate(member.plain) }),
