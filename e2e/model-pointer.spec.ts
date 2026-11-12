@@ -143,26 +143,27 @@ test('pointer capture, page wheel, modifier zoom, and release', async ({ page })
 
   await first.focus();
   await expect(first).toHaveAttribute('data-focused', '1');
-  // 基线必须真实存在且有限：缺属性时 getAttribute 返回 null，Number(null)=0 或 NaN 会让
-  // 后面的“已变化”判定对任意有限值恒真，滚轮没生效也会过。
+  // 基线必须先取原始字符串：缺失、trim 后空白、转数非有限，一律立即失败。
+  // 否则 Number(null)=0 或 NaN 会让后面的“已变化”判定对任意有限值恒真，滚轮没生效也会过。
   const rawFocused = await first.getAttribute('data-camera-distance');
+  if (rawFocused === null || rawFocused.trim() === '') throw new Error('聚焦距离基线缺失或空白');
   const focusedDistance = Number(rawFocused);
-  if (rawFocused === null || !Number.isFinite(focusedDistance)) throw new Error('聚焦距离基线缺失或非有限值');
+  if (!Number.isFinite(focusedDistance)) throw new Error('聚焦距离基线非有限值');
   const scrollAtFocus = await page.evaluate(() => window.scrollY);
   await page.keyboard.down('Control');
   const focusedPoint = await center(first);
   await page.mouse.move(focusedPoint.x, focusedPoint.y);
   await page.mouse.wheel(0, -80);
   await page.keyboard.up('Control');
-  // 实时页内读同一 first 节点的距离：缺失、非数字、非有限值一律视为未满足，返回 null；
-  // 不能用 Number(null)=0 或 NaN 与旧值不等形成假绿，只有真实存在且有限且发生变化才过。
+  // 实时页内读同一 first 节点的距离：缺失、空白、非数字、非有限值一律视为未满足，返回 null；
+  // 不能用 Number(null)=0 或 Number('')=0 或 NaN 与旧值不等形成假绿，只有真实存在且有限且发生变化才过。
   await expect
     .poll(
       async () => {
         const value = await page.evaluate(() => {
           const el = document.querySelectorAll('[data-testid="product-viewport"]')[0];
           const raw = el?.getAttribute('data-camera-distance') ?? null;
-          if (raw === null) return null;
+          if (raw === null || raw.trim() === '') return null;
           const parsed = Number(raw);
           return Number.isFinite(parsed) ? parsed : null;
         });
