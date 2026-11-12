@@ -636,6 +636,24 @@ function minDate(values: Array<Date | null>): Date | null {
 }
 
 /**
+ * 日聚合的提交点守卫（不可省略）：行锁 `JobState` 真读 generation，再原子复核时区代次。
+ *
+ * 供「独立日轮事务」与「作业内同一 RR 事务（由 runAggregateOnce 在末尾 repo.complete 再核一次）」
+ * 共用；租约过期判断不在这里用轮首 now——那由调用方在提交点用 repo.renew / repo.complete
+ * 的真实时钟完成（见 ADDENDUM-1 §3）。
+ */
+export async function assertDailyAggregateGuards(
+  tx: Prisma.TransactionClient,
+  args: { timezoneRevision: number; now: Date; generation?: number },
+): Promise<void> {
+  const stored = await readLockedGeneration(tx);
+  if (args.generation !== undefined && stored !== null && stored > args.generation) {
+    throw new AggregateVersionConflict('stale_generation');
+  }
+  await assertCurrentTimezoneRevision(tx, args.timezoneRevision, args.now);
+}
+
+/**
  * 跑一轮无身份日聚合。调用方负责租约、预算与业务时钟；本函数不读请求、不读环境变量。
  *
  * `notAfter` 默认等于 `now`：只统计已到发生时间的事实，未来事实并入 defer。
@@ -654,6 +672,8 @@ export async function runDailyAggregateRound(deps: {
   deadlineAt?: Date;
   notAfter?: Date;
   rawCutoff?: Date;
+  /** 作业租约代次；传入时在同一 RR 事务开头做行锁比较（提交点仍由 repo.complete 再核一次）。 */
+  generation?: number;
   resolveProductSlugFromPath?: (normalizedPath: string, locale: string) => string | null;
 }): Promise<DailyAggregateRoundResult> {
   const now = deps.now;
@@ -771,6 +791,12 @@ export async function runDailyAggregateRound(deps: {
   const closureMeta: string[] = [];
   try {
     await runInRepeatableReadSnapshot(deps.db, async (tx) => {
+      // 守卫不可省略：行锁真读 generation（若给了代次）＋ 原子复核时区代次。
+      await assertDailyAggregateGuards(tx, {
+        timezoneRevision: revision,
+        now,
+        ...(deps.generation !== undefined ? { generation: deps.generation } : {}),
+      });
       const plans: DailyDayPlan[] = [];
       const seen = new Set<string>();
       for (let index = 0; index < queue.length; index += 1) {
