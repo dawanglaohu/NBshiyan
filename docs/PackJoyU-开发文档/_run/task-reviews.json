@@ -1210,16 +1210,14 @@
   },
   "M5-T10": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "b3f236eca564a314f36c41e1a691f39adb767881c81d4cb1316f56845ceae739",
+    "contractHash": "23ecfbef33eb886367342aa452e3cf512a155aa0cbee83b59c4beb71da4973c3",
     "evidence": [
-      "源变更仅 docs/PackJoyU-开发文档/_run/task-contracts.json（git diff 1 行新增）：M5-T10 supportPaths 在 model-pointer.spec.ts 后新增 e2e/admin-legacy-model-visual.spec.ts，无重复；outputPaths/requires/stage/wiring/sections 逐字段未变",
-      "触发输入：前端 clean 冻结头 12f60cee5e59b834e221e9ff56a88bc805f0be3f / tree f629b163dafc211f1f4ade5bc3dc68960de0f992（链 8504dde1→12f60cee），git status 0 行；该 spec 已在该 HEAD 跟踪（:275 errorStage=ready-preview、:284 原默认 7s ready 断言为目标）",
-      "依据 Chief C1 卡：3D 同 run 43205989252 两角色 390 实测真实 preview 挂载约 11.4/11.5s 才 ready，通用 7s 截断；M3-T23 验收无 7s 性能门槛、既有 25s 首帧等待惯例（model-pointer.spec.ts:20-21、model-accessibility.spec.ts:49-50）。本补丁只给写域，90/180s 测试预算、业务/视觉/像素验收全部不变",
-      "begin exit=0、sync exit=0（日志 01-begin.log、02-sync.log）；补丁 status=synced、sourceVersion=ffe1bb170a345e134135b72fbff67a12df02d6de968219b7491e15bd85c833f6；sourceChanges 仅 _run/task-contracts.json；该 spec 已进 effectivePaths",
-      "受影响 6 个：M3-T25/M5-T10/M7-T10/M7-T3/M7-T8/M7-T9，均为契约哈希传播（M5-T10 为直接源变更）；docs-data/build-manifest/build-state/dispatch/review 正常再生",
-      "边界：未改该 spec/产品 3D 源码/CI/model-pointer:43/schema/main；未 checkout/reset/rebase；未 --landed/Ready/merge/新 PR；未 push"
+      "源变更唯一：task-contracts.json 的 M5-T10.supportPaths 4→5，仅追加 e2e/model-events.spec.ts；同任务 outputPaths/requires/provides/stage/wiring/sections 逐字段相等，86 个任务条目中除 M5-T10 外 0 变化",
+      "依据为本 run 43255374758 的真实失败：e2e/model-events.spec.ts:697 旧 viewId 终态 0、新终态 POST 在断言时仍在途（DB 归因 FINAL-697-ROOT-CAUSE.md）；697 的有界 poll 实施需该 spec 进 M5-T10 有效写域，属原任务必要支持路径，不新增需求、不改产品源码/CI",
+      "派生结构不变：progress 105 键相等、batchRecords（含 B9 fixed）相等、repairTasks 相等、groups/pres/index 相等；变化仅为契约哈希传播（受影响 6 个：M3-T25/M5-T10/M7-T10/M7-T3/M7-T8/M7-T9）与据此重算的提示词/清单摘要",
+      "验收标准、90s 测试预算、用例集合与既有 CI 源均未变；本补丁只改声明，不代表 697 或任何 spec 已通过"
     ],
-    "reviewed": "2026-11-12T13:04:13.203213+00:00",
+    "reviewed": "2026-11-12T17:41:27.093975+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },

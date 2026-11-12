@@ -2907,7 +2907,8 @@
         "src/components/admin/settings/SettingsSections.tsx",
         ".github/workflows/ci.yml",
         "e2e/model-pointer.spec.ts",
-        "e2e/admin-legacy-model-visual.spec.ts"
+        "e2e/admin-legacy-model-visual.spec.ts",
+        "e2e/model-events.spec.ts"
       ],
       "outputPaths": [
         "src/components/admin/stats/AnalyticsSettingsContainer.tsx",
