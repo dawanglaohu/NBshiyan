@@ -584,8 +584,11 @@ export async function runAnalyticsRetention(deps: {
       if (!Number.isInteger(removed) || removed < 0 || removed > slice.length) {
         throw new Error('retention_batch_invalid');
       }
-      report.deletedEvents += removed;
-      report.batches += 1;
+      // 与 drain 同口径：只有真正删到行的已提交批次才计批次与行数；0 行说明候选已被别处删掉。
+      if (removed > 0) {
+        report.deletedEvents += removed;
+        report.batches += 1;
+      }
     }
 
     const remainingAfterEvents = maxPerRun - report.deletedEvents;
