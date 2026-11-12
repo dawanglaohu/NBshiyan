@@ -101,9 +101,50 @@ export class AggregateGuardFailure extends Error {
   }
 }
 
+/**
+ * 回调内失败：Prisma 必定回滚，**可以确认没有提交**。
+ *
+ * 只用于把「回调里抛的错」与「$transaction 在 COMMIT 前后抛的错」分开；原始错误原样保留，
+ * 上抛前仍走既有的版本冲突/预算分类。
+ */
+class AggregateCallbackFailure extends Error {
+  constructor(readonly original: unknown) {
+    super('aggregate_callback_failure');
+    this.name = 'AggregateCallbackFailure';
+  }
+}
+
+/**
+ * COMMIT 答复未知（B7）：事务可能已提交，也可能没有。
+ *
+ * 此时既不能声称「整笔回滚」，也不能写补偿 gap、重跑旧链、或晚写一个假 FAILED/0 行。
+ * `unknownTargets` 是**可能已经落库**的最小对象集合，供调用方记录，不得为空数组。
+ */
+export class AggregateCommitUnknown extends Error {
+  constructor(
+    readonly phase: 'metadata' | 'metrics',
+    readonly unknownTargets: string[],
+  ) {
+    super(`commit_unknown:${phase}`);
+    this.name = 'AggregateCommitUnknown';
+  }
+}
+
+/** P2024 在取连接/开事务阶段失败，BEGIN 都没发出：可确认没有提交，不算 unknown。 */
+function isPreCommitFailure(error: unknown): boolean {
+  return error !== null && typeof error === 'object' && (error as { code?: unknown }).code === 'P2024';
+}
+
+/** COMMIT 答复未知时要记录的对象；永不为空数组。 */
+function unknownTargetsOf(dates: Iterable<string>, fallback: string): string[] {
+  const targets = new Set<string>();
+  for (const date of dates) targets.add(date);
+  if (targets.size === 0) targets.add(fallback);
+  return [...targets];
+}
+
 /** 事务等待连接的上限；与执行时间合计不得超过本轮剩余预算。 */
 const AGGREGATE_TX_MAX_WAIT_MS = 2_000;
-
 /** 剩余预算低于此值就不再开启聚合事务。 */
 const AGGREGATE_MIN_TX_MS = 250;
 
@@ -153,7 +194,6 @@ export type AggregateRunResult = {
   dailyMeta?: {
     metadataDays: Array<{ date: string; action: 'coverage' | 'bootstrap' }>;
     closureMeta: string[];
-    metadata: DailyAggregateMetadataWrite[];
   } | null;
 };
 
@@ -489,32 +529,23 @@ export async function runAggregateOnce(deps: {
     throw new AggregateBatchExceeded(deps.maxBatchDays);
   }
 
-  // 事务预算：maxWait（等连接）与 timeout（执行）之和不超过剩余预算。
-  // 剩余不足时直接不开启事务，不用最小 timeout 反向扩大预算。
-  const txOptions: { maxWaitMs?: number; timeoutMs?: number } = {};
-  if (deadlineMs !== undefined) {
-    const remaining = deadlineMs - Date.now();
-    const maxWaitMs = Math.min(AGGREGATE_TX_MAX_WAIT_MS, Math.floor(remaining / 2));
-    const timeoutMs = Math.floor(remaining - maxWaitMs);
-    if (remaining < AGGREGATE_MIN_TX_MS || maxWaitMs < 1 || timeoutMs < AGGREGATE_MIN_TX_MS) {
-      throw new AggregateDeadlineExceeded();
-    }
-    txOptions.maxWaitMs = maxWaitMs;
-    txOptions.timeoutMs = timeoutMs;
-  }
+  // 事务预算：maxWait（等连接）与 timeout（执行）之和不超过**此刻**剩余预算。
+  // 元数据阶段在前，会消耗时间，所以这里只在阶段之后再算一次；剩余不足时不开启事务，
+  // 不用最小 timeout 反向扩大预算。
+  let txOptions: { maxWaitMs?: number; timeoutMs?: number } = {};
 
   let days: AggregateDayResult[] = [];
   const dailyCapture: { value: DailyInTxResult | null } = { value: null };
   // 验收 6：覆盖/bootstrap 的独立 CAS 元数据事务排在主 RR **之前**。
   // 主 RR 已持 JobState 行锁，内插独立事务会自锁；`deps.commit` 之后租约已释放，写就不再受守卫。
   // 预算耗尽时本阶段直接跳过，不开任何 CAS/终态事务。
-  let dailyMetadata: DailyAggregateMetadataWrite[] = [];
   let metadataHandled = new Set<string>();
   if (deps.daily) {
     const floor = scanFloorLocalDate(deps.currentDate);
     const phase = await writeDailyMetadataPhase(deps.db, {
       now: deps.now,
       cutoff: plan.cutoff,
+      notAfter: deps.daily.notAfter ?? deps.now,
       timezone: deps.siteTimezone,
       revision: deps.timezoneRevision,
       floor,
@@ -524,14 +555,23 @@ export async function runAggregateOnce(deps: {
       leaseOwner: deps.daily.leaseOwner,
       ...(deps.deadlineAt !== undefined ? { deadlineAt: deps.deadlineAt } : {}),
     });
-    dailyMetadata = phase.written;
     metadataHandled = phase.handled;
   }
+  // 元数据阶段已经消耗的预算必须从主事务扣除：同一绝对 deadline 下重算 maxWait+timeout，
+  // 不重置 55s，也不让主事务拿到阶段之前的旧配额。预算已耗尽就不开主事务。
+  if (deadlineMs !== undefined) {
+    const remaining = deadlineMs - Date.now();
+    if (remaining < AGGREGATE_MIN_TX_MS) throw new AggregateDeadlineExceeded();
+    const maxWaitMs = Math.min(AGGREGATE_TX_MAX_WAIT_MS, Math.floor(remaining / 2));
+    const timeoutMs = Math.floor(remaining - maxWaitMs);
+    if (maxWaitMs < 1 || timeoutMs < AGGREGATE_MIN_TX_MS) throw new AggregateDeadlineExceeded();
+    txOptions = { maxWaitMs, timeoutMs };
+  }
+
   // 整组事务：任一天失败或版本冲突都会把异常抛到这里，Prisma 整笔回滚，一天都不写。
   // 不 catch 成「部分成功」——09 节 `:71` 禁止留下部分天新、部分天旧的半成品。
-  try {
-    days = await runInRepeatableReadSnapshot(deps.db, async (tx) => {
-      // 整组只做一次行锁与代次校验；写前前置的未知错误按守卫失败终止，不混进业务聚合失败。
+  const runMain = async (tx: Prisma.TransactionClient): Promise<AggregateDayResult[]> => {
+    // 整组只做一次行锁与代次校验；写前前置的未知错误按守卫失败终止，不混进业务聚合失败。
       try {
         const lockedGeneration = await readLockedGeneration(tx);
         if (lockedGeneration !== null && lockedGeneration > deps.generation) {
@@ -596,10 +636,29 @@ export async function runAggregateOnce(deps: {
         });
       }
       return written;
+  };
+
+  try {
+    days = await runInRepeatableReadSnapshot(deps.db, async (tx) => {
+      try {
+        return await runMain(tx);
+      } catch (error) {
+        throw new AggregateCallbackFailure(error);
+      }
     }, txOptions);
   } catch (error) {
-    // 旧快照下的并发写冲突（40001/P2034）必须当版本冲突上抛，不能降级成普通失败。
-    throw asVersionConflict(error);
+    if (error instanceof AggregateCallbackFailure) {
+      // 回调内失败＝Prisma 必回滚：旧快照下的并发写冲突仍按版本冲突上抛，不能降级成普通失败。
+      throw asVersionConflict(error.original);
+    }
+    // 事务没开起来（预算/连接/P2024/版本冲突）：确认没有提交。
+    if (error instanceof AggregateDeadlineExceeded) throw error;
+    if (isPreCommitFailure(error) || isBudgetFailure(error)) throw asVersionConflict(error);
+    // COMMIT 答复未知（B7）：不得声称新旧指标或 JobState 必回滚，也不写补偿 gap/假 FAILED。
+    throw new AggregateCommitUnknown(
+      'metrics',
+      unknownTargetsOf([...plan.siteDates, ...(deps.daily?.baseDates ?? [])], 'job_state'),
+    );
   }
 
   for (const siteDate of plan.skippedDates) {
@@ -621,7 +680,6 @@ export async function runAggregateOnce(deps: {
       : {
           metadataDays: dailyCapture.value.metadataDays,
           closureMeta: dailyCapture.value.closureMeta,
-          metadata: dailyMetadata,
         },
   };
 }
@@ -1029,7 +1087,7 @@ export async function runDailyInTx(
     );
   }
   for (const day of plans) {
-    const rows = await commitDailyDay(tx, { day, now, revision, timezone });
+    const rows = await commitDailyDay(tx, { day, now, notAfter: args.notAfter, revision, timezone });
     result.days.push({ localDate: day.localDate, rows, gapKind: day.gapKind });
     result.committed.push(day.localDate);
   }
@@ -1112,6 +1170,7 @@ export async function runDailyAggregateRound(deps: {
     const phase = await writeDailyMetadataPhase(deps.db, {
       now,
       cutoff,
+      notAfter,
       timezone,
       revision,
       floor,
@@ -1124,6 +1183,12 @@ export async function runDailyAggregateRound(deps: {
     metadataWrites = phase.written;
     metadataHandled = phase.handled;
   } catch (error) {
+    // 元数据阶段 COMMIT 答复未知：主指标阶段不得继续；已确认的先前阶段结果仍如实保留。
+    if (error instanceof AggregateCommitUnknown) {
+      result.status = 'failed';
+      result.errorCode = 'commit_unknown';
+      return result;
+    }
     const mapped = asVersionConflict(error);
     if (mapped instanceof AggregateDeadlineExceeded) {
       result.status = 'budget';
@@ -1140,28 +1205,46 @@ export async function runDailyAggregateRound(deps: {
   result.metadata.push(...metadataWrites);
 
   try {
-    const inTx = await runInRepeatableReadSnapshot(deps.db, (tx) => runDailyInTx(tx, {
-      now,
-      cutoff,
-      notAfter,
-      rawCutoff,
-      timezone,
-      revision,
-      floor,
-      today,
-      maxDays,
-      deadlineReached,
-      generation: deps.generation,
-      leaseOwner: deps.leaseOwner,
-      baseDates,
-      metadataHandled,
-      resolveProduct,
-    }), txOptionsFor(deadlineMs));
+    const inTx = await runInRepeatableReadSnapshot(deps.db, async (tx) => {
+      try {
+        return await runDailyInTx(tx, {
+          now,
+          cutoff,
+          notAfter,
+          rawCutoff,
+          timezone,
+          revision,
+          floor,
+          today,
+          maxDays,
+          deadlineReached,
+          generation: deps.generation,
+          leaseOwner: deps.leaseOwner,
+          baseDates,
+          metadataHandled,
+          resolveProduct,
+        });
+      } catch (error) {
+        throw new AggregateCallbackFailure(error);
+      }
+    }, txOptionsFor(deadlineMs));
     Object.assign(result, inTx.result);
     result.metadata.push(...metadataWrites);
   } catch (error) {
-    const haltError = error instanceof DailyRoundHalt ? error : null;
-    const halted = haltOf(error, today, 0);
+    // 主事务 COMMIT 答复未知：不得声称指标/旧链/JobState 必回滚，不写补偿 gap。
+    if (error instanceof AggregateCommitUnknown) {
+      result.status = 'failed';
+      result.errorCode = 'commit_unknown';
+      return result;
+    }
+    const unwrapped = error instanceof AggregateCallbackFailure ? error.original : error;
+    if (error instanceof AggregateCallbackFailure && unwrapped instanceof AggregateCommitUnknown) {
+      result.status = 'failed';
+      result.errorCode = 'commit_unknown';
+      return result;
+    }
+    const haltError = unwrapped instanceof DailyRoundHalt ? unwrapped : null;
+    const halted = haltOf(unwrapped, today, 0);
     if (halted !== null) {
       if (halted.kind === 'coverage') {
         // 闭包日不可重算：指标整笔已回滚，用本次原 expected 在剩余预算内独立 CAS 补 coverage。
@@ -1173,6 +1256,7 @@ export async function runDailyAggregateRound(deps: {
               revision,
               now,
               cutoff,
+              notAfter,
               generation: deps.generation,
               leaseOwner: deps.leaseOwner,
               ...(deps.deadlineAt !== undefined ? { deadlineAt: deps.deadlineAt } : {}),
@@ -1190,6 +1274,7 @@ export async function runDailyAggregateRound(deps: {
             revision,
             now,
             cutoff,
+            notAfter,
             generation: deps.generation,
             leaseOwner: deps.leaseOwner,
             expected: haltError?.planExpected ?? null,
@@ -1338,7 +1423,7 @@ function liveVersionOf(live: Map<string, string>, utcDate: string): string {
 /** 单日提交：DELETE+INSERT 当前 revision 行 → CAS 写 state。任一步失败整组回滚。 */
 async function commitDailyDay(
   tx: Prisma.TransactionClient,
-  args: { day: DailyDayPlan; now: Date; revision: number; timezone: string },
+  args: { day: DailyDayPlan; now: Date; notAfter: Date; revision: number; timezone: string },
 ): Promise<number> {
   const { day, now, revision, timezone } = args;
   await tx.$executeRaw`
@@ -1374,7 +1459,7 @@ async function commitDailyDay(
     ) VALUES ${Prisma.join(values)}
   `);
 
-  const deferUntil = mergeDeferUntil(day.previousDeferUntil, day.deferUntil, now);
+  const deferUntil = mergeDeferUntil(day.previousDeferUntil, day.deferUntil, args.notAfter);
   const affected = await casWriteDayState(tx, {
     localDate: day.localDate,
     timezoneRevision: revision,
@@ -1412,6 +1497,8 @@ export async function writeDailyMetadataPhase(
     baseDates: ReadonlySet<string>;
     generation: number;
     leaseOwner: string;
+    /** 本轮计入上界；defer 合并按 `previous > notAfter` 保留。 */
+    notAfter: Date;
     deadlineAt?: Date;
   },
 ): Promise<{
@@ -1425,7 +1512,8 @@ export async function writeDailyMetadataPhase(
   // 预算耗尽不新开任何 CAS/终态事务。
   if (deadlineReached()) return { skipped: true, written: [], handled: new Set<string>() };
 
-  const written = await runInRepeatableReadSnapshot(db, async (tx) => {
+  const planned: string[] = [];
+  const runPhase = async (tx: Prisma.TransactionClient): Promise<DailyAggregateMetadataWrite[]> => {
     // 守卫先于任何写：租约仍由本次持有（commit 钩子尚未执行），代次与时区 revision 未变。
     await assertDailyAggregateGuards(tx, {
       timezoneRevision: args.revision,
@@ -1467,6 +1555,7 @@ export async function writeDailyMetadataPhase(
     for (const item of metadataDays) {
       // 阶段内也要有界：剩余预算不足就停在这里，已写的保持已提交（元数据独立于指标）。
       if (deadlineReached()) break;
+      planned.push(item.date);
       const result = await writeDailyMetadataInTx(tx, {
         date: item.date,
         action: item.action,
@@ -1474,12 +1563,30 @@ export async function writeDailyMetadataPhase(
         revision: args.revision,
         now: args.now,
         cutoff: args.cutoff,
+        notAfter: args.notAfter,
         expected: expectationOf(states.get(item.date) ?? null),
       });
       out.push({ localDate: item.date, action: item.action, result });
     }
     return out;
-  }, txOptionsFor(deadlineMs));
+  };
+
+  let written: DailyAggregateMetadataWrite[];
+  try {
+    written = await runInRepeatableReadSnapshot(db, async (tx) => {
+      try {
+        return await runPhase(tx);
+      } catch (error) {
+        throw new AggregateCallbackFailure(error);
+      }
+    }, txOptionsFor(deadlineMs));
+  } catch (error) {
+    if (error instanceof AggregateCallbackFailure) throw error.original;
+    // 事务连开都没开起来（预算/连接/P2024/版本冲突）：确认无提交，不算 unknown。
+    if (error instanceof AggregateDeadlineExceeded || error instanceof AggregateVersionConflict) throw error;
+    if (isPreCommitFailure(error) || isBudgetFailure(error)) throw error;
+    throw new AggregateCommitUnknown('metadata', unknownTargetsOf(planned, 'metadata'));
+  }
 
   // CAS 0 行＝期间有别的写者推进了该行。绝不重读后强写；但要区分「并发成功已保存」与
   // 「仍需重算」：前者是正常 no-op，后者必须让本轮不宣称成功（抛版本冲突，下一轮重新 plan）。
@@ -1504,6 +1611,7 @@ export async function writeDailyCoverageMetadata(
     revision: number;
     now: Date;
     cutoff: Date;
+    notAfter: Date;
     generation: number;
     leaseOwner: string;
     deadlineAt?: Date;
@@ -1532,6 +1640,7 @@ export async function writeDailyCoverageMetadata(
           revision: args.revision,
           now: args.now,
           cutoff: args.cutoff,
+          notAfter: args.notAfter,
           expected: entry.expected,
         }),
       });
@@ -1575,6 +1684,8 @@ async function writeDailyMetadataInTx(
     revision: number;
     now: Date;
     cutoff: Date;
+    /** 本轮计入上界；defer 合并的「仍晚于」判定用它，不用墙钟 now。 */
+    notAfter: Date;
     /** plan 阶段读到的期望值（必填）；写前不再读当前行。 */
     expected: DailyStateExpectation;
   },
@@ -1606,7 +1717,7 @@ async function writeDailyMetadataInTx(
     timezoneRevision: args.revision,
     timezone: args.timezone,
     markerVersions: markers,
-    deferUntil: mergeDeferUntil(args.expected.deferUntil, null, args.now),
+    deferUntil: mergeDeferUntil(args.expected.deferUntil, null, args.notAfter),
     gapKind,
     gapSince: args.now,
     expectedMarkers: args.expected.markers,
@@ -1631,6 +1742,8 @@ export async function writeDailyGap(
     revision: number;
     now: Date;
     cutoff: Date;
+    /** 本轮计入上界；defer 合并按 `previous > notAfter` 保留。 */
+    notAfter: Date;
     /** 作业租约代次与 owner（必填，fail-closed）：gap 也是写 state，必须同受守卫。 */
     generation: number;
     leaseOwner: string;
@@ -1668,7 +1781,7 @@ export async function writeDailyGap(
         timezoneRevision: args.revision,
         timezone: args.timezone,
         markerVersions: expected.markers,
-        deferUntil: mergeDeferUntil(expected.deferUntil, null, args.now),
+        deferUntil: mergeDeferUntil(expected.deferUntil, null, args.notAfter),
         gapKind,
         gapSince: args.now,
         expectedMarkers: expected.markers,

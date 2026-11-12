@@ -390,11 +390,14 @@ function shiftCalendarMonthsLocal(localDate: string, months: number): string {
 }
 
 /**
- * 提交后合并 defer：旧 defer 只在仍晚于 `now` 时保留（过期旧 defer 丢弃），
+ * 提交后合并 defer：旧 defer 只在仍晚于 **`notAfter`**（本轮计入上界，不是墙钟 now）时保留，
  * 与新的最早 deferred 事实取最小值；都没有则 null。
+ *
+ * 用 `notAfter` 而不是 `now`：standalone 允许 `notAfter < now`（未来事实不计入），
+ * 落在两者之间的旧 defer 必须丢弃，否则会把已经“到期”的延后当成仍未到期。
  */
-export function mergeDeferUntil(previous: Date | null, next: Date | null, now: Date): Date | null {
-  const kept = previous !== null && previous.getTime() > now.getTime() ? previous : null;
+export function mergeDeferUntil(previous: Date | null, next: Date | null, notAfter: Date): Date | null {
+  const kept = previous !== null && previous.getTime() > notAfter.getTime() ? previous : null;
   if (kept === null) return next;
   if (next === null) return kept;
   return next.getTime() <= kept.getTime() ? next : kept;

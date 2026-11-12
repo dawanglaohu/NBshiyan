@@ -8,6 +8,7 @@ import { siteLocalDate } from '../../analytics/day-boundaries';
 import { secretMatches } from '../uploads';
 import {
   AggregateBatchExceeded,
+  AggregateCommitUnknown,
   AggregateDeadlineExceeded,
   AggregateVersionConflict,
   DailyRoundHalt,
@@ -357,6 +358,15 @@ export function createAnalyticsAggregateJob(deps: {
         const written = result.days.filter((day) => day.written).length;
         return { kind: 'ran', status: 'SUCCEEDED', counts: { candidateCount: written } };
       } catch (error) {
+        // B7 COMMIT 答复未知：既不能声称整笔回滚，也不能写补偿 gap、重跑旧链或晚写假 FAILED/0 行。
+        // 不结算 JobState，租约到期后由下一次调度接管；可能已落库的内容以数据库自身状态为准。
+        if (error instanceof AggregateCommitUnknown) {
+          console.error('[cron] analytics.commit_unknown', {
+            phase: error.phase,
+            targets: error.unknownTargets.length,
+          });
+          return { kind: 'timeout' };
+        }
         // guard/budget 在日轮事务内抛出 → 整笔回滚（含旧链）；这里只落 PARTIAL，不宣 SUCCEEDED。
         if (error instanceof DailyRoundHalt && error.halt.kind === 'coverage') {
           // 闭包日不可重算：指标整笔已回滚（不宣 SUCCEEDED）。用该次 plan 的原 expected 在剩余
@@ -369,6 +379,7 @@ export function createAnalyticsAggregateJob(deps: {
                 revision: claim.timezoneRevision,
                 now,
                 cutoff: now,
+                notAfter: now,
                 generation: claim.generation,
                 leaseOwner: ANALYTICS_AGGREGATE_OWNER,
                 deadlineAt: budget.deadlineAt,
@@ -410,6 +421,7 @@ export function createAnalyticsAggregateJob(deps: {
               revision: claim.timezoneRevision,
               now,
               cutoff: now,
+              notAfter: now,
               generation: claim.generation,
               leaseOwner: ANALYTICS_AGGREGATE_OWNER,
               expected: error.planExpected,

@@ -1,4 +1,4 @@
-﻿import { describe, test } from 'node:test';
+import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   classifyDayCompleteness,
@@ -422,6 +422,7 @@ function phaseArgs() {
     baseDates: new Set([OLD_DAY]),
     generation: 7,
     leaseOwner: 'analytics-aggregate',
+    notAfter: PHASE_NOW,
   };
 }
 
@@ -490,6 +491,7 @@ describe('M5-T12 gap 写：只按原 plan expected，不读当前行', { concurr
     cutoff: PHASE_NOW,
     generation: 7,
     leaseOwner: 'analytics-aggregate',
+    notAfter: PHASE_NOW,
     expected,
   });
 
@@ -547,6 +549,7 @@ describe('M5-T12 闭包 coverage：回滚后的独立 CAS 事务', { concurrency
       revision: 3,
       now: PHASE_NOW,
       cutoff: PHASE_NOW,
+      notAfter: PHASE_NOW,
       generation: 7,
       leaseOwner: 'analytics-aggregate',
     });
@@ -568,6 +571,7 @@ describe('M5-T12 闭包 coverage：回滚后的独立 CAS 事务', { concurrency
       revision: 3,
       now: PHASE_NOW,
       cutoff: PHASE_NOW,
+      notAfter: PHASE_NOW,
       generation: 7,
       leaseOwner: 'analytics-aggregate',
     });
@@ -576,3 +580,158 @@ describe('M5-T12 闭包 coverage：回滚后的独立 CAS 事务', { concurrency
   });
 });
 
+
+/* ------------------------------------------------------------------------- *
+ * notAfter 语义与阶段预算（初审两项必修的确定性负控）
+ * ------------------------------------------------------------------------- */
+
+import { mergeDeferUntil } from "../src/lib/server/analytics/aggregate-day-state";
+import { runAggregateOnce, AggregateDeadlineExceeded, AggregateCommitUnknown } from "../src/lib/server/analytics/aggregate";
+
+describe('M5-T12 defer 合并按 notAfter 判定', { concurrency: false }, () => {
+  const notAfter = new Date('2026-03-02T10:00:00.000Z');
+  const later = new Date('2026-03-02T10:05:00.000Z');
+
+  test('previous 晚于 notAfter 就保留（即使早于 now）', () => {
+    const previous = new Date('2026-03-02T10:03:00.000Z');
+    assert.equal(mergeDeferUntil(previous, null, notAfter)?.toISOString(), '2026-03-02T10:03:00.000Z');
+    assert.ok(later.getTime() > previous.getTime());
+  });
+
+  test('previous 等于或早于 notAfter 一律丢弃', () => {
+    assert.equal(mergeDeferUntil(new Date('2026-03-02T10:00:00.000Z'), null, notAfter), null);
+    assert.equal(mergeDeferUntil(new Date('2026-03-02T09:59:00.000Z'), null, notAfter), null);
+  });
+
+  test('notAfter 晚于 now 时，落在两者之间的 previous 必须丢弃', () => {
+    const after = new Date('2026-03-02T10:10:00.000Z');
+    const previous = new Date('2026-03-02T10:07:00.000Z');
+    assert.ok(previous.getTime() > later.getTime() && previous.getTime() < after.getTime());
+    assert.equal(mergeDeferUntil(previous, null, after), null);
+  });
+
+  test('新旧 defer 取 min', () => {
+    const previous = new Date('2026-03-02T10:30:00.000Z');
+    const next = new Date('2026-03-02T10:20:00.000Z');
+    assert.equal(mergeDeferUntil(previous, next, notAfter)?.toISOString(), '2026-03-02T10:20:00.000Z');
+    assert.equal(mergeDeferUntil(next, previous, notAfter)?.toISOString(), '2026-03-02T10:20:00.000Z');
+  });
+});
+
+describe('M5-T12 阶段预算：metadata 消耗后主事务不得复用旧配额', { concurrency: false }, () => {
+  function onceDb(options: { delayMs: number; transactions: Array<{ at: number; opts: { maxWaitMs?: number; timeoutMs?: number } }> }) {
+    let call = 0;
+    const query = async (arg: unknown, ...rest: unknown[]) => {
+      const { text } = sqlOf(arg, rest);
+      if (text.includes('SiteSetting')) {
+        await new Promise((resolve) => setTimeout(resolve, options.delayMs));
+        return [{ value: { version: 1, timezone: 'UTC', timezoneRevision: 3 } }];
+      }
+      if (text.includes('JobState')) {
+        // 第二次事务（主 RR）立即以版本冲突退出，只为观测它拿到的预算。
+        if (call > 1) throw new AggregateVersionConflict('stale_generation');
+        return [{ generation: 7, leaseOwner: 'analytics-aggregate', lockedUntil: new Date(Date.now() + 60_000).toISOString() }];
+      }
+      return [];
+    };
+    const execute = async () => 0;
+    const db = {
+      $transaction: async (fn: (tx: unknown) => Promise<unknown>, opts: { maxWaitMs?: number; timeoutMs?: number }) => {
+        call += 1;
+        options.transactions.push({ at: Date.now(), opts: opts ?? {} });
+        return fn({ $queryRaw: query, $executeRaw: execute, $executeRawUnsafe: async () => 0 });
+      },
+      $queryRaw: query,
+      $executeRaw: execute,
+    };
+    return db;
+  }
+
+  const args = (deadlineAt: Date) => ({
+    now: PHASE_NOW,
+    siteTimezone: 'UTC',
+    currentDate: '2026-03-02',
+    timezoneRevision: 3,
+    generation: 7,
+    deadlineAt,
+    daily: { baseDates: [] as string[], leaseOwner: 'analytics-aggregate' },
+  });
+
+  test('metadata 吃掉几乎全部预算后，主事务一次都不开', async () => {
+    const transactions: Array<{ at: number; opts: object }> = [];
+    const db = onceDb({ delayMs: 300, transactions });
+    await assert.rejects(
+      () => runAggregateOnce({ ...args(new Date(Date.now() + 500)), db: db as never } as never),
+      AggregateDeadlineExceeded,
+    );
+    assert.equal(transactions.length, 1, '只允许 metadata 阶段那一次事务');
+  });
+
+  test('主事务的 maxWait+timeout 不超过阶段之后的真实剩余', async () => {
+    const transactions: Array<{ at: number; opts: { maxWaitMs?: number; timeoutMs?: number } }> = [];
+    const db = onceDb({ delayMs: 250, transactions });
+    const deadlineAt = new Date(Date.now() + 2_000);
+    await assert.rejects(() => runAggregateOnce({ ...args(deadlineAt), db: db as never } as never));
+    assert.equal(transactions.length, 2);
+    const main = transactions[1]!;
+    const granted = (main.opts.maxWaitMs ?? 0) + (main.opts.timeoutMs ?? 0);
+    const remainingAtOpen = deadlineAt.getTime() - main.at;
+    assert.ok(granted <= remainingAtOpen, `granted=${granted} remaining=${remainingAtOpen}`);
+    assert.ok(main.at - transactions[0]!.at >= 200, 'metadata 阶段确实吃掉了时间');
+  });
+});
+
+describe('M5-T12 B7：COMMIT 答复未知与确认回滚必须分开', { concurrency: false }, () => {
+  function phaseDb(mode: 'rollback' | 'lost-receipt') {
+    const writes: unknown[] = [];
+    const query = async (arg: unknown, ...rest: unknown[]) => {
+      const { text } = sqlOf(arg, rest);
+      if (text.includes('JobState')) {
+        if (mode === 'rollback') throw new AggregateVersionConflict('stale_generation');
+        return [{ generation: 7, leaseOwner: 'analytics-aggregate', lockedUntil: LIVE_LEASE }];
+      }
+      if (text.includes('SiteSetting')) return [{ value: { version: 1, timezone: 'UTC', timezoneRevision: 3 } }];
+      if (text.includes('AnalyticsDayChange')) return [{ utcDate: OLD_DAY, version: '2' }];
+      if (text.includes('AnalyticsAggregateDayState')) return [{ ...planState }];
+      return [];
+    };
+    const execute = async (arg: unknown) => {
+      writes.push(arg);
+      return 1;
+    };
+    const db = {
+      $transaction: async (fn: (tx: unknown) => Promise<unknown>) => {
+        const value = await fn({ $queryRaw: query, $executeRaw: execute, $executeRawUnsafe: async () => 0 });
+        if (mode === 'lost-receipt') throw new Error('connection lost after commit');
+        return value;
+      },
+      $queryRaw: query,
+      $executeRaw: execute,
+    };
+    return { db, writes };
+  }
+
+  test('回调内失败＝确认回滚：原错误上抛、不标 unknown、零写入', async () => {
+    const { db, writes } = phaseDb('rollback');
+    await assert.rejects(
+      () => writeDailyMetadataPhase(db as never, phaseArgs()),
+      (error: unknown) => error instanceof AggregateVersionConflict,
+    );
+    assert.equal(writes.length, 0);
+  });
+
+  test('真实提交后丢回执＝unknown：committed 不可当 false，unknownTargets 非空且写入已发生', async () => {
+    const { db, writes } = phaseDb('lost-receipt');
+    await assert.rejects(
+      () => writeDailyMetadataPhase(db as never, phaseArgs()),
+      (error: unknown) => {
+        assert.ok(error instanceof AggregateCommitUnknown);
+        assert.equal(error.phase, 'metadata');
+        assert.deepEqual(error.unknownTargets, [OLD_DAY]);
+        return true;
+      },
+    );
+    const dayStateWrites = writes.filter((arg) => sqlOf(arg, []).text.includes('AnalyticsAggregateDayState'));
+    assert.equal(dayStateWrites.length, 1, '回调已经写过一行：提交可能已落库');
+  });
+});
