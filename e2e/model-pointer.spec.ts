@@ -347,52 +347,84 @@ test('hover pauses spin and a user pause survives hide and foreground', async ({
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   const first = await openProducts(page);
   await expect(first).toHaveAttribute('data-spinning', '1');
+  // 三处 paused/spinning 合并为一次真实快照 + poll：仍用全局 7s 重试窗，且要求同阶段同时满足（比逐条更强）。
+  const expectPaused = () =>
+    expect
+      .poll(
+        () => first.evaluate((el) => ({ paused: el.getAttribute('data-user-paused'), spinning: el.getAttribute('data-spinning') })),
+        { timeout: 7_000 },
+      )
+      .toEqual({ paused: '1', spinning: '0' });
   const moved = await first.evaluate(async (el) => {
     const start = el.getAttribute('data-azimuth');
     const t0 = performance.now();
+    let frames = 0;
     while (performance.now() - t0 < 500) {
       await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
-      if (el.getAttribute('data-azimuth') !== start) return true;
+      frames += 1;
+      if (el.getAttribute('data-azimuth') !== start) return { moved: true, frames, elapsed: Math.round(performance.now() - t0) };
     }
-    return false;
+    return { moved: false, frames, elapsed: Math.round(performance.now() - t0) };
   });
-  expect(moved).toBe(true);
+  expect(moved.moved).toBe(true);
 
   // 指针进入用真实几何坐标：hover() 的 actionability 重试与“指针进入即暂停”无关；
-  // 命中与覆盖关系仍由 data-spinning 的结果断言把关。
-  await first.scrollIntoViewIfNeeded();
-  const enter = await center(first);
+  // 命中与覆盖关系仍由 data-spinning 的结果断言把关。滚动与取点合并为一次页内计算：
+  // 只在需要时滚动，等矩形稳定且完全可见后才返回非零可达框，不依赖未完成的平滑滚动坐标。
+  const enter = await first.evaluate(async (el) => {
+    const fullyVisible = () => {
+      const r = el.getBoundingClientRect();
+      return r.width > 0 && r.height > 0 && r.top >= 0 && r.left >= 0
+        && r.bottom <= window.innerHeight && r.right <= window.innerWidth;
+    };
+    if (!fullyVisible()) el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
+    let previous = '';
+    let stable = 0;
+    for (let i = 0; i < 60 && stable < 2; i += 1) {
+      await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
+      const r = el.getBoundingClientRect();
+      const key = [r.x, r.y, r.width, r.height].map((n) => Math.round(n)).join(',');
+      stable = key === previous ? stable + 1 : 0;
+      previous = key;
+    }
+    const box = el.getBoundingClientRect();
+    const x = box.x + box.width / 2;
+    const y = box.y + box.height / 2;
+    if (!(box.width > 0 && box.height > 0)) throw new Error('模型视口没有非零可达框');
+    if (!(x > 0 && y > 0 && x < window.innerWidth && y < window.innerHeight)) throw new Error('模型中心不在视口内');
+    return { x, y };
+  });
   await page.mouse.move(enter.x, enter.y);
   await expect(first).toHaveAttribute('data-spinning', '0');
   const held = await first.evaluate(async (el) => {
     const start = el.getAttribute('data-azimuth');
     const t0 = performance.now();
+    let frames = 0;
     while (performance.now() - t0 < 300) {
       await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
-      if (el.getAttribute('data-azimuth') !== start) return false;
+      frames += 1;
+      if (el.getAttribute('data-azimuth') !== start) return { held: false, frames, elapsed: Math.round(performance.now() - t0) };
     }
-    return true;
+    return { held: true, frames, elapsed: Math.round(performance.now() - t0) };
   });
-  expect(held).toBe(true);
+  expect(held.held).toBe(true);
 
   // 离开模型同样用真实坐标；若指针仍落在模型上，恢复自转会失败。
   const title = await center(page.locator('h1'));
   await page.mouse.move(title.x, title.y);
   await expect(first).toHaveAttribute('data-spinning', '1');
-  // 暂停按钮用真实命中点击；若被遮挡，data-user-paused 断言会失败，覆盖关系不被跳过。
+  // 暂停按钮在离开 hover 后再取点：没有源码/CSS 证据表明离开 hover 不改变按钮布局，保留这次必需的新读。
   const pauseButton = page.locator('article.card').first().getByTestId('model-pause-rotation');
   const pausePoint = await center(pauseButton);
   await page.mouse.click(pausePoint.x, pausePoint.y);
-  await expect(first).toHaveAttribute('data-user-paused', '1');
-  await expect(first).toHaveAttribute('data-spinning', '0');
+  await expectPaused();
 
   await page.mouse.move(8, 8);
   await page.mouse.wheel(0, 2400);
   await expect(first).not.toBeInViewport();
   await page.evaluate(() => window.scrollTo(0, 0));
   await expect(first).toBeInViewport();
-  await expect(first).toHaveAttribute('data-user-paused', '1');
-  await expect(first).toHaveAttribute('data-spinning', '0');
+  await expectPaused();
 
   await page.evaluate(() => {
     Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'hidden' });
@@ -403,16 +435,18 @@ test('hover pauses spin and a user pause survives hide and foreground', async ({
     Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'visible' });
     document.dispatchEvent(new Event('visibilitychange'));
   });
-  await expect(first).toHaveAttribute('data-user-paused', '1');
-  await expect(first).toHaveAttribute('data-spinning', '0');
+  await expectPaused();
   const still = await first.evaluate(async (el) => {
     const start = el.getAttribute('data-azimuth');
     const t0 = performance.now();
+    let frames = 0;
     while (performance.now() - t0 < 300) {
       await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
-      if (el.getAttribute('data-azimuth') !== start) return false;
+      frames += 1;
+      if (el.getAttribute('data-azimuth') !== start) return { paused: false, frames, elapsed: Math.round(performance.now() - t0) };
     }
-    return el.getAttribute('data-user-paused') === '1';
+    return { paused: el.getAttribute('data-user-paused') === '1', frames, elapsed: Math.round(performance.now() - t0) };
   });
-  expect(still).toBe(true);
+  expect(still.paused).toBe(true);
+  console.log(`[M5-T10][model345] moved=${JSON.stringify(moved)} held=${JSON.stringify(held)} still=${JSON.stringify(still)}`);
 });
