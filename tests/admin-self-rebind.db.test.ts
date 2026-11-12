@@ -1013,6 +1013,7 @@ describe('M3-T20 真实 socket/Next HTTP（实例阶段）', { concurrency: 1, s
         AUTH_URL: httpBase,
         AUTH_TRUST_HOST: 'true',
         ORIGIN: httpBase,
+        APP_ORIGIN: httpBase,
         NEXTAUTH_URL: httpBase,
         NEXT_PUBLIC_SITE_URL: httpBase,
       },
