@@ -18,17 +18,39 @@ import { aggregateOneDayInSnapshot, runAggregateOnce, AggregateBatchExceeded, Ag
 import { loadEventsAtSnapshot, AGGREGATE_JOB_KEY, upsertWatermarkGuarded } from '../src/lib/server/analytics/aggregate-repo';
 import { ANALYTICS_RECOMPUTE_KEY } from '../src/lib/server/analytics/settings-repo';
 
-const base = process.env.DATABASE_URL;
-const SCHEMA = `aggregate_${process.pid}`;
-const url = base?.startsWith('postgres')
-  ? `${base}${base.includes('?') ? '&' : '?'}schema=${encodeURIComponent(SCHEMA)}&connection_limit=5&pool_timeout=10`
-  : null;
-// 必执行步骤（PG 回归）缺地址直接失败，不回退；其余 job 按既有惯例逐用例 skip。
-if (process.env.M5T3_REQUIRE_DATABASE === 'true' && !url) {
-  throw new Error('DATABASE_URL must be a postgres URL when M5T3_REQUIRE_DATABASE=true');
+// 专属入口（M5-T12）：只认 M5T12_TEST_DATABASE_URL，不 fallback 通用 DATABASE_URL。
+// CI 必须 CI=true + M5T12_CI_MODE=true + M5T12_REQUIRE_DATABASE=true 三开关同时成立，
+// URL 只接受 loopback / database=e2e / user=postgres / 不带 schema 参数。
+const REQUIRE = process.env.M5T12_REQUIRE_DATABASE === 'true';
+const CI_FLAG = process.env.CI === 'true';
+const CI_MODE = process.env.M5T12_CI_MODE === 'true';
+const base = process.env.M5T12_TEST_DATABASE_URL;
+const schemaParam = base === undefined ? null : new URL(base).searchParams.get('schema');
+
+if (REQUIRE && base === undefined) throw new Error('E_M5T12_URL_MISSING');
+if (base !== undefined) {
+  if (!(CI_FLAG && CI_MODE && REQUIRE)) throw new Error('E_M5T12_LOCAL_DB_NOT_PROVISIONED');
+  const parsed = new URL(base);
+  if (!['127.0.0.1', 'localhost'].includes(parsed.hostname)) throw new Error('E_M5T12_HOST_NOT_LOOPBACK');
+  if (parsed.pathname.replace(/^\//, '') !== 'e2e') throw new Error('E_M5T12_DB_NOT_E2E');
+  if (decodeURIComponent(parsed.username) !== 'postgres') throw new Error('E_M5T12_USER_NOT_POSTGRES');
+  if (schemaParam !== null) throw new Error('E_M5T12_URL_HAS_SCHEMA');
 }
+
+// 随机 owned schema：每次运行独立命名；正则与创建时的名字严格对应。
+const SCHEMA = `m5t12_aggregate_${process.pid}_${Math.random().toString(16).slice(2, 10)}`;
+const url = base === undefined
+  ? null
+  : (() => {
+      const parsed = new URL(base);
+      parsed.search = '';
+      parsed.searchParams.set('schema', SCHEMA);
+      parsed.searchParams.set('connection_limit', '5');
+      parsed.searchParams.set('pool_timeout', '10');
+      return parsed.toString();
+    })();
 const db = url ? new PrismaClient({ datasources: { db: { url } } }) : null;
-const skip = !db && 'no DATABASE_URL';
+const skip = !db && 'no M5T12_TEST_DATABASE_URL';
 
 const TZ = 'Asia/Shanghai';
 
@@ -36,17 +58,28 @@ function utc(date: Date): Prisma.Sql {
   return Prisma.sql`${date.toISOString()}::timestamptz AT TIME ZONE 'UTC'`;
 }
 
-/** 缺库时具名失败：CI 按文件门禁会把 fail>0 判红，不吞掉。 */
+/** 只有本次 `CREATE SCHEMA` 成功才置 true；失败/碰撞不接管、不 DROP。 */
+let schemaCreated = false;
+/** setup 阶段的失败留给各用例具名 fail，不在 before 里抛出（避免 8 条全 cancelled）。 */
+let setupError: Error | null = null;
+
+/** 缺库/setup 失败时具名失败：CI 按文件门禁会把 fail>0 判红，不吞掉。 */
 function requireDb(): PrismaClient {
-  if (!db) assert.fail('M5-T3 PG 回归必须连真实 PostgreSQL：DATABASE_URL 未设置或缺库');
+  if (setupError !== null) throw setupError;
+  if (!db) assert.fail('M5-T3 PG 回归必须连真实 PostgreSQL：M5T12_TEST_DATABASE_URL 缺失或 CI 开关不齐');
   return db;
 }
 
 after(async () => {
   if (!db) return;
-  assert.match(SCHEMA, /^aggregate_\d+$/);
-  await db.$executeRawUnsafe(`DROP SCHEMA IF EXISTS "${SCHEMA}" CASCADE`);
-  await db.$disconnect();
+  try {
+    if (!schemaCreated) return;
+    if (!/^m5t12_aggregate_\d+_[0-9a-f]{8}$/.test(SCHEMA)) throw new Error('E_M5T12_SCHEMA_NOT_OWNED');
+    // 失败 loud（不吞、不 IF EXISTS 掩盖）：交给 runner 报 after-hook 失败。
+    await db.$executeRawUnsafe(`DROP SCHEMA "${SCHEMA}" CASCADE`);
+  } finally {
+    await db.$disconnect();
+  }
 });
 
 describe('M5-T3 consistent-snapshot daily aggregate', { concurrency: false, skip, timeout: 120_000 }, () => {
@@ -55,23 +88,34 @@ describe('M5-T3 consistent-snapshot daily aggregate', { concurrency: false, skip
     // 失败行。让每个用例自己的 reset()/requireDb() 去 assert.fail，逐条具名失败。
     if (!db) return;
     const conn = requireDb();
-    await conn.$executeRawUnsafe(`CREATE SCHEMA IF NOT EXISTS "${SCHEMA}"`);
+    // 只读身份核对必须早于任何 CREATE；错误只给安全码，不回显 DSN。
+    const identity = await conn.$queryRaw<{ db: string; user: string }[]>`
+      SELECT current_database() AS "db", current_user AS "user"
+    `;
+    if (identity[0]?.db !== 'e2e' || identity[0]?.user !== 'postgres') {
+      setupError = new Error('E_M5T12_IDENTITY_MISMATCH');
+      return;
+    }
+    // 普通 CREATE（不用 IF NOT EXISTS）：碰撞/失败都不接管、不 DROP。
+    await conn.$executeRawUnsafe(`CREATE SCHEMA "${SCHEMA}"`);
+    schemaCreated = true;
     await conn.$executeRawUnsafe(`SET search_path TO "${SCHEMA}"`);
     // 用 prisma db push 建表，避免手写 DDL 与 schema.prisma 漂移。
-    const pushed = await Promise.resolve()
-      .then(async () => {
-        const { execFileSync } = await import('node:child_process');
-        const { createRequire } = await import('node:module');
-        const prismaCli = createRequire(import.meta.url).resolve('prisma/build/index.js');
-        execFileSync(process.execPath, [prismaCli, 'db', 'push', '--skip-generate'], {
-          cwd: process.cwd(),
-          env: { ...process.env, DATABASE_URL: url! },
-          stdio: ['ignore', 'pipe', 'pipe'],
-        });
-        return true;
-      })
-      .catch(() => false);
-    assert.equal(pushed, true, 'prisma db push failed');
+    try {
+      const { execFileSync } = await import('node:child_process');
+      const { createRequire } = await import('node:module');
+      const prismaCli = createRequire(import.meta.url).resolve('prisma/build/index.js');
+      execFileSync(process.execPath, [prismaCli, 'db', 'push', '--skip-generate'], {
+        cwd: process.cwd(),
+        env: { ...process.env, DATABASE_URL: url! },
+        stdio: ['ignore', 'pipe', 'pipe'],
+        timeout: 180_000,
+        killSignal: 'SIGKILL',
+      });
+    } catch {
+      // 有界失败；不打印捕获对象，避免把 DSN 带进 CI 日志。
+      setupError = new Error('E_M5T12_DBPUSH_FAILED');
+    }
   });
 
   async function reset() {
