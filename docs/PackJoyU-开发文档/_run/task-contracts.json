@@ -2619,7 +2619,9 @@
         "tests/analytics-ingest.http.db.test.ts",
         "tests/analytics-retention-plan.test.ts",
         "tests/jobs-runtime.http.test.ts",
-        "src/lib/server/analytics/retention-cleanup.ts"
+        "src/lib/server/analytics/retention-cleanup.ts",
+        "src/app/api/admin/cron/retention-cleanup/route.ts",
+        "tests/retention-cleanup.test.ts"
       ],
       "outputPaths": [
         "prisma/schema.prisma",
