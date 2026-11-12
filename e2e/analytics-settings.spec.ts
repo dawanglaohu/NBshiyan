@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { test, expect } from './fixtures';
 import { useSharedAdmin } from './shared-admin';
 import { loadRunAuth } from './run-auth';
-import type { Page } from '@playwright/test';
+import type { Page, Request } from '@playwright/test';
 
 // M5-T10 /admin/settings?section=analytics：真实页面 + 真实 GET/PATCH（M5-T4 接口），仅 E2E 测试库。
 // 覆盖：分区入口、GET 四字段、PATCH 带 expectedVersion、非法 IANA 字段错且不清原值（E-59）、
@@ -33,7 +33,7 @@ test('非 ADMIN：直接接口 403，页面 404（E-59 权限侧）', async ({ b
   expect((await api.patch(API, { headers: { Origin: BASE }, data: { timezone: 'UTC', expectedVersion: 0 } })).status()).toBe(403);
   await api.dispose();
 
-  const ctx = await browser.newContext({ storageState: state });
+  const ctx = await browser.newContext({ baseURL: BASE, storageState: state });
   const page = await ctx.newPage();
   const res = await page.goto('/admin/settings?section=analytics');
   expect(res!.status()).toBe(404);
@@ -43,7 +43,7 @@ test('非 ADMIN：直接接口 403，页面 404（E-59 权限侧）', async ({ b
 test.describe('已登录的 ADMIN', () => {
   useSharedAdmin({ emailPrefix: 'e2e-analytics-settings', name: 'E2E analytics settings', probe: API, slot: 'content-admin' });
 
-  test('分区入口 → GET 四字段 → PATCH expectedVersion → 非法 IANA 字段错保留输入（E-59）', async ({ page }) => {
+  test('分区入口 → GET 四字段 → PATCH expectedVersion → 非法 IANA 本地拦截与服务端 400（E-59）', async ({ page, playwright }) => {
     test.setTimeout(120_000);
     await page.goto('/admin/settings');
     const nav = page.getByRole('navigation', { name: '站点设置分区' });
@@ -85,19 +85,45 @@ test.describe('已登录的 ADMIN', () => {
     await expect(page.getByTestId('analytics-settings-rebuild')).toBeVisible();
     await expect(page.getByTestId('analytics-settings-status')).toContainText('已保存');
 
-    // 非法 IANA：服务端 400 invalid + fieldErrors.timezone；输入保留、服务端值不变
+    // 非法 IANA ①：客户端预检直接拦下，不发 PATCH；字段错出现、输入保留、右栏仍是服务端上一有效值
     const bad = 'Mars/Olympus';
+    let uiPatches = 0;
+    const countPatch = (r: Request) => {
+      if (new URL(r.url()).pathname === API && r.method() === 'PATCH') uiPatches += 1;
+    };
+    page.on('request', countPatch);
     await page.getByTestId('analytics-settings-input').fill(bad);
-    const badResponse = page.waitForResponse((r) => new URL(r.url()).pathname === API && r.request().method() === 'PATCH');
     await page.getByTestId('analytics-settings-save').click();
-    const badRes = await badResponse;
-    expect(badRes.status()).toBe(400);
-    const body = (await badRes.json()) as { error: string; fieldErrors?: { timezone?: string } };
-    expect(body.error).toBe('invalid');
-    expect(body.fieldErrors?.timezone).toBeTruthy();
-    await expect(page.getByTestId('analytics-settings-input')).toHaveValue(bad);
     await expect(page.getByTestId('analytics-settings-field-error')).toBeVisible();
+    await expect(page.getByTestId('analytics-settings-input')).toHaveValue(bad);
     await expect(tzCell).toHaveText(target);
+    await expect(page.getByTestId('analytics-settings-revision')).toHaveText(String(next.timezoneRevision));
+    await page.waitForTimeout(600);
+    expect(uiPatches, '本地预检不应发出 PATCH').toBe(0);
+    page.off('request', countPatch);
+
+    // 非法 IANA ②：服务端权威校验仍是真实 400（不因客户端预检而放宽 API），配置未被写
+    const state = await page.context().storageState();
+    const admin = await playwright.request.newContext({ baseURL: BASE, storageState: state });
+    try {
+      const rejected = await admin.patch(API, {
+        headers: { Origin: BASE },
+        data: { timezone: bad, expectedVersion: next.version },
+      });
+      expect(rejected.status()).toBe(400);
+      const rejectedBody = (await rejected.json()) as { error: string; fieldErrors?: { timezone?: string } };
+      expect(rejectedBody.error).toBe('invalid');
+      expect(rejectedBody.fieldErrors?.timezone).toBeTruthy();
+
+      const reread = await admin.get(API);
+      expect(reread.status()).toBe(200);
+      const after = (await reread.json()) as { version: number; timezone: string; timezoneRevision: number };
+      expect(after.timezone).toBe(target);
+      expect(after.version).toBe(next.version);
+      expect(after.timezoneRevision).toBe(next.timezoneRevision);
+    } finally {
+      await admin.dispose();
+    }
   });
 
   test('两种浏览器时区读到同一站点设置；三尺寸 form D1–D6 与 overflow', async ({ page, browser }) => {
@@ -108,7 +134,7 @@ test.describe('已登录的 ADMIN', () => {
 
     const state = await page.context().storageState();
     for (const timezoneId of ['America/New_York', 'Asia/Tokyo']) {
-      const ctx = await browser.newContext({ storageState: state, timezoneId });
+      const ctx = await browser.newContext({ baseURL: BASE, storageState: state, timezoneId });
       const other = await ctx.newPage();
       await other.goto('/admin/settings?section=analytics');
       await expect(other.getByTestId('analytics-settings-timezone')).toHaveText(shown);
@@ -133,5 +159,70 @@ test.describe('已登录的 ADMIN', () => {
         expect(probe.leftGap ?? 999, `${vp.width} leftGap`).toBeLessThanOrEqual(16 + 24);
       }
     }
+  });
+
+  test('版本冲突：他处 ADMIN 推进 version 后旧保存获 409，显式读取最新才更新', async ({ page, playwright }) => {
+    test.setTimeout(120_000);
+    const initialResponse = page.waitForResponse((r) => new URL(r.url()).pathname === API && r.request().method() === 'GET');
+    await page.goto('/admin/settings?section=analytics');
+    const initialRes = await initialResponse;
+    expect(initialRes.status()).toBe(200);
+    const before = (await initialRes.json()) as { version: number; timezone: string; timezoneRevision: number };
+    const tzCell = page.getByTestId('analytics-settings-timezone');
+    await expect(tzCell).toHaveText(before.timezone);
+
+    const candidates = ['Asia/Tokyo', 'Europe/Berlin', 'UTC', 'America/New_York'].filter((tz) => tz !== before.timezone);
+    const elsewhere = candidates[0];
+    const mine = candidates[1];
+
+    // 另一个真实认证的 ADMIN 会话推进版本：不是页面自己那条保存请求
+    const otherState = await loadRunAuth('imageB', BASE, playwright.request);
+    const other = await playwright.request.newContext({ baseURL: BASE, storageState: otherState });
+    try {
+      const advanced = await other.patch(API, {
+        headers: { Origin: BASE },
+        data: { timezone: elsewhere, expectedVersion: before.version },
+      });
+      expect(advanced.status()).toBe(200);
+      const advancedBody = (await advanced.json()) as { version: number; timezone: string };
+      expect(advancedBody.timezone).toBe(elsewhere);
+      expect(advancedBody.version).toBe(before.version + 1);
+    } finally {
+      await other.dispose();
+    }
+
+    let patches = 0;
+    const countPatch = (r: Request) => {
+      if (new URL(r.url()).pathname === API && r.method() === 'PATCH') patches += 1;
+    };
+    page.on('request', countPatch);
+    await page.getByTestId('analytics-settings-input').fill(mine);
+    const conflictResponse = page.waitForResponse((r) => new URL(r.url()).pathname === API && r.request().method() === 'PATCH');
+    await page.getByTestId('analytics-settings-save').click();
+    const conflictRes = await conflictResponse;
+    expect(conflictRes.status()).toBe(409);
+    expect(((await conflictRes.json()) as { error: string }).error).toBe('version_conflict');
+
+    // 旧 UI 不自动接受新版本：输入与右栏都保留旧值，保存停用，且没有自动重试
+    await expect(page.getByTestId('analytics-settings-alert')).toContainText('配置已被其他会话修改');
+    await expect(page.getByTestId('analytics-settings-input')).toHaveValue(mine);
+    await expect(tzCell).toHaveText(before.timezone);
+    await expect(page.getByTestId('analytics-settings-save')).toBeDisabled();
+    await page.waitForTimeout(600);
+    expect(patches, '409 后不应自动重试 PATCH').toBe(1);
+    page.off('request', countPatch);
+
+    // 用户显式读取最新：右侧版本与站点时区才更新，输入仍保留
+    const reloadResponse = page.waitForResponse((r) => new URL(r.url()).pathname === API && r.request().method() === 'GET');
+    await page.getByRole('button', { name: '读取最新配置' }).click();
+    const reloadRes = await reloadResponse;
+    expect(reloadRes.status()).toBe(200);
+    const latest = (await reloadRes.json()) as { version: number; timezone: string };
+    expect(latest.timezone).toBe(elsewhere);
+    expect(latest.version).toBe(before.version + 1);
+    await expect(tzCell).toHaveText(elsewhere);
+    await expect(page.getByTestId('analytics-settings-status')).toContainText(`version ${latest.version}`);
+    await expect(page.getByTestId('analytics-settings-input')).toHaveValue(mine);
+    await expect(page.getByTestId('analytics-settings-save')).toBeEnabled();
   });
 });
