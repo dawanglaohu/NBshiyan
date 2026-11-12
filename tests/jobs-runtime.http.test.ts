@@ -315,6 +315,9 @@ describe('M5-T8 jobs runtime + cron operations route', { concurrency: false, ski
     // 租约时钟按**阶段**推进：complete 的 JobState 行锁读到后才过期（仍在提交事务内），
     // 不靠第 N 次 clock 调用——新增的 metadata 守卫会多读一次钟，不能让失效提前到守卫。
     let leaseExpired = false;
+    // 精确 JobState 行锁的出现次序：第 1 次是主 RR 前置 readLockedGeneration，
+    // 第 2 次才是 complete 自己的 FOR UPDATE。按**事务结构阶段**推进，不是按 clock 采样次数。
+    let jobStateLocks = 0;
     const leaseClock = () => new Date(NOW.getTime() + (leaseExpired ? 120_000 : 0));
     const observedDb = new Proxy(conn, {
       get(target, prop) {
@@ -328,8 +331,11 @@ describe('M5-T8 jobs runtime + cron operations route', { concurrency: false, ski
                   if (txProp === '$queryRaw') {
                     return async (strings: TemplateStringsArray, ...values: unknown[]) => {
                       const rows = await (value as (...args: unknown[]) => Promise<unknown>).call(txTarget, strings, ...values);
-                      // complete 的第一条语句：只取 generation 的 JobState 行锁（metadata 守卫还取 owner/to_char）。
-                      if (strings.join('?').includes('SELECT "generation" FROM "JobState"')) leaseExpired = true;
+                      // complete 与主 RR 前置的 JobState 行锁 SQL 文本相同：按出现次序区分阶段。
+                      if (strings.join('?').includes('SELECT "generation" FROM "JobState"')) {
+                        jobStateLocks += 1;
+                        if (jobStateLocks >= 2) leaseExpired = true;
+                      }
                       return rows;
                     };
                   }
@@ -357,6 +363,9 @@ describe('M5-T8 jobs runtime + cron operations route', { concurrency: false, ski
     const state = await readJobState();
     assert.equal(state.lastStatus, 'RUNNING', '终态未落库：保持已领取的 RUNNING，等租约自然到期');
     assert.equal(state.leaseOwner, 'analytics-job-runtime', '不得假释放租约');
+    // 阶段证明：确实走到 complete 的 JobState 行锁，过期只在那之后置位。
+    assert.equal(jobStateLocks, 2, 'JobState 行锁必须恰好两次：主 RR 前置 readLockedGeneration + complete');
+    assert.equal(leaseExpired, true, '过期必须在 complete 行锁之后触发，不能提前到主 RR 前置');
   });
 
   test('claim 成功后设置读取抛错：FAILED 在预算内落库，不写 watermark', async () => {
