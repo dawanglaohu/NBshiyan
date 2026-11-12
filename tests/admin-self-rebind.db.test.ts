@@ -10,7 +10,7 @@
 import { execFileSync } from 'node:child_process';
 import { spawn, type ChildProcess } from 'node:child_process';
 import { createRequire } from 'node:module';
-import { EventEmitter, once } from 'node:events';
+import { EventEmitter } from 'node:events';
 import { existsSync } from 'node:fs';
 import { createServer, type Server } from 'node:net';
 import path from 'node:path';
@@ -176,15 +176,74 @@ export async function pickFreePort(factory: () => Server = () => createServer())
   });
 }
 
-/** 有界停止本次子进程；SIGTERM 超时再 SIGKILL，仍不 exit 则安全码失败。 */
+/** 有界停止本次子进程；先挂 exit/close 监听再发信号，已信号退出不再误等/误杀。 */
 export async function stopChild(child: ChildProcess, graceMs = 10_000, killMs = 5_000): Promise<void> {
-  if (child.exitCode !== null) return;
+  if (child.exitCode !== null || child.signalCode !== null) return;
+
+  const waitExit = (timeoutMs: number): Promise<boolean> => new Promise((resolve) => {
+    let settled = false;
+    const finish = (value: boolean) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      child.removeListener('exit', onExit);
+      child.removeListener('close', onExit);
+      resolve(value);
+    };
+    const onExit = () => finish(true);
+    const timer = setTimeout(() => finish(false), timeoutMs);
+    child.once('exit', onExit);
+    child.once('close', onExit);
+  });
+
+  const graceful = waitExit(graceMs);
   child.kill('SIGTERM');
-  const exited = await Promise.race([once(child, 'exit').then(() => true), delay(graceMs).then(() => false)]);
-  if (exited || child.exitCode !== null) return;
+  if (await graceful || child.exitCode !== null || child.signalCode !== null) return;
+
+  const forced = waitExit(killMs);
   child.kill('SIGKILL');
-  const killed = await Promise.race([once(child, 'exit').then(() => true), delay(killMs).then(() => false)]);
-  if (!killed && child.exitCode === null) throw new Error('M3T20_STANDALONE_KILL_FAILED');
+  if (await forced || child.exitCode !== null || child.signalCode !== null) return;
+  throw new Error('M3T20_STANDALONE_KILL_FAILED');
+}
+
+export type CleanupPlan = {
+  stop: () => Promise<void>;
+  disconnect: () => Promise<void>;
+  drop: () => Promise<void>;
+  owned: boolean;
+};
+
+/**
+ * 单一 cleanup owner：停服未确认退出时跳过 disconnect/DROP 并保留 schema 归属标志；
+ * 只有停服确认成功才 disconnect，再仅 drop 本次 CREATE 成功的 schema。
+ */
+export async function runCleanup(plan: CleanupPlan): Promise<{ failure: string | null; preservedOwned: boolean }> {
+  try {
+    await plan.stop();
+  } catch {
+    return { failure: 'M3T20_STANDALONE_KILL_FAILED', preservedOwned: plan.owned };
+  }
+  await plan.disconnect().catch(() => undefined);
+  if (plan.owned) {
+    try {
+      await plan.drop();
+    } catch {
+      return { failure: 'M3T20_SCHEMA_DROP_FAILED', preservedOwned: false };
+    }
+  }
+  return { failure: null, preservedOwned: false };
+}
+
+/** 清理失败必须让测试进程非 0，而不是只写日志/只在 console 里报错。 */
+export async function finalizeCleanup(
+  plan: CleanupPlan,
+  setExitCode: (code: number) => void = (code) => { process.exitCode = code; },
+): Promise<void> {
+  const result = await runCleanup(plan);
+  if (result.failure) {
+    setExitCode(1);
+    throw new Error(result.failure);
+  }
 }
 
 let schemaCreated = false;
@@ -229,26 +288,18 @@ before(async () => {
 });
 
 after(async () => {
-  let failure = '';
-  try {
-    await stopStandalone();
-  } catch {
-    failure = 'M3T20_STANDALONE_KILL_FAILED';
-  }
-  await db?.$disconnect?.().catch(() => undefined);
-  if (adminDb && schemaCreated) {
-    if (failure) {
-      failure = 'M3T20_SCHEMA_DROP_SKIPPED_SERVER_LIVE';
-    } else {
-      try {
-        await cleanupOwnedSchema(adminDb as unknown as SchemaAdmin, schema, schemaCreated);
-      } catch {
-        failure = 'M3T20_SCHEMA_DROP_FAILED';
-      }
-    }
-  }
-  await adminDb?.$disconnect?.().catch(() => undefined);
-  if (failure) throw new Error(failure);
+  await finalizeCleanup({
+    stop: stopStandalone,
+    disconnect: async () => {
+      await db?.$disconnect?.();
+      await adminDb?.$disconnect?.();
+    },
+    drop: async () => {
+      if (!adminDb || !schemaCreated) return;
+      await cleanupOwnedSchema(adminDb as unknown as SchemaAdmin, schema, schemaCreated);
+    },
+    owned: schemaCreated,
+  });
 });
 
 async function makeAccount(): Promise<{ user: User; deviceId: string; plain: string }> {
@@ -422,8 +473,88 @@ describe('M3-T20 安全前置负控（无库/无监听）', () => {
     await assert.rejects(pickFreePort(() => busy), /M3T20_PORT_UNAVAILABLE/);
 
     const stuck = new EventEmitter() as unknown as ChildProcess;
-    Object.assign(stuck, { exitCode: null, kill: () => true });
+    Object.assign(stuck, { exitCode: null, signalCode: null, kill: () => true });
     await assert.rejects(stopChild(stuck, 5, 5), /M3T20_STANDALONE_KILL_FAILED/);
+
+    let killed = 0;
+    const already = new EventEmitter() as unknown as ChildProcess;
+    Object.assign(already, { exitCode: null, signalCode: 'SIGTERM', kill: () => { killed += 1; return true; } });
+    await stopChild(already, 5, 5);
+    assert.equal(killed, 0, '已信号退出不再发信号/误等');
+
+    const exiting = new EventEmitter() as unknown as ChildProcess;
+    Object.assign(exiting, {
+      exitCode: null,
+      signalCode: null,
+      kill: (signal: string) => {
+        if (signal === 'SIGTERM') queueMicrotask(() => exiting.emit('exit', 0, null));
+        return true;
+      },
+    });
+    await stopChild(exiting, 50, 50);
+  });
+
+  test('cleanup 单一 owner：停服失败保 schema，确认退出才 disconnect+DROP', async () => {
+    let disconnected = 0;
+    let dropped = 0;
+    const stopFailed = await runCleanup({
+      stop: async () => { throw new Error('kill failed'); },
+      disconnect: async () => { disconnected += 1; },
+      drop: async () => { dropped += 1; },
+      owned: true,
+    });
+    assert.deepEqual(stopFailed, { failure: 'M3T20_STANDALONE_KILL_FAILED', preservedOwned: true });
+    assert.equal(disconnected, 0, '停服未确认不得 disconnect');
+    assert.equal(dropped, 0, '停服未确认不得 DROP');
+
+    const ok = await runCleanup({
+      stop: async () => undefined,
+      disconnect: async () => { disconnected += 1; },
+      drop: async () => { dropped += 1; },
+      owned: true,
+    });
+    assert.deepEqual(ok, { failure: null, preservedOwned: false });
+    assert.equal(disconnected, 1);
+    assert.equal(dropped, 1);
+
+    await runCleanup({
+      stop: async () => undefined,
+      disconnect: async () => { disconnected += 1; },
+      drop: async () => { dropped += 1; },
+      owned: false,
+    });
+    assert.equal(disconnected, 2);
+    assert.equal(dropped, 1, 'owned=false/创建失败不得 DROP');
+
+    const dropFailed = await runCleanup({
+      stop: async () => undefined,
+      disconnect: async () => undefined,
+      drop: async () => { throw new Error('drop failed'); },
+      owned: true,
+    });
+    assert.equal(dropFailed.failure, 'M3T20_SCHEMA_DROP_FAILED');
+  });
+
+  test('finalizeCleanup 失败置进程非0并抛出，成功不置', async () => {
+    const codes: number[] = [];
+    await assert.rejects(
+      finalizeCleanup({
+        stop: async () => { throw new Error('kill failed'); },
+        disconnect: async () => undefined,
+        drop: async () => undefined,
+        owned: true,
+      }, (code) => codes.push(code)),
+      /M3T20_STANDALONE_KILL_FAILED/,
+    );
+    assert.deepEqual(codes, [1]);
+    codes.length = 0;
+    await finalizeCleanup({
+      stop: async () => undefined,
+      disconnect: async () => undefined,
+      drop: async () => undefined,
+      owned: false,
+    }, (code) => codes.push(code));
+    assert.deepEqual(codes, []);
   });
 });
 
@@ -622,22 +753,25 @@ let standalone: ChildProcess | null = null;
 async function stopStandalone(): Promise<void> {
   if (!standalone) return;
   const child = standalone;
-  standalone = null;
   await stopChild(child);
+  if (child.exitCode !== null || child.signalCode !== null) standalone = null;
 }
 
-async function waitForServer(child: ChildProcess, base: string): Promise<void> {
-  for (let i = 0; i < 240; i += 1) {
-    if (child.exitCode !== null) throw new Error(`standalone exited before readiness (code ${child.exitCode})`);
+async function waitForServer(child: ChildProcess, base: string, timeoutMs = 120_000): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (child.exitCode !== null || child.signalCode !== null) {
+      throw new Error('M3T20_STANDALONE_EXITED_BEFORE_READY');
+    }
     try {
-      const response = await fetch(`${base}/api/auth/csrf`);
+      const response = await fetch(`${base}/api/auth/csrf`, { signal: AbortSignal.timeout(5_000) });
       if (response.ok) return;
     } catch {
-      // not up yet
+      // not up yet; per-request 5s cap, overall deadline above is not reset
     }
     await delay(500);
   }
-  throw new Error('standalone did not become ready within 120s');
+  throw new Error('M3T20_STANDALONE_READY_TIMEOUT');
 }
 
 const SESSION_COOKIE_NAME = /^(?:__Secure-)?authjs\.session-token(?:\.\d+)?$/;
@@ -691,7 +825,12 @@ async function http(pathname: string, init: RequestInit = {}, jar?: CookieJar): 
     const cookie = jar.header();
     if (cookie) headers.set('cookie', cookie);
   }
-  const response = await fetch(`${httpBase}${pathname}`, { ...init, headers, redirect: 'manual' });
+  const response = await fetch(`${httpBase}${pathname}`, {
+    ...init,
+    signal: init.signal ?? AbortSignal.timeout(15_000),
+    headers,
+    redirect: 'manual',
+  });
   jar?.absorb(response);
   return response;
 }
@@ -741,10 +880,6 @@ describe('M3-T20 真实 socket/Next HTTP（实例阶段）', { concurrency: 1, s
       stdio: ['ignore', 'ignore', 'ignore'],
     });
     await waitForServer(standalone, httpBase);
-  });
-
-  after(async () => {
-    await stopStandalone();
   });
 
   test('登录→reauth 签 grant→reset→受限 enroll/confirm→旧 TOTP 拒/新 TOTP 可登录', { timeout: 300_000 }, async () => {
