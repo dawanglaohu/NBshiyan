@@ -47,8 +47,12 @@ test('pointer capture, page wheel, modifier zoom, and release', async ({ page })
   const second = page.getByTestId('product-viewport').nth(1);
   await expect(second).toHaveAttribute('data-framed', '1', { timeout: 25_000 });
   await expect(page.locator('[data-direct-rotate]')).toHaveAttribute('data-direct-rotate', '1');
-  const slugA = await first.getAttribute('data-slug');
-  const slugB = await second.getAttribute('data-slug');
+  // 同一阶段的两条非重试 getAttribute 合并为一次页内读取：选择器与 `getByTestId('product-viewport')`
+  // 相同（默认 data-testid、主文档、文档顺序），不跨用户动作/帧窗口，断言仍是原来的严格比较。
+  const [slugA, slugB] = await page.evaluate(() => {
+    const views = document.querySelectorAll('[data-testid="product-viewport"]');
+    return [views[0]?.getAttribute('data-slug') ?? null, views[1]?.getAttribute('data-slug') ?? null];
+  });
   expect(slugA && slugB && slugA !== slugB).toBe(true);
 
   const card = page.locator('article.card').first();
@@ -74,14 +78,18 @@ test('pointer capture, page wheel, modifier zoom, and release', async ({ page })
   expect(await first.getAttribute('data-camera-distance')).toBe(distanceBeforeHover);
   await expect(page.locator('[data-capture-owner]')).toHaveAttribute('data-capture-owner', '');
 
-  const azimuthA = await first.getAttribute('data-azimuth');
-  const azimuthB = await second.getAttribute('data-azimuth');
+  const [azimuthA, azimuthB] = await page.evaluate(() => {
+    const views = document.querySelectorAll('[data-testid="product-viewport"]');
+    return [views[0]?.getAttribute('data-azimuth') ?? null, views[1]?.getAttribute('data-azimuth') ?? null];
+  });
   const start = await center(first);
   const other = await center(second);
   await page.mouse.move(start.x, start.y);
   await page.mouse.down();
   await expect(page.locator('[data-capture-owner]')).toHaveAttribute('data-capture-owner', slugA!);
-  await page.mouse.move(other.x, other.y, { steps: 4 });
+  // steps 4→2：4e trace 里该拖动已从 19,005 ms 降到 7,495 ms，但整例仍超 90s 预算约 2.8s；
+  // 中间步只影响采样密度，终点仍是第二张卡中心，捕获与所有断言不变。
+  await page.mouse.move(other.x, other.y, { steps: 2 });
   // 减采样后仍须证明跨卡移动没有丢 capture owner：移动后、mouseup 前 owner 仍是 A。
   await expect(page.locator('[data-capture-owner]')).toHaveAttribute('data-capture-owner', slugA!);
   await expect(first).not.toHaveAttribute('data-azimuth', azimuthA!);
