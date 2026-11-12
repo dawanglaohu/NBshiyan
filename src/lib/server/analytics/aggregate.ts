@@ -130,11 +130,6 @@ export class AggregateCommitUnknown extends Error {
   }
 }
 
-/** P2024 在取连接/开事务阶段失败，BEGIN 都没发出：可确认没有提交，不算 unknown。 */
-function isPreCommitFailure(error: unknown): boolean {
-  return error !== null && typeof error === 'object' && (error as { code?: unknown }).code === 'P2024';
-}
-
 /** COMMIT 答复未知时要记录的对象；永不为空数组。 */
 function unknownTargetsOf(dates: Iterable<string>, fallback: string): string[] {
   const targets = new Set<string>();
@@ -1232,8 +1227,11 @@ export async function runDailyAggregateRound(deps: {
   }
   result.metadata.push(...metadataWrites);
 
+  // 按**执行位置**判别，不看错误码：回调已进入后的任何非回调包装错误都是未知提交。
+  let mainStarted = false;
   try {
     const inTx = await runInRepeatableReadSnapshot(deps.db, async (tx) => {
+      mainStarted = true;
       try {
         return await runDailyInTx(tx, {
           now,
@@ -1274,11 +1272,11 @@ export async function runDailyAggregateRound(deps: {
       return result;
     }
     // 回调已经返回、$transaction 才抛：COMMIT 答复未知（与作业路径同一判别）。
-    if (!(error instanceof AggregateCallbackFailure)
-      && !isPreCommitFailure(error)
-      && !isBudgetFailure(error)
-      && !(error instanceof AggregateDeadlineExceeded)) {
+    // 57014/55P03/P2028 若发生在回调之后同样未知，不再按错误码白名单排除；
+    // 回调尚未进入（BEGIN 前失败，含预算/P2024/连接问题）仍按原语义处理。
+    if (!(error instanceof AggregateCallbackFailure) && mainStarted) {
       result.status = 'unknown';
+      result.errorCode = 'commit_unknown';
       result.committed = null;
       result.commitUnknown = {
         phase: 'metrics',
@@ -1328,7 +1326,8 @@ export async function runDailyAggregateRound(deps: {
       if (halted.kind === 'guard') result.guard = { localDate: halted.localDate, kind: halted.guardKind };
       else result.budget = { localDate: halted.localDate, reason: halted.reason, queued: halted.queued };
     } else {
-      const mapped = asVersionConflict(error);
+      // 回调内失败已确认回滚：按原错误分类（序列化失败仍要变成版本冲突），不把包装器抛给调用方。
+      const mapped = asVersionConflict(unwrapped);
       if (!(mapped instanceof AggregateVersionConflict)) throw mapped;
       result.status = 'failed';
       result.errorCode = 'version_conflict';

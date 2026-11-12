@@ -388,24 +388,25 @@ export async function runRetentionCleanup(deps: {
     counts.candidateRollupRows = Number(dailyRows[0]?.count ?? 0) + Number(dayRows[0]?.count ?? 0);
     if (mode === 'delete') {
       const budget: Budget = { removed: 0, batches: 0, batchSize, maxPerRun };
+      // 每批**已确认提交**后立刻把行数与批次数写进 counts：后续批次回执未知时，
+      // 外层 catch 拿到的必须是首批的真实确认结果，而不是全部 drain 结束才同步的旧值。
       for (const siteDate of confirmed) {
         await drain(
           budget,
           (limit) => deleteEventBatch(deps.db, repo, claim, siteDate, clock.timezone, now, limit),
-          (count) => { counts.deletedEvents += count; },
+          (count) => { counts.deletedEvents += count; counts.batches += 1; },
         );
       }
       await drain(
         budget,
         (limit) => deleteDailyBatch(deps.db, repo, claim, rollupBefore, limit),
-        (count) => { counts.deletedRollupRows += count; },
+        (count) => { counts.deletedRollupRows += count; counts.batches += 1; },
       );
       await drain(
         budget,
         (limit) => deleteRollupDayBatch(deps.db, repo, claim, rollupBefore, limit),
-        (count) => { counts.deletedRollupRows += count; },
+        (count) => { counts.deletedRollupRows += count; counts.batches += 1; },
       );
-      counts.batches = budget.batches;
     }
     try {
       await (deps.audit ?? defaultAudit)({
@@ -435,6 +436,8 @@ export async function runRetentionCleanup(deps: {
         phase: error.phase,
         targets: error.unknownTargets.length,
         confirmedBatches: counts.batches,
+        confirmedDeletedEvents: counts.deletedEvents,
+        confirmedDeletedRollupRows: counts.deletedRollupRows,
       });
       // 不写 FAILED 终态、不补 gap；已确认批次的行数如实带出，未知批次不计。
       return {

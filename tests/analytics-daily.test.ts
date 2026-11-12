@@ -1002,17 +1002,35 @@ describe('M5-T12 retention-cleanup 整体消费者：批次 COMMIT 未知即停�
     };
   }
 
-  test('首批已确认、后批模拟丢回执：后续批次 0、FAILED 终态 0、已确认计数保留', async () => {
-    const built = build('lost-receipt');
-    const result = await runRetentionCleanup(args(built) as never);
-    assert.equal(result.status, 'unknown', '未知提交不得折叠成 failed');
-    assert.equal(result.deletedEvents, 1, '只保留首批已确认 1 行');
-    if (result.status === 'unknown') {
-      assert.equal(result.phase, 'metrics');
-      assert.ok(result.targets.length >= 1);
+  test('首批已确认、后批模拟丢回执：后续批次 0、FAILED 终态 0、已确认行数与批次数都保留', async () => {
+    const errors: string[] = [];
+    const originalError = console.error;
+    console.error = (...logArgs: unknown[]) => {
+      errors.push(logArgs.map((arg) => (typeof arg === 'string' ? arg : JSON.stringify(arg))).join(' '));
+    };
+    try {
+      const built = build('lost-receipt');
+      const result = await runRetentionCleanup(args(built) as never);
+      assert.equal(result.status, 'unknown', '未知提交不得折叠成 failed');
+      assert.equal(result.deletedEvents, 1, '只保留首批已确认 1 行');
+      if (result.status === 'unknown') {
+        assert.equal(result.phase, 'metrics');
+        assert.ok(result.targets.length >= 1);
+      }
+      assert.deepEqual(built.records.completions, [], '不得写任何终态（尤其不能是 FAILED）');
+      assert.equal(built.batches(), 2, '第二批未知后不得再开批次');
+      // 同一 runRetentionCleanup 消费者的结构化日志：已确认批次必须已记 1，未知批次不得计入。
+      const logged = errors.find((line) => line.includes('commit_unknown'));
+      assert.ok(logged, '未知提交必须有结构化日志');
+      const payload = JSON.parse(logged.slice(logged.indexOf('{'))) as Record<string, unknown>;
+      assert.equal(payload.confirmedBatches, 1, '首批已确认的批次数必须立刻保留，不能等全部 drain 结束');
+      assert.equal(payload.confirmedDeletedEvents, 1);
+      assert.equal(payload.confirmedDeletedRollupRows, 0);
+      assert.equal(payload.phase, 'metrics');
+      assert.ok(Number(payload.targets) >= 1);
+    } finally {
+      console.error = originalError;
     }
-    assert.deepEqual(built.records.completions, [], '不得写任何终态（尤其不能是 FAILED）');
-    assert.equal(built.batches(), 2, '第二批未知后不得再开批次');
   });
 
   test('对照：批次回调内失败是确认失败，finish(FAILED) 必须被记录', async () => {
@@ -1094,6 +1112,173 @@ describe('M5-T12 阶段证据：按执行位置判别，不用错误码白名单
       (error: unknown) => {
         assert.ok(error instanceof AggregateCommitUnknown);
         assert.equal(error.phase, 'metadata');
+        return true;
+      },
+    );
+  });
+});
+describe('M5-T12 wrapper 主事务：按执行位置判 unknown，不看错误码', { concurrency: false }, () => {
+  const codes = [
+    { name: 'P2028', make: () => Object.assign(new Error('transaction closed'), { code: 'P2028' }) },
+    { name: '57014', make: () => Object.assign(new Error('statement timeout'), { meta: { code: '57014' } }) },
+    { name: '55P03', make: () => Object.assign(new Error('lock not available'), { meta: { code: '55P03' } }) },
+  ];
+
+  function wrapperQuery() {
+    return async (arg: unknown, ...rest: unknown[]) => {
+      const { text } = sqlOf(arg, rest);
+      if (text.includes('JobState')) return [{ generation: 7, leaseOwner: 'analytics-aggregate', lockedUntil: LIVE_LEASE }];
+      if (text.includes('SiteSetting')) return [{ value: { version: 1, timezone: 'UTC', timezoneRevision: 3 } }];
+      if (text.includes('AnalyticsDayChange')) return [{ utcDate: OLD_DAY, version: '2' }];
+      if (text.includes('AnalyticsAggregateDayState')) return [{ ...planState }];
+      return [];
+    };
+  }
+
+  function wrapperTx(overrides: Record<string, unknown> = {}) {
+    return { $queryRaw: wrapperQuery(), $executeRaw: async () => 1, $executeRawUnsafe: async () => 0, ...overrides };
+  }
+
+  /** 事务 #1 = 独立 metadata 阶段，事务 #2 = 主指标事务；三档故障点各不相同。 */
+  function roundDb(mode: 'post-callback' | 'callback' | 'pre-begin', failure: Error) {
+    const state = { transactions: 0 };
+    const db = {
+      $transaction: async (fn: (tx: unknown) => Promise<unknown>) => {
+        state.transactions += 1;
+        const current = state.transactions;
+        if (mode === 'pre-begin' && current === 2) throw failure;
+        if (mode === 'callback' && current === 2) {
+          return await fn(wrapperTx({ $queryRaw: async () => { throw failure; } }));
+        }
+        const value = await fn(wrapperTx());
+        if (mode === 'post-callback' && current === 2) throw failure;
+        return value;
+      },
+      $queryRaw: wrapperQuery(),
+      $executeRaw: async () => 1,
+    };
+    return { db, state };
+  }
+
+  const roundArgs = (db: unknown) => ({
+    now: PHASE_NOW,
+    siteTimezone: 'UTC',
+    currentDate: '2026-03-02',
+    timezoneRevision: 3,
+    generation: 7,
+    leaseOwner: 'analytics-aggregate',
+    baseDates: [OLD_DAY] as string[],
+    db: db as never,
+  } as never);
+
+  for (const shape of codes) {
+    test(`主事务回调返回后 ${shape.name}＝unknown，不按码表判回滚`, async () => {
+      const { db, state } = roundDb('post-callback', shape.make());
+      const result = await runDailyAggregateRound(roundArgs(db));
+      assert.equal(result.status, 'unknown');
+      assert.equal(result.errorCode, 'commit_unknown');
+      assert.equal(result.committed, null, '未知提交不能用 [] 冒充没写');
+      assert.equal(result.commitUnknown?.phase, 'metrics');
+      assert.ok(result.commitUnknown.targets.includes(OLD_DAY));
+      // 已确认的 metadata 结果必须保留；未知后不得再补 gap、写 FAILED 或开新事务。
+      assert.ok(result.metadata.some((item) => item.localDate === OLD_DAY));
+      assert.deepEqual(result.gaps, []);
+      assert.equal(state.transactions, 2, '未知后不得再开事务');
+    });
+  }
+
+  test('主事务回调内 57014＝确认回滚（预算中止 + gap），不是 unknown', async () => {
+    const failure = codes[1]!.make();
+    const { db } = roundDb('callback', failure);
+    const result = await runDailyAggregateRound(roundArgs(db));
+    assert.notEqual(result.status, 'unknown');
+    assert.equal(result.commitUnknown, null);
+    assert.deepEqual(result.committed, [], '回调内失败＝确认回滚');
+    assert.equal(result.status, 'budget');
+    assert.equal(result.gaps.length, 1, '确认回滚后才允许在独立事务里记 gap');
+  });
+
+  test('主事务 BEGIN 前 P2024＝确认无提交：原错误上抛不算 unknown', async () => {
+    const failure = Object.assign(new Error('pool timeout'), { code: 'P2024' });
+    const { db } = runPreBeginDb(failure);
+    await assert.rejects(
+      () => runDailyAggregateRound(roundArgs(db)),
+      (error: unknown) => {
+        assert.equal(error, failure);
+        assert.equal(error instanceof AggregateCommitUnknown, false);
+        return true;
+      },
+    );
+  });
+
+  function runPreBeginDb(failure: Error) {
+    const state = { transactions: 0 };
+    const db = {
+      $transaction: async (fn: (tx: unknown) => Promise<unknown>) => {
+        state.transactions += 1;
+        if (state.transactions === 2) throw failure;
+        return await fn(wrapperTx());
+      },
+      $queryRaw: wrapperQuery(),
+      $executeRaw: async () => 1,
+    };
+    return { db, state };
+  }
+
+  test('作业入口 runAggregateOnce 主事务（metrics）回调返回后三码一律 AggregateCommitUnknown', async () => {
+    for (const shape of codes) {
+      let transactions = 0;
+      const db = {
+        $transaction: async (fn: (tx: unknown) => Promise<unknown>) => {
+          transactions += 1;
+          const value = await fn(wrapperTx());
+          // 事务 #1 是 daily 的 metadata 阶段；#2 起就是 runAggregateOnce 的主事务（daily 主事务在其内）。
+          if (transactions >= 2) throw shape.make();
+          return value;
+        },
+        $queryRaw: wrapperQuery(),
+        $executeRaw: async () => 1,
+      };
+      await assert.rejects(
+        () => runAggregateOnce({
+          now: PHASE_NOW,
+          siteTimezone: 'UTC',
+          currentDate: '2026-03-02',
+          timezoneRevision: 3,
+          generation: 7,
+          daily: { baseDates: [], leaseOwner: 'analytics-aggregate' },
+          db: db as never,
+        } as never),
+        (error: unknown) => {
+          assert.ok(error instanceof AggregateCommitUnknown);
+          assert.equal(error.phase, 'metrics');
+          assert.ok(error.unknownTargets.length >= 1);
+          return true;
+        },
+      );
+    }
+  });
+
+  test('作业入口 runAggregateOnce 主事务 BEGIN 前 P2024 上抛原错误，不是 unknown', async () => {
+    const failure = Object.assign(new Error('pool timeout'), { code: 'P2024' });
+    const db = {
+      $transaction: async () => { throw failure; },
+      $queryRaw: async () => [],
+      $executeRaw: async () => 0,
+    };
+    await assert.rejects(
+      () => runAggregateOnce({
+        now: PHASE_NOW,
+        siteTimezone: 'UTC',
+        currentDate: '2026-03-02',
+        timezoneRevision: 3,
+        generation: 7,
+        daily: { baseDates: [], leaseOwner: 'analytics-aggregate' },
+        db: db as never,
+      } as never),
+      (error: unknown) => {
+        assert.equal(error, failure);
+        assert.equal(error instanceof AggregateCommitUnknown, false);
         return true;
       },
     );
