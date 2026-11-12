@@ -78,17 +78,34 @@ test('pointer capture, page wheel, modifier zoom, and release', async ({ page })
   expect(await first.getAttribute('data-camera-distance')).toBe(distanceBeforeHover);
   await expect(page.locator('[data-capture-owner]')).toHaveAttribute('data-capture-owner', '');
 
-  const [azimuthA, azimuthB] = await page.evaluate(() => {
+  // 同一阶段的非重试读取合成一次页内快照：azimuth 基线与两卡中心都取原 first/second 节点，
+  // 中心仍用 getBoundingClientRect 的视口坐标公式；任一视口缺失或框为零直接失败，不回退。
+  const openingStage = await page.evaluate(() => {
     const views = document.querySelectorAll('[data-testid="product-viewport"]');
-    return [views[0]?.getAttribute('data-azimuth') ?? null, views[1]?.getAttribute('data-azimuth') ?? null];
+    const firstEl = views[0];
+    const secondEl = views[1];
+    if (!firstEl || !secondEl) return null;
+    const centerOf = (el: Element) => {
+      const r = el.getBoundingClientRect();
+      if (!(r.width > 0 && r.height > 0)) return null;
+      return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+    };
+    const start = centerOf(firstEl);
+    const other = centerOf(secondEl);
+    if (!start || !other) return null;
+    return {
+      azimuthA: firstEl.getAttribute('data-azimuth'),
+      azimuthB: secondEl.getAttribute('data-azimuth'),
+      start,
+      other,
+    };
   });
-  const start = await center(first);
-  const other = await center(second);
+  if (!openingStage) throw new Error('首屏两卡视口缺失或尺寸为零');
+  const { azimuthA, azimuthB, start, other } = openingStage;
   await page.mouse.move(start.x, start.y);
   await page.mouse.down();
   await expect(page.locator('[data-capture-owner]')).toHaveAttribute('data-capture-owner', slugA!);
-  // steps 4→2：4e trace 里该拖动已从 19,005 ms 降到 7,495 ms，但整例仍超 90s 预算约 2.8s；
-  // 中间步只影响采样密度，终点仍是第二张卡中心，捕获与所有断言不变。
+  // steps 2：中间步只影响采样密度，终点仍是第二张卡中心，捕获与所有断言不变。
   await page.mouse.move(other.x, other.y, { steps: 2 });
   // 减采样后仍须证明跨卡移动没有丢 capture owner：移动后、mouseup 前 owner 仍是 A。
   await expect(page.locator('[data-capture-owner]')).toHaveAttribute('data-capture-owner', slugA!);
@@ -133,7 +150,23 @@ test('pointer capture, page wheel, modifier zoom, and release', async ({ page })
   await page.mouse.move(focusedPoint.x, focusedPoint.y);
   await page.mouse.wheel(0, -80);
   await page.keyboard.up('Control');
-  await expect.poll(async () => Number(await first.getAttribute('data-camera-distance'))).not.toBe(focusedDistance);
+  // 实时页内读同一 first 节点的距离：缺失、非数字、非有限值一律视为未满足，返回 null；
+  // 不能用 Number(null)=0 或 NaN 与旧值不等形成假绿，只有真实存在且有限且发生变化才过。
+  await expect
+    .poll(
+      async () => {
+        const value = await page.evaluate(() => {
+          const el = document.querySelectorAll('[data-testid="product-viewport"]')[0];
+          const raw = el?.getAttribute('data-camera-distance') ?? null;
+          if (raw === null) return null;
+          const parsed = Number(raw);
+          return Number.isFinite(parsed) ? parsed : null;
+        });
+        return value !== null && value !== focusedDistance;
+      },
+      { timeout: 7_000, message: '相机距离未取得有限值或未发生变化' },
+    )
+    .toBe(true);
   expect(await page.evaluate(() => window.scrollY)).toBe(scrollAtFocus);
 
   await page.keyboard.press('Escape');
@@ -356,10 +389,9 @@ test('hover pauses spin and a user pause survives hide and foreground', async ({
   const first = await openProducts(page);
   await expect(first).toHaveAttribute('data-spinning', '1');
   // 三处 paused/spinning 合并为一次真实快照 + poll：仍用全局 7s 重试窗，且要求同阶段同时满足（比逐条更强）。
-  // 读取改在同一页内直接取 `[data-testid="product-viewport"]` 首个节点，与 `getByTestId(...).first()` 同一元素
-  // （默认 data-testid、主文档、文档顺序）；4e trace 里 poll 首个动作仅 locator 解析就花 6,416 ms，
-  // 几乎吃满 7s 窗，故不再在窗内反复解析 locator。节点缺失返回 null（断言失败），无任何 fallback；
-  // 失败时只回放本次 poll 缓存到的快照与耗时，不另发一次 CDP 读取去掩盖原时点。
+  // 读取在同一页内直接取 `[data-testid="product-viewport"]` 首个节点，与 `getByTestId(...).first()` 同一元素
+  // （默认 data-testid、主文档、文档顺序），不再在窗内反复解析 locator。节点缺失返回 null（断言失败），
+  // 无任何 fallback；失败时只回放本次 poll 缓存到的快照与耗时，不另发一次 CDP 读取去掩盖原时点。
   let lastPausedSnapshot: { paused: string | null; spinning: string | null } | null = null;
   const expectPaused = async (stage: string) => {
     const startedAt = Date.now();
@@ -384,25 +416,39 @@ test('hover pauses spin and a user pause survives hide and foreground', async ({
       throw error;
     }
   };
+  // data-spinning 的三处断言换读取载体：仍是各自独立的 7s 窗、精确字符串、实时读同一首节点；
+  // 缺节点返回 null 必失败，不做缓存常量或 fallback，也不并发。
+  const expectSpinning = (expected: '0' | '1') =>
+    expect
+      .poll(
+        () =>
+          page.evaluate(() => {
+            const el = document.querySelectorAll('[data-testid="product-viewport"]')[0];
+            return el ? el.getAttribute('data-spinning') : null;
+          }),
+        { timeout: 7_000 },
+      )
+      .toBe(expected);
   console.log('[M5-T10][model345] stage=moved:start');
-  const moved = await first.evaluate(async (el) => {
+  // 一次页内顺序执行：先 500ms 方位角窗口，确认会转后再滚动取可达几何；moved 不成立立即返回，
+  // 由 Node 先按原断言失败，不继续滚动或发输入。指针进入仍用真实几何坐标（hover 的 actionability
+  // 与“进入即暂停”无关），命中与覆盖关系由 data-spinning 的结果断言把关。
+  const movedAndEnter = await first.evaluate(async (el) => {
     const start = el.getAttribute('data-azimuth');
     const t0 = performance.now();
     let frames = 0;
+    let moved = false;
     while (performance.now() - t0 < 500) {
       await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
       frames += 1;
-      if (el.getAttribute('data-azimuth') !== start) return { moved: true, frames, elapsed: Math.round(performance.now() - t0) };
+      if (el.getAttribute('data-azimuth') !== start) {
+        moved = true;
+        break;
+      }
     }
-    return { moved: false, frames, elapsed: Math.round(performance.now() - t0) };
-  });
-  console.log(`[M5-T10][model345] stage=moved:done ${JSON.stringify(moved)}`);
-  expect(moved.moved).toBe(true);
-
-  // 指针进入用真实几何坐标：hover() 的 actionability 重试与“指针进入即暂停”无关；
-  // 命中与覆盖关系仍由 data-spinning 的结果断言把关。滚动与取点合并为一次页内计算：
-  // 只在需要时滚动，等矩形稳定且完全可见后才返回非零可达框，不依赖未完成的平滑滚动坐标。
-  const enter = await first.evaluate(async (el) => {
+    const movedResult = { moved, frames, elapsed: Math.round(performance.now() - t0) };
+    if (!moved) return { moved: movedResult, enter: null };
+    const enterT0 = performance.now();
     const fullyVisible = () => {
       const r = el.getBoundingClientRect();
       return r.width > 0 && r.height > 0 && r.top >= 0 && r.left >= 0
@@ -423,32 +469,55 @@ test('hover pauses spin and a user pause survives hide and foreground', async ({
     const y = box.y + box.height / 2;
     if (!(box.width > 0 && box.height > 0)) throw new Error('模型视口没有非零可达框');
     if (!(x > 0 && y > 0 && x < window.innerWidth && y < window.innerHeight)) throw new Error('模型中心不在视口内');
-    return { x, y };
+    return { moved: movedResult, enter: { x, y, elapsed: Math.round(performance.now() - enterT0) } };
   });
+  console.log(`[M5-T10][model345] stage=moved:done ${JSON.stringify(movedAndEnter.moved)}`);
+  expect(movedAndEnter.moved.moved).toBe(true);
+  if (!movedAndEnter.enter) throw new Error('模型视口几何未取得');
+  const enter = movedAndEnter.enter;
   await page.mouse.move(enter.x, enter.y);
-  await expect(first).toHaveAttribute('data-spinning', '0');
+  await expectSpinning('0');
   console.log('[M5-T10][model345] stage=held:start');
-  const held = await first.evaluate(async (el) => {
+  // 300ms 观察结束后顺带取标题中心：h1 位置与 hover 无关，合并只减少一次往返；
+  // h1 必须与原 page.locator('h1') 的严格单匹配一致（缺失/多匹配/零框都记未取得，不回退）。
+  const heldAndTitle = await first.evaluate(async (el) => {
     const start = el.getAttribute('data-azimuth');
     const t0 = performance.now();
     let frames = 0;
+    let held = true;
     while (performance.now() - t0 < 300) {
       await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
       frames += 1;
-      if (el.getAttribute('data-azimuth') !== start) return { held: false, frames, elapsed: Math.round(performance.now() - t0) };
+      if (el.getAttribute('data-azimuth') !== start) {
+        held = false;
+        break;
+      }
     }
-    return { held: true, frames, elapsed: Math.round(performance.now() - t0) };
+    const heldResult = { held, frames, elapsed: Math.round(performance.now() - t0) };
+    const titles = document.querySelectorAll('h1');
+    if (titles.length !== 1) return { held: heldResult, title: null, titleIssue: `h1 count=${titles.length}` };
+    const box = titles[0].getBoundingClientRect();
+    if (!(box.width > 0 && box.height > 0)) return { held: heldResult, title: null, titleIssue: 'h1 box is zero' };
+    return { held: heldResult, title: { x: box.x + box.width / 2, y: box.y + box.height / 2 }, titleIssue: null };
   });
-  console.log(`[M5-T10][model345] stage=held:done ${JSON.stringify(held)}`);
-  expect(held.held).toBe(true);
-
-  // 离开模型同样用真实坐标；若指针仍落在模型上，恢复自转会失败。
-  const title = await center(page.locator('h1'));
+  console.log(`[M5-T10][model345] stage=held:done ${JSON.stringify(heldAndTitle.held)}`);
+  expect(heldAndTitle.held.held).toBe(true);
+  if (!heldAndTitle.title) throw new Error(`标题中心未取得：${heldAndTitle.titleIssue}`);
+  const title = heldAndTitle.title;
   await page.mouse.move(title.x, title.y);
-  await expect(first).toHaveAttribute('data-spinning', '1');
-  // 暂停按钮在离开 hover 后再取点：没有源码/CSS 证据表明离开 hover 不改变按钮布局，保留这次必需的新读。
-  const pauseButton = page.locator('article.card').first().getByTestId('model-pause-rotation');
-  const pausePoint = await center(pauseButton);
+  await expectSpinning('1');
+  // 离开 hover 之后再取一次新鲜坐标：没有源码/CSS 证据表明离开 hover 不改变按钮布局，保留这次必需的新读。
+  // 取首个 article.card 内唯一 pause 按钮，等价原 scoped locator；缺失、多匹配、零框都直接失败，不兜底。
+  const pausePoint = await page.evaluate(() => {
+    const card = document.querySelector('article.card');
+    if (!card) return null;
+    const buttons = card.querySelectorAll('[data-testid="model-pause-rotation"]');
+    if (buttons.length !== 1) return null;
+    const r = buttons[0].getBoundingClientRect();
+    if (!(r.width > 0 && r.height > 0)) return null;
+    return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+  });
+  if (!pausePoint) throw new Error('暂停按钮缺失、多匹配或尺寸为零');
   await page.mouse.click(pausePoint.x, pausePoint.y);
   await expectPaused('after-pause-click');
 
@@ -463,7 +532,7 @@ test('hover pauses spin and a user pause survives hide and foreground', async ({
     Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'hidden' });
     document.dispatchEvent(new Event('visibilitychange'));
   });
-  await expect(first).toHaveAttribute('data-spinning', '0');
+  await expectSpinning('0');
   await page.evaluate(() => {
     Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'visible' });
     document.dispatchEvent(new Event('visibilitychange'));
@@ -483,5 +552,7 @@ test('hover pauses spin and a user pause survives hide and foreground', async ({
   });
   console.log(`[M5-T10][model345] stage=still:done ${JSON.stringify(still)}`);
   expect(still.paused).toBe(true);
-  console.log(`[M5-T10][model345] moved=${JSON.stringify(moved)} held=${JSON.stringify(held)} still=${JSON.stringify(still)}`);
+  console.log(
+    `[M5-T10][model345] moved=${JSON.stringify(movedAndEnter.moved)} enter=${JSON.stringify(movedAndEnter.enter)} held=${JSON.stringify(heldAndTitle.held)} still=${JSON.stringify(still)}`,
+  );
 });
