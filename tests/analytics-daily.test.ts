@@ -293,6 +293,27 @@ describe('M5-T12 assertDailyAggregateGuards fail-closed', { concurrency: false }
     });
   });
 
+  test('业务 snapshot now 改早也救不了已过期租约', async () => {
+    await assert.rejects(
+      () => assertDailyAggregateGuards(stubTx(leaseRow(LEASE_END)), {
+        ...base,
+        now: new Date(NOW.getTime() - 86_400_000),
+        leaseClock: leaseAt(60_000),
+      }),
+      AggregateVersionConflict,
+    );
+  });
+
+  test('默认租约 clock 保持真实时间语义：真实未来通过、真实过去拒绝', async () => {
+    const realFuture = new Date(Date.now() + 60_000).toISOString();
+    const realPast = new Date(Date.now() - 1_000).toISOString();
+    await assertDailyAggregateGuards(stubTx(leaseRow(realFuture)), base);
+    await assert.rejects(
+      () => assertDailyAggregateGuards(stubTx(leaseRow(realPast)), base),
+      AggregateVersionConflict,
+    );
+  });
+
   test('租约 clock 推进到 lockedUntil 等号 → 拒绝（等号即过期）', async () => {
     await assert.rejects(
       () => assertDailyAggregateGuards(stubTx(leaseRow(LEASE_END)), { ...base, leaseClock: leaseAt(60_000) }),
@@ -537,6 +558,20 @@ describe('M5-T12 覆盖元数据：独立 CAS 阶段按 plan expected 写', { co
     const { db, calls } = stubDb({ jobState: [], stateQueries: [[planState]], live: [] });
     await assert.rejects(() => writeDailyMetadataPhase(db as never, phaseArgs()), AggregateVersionConflict);
     assert.equal(calls.filter((call) => call.kind === 'execute').length, 0);
+  });
+
+  test('租约在 metadata 阶段已到期（等号）：拒绝且一条元数据都不写', async () => {
+    const { db, calls } = stubDb({
+      jobState: [{ generation: 7, leaseOwner: 'analytics-aggregate', lockedUntil: LIVE_LEASE }],
+      stateQueries: [[planState]],
+      live: [{ utcDate: OLD_DAY, version: '2' }],
+      affected: 1,
+    });
+    await assert.rejects(
+      () => writeDailyMetadataPhase(db as never, { ...phaseArgs(), leaseClock: leaseAt(90_000) }),
+      AggregateVersionConflict,
+    );
+    assert.equal(calls.filter((call) => call.kind === 'execute').length, 0, '过期后不得写出任何未授权 metadata');
   });
 });
 
