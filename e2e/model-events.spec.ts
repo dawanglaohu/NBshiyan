@@ -286,6 +286,8 @@ test('M2-T7 真实浏览器：产品访问、model start 与 success 分别落�
   const succeeded = successes[0];
   const started = succeeded ? starts.find((row) => row.viewId === succeeded.viewId) : undefined;
   if (!started || !succeeded) throw new Error('expected a success paired with its start');
+  // viewId 是终态与 start 的唯一关联键；为空说明事件本身不完整，直接失败，不用断言或类型强转兜。
+  if (!succeeded.viewId) throw new Error('expected a viewId on the success event');
 
   // product_view：一条来自产品页（gift-cards），一条来自本页真实 GLB 发起的卡片。
   expect(productViews.some((row) => row.productSlug === 'gift-cards' && row.path === '/en/products/custom-greeting-cards')).toBe(true);
