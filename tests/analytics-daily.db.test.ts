@@ -8,7 +8,7 @@ import { spawn } from 'node:child_process';
 import { Prisma, PrismaClient } from '@prisma/client';
 import { siteDayUtcBounds } from '../src/lib/analytics/day-boundaries';
 import { classifyDayCompleteness } from '../src/lib/analytics/daily-aggregate';
-import { runAggregateOnce, runDailyAggregateRound } from '../src/lib/server/analytics/aggregate';
+import { AggregateVersionConflict, runAggregateOnce, runDailyAggregateRound, writeDailyCoverageMetadata } from '../src/lib/server/analytics/aggregate';
 import { planSnapshot } from '../src/lib/analytics/aggregate-plan';
 import { AGGREGATE_JOB_KEY } from '../src/lib/server/analytics/aggregate-repo';
 import { readDayState, readLiveMarkerVersions } from '../src/lib/server/analytics/aggregate-day-state';
@@ -641,6 +641,102 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
       run.metadata.some((item) => item.localDate === '2026-02-02'),
       '本轮必须带出独立 CAS 写入的 coverage 结果',
     );
+  });
+
+  test('closure 独立元数据 CAS：另一路已保存成功态 → 旧 expected 命中 0 行且不覆写', async () => {
+    await reset();
+    const now = new Date('2026-03-05T02:00:00.000Z');
+    const generation = 1;
+    const leaseOwner = 'test-lease';
+    const day = '2026-03-02';
+    await seedGuards({ generation, leaseOwner, revision: REV, timezone: TZ, now });
+    await insertEvent({ kind: 'page_view', browserHash: 'b1', path: '/en', occurredAt: new Date('2026-03-02T02:00:00Z') });
+    // 另一路用真实一轮写出成功态（gapKind=null、markers=当时的 live 版本）并提交。
+    const round = await roundRun({ now, currentDate: '2026-03-05', baseDates: [day] });
+    assert.equal(round.status, 'ok');
+    const before = await readDayState(requireDb(), { localDate: day, timezoneRevision: REV });
+    assert.ok(before !== null, '真实一轮必须留下 DayState');
+    assert.equal(before?.gapKind, null);
+
+    // A 侧仍拿**先前**的 expected（读时还没有这一行）：CAS 必然 0 行。
+    const writes = await writeDailyCoverageMetadata(requireDb(), {
+      entries: [{ date: day, expected: { markers: {}, updatedAt: null, deferUntil: null } }],
+      timezone: TZ,
+      revision: REV,
+      now,
+      cutoff: now,
+      notAfter: now,
+      generation,
+      leaseOwner,
+    });
+    assert.equal(writes.length, 1);
+    assert.equal(writes[0]?.result, 'conflict_noop', '已保存成功态应归为 no-op，而不是覆盖或报错');
+    const after = await readDayState(requireDb(), { localDate: day, timezoneRevision: REV });
+    assert.equal(after?.gapKind, null, '已保存的结果不得被旧 expected 覆写成 raw_partial');
+    assert.equal(after?.updatedAt, before?.updatedAt, '行未被写入，updatedAt 必须保持');
+  });
+
+  test('closure 独立元数据 CAS：另一路仍是 raw_partial → 版本冲突、不宣完成', async () => {
+    await reset();
+    const now = new Date('2026-03-05T02:00:00.000Z');
+    const generation = 1;
+    const leaseOwner = 'test-lease';
+    const day = '2026-03-02';
+    await seedGuards({ generation, leaseOwner, revision: REV, timezone: TZ, now });
+    const stale = { markers: {}, updatedAt: null, deferUntil: null };
+    // 第一次：插入 raw_partial（真实独立 CAS 写）。
+    const first = await writeDailyCoverageMetadata(requireDb(), {
+      entries: [{ date: day, expected: stale }],
+      timezone: TZ, revision: REV, now, cutoff: now, notAfter: now, generation, leaseOwner,
+    });
+    assert.equal(first[0]?.result, 'inserted');
+    // 第二次仍用旧 expected：CAS 0 行，且现存行不是已保存成功态 → 必须报版本冲突。
+    await assert.rejects(
+      () => writeDailyCoverageMetadata(requireDb(), {
+        entries: [{ date: day, expected: stale }],
+        timezone: TZ, revision: REV, now, cutoff: now, notAfter: now, generation, leaseOwner,
+      }),
+      (error: unknown) => {
+        assert.ok(error instanceof AggregateVersionConflict, '未保存成功态不得被当成 no-op');
+        return true;
+      },
+    );
+    const row = await readDayState(requireDb(), { localDate: day, timezoneRevision: REV });
+    assert.equal(row?.gapKind, 'raw_partial', '原行必须保持，不被旧 expected 重写');
+  });
+
+  test('union≤maxDays：旧链 plan 集合与新链目标按 distinct 并集计，超出 1 才命中 max_days_initial', async () => {
+    await reset();
+    const now = new Date('2026-03-05T02:00:00.000Z');
+    const currentDate = '2026-03-05';
+    const generation = 1;
+    const leaseOwner = 'test-lease';
+    await seedGuards({ generation, leaseOwner, revision: REV, timezone: TZ, now });
+    const plan = planSnapshot({ now, siteTimezone: TZ, currentDate });
+    const reserved = [...plan.siteDates];
+    assert.ok(reserved.length >= 2, '需要至少两个旧链站点日才能做出有区分度的并集对照');
+    const limit = reserved.length;
+    for (const day of reserved) {
+      await insertEvent({ kind: 'page_view', browserHash: `b-${day}`, path: '/en', occurredAt: new Date(`${day}T02:00:00Z`) });
+    }
+    // 重叠对照：新链只用旧链已占用的日，distinct 并集仍 = limit。
+    const overlap = await runAggregateOnce({
+      db: requireDb(), now, siteTimezone: TZ, timezoneRevision: REV, generation, currentDate,
+      daily: { leaseOwner, baseDates: [reserved[0]!], maxDays: limit },
+    });
+    assert.notEqual(overlap.daily?.status, 'budget', '并集等于上限时不得触发 max_days_initial');
+
+    // 超限对照：再加一个旧链计划外、但仍在可重算域内的已结束日 → 并集 = limit + 1。
+    const outside = plan.earliestRecomputableDate;
+    assert.ok(!reserved.includes(outside), '超限日必须落在旧链计划之外');
+    await insertEvent({ kind: 'page_view', browserHash: 'b-extra', path: '/en', occurredAt: new Date(`${outside}T02:00:00Z`) });
+    const over = await runAggregateOnce({
+      db: requireDb(), now, siteTimezone: TZ, timezoneRevision: REV, generation, currentDate,
+      daily: { leaseOwner, baseDates: [reserved[0]!, outside], maxDays: limit },
+    });
+    assert.equal(over.daily?.status, 'budget');
+    assert.equal(over.daily?.budget?.reason, 'max_days_initial');
+    assert.equal(over.daily?.budget?.queued, limit + 1, 'queued 必须是 distinct 并集大小');
   });
 });
 // ---- 专属 DB 入口拒绝负控：spawn 真实入口文件，断言安全码、非 0 退出、不回显 DSN ----
