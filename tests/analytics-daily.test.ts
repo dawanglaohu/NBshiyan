@@ -307,4 +307,17 @@ describe('M5-T12 assertDailyAggregateGuards fail-closed', { concurrency: false }
       );
     }
   });
+
+  test('运行时负控：cast 省略 generation / leaseOwner 必须在写前失败', async () => {
+    const futureLease = new Date(Date.now() + 60_000).toISOString();
+    const row = [{ generation: 7, leaseOwner: 'analytics-aggregate', lockedUntil: futureLease }];
+    await assert.rejects(
+      () => assertDailyAggregateGuards(stubTx(row), { ...base, generation: undefined as unknown as number }),
+      AggregateVersionConflict,
+    );
+    await assert.rejects(
+      () => assertDailyAggregateGuards(stubTx(row), { ...base, leaseOwner: undefined as unknown as string }),
+      AggregateVersionConflict,
+    );
+  });
 });

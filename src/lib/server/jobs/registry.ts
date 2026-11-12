@@ -3,9 +3,17 @@ import { NextResponse } from 'next/server';
 import type { JobCountsDTO, JobKey, JobResultStatus } from '../../contracts/ops';
 import { OperationsRequestSchema } from '../../contracts/ops';
 import type { AppErrorCode } from '../../contracts/errors';
+import { lateArrivalSiteDates } from '../../analytics/aggregate-plan';
 import { siteLocalDate } from '../../analytics/day-boundaries';
 import { secretMatches } from '../uploads';
-import { AggregateBatchExceeded, AggregateDeadlineExceeded, AggregateVersionConflict, runAggregateOnce } from '../analytics/aggregate';
+import {
+  AggregateBatchExceeded,
+  AggregateDeadlineExceeded,
+  AggregateVersionConflict,
+  DailyRoundHalt,
+  commitDailyMetadata,
+  runAggregateOnce,
+} from '../analytics/aggregate';
 import {
   classifyRecomputeBacklog,
   parseAnalyticsSettingsValue,
@@ -307,6 +315,13 @@ export function createAnalyticsAggregateJob(deps: {
           // 到其 occurredAt 前不得提前计入（E-60）。
           occurredNotAfter: now,
           maxBatchDays: JOB_MAX_BATCH,
+          // M5-T12：同一 RR 事务内跑无身份日轮；与旧链共享 500 上限与同一个 55s 预算。
+          daily: {
+            baseDates: [...lateArrivalSiteDates(now, settings.timezone), currentDate],
+            leaseOwner: ANALYTICS_AGGREGATE_OWNER,
+            notAfter: now,
+            maxDays: JOB_MAX_BATCH,
+          },
           ...(rebuildFrom !== undefined ? { rebuildFrom } : {}),
           commit: async (tx, summary) => {
             if (budgetExhausted(budget)) throw new AggregateDeadlineExceeded();
@@ -339,8 +354,38 @@ export function createAnalyticsAggregateJob(deps: {
           },
         });
         const written = result.days.filter((day) => day.written).length;
+        if (result.dailyMeta) {
+          // 日轮的覆盖/bootstrap 元数据：独立 CAS 事务，不随整组回滚。
+          await commitDailyMetadata(deps.db, {
+            metadataDays: result.dailyMeta.metadataDays,
+            closureMeta: result.dailyMeta.closureMeta,
+            timezone: settings.timezone,
+            revision: claim.timezoneRevision,
+            now,
+            cutoff: now,
+          });
+        }
         return { kind: 'ran', status: 'SUCCEEDED', counts: { candidateCount: written } };
       } catch (error) {
+        // guard/budget 在日轮事务内抛出 → 整笔回滚（含旧链）；这里只落 PARTIAL，不宣 SUCCEEDED。
+        if (error instanceof DailyRoundHalt) {
+          const status: JobResultStatus = 'PARTIAL';
+          const persisted = await runWithinBudget(deps.db, budget, (tx) => repo.complete({
+            key: ANALYTICS_AGGREGATE_KEY,
+            owner: ANALYTICS_AGGREGATE_OWNER,
+            generation: claim.generation,
+            status,
+            summary: {
+              counts: { candidateCount: 0 },
+              times: { aggregatedAt: now.toISOString() },
+              versions: { timezoneRevision: claim.timezoneRevision },
+            },
+            errorCode: error.halt.kind === 'guard' ? 'internal_error' : 'source_unavailable',
+            timezoneRevision: claim.timezoneRevision,
+          }, tx));
+          if (persisted.kind !== 'ok') return { kind: 'timeout' };
+          return { kind: 'ran', status, counts: { candidateCount: 0 } };
+        }
         // 预算耗尽（含事务/语句/锁等待超时）：不新开失败写事务，也不晚写 JobState；
         // 保留原成功水位，租约到期后由下一次调度接管。
         if (error instanceof AggregateDeadlineExceeded || isBudgetTimeoutError(error) || budgetExhausted(budget)) {

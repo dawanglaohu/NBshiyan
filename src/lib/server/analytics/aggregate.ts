@@ -108,7 +108,13 @@ const AGGREGATE_MIN_TX_MS = 250;
 /** 事务内提交前的回调：与聚合整组写入同事务，任一失败整组回滚。 */
 export type AggregateCommitHook = (
   tx: Prisma.TransactionClient,
-  summary: { writtenDays: number; dataThrough: string | null; sourceThrough: string | null },
+  summary: {
+    writtenDays: number;
+    dataThrough: string | null;
+    sourceThrough: string | null;
+    /** 同一事务内已提交的无身份日数（未接日轮时为 0）。 */
+    dailyCommitted: number;
+  },
 ) => Promise<void>;
 
 export type AggregateDb = Pick<PrismaClient, '$transaction'> & {
@@ -135,6 +141,13 @@ export type AggregateRunResult = {
   /** 重算起点早于完整原始覆盖而被跳过的连续区间；无则为 null。 */
   skippedRange: { from: string; to: string; dayCount: number } | null;
   errorCode: string | null;
+  /** 同一事务内跑过的无身份日轮结果（未接日轮时为 null）。 */
+  daily?: DailyAggregateRoundResult | null;
+  /** 事务外仍需写的覆盖/bootstrap 元数据（日轮返回，调用方用独立 CAS 事务落盘）。 */
+  dailyMeta?: {
+    metadataDays: Array<{ date: string; action: 'coverage' | 'bootstrap' }>;
+    closureMeta: string[];
+  } | null;
 };
 
 type DayArgs = {
@@ -440,6 +453,20 @@ export async function runAggregateOnce(deps: {
    * 不符即整组回滚，属等价原子守卫。
    */
   assertTimezoneRevision?: boolean;
+  /**
+   * 同一轮、同一 RR 事务内再跑一次无身份日聚合（M5-T12）。
+   *
+   * 日指标/state 与旧 rollup/水位在**同一事务**提交；任一日失败或 guard/budget 抛出即整笔回滚。
+   * 目标站点日与旧链取并集后不得超过 `maxDays`（默认 500），共享同一个 `deadlineAt`。
+   */
+  daily?: {
+    baseDates: readonly string[];
+    maxDays?: number;
+    notAfter?: Date;
+    rawCutoff?: Date;
+    leaseOwner: string;
+    resolveProductSlugFromPath?: (normalizedPath: string, locale: string) => string | null;
+  };
 }): Promise<AggregateRunResult> {
   const deadlineMs = deps.deadlineAt?.getTime();
   const deadlineReached = () => deadlineMs !== undefined && Date.now() >= deadlineMs;
@@ -470,6 +497,7 @@ export async function runAggregateOnce(deps: {
   }
 
   let days: AggregateDayResult[] = [];
+  const dailyCapture: { value: DailyInTxResult | null } = { value: null };
   // 整组事务：任一天失败或版本冲突都会把异常抛到这里，Prisma 整笔回滚，一天都不写。
   // 不 catch 成「部分成功」——09 节 `:71` 禁止留下部分天新、部分天旧的半成品。
   try {
@@ -498,6 +526,27 @@ export async function runAggregateOnce(deps: {
           ...(deps.occurredNotAfter ? { notAfter: deps.occurredNotAfter } : {}),
         }));
       }
+      if (deps.daily) {
+        const daily = deps.daily;
+        const floor = scanFloorLocalDate(deps.currentDate);
+        dailyCapture.value = await runDailyInTx(tx, {
+          now: deps.now,
+          cutoff: plan.cutoff,
+          notAfter: daily.notAfter ?? deps.now,
+          rawCutoff: daily.rawCutoff ?? new Date(deps.now.getTime() - RAW_EVENT_RETENTION_MS),
+          timezone: deps.siteTimezone,
+          revision: deps.timezoneRevision,
+          floor,
+          today: deps.currentDate,
+          maxDays: daily.maxDays ?? DAILY_AGGREGATE_MAX_DAYS,
+          deadlineReached,
+          generation: deps.generation,
+          leaseOwner: daily.leaseOwner,
+          baseDates: new Set(daily.baseDates.filter((date) => date >= floor)),
+          reservedDays: new Set(plan.siteDates),
+          resolveProduct: daily.resolveProductSlugFromPath ?? defaultProductSlugFromPath,
+        });
+      }
       if (deps.commit) {
         let dataThrough: string | null = null;
         let sourceThrough: string | null = null;
@@ -509,7 +558,12 @@ export async function runAggregateOnce(deps: {
           }
         }
         if (deadlineReached()) throw new AggregateDeadlineExceeded();
-        await deps.commit(tx, { writtenDays: written.length, dataThrough, sourceThrough });
+        await deps.commit(tx, {
+          writtenDays: written.length,
+          dataThrough,
+          sourceThrough,
+          dailyCommitted: dailyCapture.value?.result.committed.length ?? 0,
+        });
       }
       return written;
     }, txOptions);
@@ -531,6 +585,10 @@ export async function runAggregateOnce(deps: {
     days,
     skippedRange: plan.skippedRange,
     errorCode: null,
+    daily: dailyCapture.value?.result ?? null,
+    dailyMeta: dailyCapture.value === null
+      ? null
+      : { metadataDays: dailyCapture.value.metadataDays, closureMeta: dailyCapture.value.closureMeta },
   };
 }
 
@@ -603,7 +661,7 @@ type DailyHalt =
   | { kind: 'budget'; localDate: string; reason: 'max_days_initial' | 'max_days' | 'deadline'; queued: number };
 
 /** 内部中止信号：整组事务回滚后由调用方用独立 meta 事务写 gap。 */
-class DailyRoundHalt extends Error {
+export class DailyRoundHalt extends Error {
   constructor(readonly halt: DailyHalt) {
     super(`daily_aggregate_halt:${halt.kind}`);
     this.name = 'DailyRoundHalt';
@@ -681,6 +739,195 @@ export async function assertDailyAggregateGuards(
  * `notAfter` 默认等于 `now`：只统计已到发生时间的事实，未来事实并入 defer。
  * `rawCutoff` 默认 `now − 30d`：与 raw 保留同一条线，保证 Q1/Q3 只读仍完整的窗口。
  */
+/** 同 RR 事务内可复用的日轮参数；由 `runDailyAggregateRound` 或 `runAggregateOnce` 传入。 */
+export type DailyInTxArgs = {
+  now: Date;
+  cutoff: Date;
+  notAfter: Date;
+  rawCutoff: Date;
+  timezone: string;
+  revision: number;
+  floor: string;
+  today: string;
+  maxDays: number;
+  deadlineReached: () => boolean;
+  generation: number;
+  leaseOwner: string;
+  baseDates: ReadonlySet<string>;
+  /** 同一轮旧链已占用的站点日：与日轮目标日取并集后不得超过 maxDays。 */
+  reservedDays?: ReadonlySet<string>;
+  resolveProduct: (normalizedPath: string, locale: string) => string | null;
+};
+
+export type DailyInTxResult = {
+  result: DailyAggregateRoundResult;
+  /** 覆盖/bootstrap 元数据（由调用方在事务外以独立 CAS 事务写）。 */
+  metadataDays: Array<{ date: string; action: 'coverage' | 'bootstrap' }>;
+  /** 闭包并入但不可重算的 start 日（同上，事务外写 coverage）。 */
+  closureMeta: string[];
+};
+
+function emptyDailyResult(cutoff: Date): DailyAggregateRoundResult {
+  return {
+    status: 'failed',
+    cutoff: cutoff.toISOString(),
+    targets: [],
+    committed: [],
+    days: [],
+    gaps: [],
+    metadata: [],
+    guard: null,
+    budget: null,
+    errorCode: null,
+  };
+}
+
+/**
+ * 日轮的事务内主体：守卫 → 同快照 plan → 目标日重算/闭包 → 逐日提交。
+ *
+ * 不自己开事务、不写 gap、不写元数据：
+ * - 与旧 rollup 同事务时由 `runAggregateOnce` 调用，抛 `DailyRoundHalt` 即整笔回滚；
+ * - 独立运行时由 `runDailyAggregateRound` 调用，回滚后再用独立 CAS 事务写 gap/元数据。
+ */
+export async function runDailyInTx(
+  tx: Prisma.TransactionClient,
+  args: DailyInTxArgs,
+): Promise<DailyInTxResult> {
+  const { now, cutoff, timezone, revision, floor, today, maxDays } = args;
+  const result = emptyDailyResult(cutoff);
+
+  await assertDailyAggregateGuards(tx, {
+    timezoneRevision: revision,
+    now,
+    generation: args.generation,
+    leaseOwner: args.leaseOwner,
+  });
+
+  // ---- plan（同一快照）----------------------------------------------------
+  const states = await readDayStatesInDomain(tx, revision, floor, today);
+  const live = await readLiveMarkerVersions(tx);
+  const siteRows = await readSiteRowDatesInDomain(tx, revision, floor, today);
+  const earliestRecomputable = recomputableFrom(now, timezone);
+
+  const candidates = new Set<string>();
+  for (const date of args.baseDates) candidates.add(date);
+  for (const utcDate of live.keys()) {
+    for (const delta of [-1, 0, 1]) {
+      const date = shiftLocalDate(utcDate, delta);
+      if (date >= floor && date < today) candidates.add(date);
+    }
+  }
+  for (const date of states.keys()) {
+    if (date >= floor && date < today) candidates.add(date);
+  }
+
+  const targets: string[] = [];
+  const coverageDays: string[] = [];
+  const bootstrapDays: string[] = [];
+  for (const date of [...candidates].sort()) {
+    const bounds = siteDayUtcBounds(date, timezone);
+    const mapped = utcDatesCovered(bounds);
+    const state = states.get(date) ?? null;
+    const recomputable = Date.parse(bounds.startUtc) >= Date.parse(earliestRecomputable);
+    if (args.baseDates.has(date)) {
+      if (recomputable) targets.push(date);
+      else coverageDays.push(date);
+      continue;
+    }
+    if (state === null) {
+      if (siteRows.has(date)) continue;
+      if (mapped.some((utcDate) => bigintOf(live.get(utcDate)) > 0n)) bootstrapDays.push(date);
+      continue;
+    }
+    const markerAhead = mapped.some(
+      (utcDate) => bigintOf(live.get(utcDate)) > bigintOf(state.markerVersions[utcDate]),
+    );
+    const retryGap = state.gapKind !== null && RETRY_GAPS.has(state.gapKind);
+    const deferredDue = state.deferUntil !== null
+      && cutoff.getTime() >= state.deferUntil.getTime()
+      && (state.gapKind === null || RETRY_GAPS.has(state.gapKind));
+    if (!markerAhead && !retryGap && !deferredDue) continue;
+    if (recomputable) targets.push(date);
+    else coverageDays.push(date);
+  }
+
+  // union(distinct 站点日) ≤ maxDays：与旧链共享上限，不按两条链各算一次。
+  const reserved = args.reservedDays ?? new Set<string>();
+  const unionSize = new Set<string>([...reserved, ...targets]).size;
+  if (unionSize > maxDays) {
+    throw new DailyRoundHalt({
+      kind: 'budget',
+      localDate: targets[0] ?? [...reserved][0] ?? today,
+      reason: 'max_days_initial',
+      queued: unionSize,
+    });
+  }
+
+  const closureMeta: string[] = [];
+  const queue = [...targets];
+  const queued = new Set(queue);
+  const plans: DailyDayPlan[] = [];
+  const seen = new Set<string>();
+  for (let index = 0; index < queue.length; index += 1) {
+    const date = queue[index]!;
+    if (seen.has(date)) continue;
+    seen.add(date);
+    if (args.deadlineReached()) {
+      throw new DailyRoundHalt({ kind: 'budget', localDate: date, reason: 'deadline', queued: queued.size });
+    }
+    const plan = await recomputeDailyDay(tx, {
+      localDate: date,
+      timezone,
+      revision,
+      cutoff,
+      notAfter: args.notAfter,
+      rawCutoff: args.rawCutoff,
+      floor,
+      today,
+      live,
+      resolveProduct: args.resolveProduct,
+    });
+    if (plan.kind === 'halt') throw new DailyRoundHalt(plan.halt);
+    const day = plan.plan;
+    for (const closureDate of day.closure) {
+      if (seen.has(closureDate) || queued.has(closureDate)) continue;
+      const closureBounds = siteDayUtcBounds(closureDate, timezone);
+      if (Date.parse(closureBounds.startUtc) < Date.parse(earliestRecomputable)) {
+        if (!closureMeta.includes(closureDate)) closureMeta.push(closureDate);
+        continue;
+      }
+      if (new Set<string>([...reserved, ...queued, closureDate]).size > maxDays) {
+        throw new DailyRoundHalt({ kind: 'budget', localDate: date, reason: 'max_days', queued: queued.size });
+      }
+      queued.add(closureDate);
+      queue.push(closureDate);
+    }
+    plans.push(day);
+  }
+  if (args.deadlineReached()) {
+    throw new DailyRoundHalt({ kind: 'budget', localDate: queue[0] ?? today, reason: 'deadline', queued: queued.size });
+  }
+  for (const day of plans) {
+    const rows = await commitDailyDay(tx, { day, now, revision, timezone });
+    result.days.push({ localDate: day.localDate, rows, gapKind: day.gapKind });
+    result.committed.push(day.localDate);
+  }
+
+  result.status = 'ok';
+  result.targets = [...queued];
+  const metadataDays: Array<{ date: string; action: 'coverage' | 'bootstrap' }> = [
+    ...coverageDays.map((date) => ({ date, action: 'coverage' as const })),
+    ...bootstrapDays.map((date) => ({ date, action: 'bootstrap' as const })),
+  ].slice(0, DAILY_METADATA_MAX_ROWS);
+  return { result, metadataDays, closureMeta };
+}
+
+/**
+ * 独立运行的一轮日聚合：自己开 RR 事务，回滚后用**独立 CAS 事务**写 gap/元数据。
+ *
+ * 与作业同事务的路径（`runAggregateOnce`）不经过这里：它在同一事务里直接调 `runDailyInTx`，
+ * 任一 day 失败即整笔回滚（含旧 rollup/水位/backlog/JobState）。
+ */
 export async function runDailyAggregateRound(deps: {
   db: AggregateDb;
   now: Date;
@@ -711,198 +958,104 @@ export async function runDailyAggregateRound(deps: {
   const floor = scanFloorLocalDate(deps.currentDate);
   const today = deps.currentDate;
   const resolveProduct = deps.resolveProductSlugFromPath ?? defaultProductSlugFromPath;
-  /** 仍可整日重算的最早 UTC 日界（raw 覆盖完整）。 */
-  const earliestRecomputable = recomputableFrom(now, timezone);
   const baseDates = new Set((deps.baseDates ?? []).filter((date) => date >= floor));
 
-  const result: DailyAggregateRoundResult = {
-    status: 'failed',
-    cutoff: cutoff.toISOString(),
-    targets: [],
-    committed: [],
-    days: [],
-    gaps: [],
-    metadata: [],
-    guard: null,
-    budget: null,
-    errorCode: null,
-  };
-
+  const result = emptyDailyResult(cutoff);
   if (deadlineReached()) {
     result.status = 'budget';
     result.budget = { localDate: today, reason: 'deadline', queued: 0 };
     return result;
   }
 
-  // ---- plan（只读）--------------------------------------------------------
-  const states = await readDayStatesInDomain(deps.db, revision, floor, today);
-  const live = await readLiveMarkerVersions(deps.db);
-  const siteRows = await readSiteRowDatesInDomain(deps.db, revision, floor, today);
-
-  const candidates = new Set<string>();
-  for (const date of baseDates) candidates.add(date);
-  for (const utcDate of live.keys()) {
-    for (const delta of [-1, 0, 1]) {
-      const date = shiftLocalDate(utcDate, delta);
-      if (date >= floor && date < today) candidates.add(date);
-    }
-  }
-  for (const date of states.keys()) {
-    if (date >= floor && date < today) candidates.add(date);
-  }
-
-  const targets: string[] = [];
-  const coverageDays: string[] = [];
-  const bootstrapDays: string[] = [];
-  for (const date of [...candidates].sort()) {
-    const bounds = siteDayUtcBounds(date, timezone);
-    const mapped = utcDatesCovered(bounds);
-    const state = states.get(date) ?? null;
-    const recomputable = Date.parse(bounds.startUtc) >= Date.parse(earliestRecomputable);
-    if (baseDates.has(date)) {
-      if (recomputable) targets.push(date);
-      else coverageDays.push(date);
-      continue;
-    }
-    if (state === null) {
-      if (siteRows.has(date)) continue;
-      if (mapped.some((utcDate) => bigintOf(live.get(utcDate)) > 0n)) bootstrapDays.push(date);
-      continue;
-    }
-    const markerAhead = mapped.some(
-      (utcDate) => bigintOf(live.get(utcDate)) > bigintOf(state.markerVersions[utcDate]),
-    );
-    const retryGap = state.gapKind !== null && RETRY_GAPS.has(state.gapKind);
-    const deferredDue = state.deferUntil !== null
-      && cutoff.getTime() >= state.deferUntil.getTime()
-      && (state.gapKind === null || RETRY_GAPS.has(state.gapKind));
-    if (!markerAhead && !retryGap && !deferredDue) continue;
-    if (recomputable) targets.push(date);
-    else coverageDays.push(date);
-  }
-
-  // ---- 覆盖 / bootstrap：独立、有界、CAS 元数据事务 ------------------------
-  const metadataDays: Array<{ date: string; action: 'coverage' | 'bootstrap' }> = [
-    ...coverageDays.map((date) => ({ date, action: 'coverage' as const })),
-    ...bootstrapDays.map((date) => ({ date, action: 'bootstrap' as const })),
-  ].slice(0, DAILY_METADATA_MAX_ROWS);
-  for (const item of metadataDays) {
-    const write = await writeDailyMetadata(deps.db, {
-      date: item.date,
-      action: item.action,
-      timezone,
-      revision,
+  let metadataDays: Array<{ date: string; action: 'coverage' | 'bootstrap' }> = [];
+  let closureMeta: string[] = [];
+  try {
+    const inTx = await runInRepeatableReadSnapshot(deps.db, (tx) => runDailyInTx(tx, {
       now,
       cutoff,
+      notAfter,
+      rawCutoff,
+      timezone,
+      revision,
+      floor,
+      today,
+      maxDays,
+      deadlineReached,
+      generation: deps.generation,
+      leaseOwner: deps.leaseOwner,
+      baseDates,
+      resolveProduct,
+    }), txOptionsFor(deadlineMs));
+    metadataDays = inTx.metadataDays;
+    closureMeta = inTx.closureMeta;
+    Object.assign(result, inTx.result);
+  } catch (error) {
+    const halted = haltOf(error, today, 0);
+    if (halted !== null) {
+      const gapKind = halted.kind === 'guard' ? 'clock_inversion' : 'budget';
+      // 预算已耗尽时不再为 PARTIAL/gap 开新事务。
+      const write = deadlineReached() ? 'write_failed' as const
+        : await writeDailyGap(deps.db, { halt: halted, timezone, revision, now, cutoff });
+      result.gaps.push({ localDate: halted.localDate, gapKind, write });
+      result.status = halted.kind === 'guard' ? 'guard' : 'budget';
+      if (halted.kind === 'guard') result.guard = { localDate: halted.localDate, kind: halted.guardKind };
+      else result.budget = { localDate: halted.localDate, reason: halted.reason, queued: halted.queued };
+    } else {
+      const mapped = asVersionConflict(error);
+      if (!(mapped instanceof AggregateVersionConflict)) throw mapped;
+      result.status = 'failed';
+      result.errorCode = 'version_conflict';
+    }
+  }
+
+  for (const item of metadataDays) {
+    const write = await writeDailyMetadata(deps.db, {
+      date: item.date, action: item.action, timezone, revision, now, cutoff,
     });
     result.metadata.push({ localDate: item.date, action: item.action, result: write });
   }
-
-  // ---- 目标日：整组一个 RepeatableRead 事务 ------------------------------
-  const queue = [...targets];
-  const queued = new Set(queue);
-  result.targets = [...queued];
-  if (queue.length > maxDays) {
-    const halt: DailyHalt = { kind: 'budget', localDate: queue[0]!, reason: 'max_days_initial', queued: queue.length };
-    await writeDailyGap(deps.db, { halt, timezone, revision, now, cutoff });
-    result.status = 'budget';
-    result.budget = { localDate: halt.localDate, reason: halt.reason, queued: halt.queued };
-    result.gaps.push({ localDate: halt.localDate, gapKind: 'budget', write: 'written' });
-    return result;
-  }
-
-  const closureMeta: string[] = [];
-  try {
-    await runInRepeatableReadSnapshot(deps.db, async (tx) => {
-      // 守卫不可省略：行锁真读 generation（若给了代次）＋ 原子复核时区代次。
-      await assertDailyAggregateGuards(tx, {
-        timezoneRevision: revision,
-        now,
-        generation: deps.generation,
-        leaseOwner: deps.leaseOwner,
-      });
-      const plans: DailyDayPlan[] = [];
-      const seen = new Set<string>();
-      for (let index = 0; index < queue.length; index += 1) {
-        const date = queue[index]!;
-        if (seen.has(date)) continue;
-        seen.add(date);
-        if (deadlineReached()) {
-          throw new DailyRoundHalt({ kind: 'budget', localDate: date, reason: 'deadline', queued: queued.size });
-        }
-        const plan = await recomputeDailyDay(tx, {
-          localDate: date,
-          timezone,
-          revision,
-          cutoff,
-          notAfter,
-          rawCutoff,
-          floor,
-          today,
-          live,
-          resolveProduct,
-        });
-        if (plan.kind === 'halt') throw new DailyRoundHalt(plan.halt);
-        const day = plan.plan;
-        for (const closureDate of day.closure) {
-          if (seen.has(closureDate)) continue;
-          const closureBounds = siteDayUtcBounds(closureDate, timezone);
-          if (Date.parse(closureBounds.startUtc) < Date.parse(earliestRecomputable)) {
-            if (!closureMeta.includes(closureDate)) closureMeta.push(closureDate);
-            continue;
-          }
-          if (queued.size + 1 > maxDays) {
-            throw new DailyRoundHalt({ kind: 'budget', localDate: date, reason: 'max_days', queued: queued.size });
-          }
-          queued.add(closureDate);
-          queue.push(closureDate);
-        }
-        plans.push(day);
-      }
-      if (deadlineReached()) {
-        throw new DailyRoundHalt({ kind: 'budget', localDate: queue[0]!, reason: 'deadline', queued: queued.size });
-      }
-      for (const day of plans) {
-        const rows = await commitDailyDay(tx, { day, now, revision, timezone });
-        result.days.push({ localDate: day.localDate, rows, gapKind: day.gapKind });
-        result.committed.push(day.localDate);
-      }
-    }, txOptionsFor(deadlineMs));
-  } catch (error) {
-    result.targets = [...queued];
-    result.days = [];
-    result.committed = [];
-    const halted = haltOf(error, queue[0] ?? today, queued.size);
-    if (halted !== null) {
-      const gapKind = halted.kind === 'guard' ? 'clock_inversion' : 'budget';
-      const write = await writeDailyGap(deps.db, { halt: halted, timezone, revision, now, cutoff });
-      result.gaps.push({ localDate: halted.localDate, gapKind, write });
-      // 闭包并入但不可重算的日子：覆盖元数据仍要写（独立事务，不随整组回滚）。
-      await writeClosureMeta(deps.db, { days: closureMeta, timezone, revision, now, cutoff, result });
-      if (halted.kind === 'guard') {
-        result.status = 'guard';
-        result.guard = { localDate: halted.localDate, kind: halted.guardKind };
-      } else {
-        result.status = 'budget';
-        result.budget = { localDate: halted.localDate, reason: halted.reason, queued: halted.queued };
-      }
-      return result;
-    }
-    const mapped = asVersionConflict(error);
-    if (mapped instanceof AggregateVersionConflict) {
-      result.status = 'failed';
-      result.errorCode = 'version_conflict';
-      await writeClosureMeta(deps.db, { days: closureMeta, timezone, revision, now, cutoff, result });
-      return result;
-    }
-    await writeClosureMeta(deps.db, { days: closureMeta, timezone, revision, now, cutoff, result });
-    throw mapped;
-  }
-
   await writeClosureMeta(deps.db, { days: closureMeta, timezone, revision, now, cutoff, result });
-  result.status = 'ok';
-  result.targets = [...queued];
   return result;
+}
+
+
+/**
+ * 事务外写日轮的覆盖/bootstrap 元数据（独立 CAS 事务，不随整组回滚）。
+ * 只由作业路径在 `runAggregateOnce` 成功提交后调用；`guard/budget` 回滚路径不调用。
+ */
+export async function commitDailyMetadata(
+  db: AggregateDb,
+  args: {
+    metadataDays: Array<{ date: string; action: 'coverage' | 'bootstrap' }>;
+    closureMeta: string[];
+    timezone: string;
+    revision: number;
+    now: Date;
+    cutoff: Date;
+  },
+): Promise<DailyAggregateMetadataWrite[]> {
+  const out: DailyAggregateMetadataWrite[] = [];
+  for (const item of args.metadataDays) {
+    out.push({
+      localDate: item.date,
+      action: item.action,
+      result: await writeDailyMetadata(db, {
+        date: item.date, action: item.action, timezone: args.timezone,
+        revision: args.revision, now: args.now, cutoff: args.cutoff,
+      }),
+    });
+  }
+  for (const date of args.closureMeta) {
+    out.push({
+      localDate: date,
+      action: 'coverage',
+      result: await writeDailyMetadata(db, {
+        date, action: 'coverage', timezone: args.timezone,
+        revision: args.revision, now: args.now, cutoff: args.cutoff,
+      }),
+    });
+  }
+  return out;
 }
 
 /** 把整组事务里抛出的错误归一成「可写 gap 的中止」或 null。 */
