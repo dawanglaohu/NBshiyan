@@ -197,6 +197,20 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
     `;
   }
 
+  /**
+   * `updatedAt` 必须是可解析的真实时间：行缺失、字段缺失、非法时间一律显式失败。
+   * 不用可选链比较——两边都是 undefined 时会假相等。
+   */
+  function updatedAtMs(row: { updatedAt: Date | string } | null, label: string): number {
+    assert.ok(row !== null, `${label}：必须读到这一行`);
+    const raw = row.updatedAt;
+    assert.ok(raw !== null && raw !== undefined, `${label}：updatedAt 必须存在`);
+    // Prisma 把这一列反序列化成 Date；raw SQL 路径可能是字符串，两种都按瞬时比。
+    const ms = raw instanceof Date ? raw.getTime() : new Date(raw).getTime();
+    assert.ok(Number.isFinite(ms), `${label}：updatedAt 必须是有效时间`);
+    return ms;
+  }
+
   let seq = 0;
   async function insertEvent(input: {
     occurredAt: Date;
@@ -701,7 +715,7 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
     assert.equal(writes[0]?.result, 'conflict_noop', '已保存成功态应归为 no-op，而不是覆盖或报错');
     const after = await readDayState(requireDb(), { localDate: day, timezoneRevision: REV });
     assert.equal(after?.gapKind, null, '已保存的结果不得被旧 expected 覆写成 raw_partial');
-    assert.equal(new Date(after!.updatedAt).getTime(), new Date(before!.updatedAt).getTime(), '行未被写入，updatedAt 必须保持（按瞬时比，不比 Date 引用）');
+    assert.equal(updatedAtMs(after, 'after'), updatedAtMs(before, 'before'), '行未被写入，updatedAt 必须保持（按瞬时比，不比 Date 引用）');
   });
 
   test('closure 独立元数据 CAS：raw_partial 是终态 → 旧 expected 得 no-op、原行不覆写', async () => {
@@ -727,7 +741,7 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
     assert.equal(second[0]?.result, 'conflict_noop', '终态缺口应归 no-op，不得报完成也不得覆写');
     const row = await readDayState(requireDb(), { localDate: day, timezoneRevision: REV });
     assert.equal(row?.gapKind, 'raw_partial', '原行必须保持，不被旧 expected 重写');
-    assert.equal(new Date(row!.updatedAt).getTime(), new Date(before!.updatedAt).getTime(), 'no-op 不写行，updatedAt 不变（按瞬时比）');
+    assert.equal(updatedAtMs(row, 'row'), updatedAtMs(before, 'before'), 'no-op 不写行，updatedAt 不变（按瞬时比）');
   });
 
   test('closure 独立元数据 CAS：非终态 budget 缺口 → 版本冲突、不宣完成', async () => {
@@ -759,7 +773,7 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
     );
     const row = await readDayState(requireDb(), { localDate: gapDate, timezoneRevision: REV });
     assert.equal(row?.gapKind, 'budget', '原行必须保持');
-    assert.equal(new Date(row!.updatedAt).getTime(), new Date(before!.updatedAt).getTime(), '冲突路径不写行（按瞬时比）');
+    assert.equal(updatedAtMs(row, 'row'), updatedAtMs(before, 'before'), '冲突路径不写行（按瞬时比）');
   });
 
   test('union≤maxDays：旧链 plan 集合与新链目标按 distinct 并集计，超出 1 才命中 max_days_initial', async () => {
