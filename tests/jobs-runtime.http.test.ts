@@ -47,6 +47,26 @@ function requireDb(): PrismaClient {
   return db;
 }
 
+/**
+ * Prisma 的 `$executeRaw`/`$queryRaw` 有两种合法调用形态：标签模板与真实 `Prisma.sql`。
+ * 观测器只按 SQL 文本匹配，必须先把参数归一；否则遇到 `Prisma.sql` 形态会在 `await` 之后
+ * 因 `strings.join` 不存在而抛 TypeError，把被测路径的中止点提前、污染观测。
+ *
+ * 两种合法形态之外一律 **loud fail**：静默返回空串会漏记 CAS 并掩盖调用形态变化。
+ */
+function rawSqlText(arg: unknown): string {
+  if (Array.isArray(arg)) {
+    // 标签模板：join 占位符即可得到可匹配文本。
+    return (arg as readonly string[]).join('?');
+  }
+  if (arg !== null && typeof arg === 'object' && typeof (arg as { text?: unknown }).text === 'string') {
+    // 真实 Prisma.Sql：provider 已生成带占位符的安全文本，直接取用。
+    return (arg as { text: string }).text;
+  }
+  throw new TypeError(`rawSqlText: 不支持的 raw SQL 参数形态（${arg === null ? 'null' : typeof arg}）`);
+}
+
+
 function post(body: unknown, authorization: string | null = `Bearer ${SECRET}`) {
   const headers: Record<string, string> = { 'content-type': 'application/json' };
   if (authorization !== null) headers.authorization = authorization;
@@ -331,10 +351,11 @@ describe('M5-T8 jobs runtime + cron operations route', { concurrency: false, ski
                   const value = Reflect.get(txTarget, txProp, txTarget) as unknown;
                   if (typeof value !== 'function') return value;
                   if (txProp === '$queryRaw') {
-                    return async (strings: TemplateStringsArray, ...values: unknown[]) => {
-                      const rows = await (value as (...args: unknown[]) => Promise<unknown>).call(txTarget, strings, ...values);
+                    return async (arg: unknown, ...rest: unknown[]) => {
+                      const rows = await (value as (...args: unknown[]) => Promise<unknown>).call(txTarget, arg, ...rest);
                       // complete 与主 RR 前置的 JobState 行锁 SQL 文本相同：按出现次序区分阶段。
-                      if (strings.join('?').includes('SELECT "generation" FROM "JobState"')) {
+                      // 真实 caller 有模板与 Prisma.sql 两种形态，统一归一后再匹配。
+                      if (rawSqlText(arg).includes('SELECT "generation" FROM "JobState"')) {
                         jobStateLocks += 1;
                         // 只在第 2 次（主 RR 内 complete）首次生效；之后 fail() 的重试用同一过期时钟。
                         if (jobStateLocks === 2 && !leaseExpired) {
@@ -766,9 +787,10 @@ describe('M5-T4 pending 分类与完整值 CAS 消费', { concurrency: false, sk
                   const value = Reflect.get(txTarget, txProp, txTarget) as unknown;
                   if (typeof value !== 'function') return value;
                   if (txProp === '$executeRaw') {
-                    return async (strings: TemplateStringsArray, ...values: unknown[]) => {
-                      const removed = await (value as (...args: unknown[]) => Promise<number>).call(txTarget, strings, ...values);
-                      if (strings.join('?').includes('DELETE FROM "SiteSetting"')) {
+                    return async (arg: unknown, ...rest: unknown[]) => {
+                      const removed = await (value as (...args: unknown[]) => Promise<number>).call(txTarget, arg, ...rest);
+                      // 真实 caller 有模板与 Prisma.sql 两种形态，统一归一后再匹配目标 DELETE。
+                      if (rawSqlText(arg).includes('DELETE FROM "SiteSetting"')) {
                         casDeletes.push(Number(removed));
                         // CAS DELETE 已真实执行：此刻才让租约过期，失效点落在其后的 repo.complete。
                         leaseExpired = true;
