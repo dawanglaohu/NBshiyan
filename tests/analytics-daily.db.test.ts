@@ -499,6 +499,42 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
     const state = await readDayState(requireDb(), { localDate: '2026-03-02', timezoneRevision: REV });
     assert.equal(state, null, '整组回滚后不得留下本次的元数据行');
   });
+
+  test('closure 独立覆盖：闭包日不可重算时整笔回滚，只留独立 CAS 的 coverage 元数据', async () => {
+    await reset();
+    // start 在 2026-02-01，终态在次日；闭包日早于本轮可重算下限，闭包才发现不可重算。
+    await insertEvent({
+      kind: 'model_view_start',
+      browserHash: 'b1',
+      viewId: 'v-closure',
+      productSlug: 'cube',
+      occurredAt: new Date('2026-02-01T02:00:00Z'),
+    });
+    await insertEvent({
+      kind: 'model_load_failure',
+      browserHash: 'b1',
+      viewId: 'v-closure',
+      productSlug: 'cube',
+      durationMs: 500,
+      occurredAt: new Date('2026-02-02T02:00:00Z'),
+    });
+
+    const run = await roundRun({ baseDates: ['2026-02-01'] });
+    // 闭包日不可重算：主 RR 整笔回滚，用本次 plan 的原 expected 在独立 CAS 事务补 coverage。
+    assert.equal(run.status, 'partial');
+    assert.ok(run.committed !== null, '回滚也要如实给出确认提交列表');
+    assert.deepEqual(run.committed, []);
+    assert.deepEqual(await dailyRows('2026-02-01'), [], '主事务已回滚，指标行不得残留');
+    assert.deepEqual(await dailyRows('2026-02-02'), []);
+    // 独立 CAS 写的是 coverage 元数据，而不是指标。
+    const closureState = await readDayState(requireDb(), { localDate: '2026-02-02', timezoneRevision: REV });
+    assert.ok(closureState !== null, '闭包日的 coverage 元数据必须存在');
+    assert.equal(closureState?.gapKind, null, '不是 gap：这是 coverage 覆盖说明');
+    assert.ok(
+      run.metadata.some((item) => item.localDate === '2026-02-02'),
+      '本轮必须带出独立 CAS 写入的 coverage 结果',
+    );
+  });
 });
 // ---- 专属 DB 入口拒绝负控：spawn 真实入口文件，断言安全码、非 0 退出、不回显 DSN ----
 // 子进程只拿白名单 env（父进程的 DATABASE_URL/M5T12_* 不继承），并带探针标记防止再 spawn。
