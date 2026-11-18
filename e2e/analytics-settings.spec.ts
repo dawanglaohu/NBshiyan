@@ -219,8 +219,10 @@ test.describe('已登录的 ADMIN', () => {
         overflowX?: number;
       };
       expect(probe.verdict.overflow, `${vp.width} overflow`).toBe('pass');
+      expect(probe.overflowX, `${vp.width} raw overflowX`).toBe(0);
+      expect(probe.verdict.D3, `${vp.width} D3`).toBe('pass');
       if (vp.width >= 1024) {
-        for (const k of ['D1', 'D2', 'D3', 'D4', 'D5', 'D6']) expect(probe.verdict[k], `${vp.width} ${k}`).toBe('pass');
+        for (const k of ['D1', 'D2', 'D4', 'D5', 'D6']) expect(probe.verdict[k], `${vp.width} ${k}`).toBe('pass');
         expect(probe.verdict.pass, `${vp.width} verdict.pass`).toBe(true);
         expect(probe.fill ?? 0, `${vp.width} fill`).toBeGreaterThanOrEqual(0.55);
         expect(probe.leftGap ?? 999, `${vp.width} leftGap`).toBeLessThanOrEqual(16 + 24);
