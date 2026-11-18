@@ -10,6 +10,8 @@ import type { Page, Request } from '@playwright/test';
 const BASE = `http://localhost:${Number(process.env.E2E_PORT ?? 3100)}`;
 const API = '/api/admin/settings/analytics';
 const PROBE_SRC = readFileSync('docs/PackJoyU-开发文档/_run/density_probe.js', 'utf8');
+type CapturedBody = { ok: true; status: number; json: unknown } | { ok: false; reason: 'fetch' | 'body' };
+type InitialSettings = { version: number; timezone: string; timezoneRevision: number; recomputableFrom: string | null };
 
 async function density(page: Page, opts: { type: 'form'; density: number; gutter: number; gap: number; pad: number; main: string }) {
   await page.addScriptTag({ content: PROBE_SRC });
@@ -45,25 +47,158 @@ test.describe('已登录的 ADMIN', () => {
 
   test('分区入口 → GET 四字段 → PATCH expectedVersion → 非法 IANA 本地拦截与服务端 400（E-59）', async ({ page, playwright }) => {
     test.setTimeout(120_000);
-    await page.goto('/admin/settings');
-    const nav = page.getByRole('navigation', { name: '站点设置分区' });
-    await expect(nav.getByRole('link', { name: '统计时区' })).toBeVisible();
+    let initial!: InitialSettings;
+    // E-59：等待、计数和四字段都取自页面自己收到的那条 GET——页内 clone 在应用读正文之前复制
+    // 同一份 Response，状态码读原响应；页内钩子按文档隔离、只在主帧读取，跨源、子帧和上一文档
+    // 的请求都进不来。Playwright 监听只用于捕获完成后的重复请求门。
+    let disposeInitScript = async () => {};
+    const lateGets: Request[] = [];
+    let captureSettled = false;
+    // 最终采样与还原包装只允许一次；处置尝试独立计次，失败也要各自尝试。
+    let stopped = false;
+    let disposeAttempted = false;
+    const countLateGet = (request: Request) => {
+      if (!captureSettled) return;
+      if (request.method() !== 'GET') return;
+      const url = new URL(request.url());
+      if (url.origin !== BASE || url.pathname !== API) return;
+      if (request.serviceWorker() || request.isNavigationRequest() || request.frame() !== page.mainFrame()) return;
+      lateGets.push(request);
+    };
+    page.on('request', countLateGet);
+    let failure: unknown;
+    try {
+      const initScript = await page.addInitScript(({ origin, pathname }) => {
+        type Capture = { count: number; first: Promise<CapturedBody> | null; documentUrl: string; stop(): void };
+        const original = window.fetch;
+        const wrapper: typeof window.fetch = (...args) => {
+          const pending = original.apply(window, args);
+          const [input, init] = args;
+          const request = input instanceof window.Request ? input : null;
+          if ((init?.method ?? request?.method ?? 'GET').toUpperCase() !== 'GET') return pending;
+          let url: URL;
+          try {
+            url = new URL(request?.url ?? String(input), document.baseURI);
+          } catch {
+            return pending;
+          }
+          if (url.origin !== origin || url.pathname !== pathname) return pending;
+          state.count += 1;
+          state.documentUrl = location.href;
+          if (state.count === 1) {
+            state.first = pending.then(
+              async (response): Promise<CapturedBody> => {
+                try {
+                  return { ok: true, status: response.status, json: await response.clone().json() };
+                } catch {
+                  return { ok: false, reason: 'body' };
+                }
+              },
+              (): CapturedBody => ({ ok: false, reason: 'fetch' }),
+            );
+          }
+          return pending;
+        };
+        const state: Capture = {
+          count: 0,
+          first: null,
+          documentUrl: '',
+          stop() {
+            if (window.fetch === wrapper) window.fetch = original;
+          },
+        };
+        window.fetch = wrapper;
+        (window as unknown as { __e59GetCapture?: Capture }).__e59GetCapture = state;
+      }, { origin: BASE, pathname: API });
+      disposeInitScript = () => initScript.dispose();
 
-    const getResponse = page.waitForResponse((r) => new URL(r.url()).pathname === API && r.request().method() === 'GET');
-    await nav.getByRole('link', { name: '统计时区' }).click();
-    await expect(page).toHaveURL(/section=analytics/);
-    await expect(page.getByRole('heading', { level: 1, name: '统计时区' })).toBeVisible();
-    await expect(nav.getByRole('link', { name: '统计时区' })).toHaveAttribute('aria-current', 'page');
+      await page.goto('/admin/settings');
+      const nav = page.getByRole('navigation', { name: '站点设置分区' });
+      await expect(nav.getByRole('link', { name: '统计时区' })).toBeVisible();
 
-    const got = await getResponse;
-    expect(got.status()).toBe(200);
-    const initial = (await got.json()) as { version: number; timezone: string; timezoneRevision: number; recomputableFrom: string | null };
-    expect(Object.keys(initial).sort()).toEqual(['recomputableFrom', 'timezone', 'timezoneRevision', 'version']);
+      await nav.getByRole('link', { name: '统计时区' }).click();
+      await expect(page).toHaveURL(/section=analytics/);
+      await expect(page.getByRole('heading', { level: 1, name: '统计时区' })).toBeVisible();
+      await expect(nav.getByRole('link', { name: '统计时区' })).toHaveAttribute('aria-current', 'page');
+      // 等待的是统计分区文档自己的钩子：另一来源、子帧或上一文档的响应都无法满足它。
+      await page.waitForFunction(() => {
+        const state = (window as unknown as { __e59GetCapture?: { count: number } }).__e59GetCapture;
+        return (state?.count ?? 0) > 0;
+      });
 
+      const captured = await page.evaluate(async () => {
+        type Capture = { count: number; first: Promise<CapturedBody> | null; documentUrl: string };
+        const state = (window as unknown as { __e59GetCapture?: Capture }).__e59GetCapture;
+        if (!state) throw new Error('E-59 页内 GET 捕获未安装');
+        const body = state.first === null ? null : await state.first;
+        const count = state.count;
+        return { count, documentUrl: state.documentUrl, body };
+      });
+      captureSettled = true;
+      expect(captured.count, '统计分区文档应恰好捕获一笔同源主帧 GET').toBe(1);
+      const sectionDoc = new URL(captured.documentUrl);
+      expect(sectionDoc.pathname, '页内 GET 的发起文档').toBe('/admin/settings');
+      expect(sectionDoc.searchParams.get('section'), '页内 GET 的发起分区').toBe('analytics');
+      if (captured.body === null) throw new Error('页面 GET 缺少页内正文捕获');
+      if (!captured.body.ok) throw new Error(`页面 GET 正文捕获失败（${captured.body.reason}）`);
+      expect(captured.body.status, '页面 GET 的状态码（与四字段同一响应）').toBe(200);
+      initial = captured.body.json as InitialSettings;
+      expect(Object.keys(initial).sort()).toEqual(['recomputableFrom', 'timezone', 'timezoneRevision', 'version']);
+
+      await expect(page.getByTestId('analytics-settings-timezone')).toHaveText(initial.timezone);
+      await expect(page.getByTestId('analytics-settings-revision')).toHaveText(String(initial.timezoneRevision));
+      await expect(page.getByTestId('analytics-settings-recomputable')).toBeVisible();
+
+      // 保存前最后一次采样：读计数和还原自有 fetch 包装必须在同一次页内求值里完成，
+      // 两者之间不再给页面执行机会。监听保留到该次求值返回与 dispose 之后，
+      // 期间任何目标 GET 都必须在进入保存前拒绝。
+      const live = await page.evaluate(() => {
+        const state = (window as unknown as {
+          __e59GetCapture?: { count: number; documentUrl: string; stop(): void };
+        }).__e59GetCapture;
+        if (!state) throw new Error('E-59 页内 GET 钩子已不在当前文档');
+        const count = state.count;
+        state.stop();
+        return { count, documentUrl: state.documentUrl };
+      });
+      stopped = true;
+      expect(live.count, '保存前页内钩子的实时计数').toBe(1);
+      expect(new URL(live.documentUrl).pathname, '最后采样仍属于统计分区文档').toBe('/admin/settings');
+      expect(lateGets.length, '最终采样返回时不应已出现目标 GET').toBe(0);
+      // dispose 期间浏览器仍可能执行页面代码；监听留到处置完成之后再卸。
+      disposeAttempted = true;
+      try {
+        await disposeInitScript();
+      } catch (error) {
+        failure ??= error;
+      }
+      expect(lateGets.length, '清理完成时不应再出现目标 GET').toBe(0);
+    } catch (error) {
+      failure ??= error;
+    } finally {
+      // 采样没走完（异常或钩子丢失）时仍尽力还原包装；不覆盖测试体原始失败。
+      if (!stopped) {
+        try {
+          await page.evaluate(() => {
+            const state = (window as unknown as { __e59GetCapture?: { stop(): void } }).__e59GetCapture;
+            state?.stop();
+          });
+        } catch (error) {
+          failure ??= error;
+        }
+      }
+      if (!disposeAttempted) {
+        disposeAttempted = true;
+        try {
+          await disposeInitScript();
+        } catch (error) {
+          failure ??= error;
+        }
+      }
+      page.off('request', countLateGet);
+    }
+    if (failure !== undefined) throw failure;
     const tzCell = page.getByTestId('analytics-settings-timezone');
-    await expect(tzCell).toHaveText(initial.timezone);
-    await expect(page.getByTestId('analytics-settings-revision')).toHaveText(String(initial.timezoneRevision));
-    await expect(page.getByTestId('analytics-settings-recomputable')).toBeVisible();
 
     // 目标时区避开当前值，保证 PATCH 真的改变 revision；本地预检 + 服务端权威校验
     const target = initial.timezone === 'Asia/Tokyo' ? 'Europe/Berlin' : 'Asia/Tokyo';
