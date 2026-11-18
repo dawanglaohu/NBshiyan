@@ -68,22 +68,89 @@ test.describe('已登录的 ADMIN', () => {
     // 目标时区避开当前值，保证 PATCH 真的改变 revision；本地预检 + 服务端权威校验
     const target = initial.timezone === 'Asia/Tokyo' ? 'Europe/Berlin' : 'Asia/Tokyo';
     await page.getByTestId('analytics-settings-input').fill(target);
-    const patchResponse = page.waitForResponse((r) => new URL(r.url()).pathname === API && r.request().method() === 'PATCH');
-    const patchRequest = page.waitForRequest((r) => new URL(r.url()).pathname === API && r.method() === 'PATCH');
-    await page.getByTestId('analytics-settings-save').click();
-    const req = await patchRequest;
-    expect(req.postDataJSON()).toEqual({ timezone: target, expectedVersion: initial.version });
-    const patched = await patchResponse;
-    expect(patched.status()).toBe(200);
-    const next = (await patched.json()) as { version: number; timezone: string; timezoneRevision: number; rebuildScheduled: boolean };
-    expect(next.timezone).toBe(target);
-    expect(next.version).toBe(initial.version + 1);
-    expect(next.timezoneRevision).toBeGreaterThan(initial.timezoneRevision);
-    expect(next.rebuildScheduled).toBe(true);
-    await expect(tzCell).toHaveText(target);
-    await expect(page.getByTestId('analytics-settings-revision')).toHaveText(String(next.timezoneRevision));
-    await expect(page.getByTestId('analytics-settings-rebuild')).toBeVisible();
-    await expect(page.getByTestId('analytics-settings-status')).toContainText('已保存');
+    const origin = new URL(page.url()).origin;
+    const mainFrame = page.mainFrame();
+    const capture = await page.evaluateHandle(({ origin, pathname }) => {
+      type BodyResult = { ok: true; json: unknown } | { ok: false; reason: 'fetch' | 'body' };
+      const original = window.fetch;
+      const state = {
+        count: 0,
+        first: null as Promise<BodyResult> | null,
+        stop(): number {
+          window.fetch = original;
+          return this.count;
+        },
+      };
+      // 在应用读取原 Response 之前克隆正文，保留应用收到的原始 Promise。
+      window.fetch = (...args) => {
+        const pending = original.apply(window, args);
+        const [input, init] = args;
+        const request = input instanceof window.Request ? input : null;
+        if ((init?.method ?? request?.method) !== 'PATCH') return pending;
+        let url: URL;
+        try {
+          url = new URL(request?.url ?? String(input), document.baseURI);
+        } catch {
+          return pending;
+        }
+        if (url.origin !== origin || url.pathname !== pathname) return pending;
+        state.count += 1;
+        if (state.count === 1) {
+          state.first = pending.then(
+            async (response): Promise<BodyResult> => {
+              try {
+                return { ok: true, json: await response.clone().json() };
+              } catch {
+                return { ok: false, reason: 'body' };
+              }
+            },
+            (): BodyResult => ({ ok: false, reason: 'fetch' }),
+          );
+        }
+        return pending;
+      };
+      return state;
+    }, { origin, pathname: API });
+
+    const saveRequests: Request[] = [];
+    const observeSave = (request: Request) => {
+      if (request.method() !== 'PATCH') return;
+      const url = new URL(request.url());
+      if (url.origin !== origin || url.pathname !== API) return;
+      if (request.serviceWorker() || request.isNavigationRequest() || request.frame() !== mainFrame) return;
+      saveRequests.push(request);
+    };
+    page.on('request', observeSave);
+    let next: { version: number; timezone: string; timezoneRevision: number; rebuildScheduled: boolean };
+    try {
+      const [patched] = await Promise.all([
+        page.waitForResponse((response) => response.request() === saveRequests[0]).catch(() => {
+          throw new Error(`有效保存未收到首个 PATCH 的响应（匹配请求数 ${saveRequests.length}）`);
+        }),
+        page.getByTestId('analytics-settings-save').click(),
+      ]);
+      expect(patched.request().postDataJSON()).toEqual({ timezone: target, expectedVersion: initial.version });
+      expect(patched.status()).toBe(200);
+      const body = await capture.evaluate(async (state) => await state.first);
+      if (body === null) throw new Error('有效保存 PATCH 缺少页内正文捕获');
+      if (!body.ok) throw new Error(`有效保存 PATCH 正文捕获失败（${body.reason}）`);
+      next = body.json as typeof next;
+      expect(next.timezone).toBe(target);
+      expect(next.version).toBe(initial.version + 1);
+      expect(next.timezoneRevision).toBeGreaterThan(initial.timezoneRevision);
+      expect(next.rebuildScheduled).toBe(true);
+      await expect(tzCell).toHaveText(target);
+      await expect(page.getByTestId('analytics-settings-revision')).toHaveText(String(next.timezoneRevision));
+      await expect(page.getByTestId('analytics-settings-rebuild')).toBeVisible();
+      await expect(page.getByTestId('analytics-settings-status')).toContainText('已保存');
+
+      const captures = await capture.evaluate((state) => state.stop());
+      expect(saveRequests.length, '有效保存应恰好发送一次同源主帧 PATCH').toBe(1);
+      expect(captures, '有效保存应恰好捕获一次页内 PATCH 正文').toBe(1);
+    } finally {
+      page.off('request', observeSave);
+      await capture.dispose();
+    }
 
     // 非法 IANA ①：客户端预检直接拦下，不发 PATCH；字段错出现、输入保留、右栏仍是服务端上一有效值
     const bad = 'Mars/Olympus';
