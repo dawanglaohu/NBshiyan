@@ -511,36 +511,227 @@ test('M2-T7 F1 同页接受：不重载页面，后续真实 GLB 发起即落 pr
 test('M2-T7 F1 拒绝后再次接受：同页恢复采集，真实加载落库', async ({ page }) => {
   test.setTimeout(180_000);
   const since = new Date();
+  const slug = 'christmas-merchandise';
+  const initialUrl = new URL('/models/christmas-tube.621c7715.glb', BASE);
+  const retryUrl = new URL('?retry=1', initialUrl).href;
+  const injected = new Set<import('@playwright/test').Request>();
   let allow = false;
-  // 同意前的真实尝试全部失败（不产生事件）；接受后用重试（attempt+1）发起新的一次真实加载。
-  await page.route(/\/models\/.*\.glb(\?.*)?$/, async (route) => {
-    if (!allow) return route.abort('failed');
-    return route.continue();
+  let retryRequested = false;
+  await page.route((url) => url.origin === initialUrl.origin && /^\/models\/.+\.glb$/.test(url.pathname), async (route) => {
+    const request = route.request();
+    const url = request.method() === 'GET' && request.frame() === page.mainFrame() ? request.url() : null;
+    if (!allow) {
+      await route.abort('failed');
+      if (url === initialUrl.href) injected.add(request);
+      return;
+    }
+    await route.continue();
+    if (url === retryUrl) retryRequested = true;
   });
+
+  const width = 900;
+  await page.setViewportSize({ width, height: 1_000 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/en/products');
   await rejectOnCurrentPage(page);
-  // 确保同意前的真实尝试已经发起（全部被上面的路由拒绝）。
+  await expect(page.locator('main')).toBeFocused();
+  const card = page.locator(`article.card#${slug}`);
+  const stage = card.getByTestId('product-viewport');
+  const fallback = stage.locator(`[data-testid="model-fallback"][data-slug="${slug}"][data-reason="LOAD_ERROR"]`);
+  const retry = fallback.getByTestId('model-retry');
+  const settings = page.locator('#cookie-settings-link');
+
+  // 从页脚进入设置，保存返回同一个按钮。单列视口按实测页尾距离露出末卡模型下沿及重试区。
+  const height = await stage.evaluate(async (el) => {
+    await document.fonts.ready;
+    const remaining = document.documentElement.scrollHeight - (window.scrollY + el.getBoundingClientRect().bottom);
+    return Math.max(680, Math.ceil(remaining + 280));
+  });
+  await page.setViewportSize({ width, height });
+  await page.keyboard.press('End');
+  await expect.poll(() => page.evaluate(() => {
+    const root = document.documentElement;
+    return Math.abs(root.scrollHeight - root.clientHeight - window.scrollY);
+  }), { message: 'page reached the catalogue footer' }).toBeLessThanOrEqual(1);
+  await expect(settings).toBeInViewport({ ratio: 1 });
   await page.mouse.move(320, 260);
 
-  await page.locator('.consent-toast button').click();
-  const dialog = page.getByRole('dialog', { name: 'Cookie settings' });
-  await expect(dialog).toBeVisible();
-  await writeConsent(page, 'accept', () => dialog.getByRole('button', { name: 'Accept all' }).click(), { grant: true });
+  // 跟踪真实画廊的 200 px 预热区，覆盖弹窗期间及焦点恢复时经过的卡片。
+  const windowProbe = await page.evaluateHandle(() => {
+    const selector = '.product-grid [data-testid="product-viewport"][data-slug]';
+    const tracks = Array.from(document.querySelectorAll<HTMLElement>(selector));
+    const margin = 200;
+    const warmed = new Set<string | null>();
+    const record = (entries: IntersectionObserverEntry[]) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) warmed.add(entry.target.getAttribute('data-slug'));
+      }
+    };
+    const observer = new IntersectionObserver(record, { rootMargin: `${margin}px` });
+    tracks.forEach((track) => observer.observe(track));
+    return {
+      snapshot() {
+        record(observer.takeRecords());
+        const root = document.documentElement;
+        const current = Array.from(document.querySelectorAll<HTMLElement>(selector));
+        const inRange = current.filter((track) => {
+          const rect = track.getBoundingClientRect();
+          return rect.width > 0 && rect.height > 0 && rect.right >= -margin && rect.left <= root.clientWidth + margin
+            && rect.bottom >= -margin && rect.top <= root.clientHeight + margin;
+        });
+        return {
+          atEnd: Math.abs(root.scrollHeight - root.clientHeight - window.scrollY) <= 1,
+          sameTracks: current.length === tracks.length && current.every((track, i) => track === tracks[i]),
+          inRange: inRange.map((track) => track.getAttribute('data-slug')),
+          warmed: [...warmed],
+        };
+      },
+      disconnect: () => observer.disconnect(),
+    };
+  });
+  const readWindow = () => windowProbe.evaluate((probe) => probe.snapshot());
+  const expectedWindow = { atEnd: true, sameTracks: true, inRange: [slug], warmed: [slug] };
+  const eventsPath = '/api/analytics/events';
+  const eventPosts: (string | null)[] = [];
+  const onEventPost = (request: import('@playwright/test').Request) => {
+    const url = new URL(request.url());
+    if (request.method() === 'POST' && url.origin === initialUrl.origin && url.pathname === eventsPath) {
+      eventPosts.push(request.postData());
+    }
+  };
+  let closeRetryWindow: (() => Promise<void>) | undefined;
+  try {
+    await expect.poll(readWindow, { message: 'only the retry card enters the footer warm-up window' }).toEqual(expectedWindow);
+    const dialog = page.getByRole('dialog', { name: 'Cookie settings' });
+    await settings.click();
+    await expect(dialog).toBeVisible();
+    await expect.poll(async () => ({
+      networkFailed: [...injected].some((request) => request.failure()?.errorText === 'net::ERR_FAILED'),
+      fallbackVisible: await fallback.isVisible(),
+    }), { timeout: 60_000 }).toEqual({ networkFailed: true, fallbackVisible: true });
+    await expect(page.locator('html')).toHaveAttribute('data-analytics-collecting', 'false');
+    expect(await readWindow()).toEqual(expectedWindow);
+    page.on('request', onEventPost);
+    const retryWindow = await retry.evaluateHandle((button, path) => {
+      const root = document.documentElement;
+      const attribute = 'data-analytics-queue';
+      let queuedBeforeClick = root.getAttribute(attribute) !== '0';
+      let clicked = false;
+      let postsBeforeClick = 0;
+      const postsAfterClick: (string | null)[] = [];
+      const recordQueue = (records: MutationRecord[]) => {
+        if (records.some(({ oldValue }) => oldValue !== '0') || root.getAttribute(attribute) !== '0') {
+          queuedBeforeClick = true;
+        }
+      };
+      const queueObserver = new MutationObserver(recordQueue);
+      queueObserver.observe(root, { attributes: true, attributeFilter: [attribute], attributeOldValue: true });
+      const onClick = (event: MouseEvent) => {
+        if (!clicked && event.isTrusted && event.button === 0 && event.composedPath().includes(button)) {
+          recordQueue(queueObserver.takeRecords());
+          queueObserver.disconnect();
+          clicked = true;
+        }
+      };
+      document.addEventListener('click', onClick, true);
 
-  const firstCard = page.locator('article.card').first();
-  await expect(firstCard.getByTestId('model-fallback')).toBeVisible({ timeout: 60_000 });
-  // 拒绝与同意前的真实失败都不产生事件。
-  expect(await rowsSince(since)).toEqual([]);
+      // 在浏览器线程以可信点击为界给 fetch 分阶段，随后核对实际网络请求。
+      const fetchOriginal = window.fetch;
+      const fetchObserved: typeof fetch = function (this: Window, ...args) {
+        const result = Reflect.apply(fetchOriginal, this, args) as ReturnType<typeof fetch>;
+        const [input, init] = args;
+        const method = init?.method ?? (input instanceof Request ? input.method : 'GET');
+        if (method.toUpperCase() !== 'POST') return result;
+        let url: URL;
+        try {
+          url = new URL(input instanceof Request ? input.url : input, document.baseURI);
+        } catch {
+          return result;
+        }
+        if (url.origin === location.origin && url.pathname === path) {
+          if (clicked) postsAfterClick.push(typeof init?.body === 'string' ? init.body : null);
+          else postsBeforeClick += 1;
+        }
+        return result;
+      };
+      window.fetch = fetchObserved;
 
-  allow = true;
-  await firstCard.getByTestId('model-retry').click();
-  await expect.poll(async () => (await rowsSince(since, 'model_view_start')).length, { timeout: 90_000 }).toBeGreaterThan(0);
-  await expect.poll(async () => (await rowsSince(since, 'model_load_success')).length, { timeout: 90_000 }).toBeGreaterThan(0);
-  const rows = await rowsSince(since);
-  expect(rows.filter((row) => row.kind === 'page_view')).toEqual([]);
-  const start = rows.find((row) => row.kind === 'model_view_start')!;
-  expect(start.path).toBe('/en/products');
-  expect(rows.some((row) => row.kind === 'product_view' && row.navigationId === start.navigationId && row.productSlug === start.productSlug)).toBe(true);
+      return {
+        snapshot() {
+          if (!clicked) recordQueue(queueObserver.takeRecords());
+          return { clicked, queuedBeforeClick, postsBeforeClick };
+        },
+        postClickBodies: () => [...postsAfterClick],
+        dispose() {
+          queueObserver.disconnect();
+          document.removeEventListener('click', onClick, true);
+          if (window.fetch === fetchObserved) window.fetch = fetchOriginal;
+        },
+      };
+    }, eventsPath);
+    closeRetryWindow = async () => {
+      try {
+        await retryWindow.evaluate((probe) => probe.dispose());
+      } finally {
+        await retryWindow.dispose();
+      }
+    };
+    await writeConsent(page, 'accept', () => dialog.getByRole('button', { name: 'Accept all' }).click(), { grant: true });
+    await expect(dialog).toBeHidden();
+    await expect(settings).toBeFocused();
+    await expect(fallback).toBeVisible();
+    await expect(retry).toBeEnabled();
+    await expect(retry).toBeInViewport({ ratio: 1 });
+    expect(await readWindow()).toEqual(expectedWindow);
+    expect(await rowsSince(since)).toEqual([]);
+    expect(await readWindow()).toEqual(expectedWindow);
+
+    // 点击可命中的按钮中心，避免定位器自动滚动改变预热集合。
+    const retryPoint = await retry.evaluate((button) => {
+      const { left, top, width, height } = button.getBoundingClientRect();
+      const point = { x: left + width / 2, y: top + height / 2 };
+      return button.contains(document.elementFromPoint(point.x, point.y)) ? point : null;
+    });
+    if (!retryPoint) throw new Error('Retry button center is covered');
+    const noBeforeRetry = { queuedBeforeClick: false, postsBeforeClick: 0 };
+    const readRetry = () => retryWindow.evaluate((probe) => probe.snapshot());
+    expect(await readRetry()).toMatchObject({ clicked: false, ...noBeforeRetry });
+    expect(eventPosts, 'analytics POSTs delivered before retry input').toHaveLength(0);
+    allow = true;
+    await page.mouse.click(retryPoint.x, retryPoint.y);
+    expect(await readRetry(), 'analytics before the trusted retry click').toMatchObject({ clicked: true, ...noBeforeRetry });
+    await expect.poll(async () => {
+      if (!retryRequested) return false;
+      const starts = await rowsSince(since, 'model_view_start');
+      return starts.some((row) => row.productSlug === slug && row.viewId !== null);
+    }, { timeout: 90_000 }).toBe(true);
+    const [start] = await rowsSince(since, 'model_view_start');
+    expect(start).toMatchObject({ productSlug: slug, viewId: expect.any(String), navigationId: expect.any(String) });
+    await expect.poll(async () => {
+      const successes = await rowsSince(since, 'model_load_success');
+      return successes.some((row) => row.viewId === start.viewId && row.productSlug === slug && row.navigationId === start.navigationId);
+    }, { timeout: 90_000 }).toBe(true);
+    expect(await readWindow()).toEqual(expectedWindow);
+    const rows = await rowsSince(since);
+    expect(rows.filter((row) => row.kind === 'model_view_start')).toEqual([start]);
+    expect(rows.filter((row) => row.kind === 'page_view')).toEqual([]);
+    expect(start.path).toBe('/en/products');
+    const postClickBodies = await retryWindow.evaluate((probe) => probe.postClickBodies());
+    expect(eventPosts).toHaveLength(postClickBodies.length);
+    const postedIds = new Set<string>();
+    for (const [index, body] of eventPosts.entries()) {
+      if (body === null || body !== postClickBodies[index]) throw new Error('Analytics POST did not match a fetch after the trusted click');
+      const { events } = JSON.parse(body) as { events: PostedEvent[] };
+      events.forEach(({ eventId }) => postedIds.add(eventId));
+    }
+    expect(postedIds.has(start.eventId)).toBe(true);
+    expect(rows.some((row) => row.kind === 'product_view' && row.navigationId === start.navigationId && row.productSlug === start.productSlug && postedIds.has(row.eventId))).toBe(true);
+  } finally {
+    page.off('request', onEventPost);
+    await closeRetryWindow?.().catch(() => {});
+    await windowProbe.evaluate((probe) => probe.disconnect()).catch(() => {});
+    await windowProbe.dispose().catch(() => {});
+  }
 });
 
 test('M2-T7 F1 同意请求在途导航：授权确认后按当前页建立上下文', async ({ page }) => {
