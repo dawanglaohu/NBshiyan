@@ -2908,7 +2908,10 @@
         ".github/workflows/ci.yml",
         "e2e/model-pointer.spec.ts",
         "e2e/admin-legacy-model-visual.spec.ts",
-        "e2e/model-events.spec.ts"
+        "e2e/model-events.spec.ts",
+        ".gitignore",
+        "e2e/density-evidence.ts",
+        "src/components/admin/stats/AnalyticsSettingsContainer.module.css"
       ],
       "outputPaths": [
         "src/components/admin/stats/AnalyticsSettingsContainer.tsx",

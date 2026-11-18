@@ -1210,14 +1210,24 @@
   },
   "M5-T10": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "23ecfbef33eb886367342aa452e3cf512a155aa0cbee83b59c4beb71da4973c3",
+    "contractHash": "d36573811cd97714d541fe4ad88d4a582de17062d7fd83980656b7dd92efbc0d",
     "evidence": [
-      "源变更唯一：task-contracts.json 的 M5-T10.supportPaths 4→5，仅追加 e2e/model-events.spec.ts；同任务 outputPaths/requires/provides/stage/wiring/sections 逐字段相等，86 个任务条目中除 M5-T10 外 0 变化",
-      "依据为本 run 43255374758 的真实失败：e2e/model-events.spec.ts:697 旧 viewId 终态 0、新终态 POST 在断言时仍在途（DB 归因 FINAL-697-ROOT-CAUSE.md）；697 的有界 poll 实施需该 spec 进 M5-T10 有效写域，属原任务必要支持路径，不新增需求、不改产品源码/CI",
-      "派生结构不变：progress 105 键相等、batchRecords（含 B9 fixed）相等、repairTasks 相等、groups/pres/index 相等；变化仅为契约哈希传播（受影响 6 个：M3-T25/M5-T10/M7-T10/M7-T3/M7-T8/M7-T9）与据此重算的提示词/清单摘要",
-      "验收标准、90s 测试预算、用例集合与既有 CI 源均未变；本补丁只改声明，不代表 697 或任何 spec 已通过"
+      "固定头 233eda0fa623cfb16c10524787a58efd1482fa44 / merge checkout f75352e88470d75eb4c16dd9d51beba5110bc988 / tree 62dacb36e20951bc8442b54d02f9edb94dd5d28d / 双父 231482872fdcf4ea333eb8d3bfc66839725f7c23 与 233eda0f…；run 44378770960 attempt 1 全作业 success；PR #556 当次为开放草稿。产品 sync 后契约哈希 d36573811cd97714d541fe4ad88d4a582de17062d7fd83980656b7dd92efbc0d、源版本 438307052cb7e8adecda2a223c8167b1e4251ec234866d6b8d396b74de5bb6c5、补丁 t10-233eda0f-metadata-20261118（synced）。",
+      "验收 1 真浏览器链：录制变体在 /admin/inquiries 点 nav#adm-nav「站点设置」→ /admin/settings → 分区「统计时区」，断言链接 href 与最终 URL（CI 日志 3043-3052），并留 frame 00；四张原帧、成品首帧预览与五张解码代表帧已由媒体卡通过可读性/隐私复核（analytics-style-actual-request-gif-20261118/progress.md；画面为合成测试管理员、询盘列表为空）。shipped spec:26/32/49/332/394 覆盖未登录、非 ADMIN、分区入口、两时区+三尺寸密度、409，run 日志 2367-2371 五例全 ✓（104ms/442ms/1.7s/2.2s/1.2s）。",
+      "GET 四字段：页内捕获恰好 1 笔同源主帧 GET，200，键名恰为 recomputableFrom/timezone/timezoneRevision/version（spec:130-151）；GIF requests.json.get = {timezone UTC, version 0, timezoneRevision 1, recomputableFrom null}。",
+      "PATCH：点击保存恰好 1 笔主帧 PATCH，postDataJSON 精确 {timezone:'Asia/Tokyo',expectedVersion:0}，200；响应 version=1、timezoneRevision=2、rebuildScheduled=true、recomputableFrom=2026-10-20T15:00:00.000Z；UI 断言 timezone/revision/rebuild/「已保存」（spec:262-281）；requests.json.feedback 精确「✓ 已保存：version 1 · revision 2 · 已登记重算」。",
+      "recomputableFrom 与 partial：component:45-49 utcText 区分 null「无可用重算待办（null 不表示重建已完成）」与非 null「partial：仅 … 起可重算；更早历史保留原时区标签」；录制变体对该文本有断言（CI 日志补丁段），frame 03 留存。shipped spec 只断言 visible（:151），文案回归缺口见 G4。",
+      "E-59 拒绝侧：本地预检不发 PATCH、字段错可见、输入保留 bad、右栏保留 target、revision 不变（spec:291-306）；服务端 400 error=invalid + fieldErrors.timezone，重读 timezone/version/revision 全部不变（spec:308-329）；SALES 直接 GET/PATCH 403、页面 404（spec:32-43）；未登录 401+3xx（spec:26-29）。",
+      "验收 2：页面文案「这里是全站共用的站点时区…与打开页面的浏览器时区无关」（component:189）、「IANA 时区」标签（:214）与 hint（:236）；America/New_York 与 Asia/Tokyo 两个 context 读到同一文本（spec:332-345）；本任务只验设置页，指标图表/导出由 M6 集成。",
+      "验收 3 密度：density-evidence.ts:22 固定 type=form、density=7、gutter=16、gap=16、pad=16、main=.st-page；三视口 spec:347-375 断言 overflow、D3 与桌面 D1/D2/D4/D5/D6、fill≥0.55、leftGap≤40；probe 原值 0.698/18、0.916/18、390 0.826/34，overflow 0/match；逐视口判读见 D:/xiangmu/.codex-plans/NBShiyan-m5-t10/analytics-form-style-live-20261118/VERDICT.tsv。",
+      "样式：同次附件 VERIFY-STYLE 115 PASS / 0 FAIL / 6 GAP（cursor 与 border bottom/left 未采集），固定 CSS tokens.css:92-143 的 border 简写 + cursor:not-allowed 静态闭合，扫描 15 份 CSS 无 longhand 覆盖；三视口顶部 16/16/16、grid 800+320、input 36/44、save 36/44、2px/0/近黑、save disabled/dashed/opacity 1；证据 D:/xiangmu/.codex-plans/NBShiyan-m5-t10/analytics-form-style-live-20261118/。",
+      "实际请求 GIF：附件 14466515907 恰 4 帧 1440×900 + requests.json + identity.json；GIF-VERIFY = PROOF_PASS；identity 绑定 head/checkout/tree/parents/buildId/spec blob edd520e66d20a77d933686613d14406e86637255/recorder sha 8884cc44…；CI 内 T10_GIF_VERIFY 校验请求、帧、反馈（日志 3295-3300）。四帧、成品首帧预览与五张解码代表帧已通过可读性/隐私复核（analytics-style-actual-request-gif-20261118/progress.md），画面为合成测试管理员、询盘列表为空。成品 149,381 B / 0E8EB233D1853AED6532A2C3256BDEE0FA01CBC81DB06D48260028387F6B3C96，解码 1200×750、80 帧、8.0 秒（1.5/1.5/1.5/3.5），媒体提交 fe7aa779…（父 e2094828…，仅新增 blob a472f6a4…）；新旧嵌入 URL 均 200 image/gif 且逐字节核同；#556 在发布前后均为 233eda0f。PR 正文追加 1,247 B（成文 12,405 B / c17b0ae7a8280829bbb5d937d002126028c9e96342e4ca93ad38efe964f98088），Ego Browser 在实际正文核到新旧各一个可见播放器，新版点击播放读回 1200×750、图像可见、按钮播放→暂停（analytics-style-gif-pr-body-20261118/RECEIPT.md）。",
+      "接口与文件门：tests/analytics-settings.db.test.ts pass=9、tests/analytics-settings.http.test.ts pass=10（CI 日志 794-795）；PostgreSQL 文件门 26 文件 pass 合计 347、异常 0（RECEIPT.json）。两文件在 base 已存在，属 M5-T4 的接口测试。",
+      "代码锚点（233eda0f）：page.tsx:16/20；component:45/58/107/120/207/219/241/257/261/264/267；module.css:1/5/11/15；tokens.css:92/137（本任务未改）；ops.ts:25/40；SettingsSections:9/13；spec:26/32/72/205/291/332/347/366/394；density-evidence.ts:16/111/262/303/321/347/361/455/571/635/737；density_probe.js:91。任务笔记锚点已由产品在 sync 中回填。",
+      "同步后写域：outputPaths 4 条不变（组件 .tsx、src/app/admin/settings/、e2e/analytics-settings.spec.ts、src/lib/client/ops.ts）；supportPaths 共 8 条，已追加 .gitignore、e2e/density-evidence.ts 与本任务新增的 src/components/admin/stats/AnalyticsSettingsContainer.module.css，新增产品文件落入有效写域。",
+      "限界：390 为 Desktop Chromium 非真实触屏（物理触控板测试用户已取消，记豁免不记通过）；D5 空/加载/错误变体、软键盘、safe-area、hover-only、BFCache 未覆盖；server/lockfile 原始字节未独立读取；shipped spec 未锁 recomputable 文案与 settings-link 链（G4/G5）。"
     ],
-    "reviewed": "2026-11-12T17:41:27.093975+00:00",
+    "reviewed": "2026-11-18T20:45:27.665704+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
