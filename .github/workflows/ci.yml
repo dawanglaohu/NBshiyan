@@ -218,22 +218,30 @@ jobs:
           const { pathToFileURL } = require('node:url');
           let stage = 'PREFLIGHT';
 
+          function assertPreflight(condition, check) {
+            if (condition) return;
+            console.error(`T10_CONFIG_PREFLIGHT_CHECK=${check}`);
+            assert.fail(check);
+          }
+
           async function main() {
-            assert.equal(process.platform, 'linux');
-            assert.equal(process.arch, 'x64');
-            assert.equal(process.env.RUNNER_ENVIRONMENT, 'github-hosted');
-            assert.equal(process.env.TURBOPACK, undefined);
-            assert.ok(!process.env.WATCHMAN_SOCK);
-            const watchman = spawnSync('sh', ['-c', 'command -v watchman'], { encoding: 'utf8' });
-            assert.ok(!watchman.error && watchman.status === 1, 'watchman CLI precondition');
+            assertPreflight(process.platform === 'linux', 'PLATFORM_LINUX');
+            assertPreflight(process.arch === 'x64', 'ARCH_X64');
+            assertPreflight(process.env.RUNNER_ENVIRONMENT === 'github-hosted', 'RUNNER_GITHUB_HOSTED');
+            assertPreflight(process.env.TURBOPACK === undefined, 'TURBOPACK_UNSET');
+            assertPreflight(!process.env.WATCHMAN_SOCK, 'WATCHMAN_SOCK_UNSET');
+            // Match the workflow's Bash lookup semantics: an absent command returns 1.
+            const watchman = spawnSync('/bin/bash', ['--noprofile', '--norc', '-p', '-c', 'command -v watchman'], { encoding: 'utf8' });
+            assertPreflight(!watchman.error && watchman.signal === null && (watchman.status === 0 || watchman.status === 1), 'WATCHMAN_LOOKUP');
+            assertPreflight(watchman.status === 1, 'WATCHMAN_CLI_ABSENT');
             const ps = spawnSync('ps', ['-eo', 'comm='], { encoding: 'utf8' });
-            assert.ok(!ps.error && ps.status === 0, 'process inspection unavailable');
-            assert.ok(!ps.stdout.split(/\r?\n/).some(line => line.trim() === 'watchman'));
+            assertPreflight(!ps.error && ps.status === 0, 'PROCESS_INSPECTION');
+            assertPreflight(!ps.stdout.split(/\r?\n/).some(line => line.trim() === 'watchman'), 'WATCHMAN_PROCESS_ABSENT');
             const sockets = spawnSync('ss', ['-xlH'], { encoding: 'utf8' });
-            assert.ok(!sockets.error && sockets.status === 0, 'unix socket inspection unavailable');
-            assert.ok(!/watchman/i.test(sockets.stdout), 'watchman-named listening socket observed');
+            assertPreflight(!sockets.error && sockets.status === 0, 'SOCKET_INSPECTION');
+            assertPreflight(!/watchman/i.test(sockets.stdout), 'WATCHMAN_SOCKET_ABSENT');
             const glibc = process.report.getReport().header.glibcVersionRuntime;
-            assert.ok(glibc, 'glibc required');
+            assertPreflight(glibc, 'GLIBC_PRESENT');
             stage = 'CANDIDATE_IDENTITY';
             const root = fs.realpathSync(process.cwd());
             const expected = {
