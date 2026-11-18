@@ -10,6 +10,7 @@ import {
   type AnalyticsSettingsUpdateResult,
 } from '@/lib/client/ops';
 import type { AnalyticsSettingsDTO } from '@/lib/contracts/analytics';
+import styles from './AnalyticsSettingsContainer.module.css';
 
 type Notice = { kind: 'ok' | 'err'; text: string } | null;
 
@@ -162,7 +163,7 @@ export default function AnalyticsSettingsContainer({ api = defaultApi }: { api?:
 
   if (!saved) {
     return (
-      <div className="st-page">
+      <div className={`st-page ${styles.page}`}>
         <SettingsSections current="analytics" />
         <h1>统计时区</h1>
         {loadErr ? (
@@ -181,7 +182,7 @@ export default function AnalyticsSettingsContainer({ api = defaultApi }: { api?:
 
   const errText = fieldErr;
   return (
-    <div className="st-page">
+    <div className={`st-page ${styles.page}`}>
       <SettingsSections current="analytics" />
       <h1>统计时区</h1>
       <p className="st-hint">
@@ -214,6 +215,7 @@ export default function AnalyticsSettingsContainer({ api = defaultApi }: { api?:
                 </label>
                 <input
                   id="st-analytics-tz"
+                  className="pj-input"
                   data-testid="analytics-settings-input"
                   value={timezone}
                   onChange={(e) => {
@@ -236,7 +238,7 @@ export default function AnalyticsSettingsContainer({ api = defaultApi }: { api?:
                 )}
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
-                <button type="submit" className="adm-btn" data-testid="analytics-settings-save" disabled={!dirty || busy || conflict}>
+                <button type="submit" className="pj-button" data-testid="analytics-settings-save" disabled={!dirty || busy || conflict}>
                   {busy ? '保存中…' : '保存'}
                 </button>
                 <button type="button" className="adm-btn" onClick={discard} disabled={!dirty || busy}>
