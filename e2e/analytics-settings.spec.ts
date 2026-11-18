@@ -1,0 +1,515 @@
+import { readFileSync } from 'node:fs';
+import { test, expect } from './fixtures';
+import { useSharedAdmin } from './shared-admin';
+import { loadRunAuth } from './run-auth';
+import {
+  DENSITY_PROBE_OPTIONS,
+  DENSITY_VIEWPORTS,
+  beginDensityEvidence,
+  captureDensityViewport,
+  finishDensityEvidence,
+  installDensityObserver,
+  sampleDensityProbe,
+  waitForDensityLanding
+} from './density-evidence';
+import type { Request } from '@playwright/test';
+
+// M5-T10 /admin/settings?section=analytics：真实页面 + 真实 GET/PATCH（M5-T4 接口），仅 E2E 测试库。
+// 覆盖：分区入口、GET 四字段、PATCH 带 expectedVersion、非法 IANA 字段错且不清原值（E-59）、
+// 非 ADMIN 直接接口 403 / 页面 404、两种浏览器时区同值、三尺寸 form D1–D6 与 overflow。
+const BASE = `http://localhost:${Number(process.env.E2E_PORT ?? 3100)}`;
+const API = '/api/admin/settings/analytics';
+const PROBE_SRC = readFileSync('docs/PackJoyU-开发文档/_run/density_probe.js', 'utf8');
+type CapturedBody = { ok: true; status: number; json: unknown } | { ok: false; reason: 'fetch' | 'body' };
+type InitialSettings = { version: number; timezone: string; timezoneRevision: number; recomputableFrom: string | null };
+
+test('未登录：直接读接口 401，页面跳登录', async ({ request }) => {
+  expect((await request.get(API)).status()).toBe(401);
+  const r = await request.get('/admin/settings?section=analytics', { maxRedirects: 0 });
+  expect([302, 303, 307, 308]).toContain(r.status());
+});
+
+test('非 ADMIN：直接接口 403，页面 404（E-59 权限侧）', async ({ browser, playwright }) => {
+  const state = await loadRunAuth('sales', BASE, playwright.request);
+  const api = await playwright.request.newContext({ baseURL: BASE, storageState: state });
+  expect((await api.get(API)).status()).toBe(403);
+  expect((await api.patch(API, { headers: { Origin: BASE }, data: { timezone: 'UTC', expectedVersion: 0 } })).status()).toBe(403);
+  await api.dispose();
+
+  const ctx = await browser.newContext({ baseURL: BASE, storageState: state });
+  const page = await ctx.newPage();
+  const res = await page.goto('/admin/settings?section=analytics');
+  expect(res!.status()).toBe(404);
+  await ctx.close();
+});
+
+test.describe('已登录的 ADMIN', () => {
+  useSharedAdmin({ emailPrefix: 'e2e-analytics-settings', name: 'E2E analytics settings', probe: API, slot: 'content-admin' });
+
+  test('分区入口 → GET 四字段 → PATCH expectedVersion → 非法 IANA 本地拦截与服务端 400（E-59）', async ({ page, playwright }) => {
+    test.setTimeout(120_000);
+    let initial!: InitialSettings;
+    // E-59：等待、计数和四字段都取自页面自己收到的那条 GET——页内 clone 在应用读正文之前复制
+    // 同一份 Response，状态码读原响应；页内钩子按文档隔离、只在主帧读取，跨源、子帧和上一文档
+    // 的请求都进不来。Playwright 监听只用于捕获完成后的重复请求门。
+    let disposeInitScript = async () => {};
+    const lateGets: Request[] = [];
+    let captureSettled = false;
+    // 最终采样与还原包装只允许一次；处置尝试独立计次，失败也要各自尝试。
+    let stopped = false;
+    let disposeAttempted = false;
+    const countLateGet = (request: Request) => {
+      if (!captureSettled) return;
+      if (request.method() !== 'GET') return;
+      const url = new URL(request.url());
+      if (url.origin !== BASE || url.pathname !== API) return;
+      if (request.serviceWorker() || request.isNavigationRequest() || request.frame() !== page.mainFrame()) return;
+      lateGets.push(request);
+    };
+    page.on('request', countLateGet);
+    let failure: unknown;
+    try {
+      const initScript = await page.addInitScript(({ origin, pathname }) => {
+        type Capture = { count: number; first: Promise<CapturedBody> | null; documentUrl: string; stop(): void };
+        const original = window.fetch;
+        const wrapper: typeof window.fetch = (...args) => {
+          const pending = original.apply(window, args);
+          const [input, init] = args;
+          const request = input instanceof window.Request ? input : null;
+          if ((init?.method ?? request?.method ?? 'GET').toUpperCase() !== 'GET') return pending;
+          let url: URL;
+          try {
+            url = new URL(request?.url ?? String(input), document.baseURI);
+          } catch {
+            return pending;
+          }
+          if (url.origin !== origin || url.pathname !== pathname) return pending;
+          state.count += 1;
+          state.documentUrl = location.href;
+          if (state.count === 1) {
+            state.first = pending.then(
+              async (response): Promise<CapturedBody> => {
+                try {
+                  return { ok: true, status: response.status, json: await response.clone().json() };
+                } catch {
+                  return { ok: false, reason: 'body' };
+                }
+              },
+              (): CapturedBody => ({ ok: false, reason: 'fetch' }),
+            );
+          }
+          return pending;
+        };
+        const state: Capture = {
+          count: 0,
+          first: null,
+          documentUrl: '',
+          stop() {
+            if (window.fetch === wrapper) window.fetch = original;
+          },
+        };
+        window.fetch = wrapper;
+        (window as unknown as { __e59GetCapture?: Capture }).__e59GetCapture = state;
+      }, { origin: BASE, pathname: API });
+      disposeInitScript = () => initScript.dispose();
+
+      await page.goto('/admin/settings');
+      const nav = page.getByRole('navigation', { name: '站点设置分区' });
+      await expect(nav.getByRole('link', { name: '统计时区' })).toBeVisible();
+
+      await nav.getByRole('link', { name: '统计时区' }).click();
+      await expect(page).toHaveURL(/section=analytics/);
+      await expect(page.getByRole('heading', { level: 1, name: '统计时区' })).toBeVisible();
+      await expect(nav.getByRole('link', { name: '统计时区' })).toHaveAttribute('aria-current', 'page');
+      // 等待的是统计分区文档自己的钩子：另一来源、子帧或上一文档的响应都无法满足它。
+      await page.waitForFunction(() => {
+        const state = (window as unknown as { __e59GetCapture?: { count: number } }).__e59GetCapture;
+        return (state?.count ?? 0) > 0;
+      });
+
+      const captured = await page.evaluate(async () => {
+        type Capture = { count: number; first: Promise<CapturedBody> | null; documentUrl: string };
+        const state = (window as unknown as { __e59GetCapture?: Capture }).__e59GetCapture;
+        if (!state) throw new Error('E-59 页内 GET 捕获未安装');
+        const body = state.first === null ? null : await state.first;
+        const count = state.count;
+        return { count, documentUrl: state.documentUrl, body };
+      });
+      captureSettled = true;
+      expect(captured.count, '统计分区文档应恰好捕获一笔同源主帧 GET').toBe(1);
+      const sectionDoc = new URL(captured.documentUrl);
+      expect(sectionDoc.pathname, '页内 GET 的发起文档').toBe('/admin/settings');
+      expect(sectionDoc.searchParams.get('section'), '页内 GET 的发起分区').toBe('analytics');
+      if (captured.body === null) throw new Error('页面 GET 缺少页内正文捕获');
+      if (!captured.body.ok) throw new Error(`页面 GET 正文捕获失败（${captured.body.reason}）`);
+      expect(captured.body.status, '页面 GET 的状态码（与四字段同一响应）').toBe(200);
+      initial = captured.body.json as InitialSettings;
+      expect(Object.keys(initial).sort()).toEqual(['recomputableFrom', 'timezone', 'timezoneRevision', 'version']);
+
+      await expect(page.getByTestId('analytics-settings-timezone')).toHaveText(initial.timezone);
+      await expect(page.getByTestId('analytics-settings-revision')).toHaveText(String(initial.timezoneRevision));
+      await expect(page.getByTestId('analytics-settings-recomputable')).toBeVisible();
+
+      // 保存前最后一次采样：读计数和还原自有 fetch 包装必须在同一次页内求值里完成，
+      // 两者之间不再给页面执行机会。监听保留到该次求值返回与 dispose 之后，
+      // 期间任何目标 GET 都必须在进入保存前拒绝。
+      const live = await page.evaluate(() => {
+        const state = (window as unknown as {
+          __e59GetCapture?: { count: number; documentUrl: string; stop(): void };
+        }).__e59GetCapture;
+        if (!state) throw new Error('E-59 页内 GET 钩子已不在当前文档');
+        const count = state.count;
+        state.stop();
+        return { count, documentUrl: state.documentUrl };
+      });
+      stopped = true;
+      expect(live.count, '保存前页内钩子的实时计数').toBe(1);
+      expect(new URL(live.documentUrl).pathname, '最后采样仍属于统计分区文档').toBe('/admin/settings');
+      expect(lateGets.length, '最终采样返回时不应已出现目标 GET').toBe(0);
+      // dispose 期间浏览器仍可能执行页面代码；监听留到处置完成之后再卸。
+      disposeAttempted = true;
+      try {
+        await disposeInitScript();
+      } catch (error) {
+        failure ??= error;
+      }
+      expect(lateGets.length, '清理完成时不应再出现目标 GET').toBe(0);
+    } catch (error) {
+      failure ??= error;
+    } finally {
+      // 采样没走完（异常或钩子丢失）时仍尽力还原包装；不覆盖测试体原始失败。
+      if (!stopped) {
+        try {
+          await page.evaluate(() => {
+            const state = (window as unknown as { __e59GetCapture?: { stop(): void } }).__e59GetCapture;
+            state?.stop();
+          });
+        } catch (error) {
+          failure ??= error;
+        }
+      }
+      if (!disposeAttempted) {
+        disposeAttempted = true;
+        try {
+          await disposeInitScript();
+        } catch (error) {
+          failure ??= error;
+        }
+      }
+      page.off('request', countLateGet);
+    }
+    if (failure !== undefined) throw failure;
+    const tzCell = page.getByTestId('analytics-settings-timezone');
+
+    // 目标时区避开当前值，保证 PATCH 真的改变 revision；本地预检 + 服务端权威校验
+    const target = initial.timezone === 'Asia/Tokyo' ? 'Europe/Berlin' : 'Asia/Tokyo';
+    await page.getByTestId('analytics-settings-input').fill(target);
+    const origin = new URL(page.url()).origin;
+    const mainFrame = page.mainFrame();
+    const capture = await page.evaluateHandle(({ origin, pathname }) => {
+      type BodyResult = { ok: true; json: unknown } | { ok: false; reason: 'fetch' | 'body' };
+      const original = window.fetch;
+      const state = {
+        count: 0,
+        first: null as Promise<BodyResult> | null,
+        stop(): number {
+          window.fetch = original;
+          return this.count;
+        },
+      };
+      // 在应用读取原 Response 之前克隆正文，保留应用收到的原始 Promise。
+      window.fetch = (...args) => {
+        const pending = original.apply(window, args);
+        const [input, init] = args;
+        const request = input instanceof window.Request ? input : null;
+        if ((init?.method ?? request?.method) !== 'PATCH') return pending;
+        let url: URL;
+        try {
+          url = new URL(request?.url ?? String(input), document.baseURI);
+        } catch {
+          return pending;
+        }
+        if (url.origin !== origin || url.pathname !== pathname) return pending;
+        state.count += 1;
+        if (state.count === 1) {
+          state.first = pending.then(
+            async (response): Promise<BodyResult> => {
+              try {
+                return { ok: true, json: await response.clone().json() };
+              } catch {
+                return { ok: false, reason: 'body' };
+              }
+            },
+            (): BodyResult => ({ ok: false, reason: 'fetch' }),
+          );
+        }
+        return pending;
+      };
+      return state;
+    }, { origin, pathname: API });
+
+    const saveRequests: Request[] = [];
+    const observeSave = (request: Request) => {
+      if (request.method() !== 'PATCH') return;
+      const url = new URL(request.url());
+      if (url.origin !== origin || url.pathname !== API) return;
+      if (request.serviceWorker() || request.isNavigationRequest() || request.frame() !== mainFrame) return;
+      saveRequests.push(request);
+    };
+    page.on('request', observeSave);
+    let next: { version: number; timezone: string; timezoneRevision: number; rebuildScheduled: boolean };
+    try {
+      const [patched] = await Promise.all([
+        page.waitForResponse((response) => response.request() === saveRequests[0]).catch(() => {
+          throw new Error(`有效保存未收到首个 PATCH 的响应（匹配请求数 ${saveRequests.length}）`);
+        }),
+        page.getByTestId('analytics-settings-save').click(),
+      ]);
+      expect(patched.request().postDataJSON()).toEqual({ timezone: target, expectedVersion: initial.version });
+      expect(patched.status()).toBe(200);
+      const body = await capture.evaluate(async (state) => await state.first);
+      if (body === null) throw new Error('有效保存 PATCH 缺少页内正文捕获');
+      if (!body.ok) throw new Error(`有效保存 PATCH 正文捕获失败（${body.reason}）`);
+      next = body.json as typeof next;
+      expect(next.timezone).toBe(target);
+      expect(next.version).toBe(initial.version + 1);
+      expect(next.timezoneRevision).toBeGreaterThan(initial.timezoneRevision);
+      expect(next.rebuildScheduled).toBe(true);
+      await expect(tzCell).toHaveText(target);
+      await expect(page.getByTestId('analytics-settings-revision')).toHaveText(String(next.timezoneRevision));
+      await expect(page.getByTestId('analytics-settings-rebuild')).toBeVisible();
+      await expect(page.getByTestId('analytics-settings-status')).toContainText('已保存');
+
+      const captures = await capture.evaluate((state) => state.stop());
+      expect(saveRequests.length, '有效保存应恰好发送一次同源主帧 PATCH').toBe(1);
+      expect(captures, '有效保存应恰好捕获一次页内 PATCH 正文').toBe(1);
+    } finally {
+      page.off('request', observeSave);
+      await capture.dispose();
+    }
+
+    // 非法 IANA ①：客户端预检直接拦下，不发 PATCH；字段错出现、输入保留、右栏仍是服务端上一有效值
+    const bad = 'Mars/Olympus';
+    let uiPatches = 0;
+    const countPatch = (r: Request) => {
+      if (new URL(r.url()).pathname === API && r.method() === 'PATCH') uiPatches += 1;
+    };
+    page.on('request', countPatch);
+    await page.getByTestId('analytics-settings-input').fill(bad);
+    await page.getByTestId('analytics-settings-save').click();
+    await expect(page.getByTestId('analytics-settings-field-error')).toBeVisible();
+    await expect(page.getByTestId('analytics-settings-input')).toHaveValue(bad);
+    await expect(tzCell).toHaveText(target);
+    await expect(page.getByTestId('analytics-settings-revision')).toHaveText(String(next.timezoneRevision));
+    await page.waitForTimeout(600);
+    expect(uiPatches, '本地预检不应发出 PATCH').toBe(0);
+    page.off('request', countPatch);
+
+    // 非法 IANA ②：服务端权威校验仍是真实 400（不因客户端预检而放宽 API），配置未被写
+    const state = await page.context().storageState();
+    const admin = await playwright.request.newContext({ baseURL: BASE, storageState: state });
+    try {
+      const rejected = await admin.patch(API, {
+        headers: { Origin: BASE },
+        data: { timezone: bad, expectedVersion: next.version },
+      });
+      expect(rejected.status()).toBe(400);
+      const rejectedBody = (await rejected.json()) as { error: string; fieldErrors?: { timezone?: string } };
+      expect(rejectedBody.error).toBe('invalid');
+      expect(rejectedBody.fieldErrors?.timezone).toBeTruthy();
+
+      const reread = await admin.get(API);
+      expect(reread.status()).toBe(200);
+      const after = (await reread.json()) as { version: number; timezone: string; timezoneRevision: number };
+      expect(after.timezone).toBe(target);
+      expect(after.version).toBe(next.version);
+      expect(after.timezoneRevision).toBe(next.timezoneRevision);
+    } finally {
+      await admin.dispose();
+    }
+  });
+
+  test('两种浏览器时区读到同一站点设置；三尺寸 form D1–D6 与 overflow', async ({ page, browser }, testInfo) => {
+    test.setTimeout(180_000);
+    await page.goto('/admin/settings?section=analytics');
+    await expect(page.getByTestId('analytics-settings-timezone')).toBeVisible();
+    const shown = await page.getByTestId('analytics-settings-timezone').innerText();
+
+    const state = await page.context().storageState();
+    for (const timezoneId of ['America/New_York', 'Asia/Tokyo']) {
+      const ctx = await browser.newContext({ baseURL: BASE, storageState: state, timezoneId });
+      const other = await ctx.newPage();
+      await other.goto('/admin/settings?section=analytics');
+      await expect(other.getByTestId('analytics-settings-timezone')).toHaveText(shown);
+      await ctx.close();
+    }
+
+    const densityEvidence = await beginDensityEvidence({ testInfo, browser, baseURL: BASE });
+    const densityObserver = await installDensityObserver(page, BASE, densityEvidence.token);
+    let densityFailure: unknown;
+    try {
+      for (const vp of DENSITY_VIEWPORTS) {
+        await page.setViewportSize(vp);
+        await page.goto('/admin/settings?section=analytics');
+        await expect(page.getByTestId('analytics-settings-input')).toBeVisible();
+        // 请求归属与入口硬门都取自当次文档自己的观察器；不满足时只记未核实、不采样式。
+        const landing = await waitForDensityLanding(page, BASE);
+        // probe 与它的文档标识来自同一次页内执行；与入口那份不一致即判该视口入口未核实。
+        const probeSample = await sampleDensityProbe(page, PROBE_SRC, DENSITY_PROBE_OPTIONS);
+        const probe = probeSample.probe as {
+          verdict: Record<string, string | boolean>;
+          fill?: number;
+          leftGap?: number;
+          overflowX?: number;
+        };
+        await captureDensityViewport(densityEvidence, { page, viewport: vp, landing, probeSample });
+        expect(probe.verdict.overflow, `${vp.width} overflow`).toBe('pass');
+        expect(probe.overflowX, `${vp.width} raw overflowX`).toBe(0);
+        expect(probe.verdict.D3, `${vp.width} D3`).toBe('pass');
+        if (vp.width >= 1024) {
+          for (const k of ['D1', 'D2', 'D4', 'D5', 'D6']) expect(probe.verdict[k], `${vp.width} ${k}`).toBe('pass');
+          expect(probe.verdict.pass, `${vp.width} verdict.pass`).toBe(true);
+          expect(probe.fill ?? 0, `${vp.width} fill`).toBeGreaterThanOrEqual(0.55);
+          expect(probe.leftGap ?? 999, `${vp.width} leftGap`).toBeLessThanOrEqual(16 + 24);
+        }
+      }
+    } catch (error) {
+      densityFailure = error;
+    } finally {
+      // 采集收尾错误不能覆盖测试体的原始断言错误；strict 只在没有原错时兜底失败。
+      try {
+        finishDensityEvidence(densityEvidence, { failing: densityFailure !== undefined });
+      } catch (error) {
+        densityFailure ??= error;
+      }
+      try {
+        await densityObserver.dispose();
+      } catch {
+        // 只影响未来文档；当前文档的观察器不消费请求，无需回滚。
+      }
+    }
+    if (densityFailure !== undefined) throw densityFailure;
+  });
+
+  test('版本冲突：他处 ADMIN 推进 version 后旧保存获 409，显式读取最新才更新', async ({ page, playwright }) => {
+    test.setTimeout(120_000);
+    // 页面自身的 GET 必须真的发生且 200；权威值另用真实认证 request 读，
+    // 不依赖页面响应体的生命周期（CI 上曾出现在 reload GET 上取 body 失败）。
+    const authoritative = async (): Promise<{ version: number; timezone: string; timezoneRevision: number }> => {
+      const state = await page.context().storageState();
+      const ctx = await playwright.request.newContext({ baseURL: BASE, storageState: state });
+      try {
+        const res = await ctx.get(API);
+        expect(res.status()).toBe(200);
+        return (await res.json()) as { version: number; timezone: string; timezoneRevision: number };
+      } finally {
+        await ctx.dispose();
+      }
+    };
+    const initialResponse = page.waitForResponse((r) => new URL(r.url()).pathname === API && r.request().method() === 'GET');
+    await page.goto('/admin/settings?section=analytics');
+    expect((await initialResponse).status()).toBe(200);
+    const before = await authoritative();
+    const tzCell = page.getByTestId('analytics-settings-timezone');
+    await expect(tzCell).toHaveText(before.timezone);
+
+    const candidates = ['Asia/Tokyo', 'Europe/Berlin', 'UTC', 'America/New_York'].filter((tz) => tz !== before.timezone);
+    const elsewhere = candidates[0];
+    const mine = candidates[1];
+
+    // 另一个真实认证的 ADMIN 会话推进版本：不是页面自己那条保存请求
+    const otherState = await loadRunAuth('imageB', BASE, playwright.request);
+    const other = await playwright.request.newContext({ baseURL: BASE, storageState: otherState });
+    try {
+      const advanced = await other.patch(API, {
+        headers: { Origin: BASE },
+        data: { timezone: elsewhere, expectedVersion: before.version },
+      });
+      expect(advanced.status()).toBe(200);
+      const advancedBody = (await advanced.json()) as { version: number; timezone: string };
+      expect(advancedBody.timezone).toBe(elsewhere);
+      expect(advancedBody.version).toBe(before.version + 1);
+    } finally {
+      await other.dispose();
+    }
+
+    let patches = 0;
+    const countPatch = (r: Request) => {
+      if (new URL(r.url()).pathname === API && r.method() === 'PATCH') patches += 1;
+    };
+    page.on('request', countPatch);
+    // 同一实际 PATCH 的 body 旁路：clone 原生 Response 只读文本，原请求/响应不改；
+    // 不再依赖 Playwright 对页面响应体的无界 finished()/json()（CI 上曾挂起 120s）。
+    await page.evaluate(() => {
+      const w = window as Window & { __m5t10PatchBodies?: string[] };
+      if (w.__m5t10PatchBodies) return;
+      const bodies: string[] = [];
+      w.__m5t10PatchBodies = bodies;
+      // 原生 fetch 绑定 window 后再调用：保持 this 不变，请求参数原样透传。
+      const original = window.fetch.bind(window);
+      const isTargetPatch = (input: RequestInfo | URL, init?: RequestInit): boolean => {
+        try {
+          const method = (init?.method ?? (input instanceof Request ? input.method : 'GET')).toUpperCase();
+          if (method !== 'PATCH') return false;
+          const raw = typeof input === 'string' ? input : input instanceof Request ? input.url : String(input);
+          return new URL(raw, window.location.origin).pathname === '/api/admin/settings/analytics';
+        } catch {
+          // 判定失败不写旁路数组：非目标请求的异常不得污染本次 case 的 body 快照。
+          return false;
+        }
+      };
+      window.fetch = async (...args: Parameters<typeof fetch>) => {
+        const response = await original(...args);
+        if (!isTargetPatch(args[0], args[1])) return response;
+        try {
+          response
+            .clone()
+            .text()
+            .then((text) => bodies.push(text))
+            .catch(() => bodies.push('__CLONE_FAILED__'));
+        } catch {
+          bodies.push('__CLONE_FAILED__');
+        }
+        return response;
+      };
+    });
+    await page.getByTestId('analytics-settings-input').fill(mine);
+    const conflictResponse = page.waitForResponse((r) => new URL(r.url()).pathname === API && r.request().method() === 'PATCH');
+    await page.getByTestId('analytics-settings-save').click();
+    const conflictRes = await conflictResponse;
+    expect(conflictRes.status()).toBe(409);
+    // 有界读取旁路快照；取不到就明确失败，不退回 UI 文案、不补发第二个 PATCH。
+    await expect
+      .poll(
+        () => page.evaluate(() => (window as Window & { __m5t10PatchBodies?: string[] }).__m5t10PatchBodies?.length ?? 0),
+        { timeout: 7_000, message: '未观测到本次 PATCH 的响应体旁路' },
+      )
+      .toBeGreaterThanOrEqual(1);
+    const patchBodies = await page.evaluate(
+      () => (window as Window & { __m5t10PatchBodies?: string[] }).__m5t10PatchBodies ?? [],
+    );
+    const conflictBody = JSON.parse(patchBodies[patchBodies.length - 1]!) as { error?: string };
+    expect(conflictBody.error).toBe('version_conflict');
+
+    // 旧 UI 不自动接受新版本：输入与右栏都保留旧值，保存停用，且没有自动重试
+    await expect(page.getByTestId('analytics-settings-alert')).toContainText('配置已被其他会话修改');
+    await expect(page.getByTestId('analytics-settings-input')).toHaveValue(mine);
+    await expect(tzCell).toHaveText(before.timezone);
+    await expect(page.getByTestId('analytics-settings-save')).toBeDisabled();
+    await page.waitForTimeout(600);
+    expect(patches, '409 后不应自动重试 PATCH').toBe(1);
+    page.off('request', countPatch);
+
+    // 用户显式读取最新：页面自身 GET 必须被触发且 200；UI 更新与权威值的一致性分开断言
+    const reloadResponse = page.waitForResponse((r) => new URL(r.url()).pathname === API && r.request().method() === 'GET');
+    await page.getByRole('button', { name: '读取最新配置' }).click();
+    expect((await reloadResponse).status()).toBe(200);
+    const latest = await authoritative();
+    expect(latest.timezone).toBe(elsewhere);
+    expect(latest.version).toBe(before.version + 1);
+    await expect(tzCell).toHaveText(elsewhere);
+    await expect(page.getByTestId('analytics-settings-status')).toContainText(`version ${latest.version}`);
+    await expect(page.getByTestId('analytics-settings-input')).toHaveValue(mine);
+    await expect(page.getByTestId('analytics-settings-save')).toBeEnabled();
+  });
+});

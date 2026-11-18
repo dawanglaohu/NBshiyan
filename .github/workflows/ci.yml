@@ -239,7 +239,9 @@ jobs:
   e2e:
     runs-on: ubuntu-24.04
     # 浏览器依赖安装、构建和完整测试共享此作业总预算；各用例超时与验收门禁保持不变。
-    timeout-minutes: 45
+    # run 43194460655（head 1917c598）实测 45m33s 被本上限截断：collect 已过，主段 28.4m，
+    # 三尺寸段未执行；五段串行正常流程装不下 45m，故按实测提到上限 60，不改任何用例/分区/门禁。
+    timeout-minutes: 60
     services:
       postgres:
         image: postgres:17
@@ -618,7 +620,7 @@ jobs:
           cp -r public .next/standalone/public
       # 五段使用同一构建产物与 PG，各自重启 Playwright 管理的应用，隔离 memory 限流。
       # 建单源码预算 5/3/3，认证源码预算 29/7/7；不是服务器请求实测计数。
-      - name: 核对 A3 收集分区并准备执行器（208 + 14 + 14 + 2 + 1 = 239）
+      - name: 核对 A3 收集分区并准备执行器（213 + 14 + 14 + 2 + 1 = 244）
         id: e2e_partition
         shell: bash
         run: |
@@ -653,9 +655,9 @@ jobs:
             groups[name] = rows;
             assert.equal(new Set(rows.map(row => row.key)).size, rows.length, `${name}: duplicate tests`);
           }
-          assert.deepEqual(Object.fromEntries(Object.entries(groups).map(([name, rows]) => [name, rows.length])), { all: 239, main: 208, model: 14, consent: 14, errors: 2, flow: 1 });
+          assert.deepEqual(Object.fromEntries(Object.entries(groups).map(([name, rows]) => [name, rows.length])), { all: 244, main: 213, model: 14, consent: 14, errors: 2, flow: 1 });
           const parts = [...groups.main, ...groups.model, ...groups.consent, ...groups.errors, ...groups.flow].map(row => row.key);
-          assert.equal(new Set(parts).size, 239, 'Partitions overlap');
+          assert.equal(new Set(parts).size, 244, 'Partitions overlap');
           assert.deepEqual(parts.sort(), groups.all.map(row => row.key).sort(), 'Partitions omit or change tests');
           const errors = [
             'E1 真实 400：搜索 101 字符 / 备注 5001 字符错误与纠正恢复',
@@ -666,7 +668,7 @@ jobs:
           assert.deepEqual(groups.flow.map(row => row.title), [flow]);
           for (const row of [...groups.errors, ...groups.flow]) assert.equal(row.file, 'admin-legacy-inquiries-visual.spec.ts');
           writeFileSync('e2e-evidence/collection/partition.json', JSON.stringify(groups, null, 2) + '\n');
-          console.log('A3_COLLECTION all=239 main=208 model=14 consent=14 errors=2 flow=1 disjoint=true complete=true');
+          console.log('A3_COLLECTION all=244 main=213 model=14 consent=14 errors=2 flow=1 disjoint=true complete=true');
           EOF
           driver_dir=$(mktemp -d "${RUNNER_TEMP:?}/nbshiyan-e2e-a3.XXXXXXXX")
           cat > "$driver_dir/ports.cjs" <<'EOF'
@@ -749,7 +751,7 @@ jobs:
             printf 'A3_ERROR_PATTERN=%s\n' "$error_pattern"
             printf 'A3_FLOW_PATTERN=%s\n' "$flow_pattern"
           } >> "$GITHUB_ENV"
-      - name: Playwright A3 主段（208例，含同次 RUM 检查）
+      - name: Playwright A3 主段（213例，含同次 RUM 检查）
         id: e2e_main
         shell: bash
         run: bash "$A3_DRIVER_DIR/run.sh" main
