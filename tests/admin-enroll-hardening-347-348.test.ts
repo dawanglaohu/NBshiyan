@@ -231,7 +231,11 @@ test('#347 enrollment window: 72h after createdAt (or last 2FA reset) enroll/con
   assert.equal((await enroll()).status, 200);
   assert.equal(enrollWindowOpen({ createdAt: new Date(0), enrollIssuedAt: new Date(), totpPendingUntil: null, totpSecret: null }), true);
   // M3-T4 起 users/[id]/reset-2fa 改为恢复 permit 别名，不再用 reset2faData 直清 TOTP。
-  assert.match(readFileSync('src/app/api/admin/account/2fa/reset/route.ts', 'utf8'), /data: \{ \.\.\.reset2faData\(now\), \.\.\.t\.data(, failedLogins: 0, lockedUntil: null)? \}/);
+  // M3-T20 起 reset 不再直清因素/签发绑定令牌：只建 SELF_REAUTH 受限会话，旧因素留到受限 confirm。
+  const resetRoute = readFileSync('src/app/api/admin/account/2fa/reset/route.ts', 'utf8');
+  assert.doesNotMatch(resetRoute, /reset2faData|newEnrollToken|issueResponse|auditTokenIssued/);
+  assert.match(resetRoute, /selfRebind\.rebind\(/);
+  assert.match(resetRoute, /recoverySetCookie\(/);
   assert.doesNotMatch(readFileSync('src/app/api/admin/users/[id]/reset-2fa/route.ts', 'utf8'), /reset2faData|newEnrollToken|totpSecret: null/);
 });
 

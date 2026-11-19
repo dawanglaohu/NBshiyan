@@ -13,6 +13,7 @@ import { createApiCounter, type ApiCounter, type ApiCounterDb, type CounterLog }
 import { createAnalyticsConsentService, type AnalyticsConsentService } from './analytics/consent';
 import { createAnalyticsSettingsService, type AnalyticsSettingsService } from './analytics/settings';
 import { createAnalyticsEventRepo } from './analytics/event-repo';
+import { createAnalyticsDayMarkerSink } from './analytics/aggregate-day-state';
 import { createAnalyticsIngestService, type AnalyticsIngestService } from './analytics/ingest';
 import { analyticsConsentSecret } from './config';
 import { CHAT_VISITOR_POLICY } from './config';
@@ -20,6 +21,7 @@ import { createVisitorSessionRepo, type VisitorSessionStore } from './chat/visit
 import { createVisitorSessionService, type VisitorSessionService } from './chat/visitor-session';
 import { createConversationService, type ConversationService } from './chat/conversation-service';
 import { createVisitorReadService, type VisitorReadService } from './chat/visitor-read';
+import { createSelfRebindService, type SelfRebindService } from './admin/self-rebind';
 import { createChatReadRepo, type ChatReadDb, type ChatWriteDb } from './chat/repo';
 import { createAnalyticsAggregateJob, createJobRegistry, type JobRegistry } from './jobs/registry';
 import { createAnalyticsRetentionJob } from './analytics/retention';
@@ -48,6 +50,8 @@ export type AdminServices = HttpServices & {
   deviceManagement: DeviceManagementService;
   /** 站点统计时区设置；M5-T4 的 settings 工厂只在这里接线。 */
   analyticsSettings: AnalyticsSettingsService;
+  /** 本人换验证器：TOTP_RESET grant → SELF_REAUTH 受限会话（M3-T20）。 */
+  selfRebind: SelfRebindService;
 };
 
 /** 新 HTTP 层的组装点。路由在最终响应处调用 apiCounter，不在这里发请求。 */
@@ -105,6 +109,12 @@ export function createAdminServices(deps: {
     accountSecurity: createAccountSecurityService({ db, clock, actionGrants }),
     deviceManagement: createDeviceManagementService({ db, clock, actionGrants, policy: config.session }),
     analyticsSettings: createAnalyticsSettingsService({ db, clock }),
+    selfRebind: createSelfRebindService({
+      db,
+      clock,
+      grants: actionGrants,
+      restrictedTtlMs: config.grant.restrictedTtlMs,
+    }),
   };
 }
 
@@ -163,6 +173,8 @@ export function createAnalyticsIngestServices(deps: {
       repo: createAnalyticsEventRepo(db),
       secret,
       clock: deps.clock,
+      // M5-T12：采集入口默认接通 UTC 日 marker，与事件插入同一事务提交。
+      markers: createAnalyticsDayMarkerSink(),
     }),
   };
 }

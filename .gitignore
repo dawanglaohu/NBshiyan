@@ -9,3 +9,5 @@ next-env.d.ts
 test-results/
 playwright-report/
 /reports
+# e2e 采集产物：CI 在 e2e-evidence/ 落测试证据并 always 上传，不入库
+e2e-evidence/

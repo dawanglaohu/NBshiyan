@@ -1,0 +1,20 @@
+.page:global(.st-page) {
+  padding-top: var(--pj-admin-gutter);
+}
+
+.page > :global(.st-grid) {
+  max-width: calc(var(--pj-form-column-width) + var(--pj-admin-block-gap) + var(--pj-form-aside-width));
+  grid-template-columns: minmax(0, 1fr) var(--pj-form-aside-width);
+  gap: var(--pj-admin-block-gap);
+}
+
+.page :global(button.pj-button) {
+  height: var(--pj-admin-control-height);
+}
+
+@media (max-width: 1199px) {
+  .page > :global(.st-grid) {
+    max-width: var(--pj-form-column-width);
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
