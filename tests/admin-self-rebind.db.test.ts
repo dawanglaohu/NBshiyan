@@ -1146,7 +1146,8 @@ describe('M3-T20 真实 socket/Next HTTP（实例阶段）', { concurrency: 1, s
     const compatibleBody = await compatibleReset.json() as { ok: boolean; reenrollRequired: boolean; enrollLink: string; expiresAt: string };
     assert.equal(compatibleBody.ok, true);
     assert.equal(compatibleBody.reenrollRequired, true);
-    assert.equal(compatibleBody.enrollLink, `${httpBase}/admin-recovery`);
+    // NEXT_PUBLIC_SITE_URL 在构建时内联；临时监听地址只用于发送请求。
+    assert.equal(compatibleBody.enrollLink, new URL('/admin-recovery', process.env.NEXT_PUBLIC_SITE_URL).href);
     assert.ok(Number.isFinite(Date.parse(compatibleBody.expiresAt)));
     const recoveryHeaders = compatibleReset.headers.getSetCookie().filter((value) => value.startsWith('pj_recovery='));
     assert.equal(recoveryHeaders.length, 1);
