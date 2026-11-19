@@ -493,6 +493,7 @@ function phaseArgs() {
   return {
     now: PHASE_NOW,
     cutoff: PHASE_NOW,
+    rawCutoff: new Date(PHASE_NOW.getTime() - 30 * 24 * 60 * 60 * 1000),
     timezone: 'UTC',
     revision: 3,
     floor: '2026-01-01',

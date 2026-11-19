@@ -10,6 +10,7 @@ import {
 import {
   RAW_EVENT_RETENTION_MS,
   recomputableFrom,
+  siteDayContaining,
   siteDayUtcBounds,
   siteLocalDate,
   type SiteDayBounds,
@@ -542,12 +543,14 @@ export async function runAggregateOnce(deps: {
   // 主 RR 已持 JobState 行锁，内插独立事务会自锁；`deps.commit` 之后租约已释放，写就不再受守卫。
   // 预算耗尽时本阶段直接跳过，不开任何 CAS/终态事务。
   let metadataHandled = new Set<string>();
+  const dailyRawCutoff = deps.daily?.rawCutoff ?? new Date(deps.now.getTime() - RAW_EVENT_RETENTION_MS);
   if (deps.daily) {
     const floor = scanFloorLocalDate(deps.currentDate);
     const phase = await writeDailyMetadataPhase(deps.db, {
       now: deps.now,
       cutoff: plan.cutoff,
       notAfter: deps.daily.notAfter ?? deps.now,
+      rawCutoff: dailyRawCutoff,
       timezone: deps.siteTimezone,
       revision: deps.timezoneRevision,
       floor,
@@ -605,7 +608,7 @@ export async function runAggregateOnce(deps: {
           now: deps.now,
           cutoff: plan.cutoff,
           notAfter: daily.notAfter ?? deps.now,
-          rawCutoff: daily.rawCutoff ?? new Date(deps.now.getTime() - RAW_EVENT_RETENTION_MS),
+          rawCutoff: dailyRawCutoff,
           timezone: deps.siteTimezone,
           revision: deps.timezoneRevision,
           floor,
@@ -743,6 +746,17 @@ function expectationOf(row: DayStateRow | null | undefined): DailyStateExpectati
     updatedAt: row?.updatedAt ?? null,
     deferUntil: row?.deferUntil ?? null,
   };
+}
+
+/**
+ * 完整原始覆盖起点：不早于保留期日界，且严格晚于接收截止加五分钟的本地日界。
+ * 接收允许 occurredAt 比 receivedAt 晚五分钟；该窗口内的残片不能替换旧日指标。
+ */
+export function dailyCoverageStart(now: Date, timezone: string, eventCutoff: Date): string {
+  const retainedFrom = recomputableFrom(now, timezone);
+  const safeAfter = new Date(eventCutoff.getTime() + 5 * 60 * 1000);
+  const nextDayStart = siteDayContaining(safeAfter, timezone).endUtc;
+  return Date.parse(retainedFrom) >= Date.parse(nextDayStart) ? retainedFrom : nextDayStart;
 }
 
 /**
@@ -1039,7 +1053,7 @@ export async function runDailyInTx(
   const states = await readDayStatesInDomain(tx, revision, floor, today);
   const live = await readLiveMarkerVersions(tx);
   const siteRows = await readSiteRowDatesInDomain(tx, revision, floor, today);
-  const earliestRecomputable = recomputableFrom(now, timezone);
+  const earliestRecomputable = dailyCoverageStart(now, timezone, args.rawCutoff);
 
   const candidates = new Set<string>();
   for (const date of args.baseDates) candidates.add(date);
@@ -1228,6 +1242,7 @@ export async function runDailyAggregateRound(deps: {
       now,
       cutoff,
       notAfter,
+      rawCutoff,
       timezone,
       revision,
       floor,
@@ -1574,6 +1589,8 @@ export async function writeDailyMetadataPhase(
   args: {
     now: Date;
     cutoff: Date;
+    /** 与指标主事务共用的 receivedAt 严格下界。 */
+    rawCutoff: Date;
     timezone: string;
     revision: number;
     floor: string;
@@ -1611,7 +1628,7 @@ export async function writeDailyMetadataPhase(
     const states = await readDayStatesInDomain(tx, args.revision, args.floor, args.today);
     const live = await readLiveMarkerVersions(tx);
     const siteRows = await readSiteRowDatesInDomain(tx, args.revision, args.floor, args.today);
-    const earliestRecomputable = recomputableFrom(args.now, args.timezone);
+    const earliestRecomputable = dailyCoverageStart(args.now, args.timezone, args.rawCutoff);
     const candidates = new Set<string>();
     for (const date of args.baseDates) candidates.add(date);
     for (const utcDate of live.keys()) {
