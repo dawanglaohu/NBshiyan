@@ -15,7 +15,7 @@ WANT = {
     'SEO-1': 'done',
     'SEO-2': 'done',
     'SEO-3': 'hold',
-    'SEO-4': 'hold',
+    'SEO-4': 'done',
     'SEO-5': 'done',
     'SEO-6': 'done',
     'SEO-7': 'done',
@@ -31,10 +31,24 @@ WANT = {
     'DOCKER-UPLOADS-1': 'done',
     'GATE-PATHS-1': 'done',
     'GATE-PATHS-2': 'done',
-    'GATE-HARDEN': 'merging',
-    'GATE-HARDEN-2': 'todo',
-    'POST-LAUNCH-P3': 'todo',
-    'FE-404-TITLE': 'todo',
+    'GATE-HARDEN': 'done',
+    'GATE-HARDEN-2': 'done',
+    'POST-LAUNCH-P3': 'done',
+    'FE-404-TITLE': 'done',
+    'GIFT-CARDS-RENAME': 'done',
+    'GIFT-CARD-ASSETS': 'done',
+    'CLIENT-API-DEADLINE': 'done',
+    'CATALOG-MERGE': 'done',
+    'CI-DB-TESTS': 'done',
+    'MAIN-E2E-FIX': 'done',
+    'FE-FAB-390': 'done',
+    'ANALYTICS-ROLLUP': 'done',
+    'RETENTION-CLEANUP': 'done',
+    'GUARD-503': 'done',
+    'CI-DEVICE-SERIAL': 'done',
+    'HOTFIX-LOGIN-EMPTY': 'done',
+    'BACKFILL-MJS': 'done',
+    'E2E-CONSENT-FIX': 'done',
 }
 MERGED = {
     'DEP-AUDIT-1': '950b63c235a3ce945fa6140dedf0bfad7a946bc3',
@@ -180,7 +194,7 @@ class IssueLedgerTests(unittest.TestCase):
         self.assertIn('并不会自动调用 play()', by_id['POST-LAUNCH-P3']['accept'])
         self.assertNotIn('在 play() 之前先 load()', by_id['POST-LAUNCH-P3']['accept'])
         self.assertIn('src/components/layout/BrandScene.tsx', by_id['POST-LAUNCH-P3']['paths'])
-        self.assertEqual(by_id['FE-404-TITLE']['ledgerStatus'], 'todo')
+        self.assertEqual(by_id['FE-404-TITLE']['ledgerStatus'], 'done')
         self.assertEqual(by_id['FE-404-TITLE']['gh'], '待开')
         self.assertIn('htmlLimitedBots', by_id['FE-404-TITLE']['accept'])
         self.assertIn('</head>', by_id['FE-404-TITLE']['accept'])
@@ -194,7 +208,7 @@ class IssueLedgerTests(unittest.TestCase):
         self.assertIn('/en/xxx', by_id['FE-404-TITLE']['accept'])
         self.assertIn('未上线语言 /de', by_id['FE-404-TITLE']['accept'])
         self.assertIn('UX 只复核', by_id['FE-404-TITLE']['accept'])
-        self.assertIn('poster 用 still 同一帧的 WebP', by_id['SEO-6']['accept'])
+        self.assertIn('video 不设 poster，静帧 WebP 作底层', by_id['SEO-6']['accept'])
         self.assertIn('poster 方案已改为静帧底层，见实施沉淀', by_id['SEO-6']['accept'])
         self.assertEqual(by_id['SEO-7']['gh'], '446')
         self.assertEqual(by_id['SEO-7']['pr'], '445')
