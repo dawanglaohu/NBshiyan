@@ -1,0 +1,275 @@
+{
+  "scope": "task-contract",
+  "note": "B10-M4T4-REVAL R3（前端工程师）。对补丁 m4t4-retry-contract-20261119 的共享章节只读复验 32 项。文档固定在 02ea695fbc7d581392d0d29e2fdcb27f1e6b8acb（tree 0cf4cc2b4f6f8843d3c06c277ec545746aa19579，父为 a7941062af916119d53e0802d1752b4c1ab02424），已落地代码按 Git 对象 a7941062af916119d53e0802d1752b4c1ab02424 读取。未运行 status/verify/build/landed，未改标记、源码、分支或工作树，未启动数据库、服务或测试。每项以 _run/revalidation.json 的 changedFields 与补丁 JSON 的 changes 为准，只核 09、15、18 实际改动的条款；契约哈希取自 revalidation.json，并与补丁 evidence、补丁 changes.after.hash、AFFECTED-BY-FIELD.tsv 逐项核对（32/32 相等）。verdict pass 表示该项已核对且「适用且仍满足」或「不适用」，具体见 evidence 首句；本组无「不满足」。",
+  "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4",
+  "patch": "m4t4-retry-contract-20261119",
+  "docsCommit": "02ea695fbc7d581392d0d29e2fdcb27f1e6b8acb",
+  "codeObject": "a7941062af916119d53e0802d1752b4c1ab02424",
+  "tasks": {
+    "CATALOG-MERGE": {
+      "contractHash": "110cdc602da02c372de1c31093c220fb7aa92ff0dda9795341ddb371221b9ba2",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务交付按品类合并 3D 目录并让分析白名单与可见 key 对齐（src/lib/catalog/catalog.ts:37、src/lib/catalog/catalog.ts:110）。",
+        "补丁对本任务实际改动的条款为 09 L24 与 L174-181（ChatNotification 出箱的重试上限、requestStartedAt 标记、UNKNOWN/FAILED/DISABLED 转移、服务端时钟与租约过期判定）；15 L31（聊天通知预算：首发后最多重试 3 次、最多 4 次已标记开始的发送尝试、1/5/30 分钟）；18 L94（聊天可用性/通知策略：缺配置仅从未开始尝试的出箱置 DISABLED，UNKNOWN 暂停并在配置恢复后处理）；这些条款只约束 M4 聊天通知出箱。本任务登记的 5 个代码锚点文件（其中 5 个文本文件）在 a7941062 中对 ChatNotification、stableMessageId、requestStartedAt、NotificationQueued、chat-notifications 零引用，交付面与该出箱无交集，也未新增义务。"
+      ]
+    },
+    "CITY-STILL-WEBP": {
+      "contractHash": "9587f77b98006205eaaf355e9d2427cb89c426f38d9c1d6ce1037570fad73aa9",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务把首页城市场景暂停静帧改为 1384w/2000w 响应式 WebP（src/components/layout/BrandScene.tsx:17）。",
+        "补丁对本任务实际改动的条款为 09 L24 与 L174-181（ChatNotification 出箱的重试上限、requestStartedAt 标记、UNKNOWN/FAILED/DISABLED 转移、服务端时钟与租约过期判定）；15 L31（聊天通知预算：首发后最多重试 3 次、最多 4 次已标记开始的发送尝试、1/5/30 分钟）；18 L94（聊天可用性/通知策略：缺配置仅从未开始尝试的出箱置 DISABLED，UNKNOWN 暂停并在配置恢复后处理）；这些条款只约束 M4 聊天通知出箱。本任务登记的 0 个代码锚点文件（其中 0 个文本文件）在 a7941062 中对 ChatNotification、stableMessageId、requestStartedAt、NotificationQueued、chat-notifications 零引用，交付面与该出箱无交集，也未新增义务。"
+      ]
+    },
+    "CLIENT-API-DEADLINE": {
+      "contractHash": "0316f48a0579119d354512e73ed72bdaf48a22aacf4518546147c95adb02b387",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务让每次请求的 15 s deadline 与用户取消打断挂起的响应正文读取，只动客户端请求层（src/lib/client/api.ts:217、src/lib/client/api.ts:382）。",
+        "补丁对本任务实际改动的条款为 09 L24 与 L174-181（ChatNotification 出箱的重试上限、requestStartedAt 标记、UNKNOWN/FAILED/DISABLED 转移、服务端时钟与租约过期判定）；15 L31（聊天通知预算：首发后最多重试 3 次、最多 4 次已标记开始的发送尝试、1/5/30 分钟）；18 L94（聊天可用性/通知策略：缺配置仅从未开始尝试的出箱置 DISABLED，UNKNOWN 暂停并在配置恢复后处理）；这些条款只约束 M4 聊天通知出箱。本任务登记的 2 个代码锚点文件（其中 2 个文本文件）在 a7941062 中对 ChatNotification、stableMessageId、requestStartedAt、NotificationQueued、chat-notifications 零引用，交付面与该出箱无交集，也未新增义务。",
+        "区分：src/lib/client/api.ts:23-24 的 15 s 是每次 HTTP 尝试的截止、:25 的 1/2/4 s 是客户端消息写重试退避，:43 的 attempts 计 HTTP 发送次数；与 09 L24、15 L31 的出箱「最多 4 次已标记开始的发送尝试、1/5/30 分钟」是不同层面，本补丁未改 10 节客户端重试规则。"
+      ]
+    },
+    "FE-404-TITLE": {
+      "contractHash": "f2de5adce867ec780e61325a23a23e8da456fb72e7610216876d79613c1ae405",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务把 404 标题放进 head 并保持渲染后 document.title（src/app/[locale]/not-found.tsx:53）。",
+        "补丁对本任务实际改动的条款为 09 L24 与 L174-181（ChatNotification 出箱的重试上限、requestStartedAt 标记、UNKNOWN/FAILED/DISABLED 转移、服务端时钟与租约过期判定）；15 L31（聊天通知预算：首发后最多重试 3 次、最多 4 次已标记开始的发送尝试、1/5/30 分钟）；18 L94（聊天可用性/通知策略：缺配置仅从未开始尝试的出箱置 DISABLED，UNKNOWN 暂停并在配置恢复后处理）；这些条款只约束 M4 聊天通知出箱。本任务登记的 5 个代码锚点文件（其中 5 个文本文件）在 a7941062 中对 ChatNotification、stableMessageId、requestStartedAt、NotificationQueued、chat-notifications 零引用，交付面与该出箱无交集，也未新增义务。"
+      ]
+    },
+    "FE-FAB-390": {
+      "contractHash": "c43a41400aec992367ae1ec88ed0558847e0ddd3b2dd55d257f737eb19eef54f",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务让 390px 下收起的浮动按钮容器不再接收点击（src/app/globals.css:85）。",
+        "补丁对本任务实际改动的条款为 09 L24 与 L174-181（ChatNotification 出箱的重试上限、requestStartedAt 标记、UNKNOWN/FAILED/DISABLED 转移、服务端时钟与租约过期判定）；15 L31（聊天通知预算：首发后最多重试 3 次、最多 4 次已标记开始的发送尝试、1/5/30 分钟）；18 L94（聊天可用性/通知策略：缺配置仅从未开始尝试的出箱置 DISABLED，UNKNOWN 暂停并在配置恢复后处理）；这些条款只约束 M4 聊天通知出箱。本任务登记的 3 个代码锚点文件（其中 3 个文本文件）在 a7941062 中对 ChatNotification、stableMessageId、requestStartedAt、NotificationQueued、chat-notifications 零引用，交付面与该出箱无交集，也未新增义务。"
+      ]
+    },
+    "GIFT-CARD-ASSETS": {
+      "contractHash": "f426c962d522ff2fa462b8a875b46b2ae908c4136d9d110d99390299599c5c36",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务替换贺卡品类的 D 方案模型/海报并把后台中文标签改为「贺卡」（src/data/products.ts:16、src/components/admin/format.ts:14）。",
+        "补丁对本任务实际改动的条款为 09 L24 与 L174-181（ChatNotification 出箱的重试上限、requestStartedAt 标记、UNKNOWN/FAILED/DISABLED 转移、服务端时钟与租约过期判定）；15 L31（聊天通知预算：首发后最多重试 3 次、最多 4 次已标记开始的发送尝试、1/5/30 分钟）；18 L94（聊天可用性/通知策略：缺配置仅从未开始尝试的出箱置 DISABLED，UNKNOWN 暂停并在配置恢复后处理）；这些条款只约束 M4 聊天通知出箱。本任务登记的 7 个代码锚点文件（其中 7 个文本文件）在 a7941062 中对 ChatNotification、stableMessageId、requestStartedAt、NotificationQueued、chat-notifications 零引用，交付面与该出箱无交集，也未新增义务。"
+      ]
+    },
+    "GIFT-CARDS-RENAME": {
+      "contractHash": "f03ad4445631652b706b9f66e89b6367f7f19854ee4beab8b1924e93cf433bbe",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务把礼品卡品类的对外名称、slug 与 SEO 元数据改为贺卡（src/lib/seo/categoryMeta.ts:74）。",
+        "补丁对本任务实际改动的条款为 09 L24 与 L174-181（ChatNotification 出箱的重试上限、requestStartedAt 标记、UNKNOWN/FAILED/DISABLED 转移、服务端时钟与租约过期判定）；15 L31（聊天通知预算：首发后最多重试 3 次、最多 4 次已标记开始的发送尝试、1/5/30 分钟）；18 L94（聊天可用性/通知策略：缺配置仅从未开始尝试的出箱置 DISABLED，UNKNOWN 暂停并在配置恢复后处理）；这些条款只约束 M4 聊天通知出箱。本任务登记的 0 个代码锚点文件（其中 0 个文本文件）在 a7941062 中对 ChatNotification、stableMessageId、requestStartedAt、NotificationQueued、chat-notifications 零引用，交付面与该出箱无交集，也未新增义务。"
+      ]
+    },
+    "R3-T09233008": {
+      "contractHash": "8ef5df1a1031b8806162c2c113aaf81b864e09c0f15f31979aa4dc2052b8fb1e",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务在适用平台执行存储权限与符号链接安全验收（生产环境检查测试的上传夹具分层）（tests/prod-env-check.test.ts:11、tests/prod-env-check.test.ts:132）。",
+        "补丁对本任务实际改动的条款为 09 L24 与 L174-181（ChatNotification 出箱的重试上限、requestStartedAt 标记、UNKNOWN/FAILED/DISABLED 转移、服务端时钟与租约过期判定）；15 L31（聊天通知预算：首发后最多重试 3 次、最多 4 次已标记开始的发送尝试、1/5/30 分钟）；18 L94（聊天可用性/通知策略：缺配置仅从未开始尝试的出箱置 DISABLED，UNKNOWN 暂停并在配置恢复后处理）；这些条款只约束 M4 聊天通知出箱。本任务登记的 4 个代码锚点文件（其中 4 个文本文件）在 a7941062 中对 ChatNotification、stableMessageId、requestStartedAt、NotificationQueued、chat-notifications 零引用，交付面与该出箱无交集，也未新增义务。",
+        "观察（非阻断、不属本任务条款）：tests/prod-env-check.test.ts:132 断言 SMTP_PORT=25 等无效发信配置被生产环境检查拒绝；18 L94 的「缺配置→DISABLED」是出箱运行期语义，二者不冲突，由 M4-T4 实施时按 09 规则落实。"
+      ]
+    },
+    "R3-T09598683": {
+      "contractHash": "4cf473e650fd420af6e5c06b97ad0a661d43fe6d0400c28eb97efa7aa81265f1",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务让首页扣除 publicBrand 边距后铺满宽度，--container 仍为 1240px、桌面边距 24px（src/styles/tokens.css:14、src/styles/tokens.css:70）。",
+        "补丁对本任务实际改动的条款为 09 L24 与 L174-181（ChatNotification 出箱的重试上限、requestStartedAt 标记、UNKNOWN/FAILED/DISABLED 转移、服务端时钟与租约过期判定）；15 L31（聊天通知预算：首发后最多重试 3 次、最多 4 次已标记开始的发送尝试、1/5/30 分钟）；18 L94（聊天可用性/通知策略：缺配置仅从未开始尝试的出箱置 DISABLED，UNKNOWN 暂停并在配置恢复后处理）；这些条款只约束 M4 聊天通知出箱。本任务登记的 4 个代码锚点文件（其中 4 个文本文件）在 a7941062 中对 ChatNotification、stableMessageId、requestStartedAt、NotificationQueued、chat-notifications 零引用，交付面与该出箱无交集，也未新增义务。"
+      ]
+    },
+    "R3-T12074461": {
+      "contractHash": "f19203b8daf0ab41d279ec1e07ab758b2f7290216d15fde96c6ca9ffdbd2f3c4",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务只改 11 节 UI 文档中的首页铺满门槛与 48px/24px 目标值（docs/PackJoyU-开发文档/02-设计/11-UI.md:197）。",
+        "补丁对本任务实际改动的条款为 09 L24 与 L174-181（ChatNotification 出箱的重试上限、requestStartedAt 标记、UNKNOWN/FAILED/DISABLED 转移、服务端时钟与租约过期判定）；15 L31（聊天通知预算：首发后最多重试 3 次、最多 4 次已标记开始的发送尝试、1/5/30 分钟）；18 L94（聊天可用性/通知策略：缺配置仅从未开始尝试的出箱置 DISABLED，UNKNOWN 暂停并在配置恢复后处理）；这些条款只约束 M4 聊天通知出箱。本任务登记的 2 个代码锚点文件（其中 2 个文本文件）在 a7941062 中对 ChatNotification、stableMessageId、requestStartedAt、NotificationQueued、chat-notifications 零引用，交付面与该出箱无交集，也未新增义务。"
+      ]
+    },
+    "R3-T21757567": {
+      "contractHash": "733d06237cc491e3f96ee62c5373de65afda55ca6f54d6b08543afbc6af0715f",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务让内容导入用例改用实际可用的 Python 并执行全部保护断言（tests/sanity-import.test.ts:21）。",
+        "补丁对本任务实际改动的条款为 09 L24 与 L174-181（ChatNotification 出箱的重试上限、requestStartedAt 标记、UNKNOWN/FAILED/DISABLED 转移、服务端时钟与租约过期判定）；15 L31（聊天通知预算：首发后最多重试 3 次、最多 4 次已标记开始的发送尝试、1/5/30 分钟）；18 L94（聊天可用性/通知策略：缺配置仅从未开始尝试的出箱置 DISABLED，UNKNOWN 暂停并在配置恢复后处理）；这些条款只约束 M4 聊天通知出箱。本任务登记的 2 个代码锚点文件（其中 2 个文本文件）在 a7941062 中对 ChatNotification、stableMessageId、requestStartedAt、NotificationQueued、chat-notifications 零引用，交付面与该出箱无交集，也未新增义务。"
+      ]
+    },
+    "R3-T22883505": {
+      "contractHash": "11f6b9f87b96cff423c8ce838711566638ed92fa13a8b9ecd8c816f27caca834",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务补受支持 Linux 构建的 standalone 产物、真实主冒烟与后台密度实证（.github/workflows/ci.yml:32、tests/standalone-start.test.ts:84）。",
+        "补丁对本任务实际改动的条款为 09 L24 与 L174-181（ChatNotification 出箱的重试上限、requestStartedAt 标记、UNKNOWN/FAILED/DISABLED 转移、服务端时钟与租约过期判定）；15 L31（聊天通知预算：首发后最多重试 3 次、最多 4 次已标记开始的发送尝试、1/5/30 分钟）；18 L94（聊天可用性/通知策略：缺配置仅从未开始尝试的出箱置 DISABLED，UNKNOWN 暂停并在配置恢复后处理）；这些条款只约束 M4 聊天通知出箱。本任务登记的 5 个代码锚点文件（其中 5 个文本文件）在 a7941062 中对 ChatNotification、stableMessageId、requestStartedAt、NotificationQueued、chat-notifications 零引用，交付面与该出箱无交集，也未新增义务。",
+        "观察（非阻断、不属本任务条款）：tests/standalone-start.test.ts:84 断言 SMTP_PORT=25 的生产启动 exit 1，:82 同样断言缺 SMTP_PASS 失败；18 L94 的「缺配置→DISABLED」是出箱运行期语义，二者不冲突，由 M4-T4 实施时按 09 规则落实。"
+      ]
+    },
+    "R3-T56876634": {
+      "contractHash": "48bc6063fc846a5154e90ed00787eedc83cc014fdfd9bd0bd2e836365eb3ba37",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务给公司图稿逐件登记选定输入 path、SHA-256 与用途（docs/brand-content/company-visuals.json:91、tests/company-visuals-selected-input.test.ts:79）。",
+        "补丁对本任务实际改动的条款为 09 L24 与 L174-181（ChatNotification 出箱的重试上限、requestStartedAt 标记、UNKNOWN/FAILED/DISABLED 转移、服务端时钟与租约过期判定）；15 L31（聊天通知预算：首发后最多重试 3 次、最多 4 次已标记开始的发送尝试、1/5/30 分钟）；18 L94（聊天可用性/通知策略：缺配置仅从未开始尝试的出箱置 DISABLED，UNKNOWN 暂停并在配置恢复后处理）；这些条款只约束 M4 聊天通知出箱。本任务登记的 2 个代码锚点文件（其中 2 个文本文件）在 a7941062 中对 ChatNotification、stableMessageId、requestStartedAt、NotificationQueued、chat-notifications 零引用，交付面与该出箱无交集，也未新增义务。"
+      ]
+    },
+    "R3-T71889698": {
+      "contractHash": "9b6dc55652409f99b22b9365dfb733d5c1f250a458e80bef368e6af8c2a2c150",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务保留令牌签发审计并修正重置并发测试预期（scripts/admin-reset-initial-password-lib.mjs:22、tests/admin-reset-initial-password.db.test.ts:144）。",
+        "补丁对本任务实际改动的条款为 09 L24 与 L174-181（ChatNotification 出箱的重试上限、requestStartedAt 标记、UNKNOWN/FAILED/DISABLED 转移、服务端时钟与租约过期判定）；15 L31（聊天通知预算：首发后最多重试 3 次、最多 4 次已标记开始的发送尝试、1/5/30 分钟）；18 L94（聊天可用性/通知策略：缺配置仅从未开始尝试的出箱置 DISABLED，UNKNOWN 暂停并在配置恢复后处理）；这些条款只约束 M4 聊天通知出箱。本任务登记的 2 个代码锚点文件（其中 2 个文本文件）在 a7941062 中对 ChatNotification、stableMessageId、requestStartedAt、NotificationQueued、chat-notifications 零引用，交付面与该出箱无交集，也未新增义务。"
+      ]
+    },
+    "R3-T75625096": {
+      "contractHash": "24618d25c334cbc5fa5be2d1171a94c8e04ce26d1aaf425f90bbdf8d317f06eb",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务修正已登录后台适用工作面的密度失败（只改样式）（src/components/admin/settings/settings.css:2）。",
+        "补丁对本任务实际改动的条款为 09 L24 与 L174-181（ChatNotification 出箱的重试上限、requestStartedAt 标记、UNKNOWN/FAILED/DISABLED 转移、服务端时钟与租约过期判定）；15 L31（聊天通知预算：首发后最多重试 3 次、最多 4 次已标记开始的发送尝试、1/5/30 分钟）；18 L94（聊天可用性/通知策略：缺配置仅从未开始尝试的出箱置 DISABLED，UNKNOWN 暂停并在配置恢复后处理）；这些条款只约束 M4 聊天通知出箱。本任务登记的 4 个代码锚点文件（其中 4 个文本文件）在 a7941062 中对 ChatNotification、stableMessageId、requestStartedAt、NotificationQueued、chat-notifications 零引用，交付面与该出箱无交集，也未新增义务。"
+      ]
+    },
+    "R3-T86511435": {
+      "contractHash": "a6c029430393ef1270cdd4a143b544a08a3e29bfae35ed5c17c8fa87d5684eca",
+      "verdict": "pass",
+      "evidence": [
+        "适用且仍满足：09 L24 本次新增「结果写回与清扫使用同一个应用注入的服务端时钟，与 jobs 租约仓储一致；过期＝lockedUntil<=当前时钟，等于即视为已释放，与 M5-T1 一致」。本任务验证的 jobs 租约原语在 a7941062 仍是该语义：src/lib/server/jobs/types.ts:7 JOB_LEASE_MS=90_000；src/lib/server/jobs/lease-repo.ts:177 与 :216 领取条件 lockedUntil IS NULL OR lockedUntil <= now；:256、:332、:391 续租/释放/完成要求 lockedUntil > now；:428 过期判定 Date.parse(lockedUntil) <= now。",
+        "本任务回归仍钉住等号即过期：tests/job-leases.db.test.ts:167 起，推进 JOB_LEASE_MS-1 仍 busy（:173-177）；续租把 lockedUntil 推到 now+90 s（:178-180）；再推进整 90 s 时旧 owner 的 renew 与 complete 均为 expired（:185-193），新领取为第 2 代（:194-195）；用例的 key 即 chat-notifications（:170）。",
+        "边界：a7941062 尚无聊天通知 worker，ChatNotification 只在 src/lib/server/chat/repo.ts:233 入箱、conversation-service.ts:189 绑定 stableMessageId；本项只核「与 jobs 租约仓储一致」这一引用，不对出箱 worker 的 attempts、1/5/30 分钟档位或 DISABLED 转移作通过声明。未运行数据库或测试，仅读 Git 对象。"
+      ]
+    },
+    "R3-T87287564": {
+      "contractHash": "a38184d419a908728c0483523317444409977a67f067de0f9d031b9c0dda99a2",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务统一文件身份比较，使 lint 脚本与测试通过 Windows 路径负例（scripts/lint-ru-yo.mjs:17）。",
+        "补丁对本任务实际改动的条款为 09 L24 与 L174-181（ChatNotification 出箱的重试上限、requestStartedAt 标记、UNKNOWN/FAILED/DISABLED 转移、服务端时钟与租约过期判定）；15 L31（聊天通知预算：首发后最多重试 3 次、最多 4 次已标记开始的发送尝试、1/5/30 分钟）；18 L94（聊天可用性/通知策略：缺配置仅从未开始尝试的出箱置 DISABLED，UNKNOWN 暂停并在配置恢复后处理）；这些条款只约束 M4 聊天通知出箱。本任务登记的 3 个代码锚点文件（其中 3 个文本文件）在 a7941062 中对 ChatNotification、stableMessageId、requestStartedAt、NotificationQueued、chat-notifications 零引用，交付面与该出箱无交集，也未新增义务。"
+      ]
+    },
+    "R3-T92231765": {
+      "contractHash": "36ded88fd096fb3dcabd67157481ec915aae5963c7909365f58fb01f6fcdd04b",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务统一检出换行策略并让源码断言与 Shell 验证在实际检出下可靠执行（.gitattributes:3、tests/admin-enroll-hardening-347-348.test.ts:280）。",
+        "补丁对本任务实际改动的条款为 09 L24 与 L174-181（ChatNotification 出箱的重试上限、requestStartedAt 标记、UNKNOWN/FAILED/DISABLED 转移、服务端时钟与租约过期判定）；15 L31（聊天通知预算：首发后最多重试 3 次、最多 4 次已标记开始的发送尝试、1/5/30 分钟）；18 L94（聊天可用性/通知策略：缺配置仅从未开始尝试的出箱置 DISABLED，UNKNOWN 暂停并在配置恢复后处理）；这些条款只约束 M4 聊天通知出箱。本任务登记的 10 个代码锚点文件（其中 10 个文本文件）在 a7941062 中对 ChatNotification、stableMessageId、requestStartedAt、NotificationQueued、chat-notifications 零引用，交付面与该出箱无交集，也未新增义务。"
+      ]
+    },
+    "M1-T1": {
+      "contractHash": "cf38e3ad38fd2a599ed4dfc2e87d246719c1917a0f77304909320cd53b71a51d",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务接入 8 个核心品牌变量并完成既有路径真实冒烟（src/styles/tokens.css:27、e2e/brand-smoke.spec.ts:76）。",
+        "补丁对本任务实际改动的条款为 09 L24 与 L174-181（ChatNotification 出箱的重试上限、requestStartedAt 标记、UNKNOWN/FAILED/DISABLED 转移、服务端时钟与租约过期判定）；18 L94（聊天可用性/通知策略：缺配置仅从未开始尝试的出箱置 DISABLED，UNKNOWN 暂停并在配置恢复后处理）；这些条款只约束 M4 聊天通知出箱。本任务登记的 6 个代码锚点文件（其中 6 个文本文件）在 a7941062 中对 ChatNotification、stableMessageId、requestStartedAt、NotificationQueued、chat-notifications 零引用，交付面与该出箱无交集，也未新增义务。"
+      ]
+    },
+    "M1-T4": {
+      "contractHash": "c13cde19d8520982c040dbd864870edf16f3423a16318425048f4c519de47bac",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务接好选定视频与分区 PNG/GIF 场景及首页入口（src/components/layout/HeroVideo.tsx:15、src/lib/navigation/routes.ts:2）。",
+        "补丁对本任务实际改动的条款为 09 L24 与 L174-181（ChatNotification 出箱的重试上限、requestStartedAt 标记、UNKNOWN/FAILED/DISABLED 转移、服务端时钟与租约过期判定）；18 L94（聊天可用性/通知策略：缺配置仅从未开始尝试的出箱置 DISABLED，UNKNOWN 暂停并在配置恢复后处理）；这些条款只约束 M4 聊天通知出箱。本任务登记的 8 个代码锚点文件（其中 8 个文本文件）在 a7941062 中对 ChatNotification、stableMessageId、requestStartedAt、NotificationQueued、chat-notifications 零引用，交付面与该出箱无交集，也未新增义务。"
+      ]
+    },
+    "M1-T5": {
+      "contractHash": "9db58d2bc9f702fc53e908745b9e5f0b0c9ead8b9c47b5d71ce9884427d1fb1c",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务集成己方公司内容与选定图稿，白名单只输出 Web 路径、宽高与 alt（src/lib/brand/company-media.ts:57、src/components/about/CompanySummary.tsx:14）。",
+        "补丁对本任务实际改动的条款为 09 L24 与 L174-181（ChatNotification 出箱的重试上限、requestStartedAt 标记、UNKNOWN/FAILED/DISABLED 转移、服务端时钟与租约过期判定）；18 L94（聊天可用性/通知策略：缺配置仅从未开始尝试的出箱置 DISABLED，UNKNOWN 暂停并在配置恢复后处理）；这些条款只约束 M4 聊天通知出箱。本任务登记的 23 个代码锚点文件（其中 17 个文本文件）在 a7941062 中对 ChatNotification、stableMessageId、requestStartedAt、NotificationQueued、chat-notifications 零引用，交付面与该出箱无交集，也未新增义务。"
+      ]
+    },
+    "M1-T6": {
+      "contractHash": "c3e3be762b70b757502377b6e8d33bd3279d0401d418c50fb39630465193f2e8",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务核验已确认的 GIF 与发布媒体集合（public/brand/packjoyu-industrial-city-v3-loop-poster.png:1、docs/brand-media/animation/verify-media-integrity.py:1）。",
+        "补丁对本任务实际改动的条款为 09 L24 与 L174-181（ChatNotification 出箱的重试上限、requestStartedAt 标记、UNKNOWN/FAILED/DISABLED 转移、服务端时钟与租约过期判定）；18 L94（聊天可用性/通知策略：缺配置仅从未开始尝试的出箱置 DISABLED，UNKNOWN 暂停并在配置恢复后处理）；这些条款只约束 M4 聊天通知出箱。本任务登记的 5 个代码锚点文件（其中 2 个文本文件）在 a7941062 中对 ChatNotification、stableMessageId、requestStartedAt、NotificationQueued、chat-notifications 零引用，交付面与该出箱无交集，也未新增义务。",
+        "观察（非阻断、不属本补丁条款）：该任务笔记登记的 public/brand/…-loop.gif 与 …-loop-preview.gif 在 a7941062 已不在，首页改用 …-loop-1384.mp4/…-loop-2000.mp4 与 WebP 静帧（src/lib/home/brandMedia.ts:11-13），媒体集合以后续任务为准。"
+      ]
+    },
+    "M1-T7": {
+      "contractHash": "2ea2c954f57bf6b5d092cb35347f5ffb6c43882063a27e7eb148e0d890229c3b",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务补齐共享视觉变量与原生 UI 包装（src/styles/tokens.css:92、src/components/ui/Button.tsx:25）。",
+        "补丁对本任务实际改动的条款为 09 L24 与 L174-181（ChatNotification 出箱的重试上限、requestStartedAt 标记、UNKNOWN/FAILED/DISABLED 转移、服务端时钟与租约过期判定）；18 L94（聊天可用性/通知策略：缺配置仅从未开始尝试的出箱置 DISABLED，UNKNOWN 暂停并在配置恢复后处理）；这些条款只约束 M4 聊天通知出箱。本任务登记的 8 个代码锚点文件（其中 8 个文本文件）在 a7941062 中对 ChatNotification、stableMessageId、requestStartedAt、NotificationQueued、chat-notifications 零引用，交付面与该出箱无交集，也未新增义务。"
+      ]
+    },
+    "M1-T8": {
+      "contractHash": "227b50c8057ad978e94f023c69f6ac073c35810d57598cdf3d557e75cc2a474a",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务接通统一 fetch 取消与错误适配（src/lib/client/api.ts:24、src/lib/client/api.ts:23）。",
+        "补丁对本任务实际改动的条款为 09 L24 与 L174-181（ChatNotification 出箱的重试上限、requestStartedAt 标记、UNKNOWN/FAILED/DISABLED 转移、服务端时钟与租约过期判定）；18 L94（聊天可用性/通知策略：缺配置仅从未开始尝试的出箱置 DISABLED，UNKNOWN 暂停并在配置恢复后处理）；这些条款只约束 M4 聊天通知出箱。本任务登记的 3 个代码锚点文件（其中 3 个文本文件）在 a7941062 中对 ChatNotification、stableMessageId、requestStartedAt、NotificationQueued、chat-notifications 零引用，交付面与该出箱无交集，也未新增义务。",
+        "区分：src/lib/client/api.ts:23-24 的 15 s 是每次 HTTP 尝试的截止、:25 的 1/2/4 s 是客户端消息写重试退避，:43 的 attempts 计 HTTP 发送次数；与 09 L24、15 L31 的出箱「最多 4 次已标记开始的发送尝试、1/5/30 分钟」是不同层面，本补丁未改 10 节客户端重试规则。"
+      ]
+    },
+    "M1-T9": {
+      "contractHash": "00d01a510b09b4911a936ff470f1777b1882ff963c3a696cc1c0704596ea6b9a",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务复用已确认素材交付公司图稿工程（docs/brand-content/company-visuals.json:20、docs/brand-content/source/verify_company_visuals.py:1）。",
+        "补丁对本任务实际改动的条款为 18 L94（聊天可用性/通知策略：缺配置仅从未开始尝试的出箱置 DISABLED，UNKNOWN 暂停并在配置恢复后处理）；这些条款只约束 M4 聊天通知出箱。本任务登记的 9 个代码锚点文件（其中 8 个文本文件）在 a7941062 中对 ChatNotification、stableMessageId、requestStartedAt、NotificationQueued、chat-notifications 零引用，交付面与该出箱无交集，也未新增义务。"
+      ]
+    },
+    "M2-T1": {
+      "contractHash": "7582af656272952ed83e9f3ceeccffae08dfd0d68767ae8e9dc4d99b6a49dacb",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务扩展产品卡视口并精简信息区（src/app/[locale]/products/page.tsx:15、src/components/three/ProductGallery.tsx:64）。",
+        "补丁对本任务实际改动的条款为 09 L24 与 L174-181（ChatNotification 出箱的重试上限、requestStartedAt 标记、UNKNOWN/FAILED/DISABLED 转移、服务端时钟与租约过期判定）；18 L94（聊天可用性/通知策略：缺配置仅从未开始尝试的出箱置 DISABLED，UNKNOWN 暂停并在配置恢复后处理）；这些条款只约束 M4 聊天通知出箱。本任务登记的 7 个代码锚点文件（其中 7 个文本文件）在 a7941062 中对 ChatNotification、stableMessageId、requestStartedAt、NotificationQueued、chat-notifications 零引用，交付面与该出箱无交集，也未新增义务。"
+      ]
+    },
+    "M2-T2": {
+      "contractHash": "ecad74f45490b529be50559df8e39011fc4a661a344ffe1b616ecbd5bb38c264",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务修正模型直接拖动与滚轮焦点（src/lib/three/model-pointer.ts:43、src/lib/three/model-pointer.ts:132）。",
+        "补丁对本任务实际改动的条款为 09 L24 与 L174-181（ChatNotification 出箱的重试上限、requestStartedAt 标记、UNKNOWN/FAILED/DISABLED 转移、服务端时钟与租约过期判定）；18 L94（聊天可用性/通知策略：缺配置仅从未开始尝试的出箱置 DISABLED，UNKNOWN 暂停并在配置恢复后处理）；这些条款只约束 M4 聊天通知出箱。本任务登记的 5 个代码锚点文件（其中 5 个文本文件）在 a7941062 中对 ChatNotification、stableMessageId、requestStartedAt、NotificationQueued、chat-notifications 零引用，交付面与该出箱无交集，也未新增义务。"
+      ]
+    },
+    "M2-T3": {
+      "contractHash": "0a278786d0f4a29336f31bf289329a70ab8d220640bb68f825c9d04804853f46",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务接通模型键盘、触屏与复位控件（src/lib/three/model-accessibility.ts:24、src/lib/three/model-accessibility.ts:65）。",
+        "补丁对本任务实际改动的条款为 09 L24 与 L174-181（ChatNotification 出箱的重试上限、requestStartedAt 标记、UNKNOWN/FAILED/DISABLED 转移、服务端时钟与租约过期判定）；18 L94（聊天可用性/通知策略：缺配置仅从未开始尝试的出箱置 DISABLED，UNKNOWN 暂停并在配置恢复后处理）；这些条款只约束 M4 聊天通知出箱。本任务登记的 5 个代码锚点文件（其中 5 个文本文件）在 a7941062 中对 ChatNotification、stableMessageId、requestStartedAt、NotificationQueued、chat-notifications 零引用，交付面与该出箱无交集，也未新增义务。"
+      ]
+    },
+    "M2-T4": {
+      "contractHash": "2411b42f21da4354de58e5f9234ec1c481aa23052577bb5ff0c6cd0eea2011ba",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务定义模型分析事件生命周期的纯规则（src/lib/analytics/model-events.ts:118、src/lib/analytics/model-events.ts:134）。",
+        "补丁对本任务实际改动的条款为 09 L24 与 L174-181（ChatNotification 出箱的重试上限、requestStartedAt 标记、UNKNOWN/FAILED/DISABLED 转移、服务端时钟与租约过期判定）；18 L94（聊天可用性/通知策略：缺配置仅从未开始尝试的出箱置 DISABLED，UNKNOWN 暂停并在配置恢复后处理）；这些条款只约束 M4 聊天通知出箱。本任务登记的 2 个代码锚点文件（其中 2 个文本文件）在 a7941062 中对 ChatNotification、stableMessageId、requestStartedAt、NotificationQueued、chat-notifications 零引用，交付面与该出箱无交集，也未新增义务。"
+      ]
+    },
+    "M2-T5": {
+      "contractHash": "fa146e4f3e1f33b240d4733ee4dc84e177a96cf7439808df8b3a17f7055cf3b1",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务把产品上下文接到既有询盘表单；询盘通知走 sendSafely 邮件发送路径，不经 ChatNotification 出箱（src/app/api/inquiries/route.ts:8、src/components/quote/InquireProductLink.tsx:8）。",
+        "补丁对本任务实际改动的条款为 09 L24 与 L174-181（ChatNotification 出箱的重试上限、requestStartedAt 标记、UNKNOWN/FAILED/DISABLED 转移、服务端时钟与租约过期判定）；18 L94（聊天可用性/通知策略：缺配置仅从未开始尝试的出箱置 DISABLED，UNKNOWN 暂停并在配置恢复后处理）；这些条款只约束 M4 聊天通知出箱。本任务登记的 13 个代码锚点文件（其中 13 个文本文件）在 a7941062 中对 ChatNotification、stableMessageId、requestStartedAt、NotificationQueued、chat-notifications 零引用，交付面与该出箱无交集，也未新增义务。",
+        "区分：src/lib/server/mail/send.ts:148 的 requestStartedAt/attempts 属 MailMessage（prisma/schema.prisma:521），ChatNotification 的同名列在 :738；本补丁只改 ChatNotification 行，询盘邮件路径与 09 其他表行未变。"
+      ]
+    },
+    "M2-T6": {
+      "contractHash": "2ed71063967969ba4901eb1f279a43c60320e64333025c30f73ac7c778b1c975",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务接通真实模型失败与海报回退；手动重试上限 MAX_MODEL_RETRIES=3 是 GLB 重试，不是通知出箱重试（src/lib/three/model-fallback.ts:15、src/lib/three/model-fallback.ts:18）。",
+        "补丁对本任务实际改动的条款为 09 L24 与 L174-181（ChatNotification 出箱的重试上限、requestStartedAt 标记、UNKNOWN/FAILED/DISABLED 转移、服务端时钟与租约过期判定）；18 L94（聊天可用性/通知策略：缺配置仅从未开始尝试的出箱置 DISABLED，UNKNOWN 暂停并在配置恢复后处理）；这些条款只约束 M4 聊天通知出箱。本任务登记的 9 个代码锚点文件（其中 9 个文本文件）在 a7941062 中对 ChatNotification、stableMessageId、requestStartedAt、NotificationQueued、chat-notifications 零引用，交付面与该出箱无交集，也未新增义务。",
+        "区分：模型重试的上限 3 与新 viewId 属 GLB 加载尝试（src/lib/three/model-fallback.ts:15），与通知出箱的「首发后最多重试 3 次」同数不同域。"
+      ]
+    },
+    "M2-T7": {
+      "contractHash": "becb1054b4fd87c1dbc677cae30c7aceb7f339907183e816c3b75762625c23ec",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：本任务把真实 GLB 生命周期接入分析采集；其重试为新 viewId 的模型加载尝试（src/components/analytics/model-events-producer.ts:114、src/components/analytics/model-events-producer.ts:153）。",
+        "补丁对本任务实际改动的条款为 09 L24 与 L174-181（ChatNotification 出箱的重试上限、requestStartedAt 标记、UNKNOWN/FAILED/DISABLED 转移、服务端时钟与租约过期判定）；18 L94（聊天可用性/通知策略：缺配置仅从未开始尝试的出箱置 DISABLED，UNKNOWN 暂停并在配置恢复后处理）；这些条款只约束 M4 聊天通知出箱。本任务登记的 5 个代码锚点文件（其中 5 个文本文件）在 a7941062 中对 ChatNotification、stableMessageId、requestStartedAt、NotificationQueued、chat-notifications 零引用，交付面与该出箱无交集，也未新增义务。",
+        "区分：模型重试的上限 3 与新 viewId 属 GLB 加载尝试（src/lib/three/model-fallback.ts:15），与通知出箱的「首发后最多重试 3 次」同数不同域。"
+      ]
+    }
+  }
+}

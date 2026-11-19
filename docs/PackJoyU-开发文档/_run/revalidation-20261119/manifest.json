@@ -1,0 +1,102 @@
+{
+  "patch": "m4t4-retry-contract-20261119",
+  "docsCommit": "02ea695fbc7d581392d0d29e2fdcb27f1e6b8acb",
+  "integrationBase": "12544dd90c6336b594d68f5f9e735ed98e7074a6",
+  "integratedBy": "运维/部署工程师（仅集成，不是复验作者）",
+  "groups": [
+    {
+      "id": "R1",
+      "reviewer": "数据库审查工程师",
+      "tasks": 24,
+      "evidence": {
+        "path": "_run/revalidation-20261119/r1-db-24.evidence.json",
+        "bytes": 46073,
+        "sha256": "12514B79742577575C8B9321D4821E628B7E408B606D86C2CB8B7ECC3423B61B"
+      },
+      "report": {
+        "path": "_run/revalidation-20261119/r1-db-24.report.md",
+        "bytes": 8708,
+        "sha256": "0C8C85212396F80457E6134C054544E45C427DFF2235B60A6B01D8332C4D3077"
+      },
+      "originSeal": {
+        "path": ".codex-plans/NBShiyan-m4-t4/revalidation-20261119/R1/SHA256SUMS-LF.txt",
+        "sha256": "4D121202FED526BCA9590E62FA1882DED630A6AFCDF27CFC1C528A8E40BE5399"
+      }
+    },
+    {
+      "id": "R2",
+      "reviewer": "全栈工程师/安全工程师",
+      "tasks": 32,
+      "evidence": {
+        "path": "_run/revalidation-20261119/r2-fullstack-32.evidence.json",
+        "bytes": 56829,
+        "sha256": "4DB3C0E560C90FE161764AF5AA59ECEFAC73532D4B43C02C92FA75C3FF1300D1"
+      },
+      "report": {
+        "path": "_run/revalidation-20261119/r2-fullstack-32.report.md",
+        "bytes": 3774,
+        "sha256": "BE2F79C9051CF45C7DA79A996DFEB8E8D734AAC425635E28B47EB991367BE834"
+      },
+      "originSeal": {
+        "path": ".codex-plans/NBShiyan-m4-t4/revalidation-20261119/R2/SHA256SUMS-LF.txt",
+        "sha256": "360C80C91541A876DD54EEC9C996842380859912B04279A727F29139873B4254"
+      }
+    },
+    {
+      "id": "R3",
+      "reviewer": "前端工程师",
+      "tasks": 32,
+      "evidence": {
+        "path": "_run/revalidation-20261119/r3-frontend-32.evidence.json",
+        "bytes": 38016,
+        "sha256": "CB69CBEBCCC60ED656F144FBA74FBA1FD97262C9E62B874304F9F81E5B3921FB"
+      },
+      "report": {
+        "path": "_run/revalidation-20261119/r3-frontend-32.report.md",
+        "bytes": 11211,
+        "sha256": "1C707261E614B433A9E474CBC04D695F5243C128F0B153F83D59880F1AB79EAF"
+      },
+      "originSeal": {
+        "path": ".codex-plans/NBShiyan-m4-t4/revalidation-20261119/R3/SHA256SUMS-LF.txt",
+        "sha256": "8FA0805AC905F017DE243A28D5F45359243B9FD8C2116B74A26C5D0BEA254520"
+      }
+    },
+    {
+      "id": "R4",
+      "reviewer": "测试工程师",
+      "tasks": 18,
+      "evidence": {
+        "path": "_run/revalidation-20261119/r4-test-18.evidence.json",
+        "bytes": 45900,
+        "sha256": "55E5BB6D99DC0067CD58C268CD319D913BF9B8CF9598068EF126C99B628FBC64"
+      },
+      "report": {
+        "path": "_run/revalidation-20261119/r4-test-18.report.md",
+        "bytes": 8109,
+        "sha256": "613A994A54D819B8A273FB4AA320C20E9C350A33F4DF7F6A0FC59505A1EB8BC7"
+      },
+      "originSeal": {
+        "path": ".codex-plans/NBShiyan-m4-t4/revalidation-20261119/R4/SHA256SUMS-LF.txt",
+        "sha256": "D1B9736221CD995E274273F5F0A57D0AA8B899DD166AB133914BC1389723E4F1"
+      }
+    }
+  ],
+  "integratedEvidence": {
+    "path": "_run/revalidation-20261119/integrated-evidence.json",
+    "bytes": 200625,
+    "sha256": "6FDD5027F0F3EDA8E8060418C34E1B01444E719E23E0020B82A875A895B41ED3",
+    "tasks": 106
+  },
+  "logs": {
+    "integration": {
+      "path": "_run/revalidation-20261119/integration-log.txt",
+      "bytes": 9603,
+      "sha256": "3DD295C42495ACA731FE38CCAAC4284C8F680950ABC10FF40A1B47360FC721E3"
+    },
+    "landed": {
+      "path": "_run/revalidation-20261119/landed-log.txt",
+      "bytes": 7106,
+      "sha256": "64349D267A4D999D8454842BA3914B7BE4847758D47073085BF45D1F7DA4480D"
+    }
+  }
+}
