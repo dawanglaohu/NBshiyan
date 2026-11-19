@@ -59,6 +59,9 @@ export type RecoveryEnrollmentService = {
  *   同事务置 completedAt、撤旧设备、撤其他未完成受限会话、写审计；恢复码只返回一次。
  * - 失败/过期/错码/重放/完成后再来一律不提交；第 5 次错码在同一条 UPDATE 里作废 pending 与受限会话，
  *   拒绝分支的副作用不会因事务内 throw 被回滚（该 UPDATE 先于 throw 执行）。
+ * - SELF_REAUTH（M3-T20 本人换验证器）与恢复码/permit 来源共用本状态机：reset 已消费 TOTP_RESET grant、
+ *   递增 sv 并建受限会话，enroll/confirm 只额外拒绝携带密码重置材料的 SELF_REAUTH；confirm 原子发布
+ *   新 TOTP 与 10 个恢复码，密码保持不变（E-14、E-75）。
  */
 export function createRecoveryEnrollmentService(deps: {
   db?: PrismaClient;
@@ -99,7 +102,12 @@ export function createRecoveryEnrollmentService(deps: {
         if (!user || user.disabled) throw new AppError('bad_credentials');
         const session = await repo.lockRecoverySession(tx, tokenHash);
         if (!session || session.userId !== user.id) throw new AppError('bad_credentials');
-        if (session.source === 'SELF_REAUTH') throw new AppError('bad_credentials');
+        // SELF_REAUTH 与恢复码/permit 共用受限重绑；它只可重绑验证器，不得携带本地预授权密码材料
+        // （HTTP 永不写 pendingPasswordHash，E-75）。
+        if (session.source === 'SELF_REAUTH'
+          && (session.pendingPasswordHash !== null || session.passwordResetSource !== null)) {
+          throw new AppError('bad_credentials');
+        }
         // 两把锁之后取 now；此后没有外部 I/O 或昂贵计算。
         const now = clock();
         if (session.revokedAt || session.completedAt) throw new AppError('bad_credentials');
@@ -167,7 +175,11 @@ export function createRecoveryEnrollmentService(deps: {
         if (!user || user.disabled) throw new AppError('bad_credentials');
         const session = await repo.lockRecoverySession(tx, tokenHash);
         if (!session || session.userId !== user.id) throw new AppError('bad_credentials');
-        if (session.source === 'SELF_REAUTH') throw new AppError('bad_credentials');
+        // 与 enroll 同一收紧：SELF_REAUTH 只能发布新验证器，不能借本地预授权材料改密码。
+        if (session.source === 'SELF_REAUTH'
+          && (session.pendingPasswordHash !== null || session.passwordResetSource !== null)) {
+          throw new AppError('bad_credentials');
+        }
         // 两把锁与耗时准备都完成后才取 now；之后只剩 DB 读写，期限/step/CAS 都用它。
         const now = clock();
         if (session.revokedAt || session.completedAt) throw new AppError('bad_credentials');

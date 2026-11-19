@@ -1,41 +1,82 @@
+import { randomUUID } from 'node:crypto';
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
-import { prisma } from '@/lib/server/db';
 import { requireAdmin, assertSameOrigin, enforceAdminRateLimit } from '@/lib/server/auth';
 import { jsonErr, noStore } from '@/lib/server/admin/guard';
-import { audit } from '@/lib/server/admin/audit';
 import { readJson, TOO_LARGE } from '@/lib/server/admin/inquiries';
-import { reauth, reset2faData } from '@/lib/server/admin/accounts';
-import { auditTokenIssued, enrollLinkBase, issueResponse, newEnrollToken } from '@/lib/server/admin/enroll-token';
+import { reauth } from '@/lib/server/admin/accounts';
+import { enrollLinkBase } from '@/lib/server/admin/enroll-token';
+import { recoverySetCookie } from '@/lib/server/admin/recovery-start';
+import { classifySelfResetBody, SELF_REBIND_PAGE } from '@/lib/server/admin/self-rebind';
+import { createAdminServices } from '@/lib/server/composition';
+import { AppError, classifyThrown, mapAppError } from '@/lib/server/http/errors';
 
 export const runtime = 'nodejs';
-const Body = z.object({
-  currentPassword: z.string().min(1).max(200),
-  totp: z.string().regex(/^\d{6}$/).optional(),
-  recoveryCode: z.string().max(40).optional(),
-}).strict().refine((b) => b.totp || b.recoveryCode, 'totp_or_recovery');
 
-/** 重置自己的 2FA（换手机等）：当前密码 + TOTP 或恢复码。清空密钥和恢复码、所有会话失效，然后重新走 enroll。
- * #347 方案 A：同一次写入里签发一次性绑定令牌，响应体里返回一次 enrollLink（前端可以直接跳过去），之后拿不到。 */
+/**
+ * 本人换验证器（10 节:20）：
+ * - 主路径消费 TOTP_RESET actionGrant（M3-T3 签发，5 分钟、一次）；兼容旧的 currentPassword+totp；
+ * - 恢复码在此入口拒绝（E-75），且不改任何绑定；
+ * - 成功后不直接清 2FA，而是建 SELF_REAUTH 受限 session、设受限 cookie、返回 /admin-recovery 链接；
+ *   原因素保留到受限 confirm 原子发布新绑定（M3-T5）。
+ */
 export async function POST(req: Request) {
+  const requestId = randomUUID();
   const ctx = await requireAdmin(req, ['ADMIN', 'SALES', 'EDITOR']);
   if (ctx instanceof Response) return ctx;
   const blocked = assertSameOrigin(req) ?? (await enforceAdminRateLimit(req, 'account.2fa_reset', 5));
   if (blocked) return blocked;
+
   const json = await readJson(req, 2_000);
   if (json === TOO_LARGE) return jsonErr('too_large', 413);
-  const p = Body.safeParse(json);
-  if (!p.success) return jsonErr('invalid', 400);
-  const base = enrollLinkBase(); // #347：站点地址不合格时不重置（在 reauth 之前，不消耗失败次数）
+
+  let mode;
+  try {
+    mode = classifySelfResetBody(json);
+  } catch (error) {
+    return failure(error, requestId);
+  }
+
+  // 站点地址不合格时在消费任何凭据之前拒绝（grant 不被烧掉）。
+  const base = enrollLinkBase();
   if (!base) return jsonErr('site_url_invalid', 500);
-  const r = await reauth(ctx.user, p.data.currentPassword, p.data.totp, p.data.recoveryCode, ctx.ip, 'account.2fa_reset');
-  if (r !== 'ok') return jsonErr(r, r === 'locked' ? 423 : 401);
-  const now = new Date();
-  const t = newEnrollToken({ enrollIssuedAt: now }, now.getTime());
-  const updated = await prisma.user.update({ where: { id: ctx.user.id }, data: { ...reset2faData(now), ...t.data } }); // 含 sessionVersion+1 = revokeSessions
-  const { revokeUserDevices } = await import('@/lib/server/admin/device-repo');
-  await revokeUserDevices(prisma, ctx.user.id, 'totp_reset', updated.sessionVersion);
-  await audit({ actorId: ctx.user.id, action: 'account.2fa_reset', target: ctx.user.id, meta: { via: p.data.totp ? 'totp' : 'recovery_code' }, ip: ctx.ip });
-  await auditTokenIssued(ctx.user.id, ctx.user.id, 'self_reset_2fa', ctx.ip, t.expiresTruncated);
-  return NextResponse.json({ ok: true, reenrollRequired: true, ...issueResponse(t, base) }, { headers: noStore });
+
+  try {
+    if (mode.mode === 'password') {
+      const r = await reauth(ctx.user, mode.currentPassword, mode.totp, undefined, ctx.ip, 'account.2fa_reset');
+      if (r !== 'ok') return jsonErr(r, r === 'locked' ? 423 : 401);
+    }
+
+    const services = createAdminServices();
+    const result = await services.selfRebind.rebind(
+      mode.mode === 'grant'
+        ? { kind: 'grant', userId: ctx.user.id, sid: ctx.device.id, actionGrant: mode.actionGrant, ip: ctx.ip }
+        : { kind: 'password', userId: ctx.user.id, sid: ctx.device.id, ip: ctx.ip },
+    );
+
+    const maxAge = Math.max(1, Math.floor((result.expiresAt.getTime() - Date.now()) / 1000));
+    // 既有字段保持：ok / reenrollRequired / enrollLink；链接改指受限重绑页（cookie 已带受限会话）。
+    const body = {
+      ok: true,
+      reenrollRequired: true,
+      enrollLink: `${base}${SELF_REBIND_PAGE}`,
+      expiresAt: result.expiresAt.toISOString(),
+      expiresTruncated: false,
+    };
+    const response = NextResponse.json(body, { headers: noStore });
+    response.headers.append('set-cookie', recoverySetCookie(result.token, maxAge));
+    return response;
+  } catch (error) {
+    return failure(error, requestId);
+  }
+}
+
+function failure(error: unknown, requestId: string): Response {
+  if (error instanceof AppError) {
+    const mapped = mapAppError(error, requestId);
+    return NextResponse.json(mapped.body, { status: mapped.status, headers: mapped.headers });
+  }
+  const mapped = classifyThrown(error, requestId);
+  if (mapped.kind === 'legacy-response') return mapped.response;
+  if (mapped.kind === 'legacy-body') return jsonErr(mapped.body.error, 500);
+  return NextResponse.json(mapped.body, { status: mapped.status, headers: mapped.headers });
 }
