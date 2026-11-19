@@ -1116,15 +1116,15 @@
     "verdict": "pass"
   },
   "M4-T4": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "64a74a051aa62df373575b102699f8a7c928bae3b7d291175669aaae48d086e5",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "79fdde72572e20a63a00beeba04b4d7dcd79361ce99c4d8339d07674b5d3eb6d",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M4-T4《消费持久聊天通知并注册每分钟作业》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "本项仅为文档契约语义复核，非代码实现或数据库行为验收：未起PostgreSQL、未跑测试/CI、未联网。任务M4-T4；文档提交02ea695fbc7d581392d0d29e2fdcb27f1e6b8acb（唯一父a7941062af916119d53e0802d1752b4c1ab02424，tree 0cf4cc2b4f6f8843d3c06c277ec545746aa19579，19条路径均在docs/PackJoyU-开发文档下，12、16节文件不在其中）；补丁m4t4-retry-contract-20261119；目标契约哈希79fdde72572e20a63a00beeba04b4d7dcd79361ce99c4d8339d07674b5d3eb6d。",
+      "补丁落地：非作者在仓库外对a7941062的5份源blob按r1→裁定增量→DB增量→DB1-G5顺序重放，每步git apply --check与apply均返回0，5/5与提交blob一致（09=b214d953、13=78e5d415、15=02ac461e、18=8fb2bc74、19=5e6049ea）；DB1-G5三处状态图标签（09节：领取守卫、已知失败或租约过期未标记、NotificationUnknown→[*] attempts=4）逐字存在，旧措辞已不在。E-91、E-92、E-93三份边界笔记与13节行一致3/3，M4-T4任务笔记验收与19节行一致。",
+      "契约语义：重试上限与计数（首次后最多重试3次、最多4次已标记尝试、attempts只计已标记）、availableAt=结果写入时钟+1m/5m/30m对应attempts=1/2/3、第4次确知失败同一CAS直写FAILED、attempts=4的UNKNOWN停止自动重试且不存在attempts>=4的QUEUED、过期＝lockedUntil<=时钟与写回守卫lockedUntil>时钟互补、取行锁后采样时钟、缺配置仅attempts=0且未标记的QUEUED置DISABLED且为终态，在09/13/15/18/19节、状态图和图谱笔记之间无矛盾；所依ChatNotification字段已在main的prisma/schema.prisma:727-748，契约不要求新增迁移。",
+      "生成物与复现：revalidation.json新增106项（均为done，三组56/45/5）契约哈希与dispatch.json 106/106一致，M4-T4自身为todo不标记；dispatch.json 146个任务键集不变，体积缩小来自106项已落地任务的审查提示词换成复验提示词，非数据丢失；补丁记录status=synced、sourceVersion c9509a4948b9…。在仓库外LF导出树复现该sourceVersion，用同格式证据执行verify返回0，随后status显示M4-T4 ready=true、stale与runtimeDrift为空。实现卡须保持取行锁→采样注入时钟→守卫更新的顺序（参照src/lib/server/jobs/lease-repo.ts:368-370、391），SMTP 20s截止目前代码中不存在，随DB1-G8任务笔记交付；本证据不覆盖这些实现行为。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-11-19T12:56:32.653065+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
