@@ -2612,6 +2612,7 @@
         "src/lib/server/analytics/retention.ts",
         "tests/analytics-retention.db.test.ts",
         "tests/analytics-aggregate.db.test.ts",
+        "tests/analytics-daily-coverage.test.ts",
         "src/lib/server/analytics/event-repo.ts",
         "src/lib/server/jobs/registry.ts",
         "src/lib/server/composition.ts",

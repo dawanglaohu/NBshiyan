@@ -1248,16 +1248,18 @@
   },
   "M5-T12": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "5dd0bb1fd4a4c07e68455b124e79a3b405fbcfd40130808615dab7b9e029c84d",
+    "contractHash": "b73735d4da286ffc53a2977ce007630a2f6bbc5be9ceb6eba0deccb120383350",
     "evidence": [
-      "源变更仅 docs/PackJoyU-开发文档/_run/task-contracts.json（git diff 1 行新增）：M5-T12 supportPaths 末尾新增 src/lib/server/analytics/retention-cleanup-handler.ts，无重复；stage/wiring/outputPaths/requires/sections 未变；route 与 tests/retention-cleanup.test.ts 此前已支持，不重复加",
-      "触发输入：tree task/M5-T12 clean @ 755e5738e8b24251e04d8f7ac247e58e787910a3 / tree 3e5e074b4ee8b55f9aa8023dee9de587a7a415a4 / parent e828bb50…，git status 0 行；该 handler 尚不在 HEAD（由作者在 C 实现窗新建），supportPaths 仅作写域声明",
-      "依据 Chief 裁定：C 需要真实 handler 分支的执行验证；不得在 Next route.ts 额外导出 handleWith/createHandler（导出白名单影响 build），也不把 HTTP 控制器塞进聚合服务只为省路径；新增最小 server 内部 handler 模块作依赖注入缝，不新增公开 HTTP/ops 契约、不重开 M5-T11",
-      "begin exit=0、sync exit=0（日志 01-begin.log、02-sync.log）；补丁 status=synced、sourceVersion=735443977c46a099104f7c37401452b2ce94cbf19dafe1b068a144b4be50934f；sourceChanges 仅 _run/task-contracts.json；该路径已进 effectivePaths",
-      "受影响 24 个（M3-T6/T8/T9/T10/T11/T12/T13/T25、M5-T12、M6-T1..T7、M7-T2/T3/T5/T6/T7/T8/T9/T10），均为契约哈希传播；docs-data/build-manifest/build-state/dispatch/review 正常再生",
-      "边界：未 checkout/reset/rebase、未覆盖作者未提交内容；未改 route/业务源码/测试内容/CI/验收/status；未 --landed/Ready/merge/新 PR；未 push"
+      "固定对象：工作树 HEAD 4b243af576312193c4cd0d27dccce9745f392979、分支 task/M5-T12。契约源 task-contracts.json 相对 HEAD 的差异为 +1/−0 一行（hunk 位于 M5-T12 supportPaths 列表内，新增 tests/analytics-daily-coverage.test.ts），无删除、无其他源文件改动。",
+      "独立重算（只读调用项目生成器）：M5-T12 supportPaths 17→18、effectivePaths 31→32，两者均包含刚登记的测试路径；该契约变更字段仅 definition 与 effectivePaths，契约哈希 b73735d4da286ffc53a2977ce007630a2f6bbc5be9ceb6eba0deccb120383350。",
+      "基线可信：补丁 baseline 的 37 份 sourceContents 与 HEAD 对应文件逐字符相等（仅换行归一）；37 条 sourceInputs 指纹用 HEAD 内容重算全部相等；baseline sourceVersion 9e44c31764ab712dd69eaa10d63cdae5fc60aa2c8e5df875b276a37e13482f69，当前 01ab2d36cd932acf786bbaadb9095a01966a7ddd0f417f93b8f541e6bcd6027a。",
+      "影响面重算：以核实过的 baseline 复算受影响契约集合为 24 项，与 record.affected 完全相等；其中 M5-T12 变化字段为 definition/effectivePaths，其余 23 项仅 providers（前置契约哈希传播），context 其余字段不变；record.changes 的前后哈希与重算一致；24 项当前均为 todo，M5-T10 仍为 done。",
+      "五个修复文件与固定 Git 对象逐字节一致：worktree blob = HEAD blob = 声明 blob（aggregate.ts d70443b51c5f990c92d2555f5f10142d39f58b4f、analytics-daily.test.ts 0eac9fcd722e697bc2bf584a06970e882d23f8ed、analytics-daily-coverage.test.ts 2b1bc03fa45db73fe92d39d6480c590e9a03d45e、retention.ts aafac43cfee6fadef1fbcfce3bbbc1aaaf9215f8、analytics-retention.db.test.ts 408c5d9b1df77ec4495942e123dd9a9a94264909），blob 对象存在且这些路径工作区干净。",
+      "结构检查：review 0 BLOCK / 28 WARN / 1 INFO，M5-T12 无阻断项；契约总数 146；构建清单输入 37 项、产物 6 项，与同步声明一致。",
+      "既有登记：M5-T10 复核保持契约 d36573811cd97714d541fe4ad88d4a582de17062d7fd83980656b7dd92efbc0d、verdict pass、14 条证据；M5-T12 原复核为旧契约 5dd0bb1fd4a4c07e68455b124e79a3b405fbcfd40130808615dab7b9e029c84d 的 pass、6 条证据，本次按新契约登记。",
+      "边界：本复核只针对文档契约与路径登记，不代替代码审查、真实 PostgreSQL 17 的 28 文件门与阶段钟 24 例验收，也不代表 R2 已修复；未修改源码、未推送、未触发 CI。"
     ],
-    "reviewed": "2026-11-12T15:56:45.760080+00:00",
+    "reviewed": "2026-11-19T03:41:55.582384+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
