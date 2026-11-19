@@ -13,6 +13,7 @@ import { createApiCounter, type ApiCounter, type ApiCounterDb, type CounterLog }
 import { createAnalyticsConsentService, type AnalyticsConsentService } from './analytics/consent';
 import { createAnalyticsSettingsService, type AnalyticsSettingsService } from './analytics/settings';
 import { createAnalyticsEventRepo } from './analytics/event-repo';
+import { createAnalyticsDayMarkerSink } from './analytics/aggregate-day-state';
 import { createAnalyticsIngestService, type AnalyticsIngestService } from './analytics/ingest';
 import { analyticsConsentSecret } from './config';
 import { CHAT_VISITOR_POLICY } from './config';
@@ -162,6 +163,8 @@ export function createAnalyticsIngestServices(deps: {
       repo: createAnalyticsEventRepo(db),
       secret,
       clock: deps.clock,
+      // M5-T12：采集入口默认接通 UTC 日 marker，与事件插入同一事务提交。
+      markers: createAnalyticsDayMarkerSink(),
     }),
   };
 }

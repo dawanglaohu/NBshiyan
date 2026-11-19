@@ -28,9 +28,20 @@ export class AnalyticsPayloadConflict extends Error {
   }
 }
 
+export type SaveHooks = {
+  /**
+   * 与事件插入**同一事务**内回调，参数只含真正 `created` 的行（duplicate/conflict 不触发）。
+   * M5-T12 用它把 UTC 日 marker 与事件一起提交；回调抛错则整批回滚。
+   */
+  onInserted?: (tx: Prisma.TransactionClient, inserted: readonly NewAnalyticsEvent[]) => Promise<void>;
+};
+
 export type AnalyticsEventRepo = {
   publishedSlugs(slugs: readonly string[]): Promise<Set<string>>;
-  saveAll(rows: readonly NewAnalyticsEvent[]): Promise<Array<'created' | 'duplicate'>>;
+  saveAll(
+    rows: readonly NewAnalyticsEvent[],
+    hooks?: SaveHooks,
+  ): Promise<Array<'created' | 'duplicate'>>;
 };
 
 const identity = { eventId: true, semanticKey: true, payloadHash: true, browserHash: true } as const;
@@ -52,9 +63,10 @@ export function createAnalyticsEventRepo(db: PrismaClient): AnalyticsEventRepo {
       }
       return found;
     },
-    async saveAll(rows) {
+    async saveAll(rows, hooks) {
       const outcomes: Array<'created' | 'duplicate'> = [];
       await db.$transaction(async (tx) => {
+        const createdRows: NewAnalyticsEvent[] = [];
         for (const row of rows) {
           const byId = await tx.analyticsEvent.findUnique({ where: { eventId: row.eventId }, select: identity });
           const byKey = await tx.analyticsEvent.findUnique({ where: { semanticKey: row.semanticKey }, select: identity });
@@ -68,6 +80,7 @@ export function createAnalyticsEventRepo(db: PrismaClient): AnalyticsEventRepo {
           // ON CONFLICT DO NOTHING 不中止事务，插不进再读已有行。
           const inserted = Number(await tx.$executeRaw(insertAnalyticsEvent(row)));
           if (inserted === 1) {
+            createdRows.push(row);
             outcomes.push('created');
             continue;
           }
@@ -77,6 +90,7 @@ export function createAnalyticsEventRepo(db: PrismaClient): AnalyticsEventRepo {
           if (again === 'conflict' || again === 'create') throw new AnalyticsPayloadConflict();
           outcomes.push('duplicate');
         }
+        if (createdRows.length > 0 && hooks?.onInserted) await hooks.onInserted(tx, createdRows);
       }, { maxWait: 2_000, timeout: 5_000 });
       return outcomes;
     },

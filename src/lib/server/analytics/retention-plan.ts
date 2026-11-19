@@ -178,8 +178,7 @@ export function isRollupExpired(siteDate: string, now: Date, timeZone: string): 
   return siteDate <= rollupExpiryCutoff(now, timeZone);
 }
 
-export type RawCoveragePlan = {
-  /** 完整原始覆盖起点（UTC 瞬时，ISO）。早于它的站点日本地日原始事实可能已被部分清理。 */
+export type RawCoveragePlan = {  /** 完整原始覆盖起点（UTC 瞬时，ISO）。早于它的站点日本地日原始事实可能已被部分清理。 */
   completeRawCoverageStartUtc: string;
   /** 上述瞬时所在的站点本地日；这一天整日仍完整，更早的日子不一定。 */
   completeRawCoverageStartLocalDate: string;
@@ -248,12 +247,60 @@ export type ExpiredRollupDailyKey = {
   productSlug: string;
 };
 
+/**
+ * dry-run 候选计数。
+ *
+ * `events/rollupDailyRows/rollupDays/total` 保持旧语义（三张老表）；
+ * `daily/dayState/dayChange` 是 M5-T12 新三表的候选；`totalAll` 是六表合计。
+ * 新三表各有独立额度（Daily ≤1,000 并计入四表 20k；state/marker 各 ≤500、合 ≤1,000），
+ * 因此 `totalAll` 只作读数，不做任何一批的预算判定。
+ */
 export type RetentionCandidateCounts = {
   events: number;
   rollupDailyRows: number;
   rollupDays: number;
+  /** 旧三表合计，语义不变。 */
   total: number;
+  /** `AnalyticsDaily` 中 `expiresAt <= now` 的到期行（等号到期）。 */
+  daily: number;
+  /**
+   * `AnalyticsAggregateDayState` 中按**行内时区**已到期、且没有未到期 AnalyticsDaily
+   * 同 (localDate, revision) 行的行数；扫描窗口与删除阶段同一上限。
+   */
+  dayState: number;
+  /**
+   * `AnalyticsDayChange` 中 UTC 日严格早于「UTC 今日 −13 自然月 −2 天」的行数**上界**：
+   * 仍被存续 state 覆盖的 UTC 日由删除阶段排除，这里不减，故只作读数。
+   */
+  dayChange: number;
+  /** 六表合计读数；不用于额度判定。 */
+  totalAll: number;
 };
+
+/**
+ * 生产日志口径：候选计数按**预算栏位**分列，避免把 metadata 算进四表 20k，
+ * 也避免把 `dayChange` 上界当精确值、把 `totalAll` 当额度。
+ *
+ * 只做标签与算术，不含任何行内容或连接信息。
+ */
+export function candidateCountLabels(counts: RetentionCandidateCounts) {
+  return {
+    /** 旧三表（事件、日汇总、水位）合计，`total` 语义不变。 */
+    legacyThreeTables: counts.total,
+    /** `AnalyticsDaily` 到期行：单表 ≤1,000，并且计入四表每轮上限。 */
+    newDaily: counts.daily,
+    /** 四表共用每轮 `RETENTION_CLEANUP_MAX_PER_RUN` 的计数口径；metadata 不在其中。 */
+    fourTableBudget: counts.total + counts.daily,
+    /** `AnalyticsAggregateDayState` 到期行，走独立额度。 */
+    metadataState: counts.dayState,
+    /** `AnalyticsDayChange` 的上界读数：仍被存续 state 覆盖的 UTC 日没有减。 */
+    metadataDayChangeUpperBound: counts.dayChange,
+    /** metadata 两表合计，只受各 500 与合计 1,000 约束。 */
+    metadataTotal: counts.dayState + counts.dayChange,
+    /** 六表合计读数，不参与任何额度判定。 */
+    totalAllSixTables: counts.totalAll,
+  };
+}
 
 /**
  * 只读候选仓储：不提供删除方法，不选 browserHash、path、payloadHash 或任何事件正文，
@@ -294,11 +341,64 @@ export function createRetentionCandidateRepo(deps: {
       const eventCount = Number(events[0]?.count ?? 0);
       const dailyCount = Number(daily[0]?.count ?? 0);
       const dayCount = Number(days[0]?.count ?? 0);
+      const legacyTotal = eventCount + dailyCount + dayCount;
+
+      // M5-T12 新三表：与删除阶段同一判据（只是只读），额度各自独立，不进 legacy total。
+      const dailyTableRows = await db.$queryRaw<{ count: number }[]>(Prisma.sql`
+        SELECT COUNT(*)::int AS "count" FROM "AnalyticsDaily" WHERE "expiresAt" <= ${utc(deps.now)}
+      `);
+      const dailyTable = Number(dailyTableRows[0]?.count ?? 0);
+
+      const stateFloor = stateRetentionFloor(siteLocalDate(deps.now, deps.siteTimezone));
+      const stateCandidates = await db.$queryRaw<
+        { localDate: string; timezoneRevision: number; timezone: string }[]
+      >(Prisma.sql`
+        SELECT "localDate", "timezoneRevision", "timezone"
+        FROM "AnalyticsAggregateDayState"
+        WHERE "localDate" < ${stateFloor}
+        ORDER BY "localDate" ASC, "timezoneRevision" ASC
+        LIMIT ${DAILY_RETENTION_SCAN_LIMIT}
+      `);
+      const expiredStates: Array<{ localDate: string; timezoneRevision: number }> = [];
+      for (const row of stateCandidates) {
+        try {
+          // 行内时区正推 13 个自然月后那一日的起点；与 aggregate-day-state.dailyExpiresAt 同式。
+          if (new Date(siteDayUtcBounds(rollupExpiresAt(row.localDate), row.timezone).startUtc).getTime() > deps.now.getTime()) {
+            continue;
+          }
+        } catch {
+          continue; // 坏时区只诊断，不计入候选（删除阶段也定向保留）。
+        }
+        expiredStates.push({ localDate: row.localDate, timezoneRevision: Number(row.timezoneRevision) });
+      }
+      let dayState = expiredStates.length;
+      if (expiredStates.length > 0) {
+        const pairs = expiredStates.map((row) => Prisma.sql`(${row.localDate}, ${row.timezoneRevision})`);
+        const unexpired = await db.$queryRaw<{ localDate: string; timezoneRevision: number }[]>(Prisma.sql`
+          SELECT DISTINCT "localDate", "timezoneRevision"
+          FROM "AnalyticsDaily"
+          WHERE "expiresAt" > ${utc(deps.now)}
+            AND ("localDate", "timezoneRevision") IN (${Prisma.join(pairs)})
+        `);
+        const blocked = new Set(unexpired.map((row) => `${row.localDate}|${Number(row.timezoneRevision)}`));
+        dayState = expiredStates.filter((row) => !blocked.has(`${row.localDate}|${row.timezoneRevision}`)).length;
+      }
+
+      const dayChangeRows = await db.$queryRaw<{ count: number }[]>(Prisma.sql`
+        SELECT COUNT(*)::int AS "count" FROM "AnalyticsDayChange"
+        WHERE "utcDate" < ${dayChangeRetentionCutoff(utcDateOf(deps.now))}
+      `);
+      const dayChange = Number(dayChangeRows[0]?.count ?? 0);
+
       return {
         events: eventCount,
         rollupDailyRows: dailyCount,
         rollupDays: dayCount,
-        total: eventCount + dailyCount + dayCount,
+        total: legacyTotal,
+        daily: dailyTable,
+        dayState,
+        dayChange,
+        totalAll: legacyTotal + dailyTable + dayState + dayChange,
       };
     },
     async eventIds(limit) {
@@ -339,3 +439,55 @@ export function createRetentionCandidateRepo(deps: {
     },
   };
 }
+
+/* ------------------------------------------------------------------------- *
+ * M5-T12 新三表保留（docs/data-retention.md「分析原始事件和汇总」表）
+ *
+ * - `AnalyticsDaily`：行内时区 13 个自然月，`expiresAt <= now`（等号到期），每轮至多 1,000 行。
+ * - `AnalyticsAggregateDayState`：自身时区 13 个自然月到期、且无未到期 `AnalyticsDaily` 才删；
+ *   坏时区只诊断并定向保留（保守不删）。
+ * - `AnalyticsDayChange`：UTC 日反推 13 个自然月＋2 天，严格 `<`；保留仍存续 state 覆盖的
+ *   UTC 日与 `markerVersions` 键；**先删 state，再删 marker**。
+ * ------------------------------------------------------------------------- */
+
+/** `AnalyticsDaily` 单轮删除上限；四个分析表合计仍受 `RETENTION_CLEANUP_MAX_PER_RUN` 约束。 */
+export const DAILY_RETENTION_MAX_PER_RUN = 1_000;
+
+/** 两张元数据表各自单轮上限。 */
+export const METADATA_RETENTION_MAX_PER_TABLE = 500;
+
+/** 两张元数据表单轮合计上限（独立于四表 20k）。 */
+export const METADATA_RETENTION_MAX_TOTAL = 1_000;
+
+/** 元数据表删除批大小：固定 500，不跟随可配 `batchSize`。 */
+export const NEW_TABLE_RETENTION_BATCH = 500;
+
+/** state/marker 本轮各自还能删多少：各自 ≤500，合计 ≤1,000，与四表预算无关。 */
+export function metadataRetentionCaps(deletedStates: number): { stateCap: number; markerCap: number } {
+  const stateCap = METADATA_RETENTION_MAX_PER_TABLE;
+  const totalLeft = Math.max(0, METADATA_RETENTION_MAX_TOTAL - Math.max(0, deletedStates));
+  return { stateCap, markerCap: Math.min(METADATA_RETENTION_MAX_PER_TABLE, totalLeft) };
+}
+
+/** 新表删除的候选扫描上限：与单轮上限同量级，避免只读查询无界。 */
+export const DAILY_RETENTION_SCAN_LIMIT = 2_000;
+
+/** state 到期日预筛的下界：`localDate < 今日 − 13 自然月`（真正的到期判定还要按行内时区正推）。 */
+export function stateRetentionFloor(todayLocalDate: string): string {
+  assertLocalDate(todayLocalDate);
+  return shiftCalendarMonths(todayLocalDate, -ROLLUP_RETENTION_MONTHS);
+}
+
+/** `AnalyticsDayChange` 的严格上界：`UTC 今日 − 13 自然月 − 2 天`。 */
+export function dayChangeRetentionCutoff(nowUtcDate: string): string {
+  assertLocalDate(nowUtcDate);
+  return shiftLocalDays(shiftCalendarMonths(nowUtcDate, -ROLLUP_RETENTION_MONTHS), -2);
+}
+
+/** `now` 的 UTC 自然日标签（marker 键就是 UTC 日，不能用站点时区折算）。 */
+export function utcDateOf(now: Date): string {
+  return assertInstant(now).toISOString().slice(0, 10);
+}
+
+export type AnalyticsDailyKey = { localDate: string; timezoneRevision: number; dimension: string };
+export type AnalyticsDayStateKey = { localDate: string; timezoneRevision: number };
