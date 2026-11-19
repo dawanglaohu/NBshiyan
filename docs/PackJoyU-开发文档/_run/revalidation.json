@@ -1,1 +1,1380 @@
-{}
+{
+  "ANALYTICS-ROLLUP": {
+    "contractHash": "aeae79c2a5c989e197adccd8959d4f09e5f4a9d20700b1609910d4892127f3e7",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "BACKFILL-MJS": {
+    "contractHash": "d7dfe7f416f61b2dd2ec31b1c1dd45160f2d5fa9fe294d57d9b3577160a831ab",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "BE-350A": {
+    "contractHash": "0c848319df2ae3ecc830937a2bee7bcdf608048a30931496c0d5a20bfc741ce8",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "BE-I18N-P0": {
+    "contractHash": "0f138168a4996384bec1a65d94bcbabfa1ae6f7a22834679a94c0ff5cdffd878",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "BE-RATELIMIT-P3": {
+    "contractHash": "c27cb212bf31c3e3492857fd3a0f35e1843ac5d7e3a93bd6c60488625a97ebca",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "BE-RESET-STDIN-TTY": {
+    "contractHash": "b4f2fc95ca8f54d61f442170669ad9ce7486cb01bddd67cb0d91c77f995cdbdc",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "BE-RESET-TTY": {
+    "contractHash": "9ce3f9b5700b14814e7dacd8404e8e7afb9c672ac3cc9224564ea03c52d97f0f",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "CATALOG-MERGE": {
+    "contractHash": "110cdc602da02c372de1c31093c220fb7aa92ff0dda9795341ddb371221b9ba2",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "CI-DB-TESTS": {
+    "contractHash": "9c1b00dea257ec7bc07526aa4b0d2ce66c6d795c394c9bcdb9aba5e646a94b78",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "CI-DEVICE-SERIAL": {
+    "contractHash": "4cd0853b23e6d7d901648928fe8020f44005e23b56e8be0c3776380de9ecf5b3",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "CITY-STILL-WEBP": {
+    "contractHash": "9587f77b98006205eaaf355e9d2427cb89c426f38d9c1d6ce1037570fad73aa9",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "CLIENT-API-DEADLINE": {
+    "contractHash": "0316f48a0579119d354512e73ed72bdaf48a22aacf4518546147c95adb02b387",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "DEP-AUDIT-1": {
+    "contractHash": "4e62cf5359d91704e90a49f4cbb821de295fd45acefbb3ef9e27bdd3cd431e8c",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "DEPLOY-FIX-1": {
+    "contractHash": "d64f24f91c50c35a15dc06c1e0b79f6524feb99a6c41695ae0ea16f6af84b5ca",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "DOCKER-UPLOADS-1": {
+    "contractHash": "bb4d689846c17a14db1c7e39b71f907e2a9f83542de365d0c5b18246cb7203f5",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "E2E-CONSENT-FIX": {
+    "contractHash": "4697d3468847a86c947b1e4e8a3200279b5b8b7f90c4c703911c9dfee03e6488",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "FE-404-TITLE": {
+    "contractHash": "f2de5adce867ec780e61325a23a23e8da456fb72e7610216876d79613c1ae405",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "FE-FAB-390": {
+    "contractHash": "c43a41400aec992367ae1ec88ed0558847e0ddd3b2dd55d257f737eb19eef54f",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "GATE-HARDEN": {
+    "contractHash": "aa3d71a12f129200cc83cfa7ef868dceeeaf921979964aa95e574cccab1a24d7",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "GATE-HARDEN-2": {
+    "contractHash": "edb918dba94733bfce24a32a095678b4d700e88bc249611b3846f506a2eff778",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "GATE-PATHS-1": {
+    "contractHash": "0d00e206b365a6a7a99a3af3975f49592b8e5b5066ccbf7491359adbde6b6663",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "GATE-PATHS-2": {
+    "contractHash": "c5eb70fb40884fea4a59feaed507ecc040b639b52fa9892f95a197d48e679eca",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "GIFT-CARD-ASSETS": {
+    "contractHash": "f426c962d522ff2fa462b8a875b46b2ae908c4136d9d110d99390299599c5c36",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "GIFT-CARDS-RENAME": {
+    "contractHash": "f03ad4445631652b706b9f66e89b6367f7f19854ee4beab8b1924e93cf433bbe",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "GUARD-503": {
+    "contractHash": "941f278149bb3282097b610a1721174761e6809665f73b5d5d9405771763dd39",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "HOTFIX-LOGIN-EMPTY": {
+    "contractHash": "a3505127cfd8b7a4dd74b1211bfe7fddbaa1cadada0ff3fda0450230b236fd4a",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M1-T1": {
+    "contractHash": "cf38e3ad38fd2a599ed4dfc2e87d246719c1917a0f77304909320cd53b71a51d",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M1-T2": {
+    "contractHash": "19c1b4e2aab552d4aac2f7819f263e737e294b4611e136ca818cab70c26236f9",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M1-T3": {
+    "contractHash": "9f4145cea29199a8c692a799baba94f7a8d58088efc032ee035f61d4d6b1628e",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M1-T4": {
+    "contractHash": "c13cde19d8520982c040dbd864870edf16f3423a16318425048f4c519de47bac",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M1-T5": {
+    "contractHash": "9db58d2bc9f702fc53e908745b9e5f0b0c9ead8b9c47b5d71ce9884427d1fb1c",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M1-T6": {
+    "contractHash": "c3e3be762b70b757502377b6e8d33bd3279d0401d418c50fb39630465193f2e8",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M1-T7": {
+    "contractHash": "2ea2c954f57bf6b5d092cb35347f5ffb6c43882063a27e7eb148e0d890229c3b",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M1-T8": {
+    "contractHash": "227b50c8057ad978e94f023c69f6ac073c35810d57598cdf3d557e75cc2a474a",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M1-T9": {
+    "contractHash": "00d01a510b09b4911a936ff470f1777b1882ff963c3a696cc1c0704596ea6b9a",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M2-T1": {
+    "contractHash": "7582af656272952ed83e9f3ceeccffae08dfd0d68767ae8e9dc4d99b6a49dacb",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M2-T2": {
+    "contractHash": "ecad74f45490b529be50559df8e39011fc4a661a344ffe1b616ecbd5bb38c264",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M2-T3": {
+    "contractHash": "0a278786d0f4a29336f31bf289329a70ab8d220640bb68f825c9d04804853f46",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M2-T4": {
+    "contractHash": "2411b42f21da4354de58e5f9234ec1c481aa23052577bb5ff0c6cd0eea2011ba",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M2-T5": {
+    "contractHash": "fa146e4f3e1f33b240d4733ee4dc84e177a96cf7439808df8b3a17f7055cf3b1",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M2-T6": {
+    "contractHash": "2ed71063967969ba4901eb1f279a43c60320e64333025c30f73ac7c778b1c975",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M2-T7": {
+    "contractHash": "becb1054b4fd87c1dbc677cae30c7aceb7f339907183e816c3b75762625c23ec",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M3-T1": {
+    "contractHash": "e02041d588f8e9991c2069402436e552631d8a657bcf8bf32976d325221182a4",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M3-T14": {
+    "contractHash": "cc936e672466e034cd82f49598bd039c451c123088bb43bf7b6b8abc7b2861a3",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M3-T15": {
+    "contractHash": "e796f93900a9f5297a45297e699f6bbda78a6d49a629fa9627bd0e29c7816a20",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M3-T16": {
+    "contractHash": "96d3724edbc610a267da8c3876028301e8f54b21d4370111d3190e6a1f83d6f9",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M3-T17": {
+    "contractHash": "938acf288bbddfd09a2ca628ae3505caa508e2cb70507a131b098f2174ef939c",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M3-T18": {
+    "contractHash": "fb3ec540ac0a751b994a10dae1cffd894463fc63a711bc18fcb2e97b29bed8d4",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M3-T19": {
+    "contractHash": "091bf8c0b7158a5a94dcc9751cfcd273116937529f2c5ce3f4fb5e3183fe5690",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M3-T2": {
+    "contractHash": "240e8b2d1ff79f7675d2302aeedb6dbfc1458910cd17f106079a185045777b0b",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M3-T20": {
+    "contractHash": "6ff5b1d2b9a2f2a322c0ba8a850b247c2b6045776595eaf0a95caa718962b2d4",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M3-T21": {
+    "contractHash": "f0e3a02e100bb30ec63bbc440c9519db94bc50dca5667a008e788d6afdb7e818",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M3-T22": {
+    "contractHash": "e03560df3979facf9f5003cd165add9abde7ef64c590e474787491bda9544bc2",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M3-T23": {
+    "contractHash": "ed345ad0f0170ea601229f6a6ff8b04bf087787f1044f0db066716b8bc9afd90",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M3-T24": {
+    "contractHash": "817989874b8e9086f4c283935f97d6f16e7321eb9dad2063674c8b53ae27be66",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M3-T3": {
+    "contractHash": "6d9595da6d90cf5e2a508cf4d76538170b0e9eae303bec13d0df055e2428dd50",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M3-T4": {
+    "contractHash": "d49230a68e4d3a526d3e48f8b2c8040b9f512c94f616af1574e2083f55272fb5",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M3-T5": {
+    "contractHash": "209e855a9a3b5261e6c8d6ad0a03e55a4691765156921d20291a228bb0ca771e",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M3-T7": {
+    "contractHash": "059db9e311af892a5b9286732a5325675045bc209b74ef6cd7220bfb3a9c3849",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M4-T1": {
+    "contractHash": "0e078e69460a585e689c4ece3f3ba96f6d800854f6f82041cddc0b42aabe5111",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M4-T12": {
+    "contractHash": "6cc636a903fcac2fa14971403aa52bb3ed69b08db6f9bc9785a5a47e9f3c44c5",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M4-T15": {
+    "contractHash": "e30b73144d22dae6490e2a6aedf3d2190039fdcadc6d868c5227e63d7450e517",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M4-T2": {
+    "contractHash": "c33f99885c0fc11a84d017ab199ba0ef4a06f4210a4798f7a5664bd8c90acce5",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M4-T8": {
+    "contractHash": "d4db6caf8bf32abd57ad7292ad741ec13e19d94be1a8b661fc2467c619dd3b20",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M5-T1": {
+    "contractHash": "5406e7b90b31fd1145492df66eba6325a4dfc895ffebd203092c4200cb42289c",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M5-T10": {
+    "contractHash": "907933f9e8d96e3a4e616f6b88ff8d35fe666216c17e5c1460300ecaea06aee8",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M5-T11": {
+    "contractHash": "d9a3b15579292b83fc48ba1a4597b424b63c3b82aa929cc26e3f6aa5bd258b05",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M5-T12": {
+    "contractHash": "d724b854f24f40cfdfe4171814fc4191f8cb3e9841214bff0c9f1080940d4087",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M5-T2": {
+    "contractHash": "dfd42810168c8da9daf430aef497bc3e99f67e364e496f60cb728233831bb09d",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M5-T3": {
+    "contractHash": "ea3a98c3d3a0e0e7cef49287d01b25189f93473bee88f5d52634ce580f1dccf5",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M5-T4": {
+    "contractHash": "5a1fa7731ebfb548e63f386801c6f517622a9721076f624d9ac8edc504509d7f",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M5-T5": {
+    "contractHash": "8c5edca68fc4f65ed207eefa4b4751bae7f511b7e68e80a86e9b54362bbccd71",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M5-T6": {
+    "contractHash": "b22971b7c31b2a2f4f15dc72d657018b67370d6936898449a02ccce9382b7cde",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M5-T7": {
+    "contractHash": "aa169021054862b67fdd55d745c9930bf2eaf41a56fe41eccc636eef8f034317",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M5-T8": {
+    "contractHash": "00ed0de63a2ba09f8dfead5994a36ae0f996b394fe01eee6401bfba71af5384f",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M5-T9": {
+    "contractHash": "c77ebeb7a945b0a4f6330d83c57660d194978148ec43c39c4e7ad7abc7c3bd4b",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "MAIN-E2E-FIX": {
+    "contractHash": "71588c1986699ef225ca9886513e6b8a4ff8aff0a5c41fa0915c2e17060587ed",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "POST-LAUNCH-P3": {
+    "contractHash": "8e1ff7a5729c6217de617adfb92628b3e93d95cabaae414eef883ff8249469e9",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "R3-T09233008": {
+    "contractHash": "8ef5df1a1031b8806162c2c113aaf81b864e09c0f15f31979aa4dc2052b8fb1e",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "R3-T09598683": {
+    "contractHash": "4cf473e650fd420af6e5c06b97ad0a661d43fe6d0400c28eb97efa7aa81265f1",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "R3-T12074461": {
+    "contractHash": "f19203b8daf0ab41d279ec1e07ab758b2f7290216d15fde96c6ca9ffdbd2f3c4",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "R3-T21757567": {
+    "contractHash": "733d06237cc491e3f96ee62c5373de65afda55ca6f54d6b08543afbc6af0715f",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "R3-T22883505": {
+    "contractHash": "11f6b9f87b96cff423c8ce838711566638ed92fa13a8b9ecd8c816f27caca834",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "R3-T56876634": {
+    "contractHash": "48bc6063fc846a5154e90ed00787eedc83cc014fdfd9bd0bd2e836365eb3ba37",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "R3-T71889698": {
+    "contractHash": "9b6dc55652409f99b22b9365dfb733d5c1f250a458e80bef368e6af8c2a2c150",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "R3-T75625096": {
+    "contractHash": "24618d25c334cbc5fa5be2d1171a94c8e04ce26d1aaf425f90bbdf8d317f06eb",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "R3-T86511435": {
+    "contractHash": "a6c029430393ef1270cdd4a143b544a08a3e29bfae35ed5c17c8fa87d5684eca",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "R3-T87287564": {
+    "contractHash": "a38184d419a908728c0483523317444409977a67f067de0f9d031b9c0dda99a2",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "R3-T92231765": {
+    "contractHash": "36ded88fd096fb3dcabd67157481ec915aae5963c7909365f58fb01f6fcdd04b",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "R4-T16305211": {
+    "contractHash": "09b5b6920c2815cab37bffb6b6e7e027ed04e1767374eb71832a0f649c11647e",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "R4-T64765902": {
+    "contractHash": "ad0fb29d55c377186d401e04340a17fc5d959fed54b5deaab665cff3314b147a",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "R4-T76958784": {
+    "contractHash": "ac0ac6034a7d581d77e06871f388afda2e4ed4e02d59fd294e46b4da62db3865",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "R4-T78812657": {
+    "contractHash": "825dfd22bc6cfaac1c9ee079aca504207c28fbd8c7536403f4d6ca80832c71a4",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "R5-T10248697": {
+    "contractHash": "91366ebcccae35e68ed923977e418d2fa25f0e6b7da9770f8b4506bddd50b084",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "R5-T59021355": {
+    "contractHash": "d3a6b73d9824fd668c5bf192eb27055a6b9d99097cff609b79a72a9e8bfd0b4d",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "R7-T14077261": {
+    "contractHash": "a8465fab334b8c421e325225e0c4040bc67c865027871f148b5f1d37fac2e2ad",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "R7-T21418022": {
+    "contractHash": "1702ab45d7f97d7f30cc610e08ff1a4daed089c56ca76bc760a0bec88a0e02a8",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "R7-T31416198": {
+    "contractHash": "327f391f7bae067186c26b8e42c6a75acd6d23b8a897475ee5b4b047345bd35a",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "R9-T71605271": {
+    "contractHash": "bccf5ecd1c566fffd448a6cc9f7599d48fa9ab34914251b2577ca7a4f6539aa3",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "RETENTION-CLEANUP": {
+    "contractHash": "1000bb4325f2e15ee18bd132f206318a30aaf400f87ae81c9df3e7b4677ffa5c",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "SEO-1": {
+    "contractHash": "9a12935a5a8975dccecce08795d2f95dbcb07c3f1de36363eadb2aaafeb6942c",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "SEO-2": {
+    "contractHash": "b00b7ded37a29f43876d8fe7073bd67b8e9556f5f1afc7267377eab55879bd18",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "SEO-4": {
+    "contractHash": "f294d880856e5673a59e447364c390abd9d28c3fd9f288585b51832f5ff39e54",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "SEO-5": {
+    "contractHash": "67ad0f2dd586956ec3e461f2b8c18ddd26c3f5b82865466a0614bab88c20756b",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "SEO-6": {
+    "contractHash": "9ceebde434969b51649877e52f07f03e89cf9ed033b57fc160415a6ff8185cba",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "SEO-7": {
+    "contractHash": "8b921e804929f16ee90c850270145e93f977f0b2da8be462ff81acaea0c3467d",
+    "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md"
+        ],
+        "patch": "m4t4-retry-contract-20261119",
+        "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4"
+      }
+    ],
+    "previousStatus": "done"
+  }
+}
