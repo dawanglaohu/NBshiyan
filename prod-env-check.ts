@@ -4,6 +4,7 @@ import { isProdEnvFrom } from './src/lib/site';
 import { policyConfigProblems } from './src/lib/server/config';
 import { parseRedisUrl } from './src/lib/server/ratelimit/redis';
 import { dailyCapValid, smtpBaseConfig } from './src/lib/server/mail/config';
+import { CHAT_NOTIFICATION_HOOK_KEYS } from './src/lib/server/chat/notification-policy';
 // 生产环境配置自检：
 // - next.config 加载时执行（next build → 'build'，next start → 'runtime'）；
 // - 自建 standalone（node server.js 不会重新执行 next.config）由 src/instrumentation.ts 在启动时按 'runtime' 再查一遍。
@@ -60,6 +61,9 @@ function rateLimitProblems(env: Record<string, string | undefined>): string[] {
 export function prodEnvProblems(env: Record<string, string | undefined>, phase: EnvCheckPhase = 'any', deps: EnvCheckDeps = {}): string[] {
   if (!isProductionDeploy(env)) return [];
   const problems = publicProblems(env);
+  for (const key of CHAT_NOTIFICATION_HOOK_KEYS) {
+    if (env[key] !== undefined) problems.push(`${key}：生产环境禁止聊天通知测试钩子`);
+  }
   if (phase !== 'build') {
     problems.push(...rateLimitProblems(env));
     problems.push(...mailProblems(env), ...storageProblems(env, deps), ...secretProblems(env), ...runtimeSecretProblems(env), ...policyConfigProblems());

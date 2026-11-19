@@ -220,6 +220,35 @@ jobs:
           grep -Eq '^# pass [1-9][0-9]*$' /tmp/ci-prod-mocks.tap
           grep -Eq '^ok 3 ' /tmp/ci-prod-mocks.tap
 
+      - name: M4-T4 production notification hook stripping (positive and negative controls)
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          test -s .next/standalone/server.js
+          node --input-type=module <<'EOF'
+          import assert from 'node:assert/strict';
+          import fs from 'node:fs';
+          import os from 'node:os';
+          import path from 'node:path';
+          const marker = 'CHAT_NOTIFICATION_TEST_HOOK_ACTIVE';
+          function scan(directory) {
+            const files = fs.readdirSync(directory, { recursive: true, withFileTypes: true });
+            const scripts = files.filter((file) => file.isFile() && /\.(?:js|cjs|mjs)$/.test(file.name));
+            assert.ok(scripts.length, 'no compiled scripts to inspect');
+            const hits = scripts.filter((file) => fs.readFileSync(path.join(file.parentPath, file.name), 'utf8').includes(marker));
+            assert.equal(hits.length, 0, 'ACTIVE_CHAT_HOOK_PRESENT');
+          }
+          scan('.next/server');
+          scan('.next/standalone/.next/server');
+          const probe = fs.mkdtempSync(path.join(os.tmpdir(), 'm4t4-hook-negative-'));
+          try {
+            fs.copyFileSync('.next/standalone/server.js', path.join(probe, 'server.js'));
+            fs.appendFileSync(path.join(probe, 'server.js'), `\nconsole.info(${JSON.stringify(marker)});\n`);
+            assert.throws(() => scan(probe), /ACTIVE_CHAT_HOOK_PRESENT/);
+          } finally { fs.rmSync(probe, { recursive: true }); }
+          console.log('M4T4_HOOK_STRIP production=PASS negative=DETECTED');
+          EOF
+
       # 两段构建与断言的日志分开留存；失败也上传，便于复核。
       - name: 上传 production 构建与断言证据
         if: always()
@@ -389,6 +418,7 @@ jobs:
           # M4-T2 访客读游标真实 PG/route 回归：只认专属变量、必须 loopback；缺地址时上一条 require 直接失败。
           # 测试自建 chatread_<pid>_<hex> schema，事后按同名 DROP CASCADE，不落 public。
           B10_M4T2_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
+          B10_M4T4_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
           M3T2_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e?schema=m3t2
           M3T2_REQUIRE_DATABASE: 'true'
           M3T3_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e?schema=m3t3
@@ -441,6 +471,7 @@ jobs:
               'tests/chat-first-message.db.test.ts',
               'tests/cleanup-lock.db.test.ts',
               'tests/job-leases.db.test.ts',
+              'tests/chat-notification-worker.db.test.ts',
               'tests/last-admin.db.test.ts',
               'tests/admin-reset-initial-password.db.test.ts',
               'tests/admin-login-mode.db.test.ts',
@@ -496,6 +527,7 @@ jobs:
             tests/chat-first-message.db.test.ts \
             tests/cleanup-lock.db.test.ts \
             tests/job-leases.db.test.ts \
+            tests/chat-notification-worker.db.test.ts \
             tests/last-admin.db.test.ts \
             tests/admin-reset-initial-password.db.test.ts \
             tests/admin-login-mode.db.test.ts \
@@ -537,6 +569,7 @@ jobs:
             'tests/chat-first-message.db.test.ts',
             'tests/cleanup-lock.db.test.ts',
             'tests/job-leases.db.test.ts',
+            'tests/chat-notification-worker.db.test.ts',
             'tests/last-admin.db.test.ts',
             'tests/admin-reset-initial-password.db.test.ts',
             'tests/admin-login-mode.db.test.ts',
@@ -579,6 +612,8 @@ jobs:
           # M3-T20 DB-only 分母 16（2 URL/CI + 7 安全前置 + 7 真 PG）；本步无 standalone，HTTP suite 级 skip 不进 summary。
           # 精确断言 16：17（HTTP 意外执行）、9（DB skip）、缺文件/取消都不能被 pass>=1 的宽门吞掉。
           grep -Fqx $'tests/admin-self-rebind.db.test.ts\tpass=16\tfail=0\tskip=0\ttodo=0\tcancelled=0' /tmp/m3t2-file-gate.txt
+          grep -Fqx $'tests/chat-notification-worker.db.test.ts\tpass=26\tfail=0\tskip=0\ttodo=0\tcancelled=0' /tmp/m3t2-file-gate.txt
+          grep -F 'M4-T4 notification PostgreSQL' /tmp/pg-regressions.tap
       - name: Action grant PostgreSQL lock-wait evidence
         run: |
           node --input-type=module <<'EOF'
@@ -1008,7 +1043,7 @@ jobs:
 
   mail-evidence:
     runs-on: ubuntu-24.04
-    timeout-minutes: 35
+    timeout-minutes: 42
     permissions:
       contents: read
     env:
@@ -1432,7 +1467,7 @@ jobs:
           console.log(JSON.stringify({ preparedRealModes: ['http', 'off'], source, modeManifests: modes, businessCredentialsUsed: false }));
           PREPARE
       - name: Isolated TLS SMTP integration
-        timeout-minutes: 27
+        timeout-minutes: 34
         shell: bash
         run: |
           set -- integration "$GITHUB_WORKSPACE" "$GITHUB_WORKSPACE/tests/evidence/local-smtp.mjs"
@@ -1584,7 +1619,7 @@ jobs:
           "$pg_bin/pg_ctl" -D /tmp/mail-evidence-pg -l /tmp/mail-evidence-pg.log -o '-h 127.0.0.1 -p 5432 -k /tmp' -w start >/dev/null
           node "$smtp_script" exec --root "$root" --mode postgres -- "$pg_bin/createdb" -h 127.0.0.1 -p 5432 -U postgres mail_evidence
           node "$smtp_script" exec --root "$root" --mode postgres -- pnpm prisma db push --skip-generate
-          node "$smtp_script" serve --root "$root" --report "$report_dir/admin-legacy-inquiries-smtp-final.json" &
+          node "$smtp_script" serve --root "$root" --chat --report "$report_dir/admin-legacy-inquiries-smtp-final.json" &
           sink_pid=$!
           # Readiness is bounded; never repeat a failed product test.
           node --input-type=module -e 'const end=Date.now()+10000;for(;;){try{const r=await fetch("http://127.0.0.1:3998/health");if(r.status===200)break}catch{}if(Date.now()>end)throw Error("SMTP_READINESS_FAILED");await new Promise(r=>setTimeout(r,100))}'
@@ -1770,11 +1805,20 @@ jobs:
           # P2: the namespace setup already started the root tick; phase seeds one due row,
           # restarts the http-real artifact, arms one tick and asserts SENT / JobState / sink.
           node "$smtp_script" exec --root "$root" --mode http-real -- node tests/evidence/mail-cron-phase.mjs --report "$report_dir/admin-legacy-inquiries-mail-cron.json"
+          # Additional isolated checks: absolute SMTP cutoff, actual retry counts, and five real minute ticks.
+          node "$smtp_script" exec --root "$root" --mode http-real -- env M4T4_SMTP_EVIDENCE=1 node --import tsx --test --test-reporter=tap tests/chat-notification-smtp.integration.test.ts | tee "$report_dir/chat-notification-smtp.tap"
+          grep -qx '# pass 5' "$report_dir/chat-notification-smtp.tap"
+          grep -qx '# fail 0' "$report_dir/chat-notification-smtp.tap"
+          grep -qx '# skipped 0' "$report_dir/chat-notification-smtp.tap"
+          grep -qx '# todo 0' "$report_dir/chat-notification-smtp.tap"
+          grep -qx '# cancelled 0' "$report_dir/chat-notification-smtp.tap"
+          node "$smtp_script" exec --root "$root" --mode http-real -- node tests/evidence/chat-notifications-phase.mjs --report "$report_dir/chat-notifications-phase.json"
           DRIVER
           chmod 600 "$root/driver.sh"
           # PID 1 owns the lifetime. Parent stdin EOF, a deadline, signal or driver failure ends that PID namespace.
           # Kernel namespace teardown also covers detached PostgreSQL daemons; traps remain for graceful file cleanup only.
-          namespace_budget=23m
+          # Keep the legacy namespace time plus 7 minutes for the additional bounded chat evidence.
+          namespace_budget=30m
           [[ "$mode" == preflight-only ]] && namespace_budget=3m
           timeout --signal=TERM --kill-after=10s "$namespace_budget" node "$smtp_script" namespace-launch --root "$root" --project "$project" --scenario "$mode" --report-dir "$report_dir"
       - name: Cleanup owned private fixture

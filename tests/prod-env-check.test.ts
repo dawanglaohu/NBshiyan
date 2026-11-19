@@ -4,6 +4,7 @@ import { mkdtempSync, mkdirSync, readFileSync, rmSync, symlinkSync } from 'node:
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { prodEnvProblems, assertProdEnv, storageProblems, RUNTIME_ONLY, publicSiteHostOk, PUBLIC_SITE_HOST_RE } from '../prod-env-check';
+import { CHAT_NOTIFICATION_HOOK_KEYS } from '../src/lib/server/chat/notification-policy';
 
 // 缺能力时必须 skip。断言前 return 会让该用例变成通过，安全分支却没有执行。
 type StorageCap = { ready: true } | { ready: false; reason: string };
@@ -448,4 +449,19 @@ test('#323 local 驱动：UPLOAD_DIR 先 realpath 再比 public/、.next/ 前缀
     assert.match(storageProblems(localEnv({ UPLOAD_DIR: '/data/uploads' }), { cwd: '/app', dirProblem: okDir, realpath: (p) => (p === '/data/uploads' ? '/app/public/x' : p) })[0], /public\//);
     assert.deepEqual(storageProblems(localEnv({ UPLOAD_DIR: '/data/uploads' }), { cwd: '/app', dirProblem: () => '不存在或当前用户不可读写', realpath: () => { throw new Error('ENOENT'); } }), ['UPLOAD_DIR 不存在或当前用户不可读写']);
   } finally { rmSync(base, { recursive: true, force: true }); }
+});
+
+test('M4-T4 G10：生产build/runtime/any拒绝所有已定义hook值，诊断只含变量名', () => {
+  for (const phase of ['build', 'runtime', 'any'] as const) {
+    for (const key of CHAT_NOTIFICATION_HOOK_KEYS) {
+      for (const value of ['', '0', 'false', '1', 'hook-value-private-probe']) {
+        const env = { ...prodFull, CI: 'true', [key]: value };
+        const problems = prodEnvProblems(env, phase);
+        assert.ok(problems.some((p) => p.startsWith(key + '：')));
+        assert.ok(!problems.join('\n').includes('hook-value-private-probe'));
+        assert.throws(() => assertProdEnv(env, phase), /生产环境禁止聊天通知测试钩子/);
+      }
+    }
+  }
+  assert.deepEqual(prodEnvProblems({ ...prodFull, CHAT_NOTIFICATION_TEST_PAUSE_AFTER_ACCEPT: undefined, CHAT_NOTIFICATION_TEST_BACKOFF_SCALE: undefined }), []);
 });

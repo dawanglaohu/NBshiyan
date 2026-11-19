@@ -27,6 +27,9 @@ import { createAnalyticsAggregateJob, createJobRegistry, type JobRegistry } from
 import { createAnalyticsRetentionJob } from './analytics/retention';
 import { retentionCleanupMode } from './analytics/retention-plan';
 import { createMailQueueJob } from './mail/queue-job';
+import { createChatNotificationJob } from './chat/notification-job';
+import type { NotificationMailer } from './chat/notification-mailer';
+import type { NotificationEnv } from './chat/notification-policy';
 import { defaultAdapter } from './mail/http';
 import { sendAdminAlert } from './mail';
 import { audit, auditInTx } from './admin/audit';
@@ -227,6 +230,7 @@ export function createJobServices(deps: {
   db?: PrismaClient;
   clock?: () => Date;
   deleteAuthorized?: boolean;
+  chat?: { getMailer?: () => Promise<NotificationMailer | null>; env?: NotificationEnv; limit?: number };
   /** 邮件队列测试注入点；生产默认用真实 adapter/告警/审计。 */
   mail?: {
     getAdapter?: () => Promise<MailSendAdapter | null>;
@@ -253,6 +257,7 @@ export function createJobServices(deps: {
       createAnalyticsAggregateJob({ db, clock: deps.clock }),
       createAnalyticsRetentionJob({ db, clock: deps.clock, deleteAuthorized }),
       mailJob,
+      createChatNotificationJob({ db, clock: deps.clock, ...deps.chat }),
     ]),
   };
 }
