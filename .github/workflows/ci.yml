@@ -220,6 +220,47 @@ jobs:
           grep -Eq '^# pass [1-9][0-9]*$' /tmp/ci-prod-mocks.tap
           grep -Eq '^ok 3 ' /tmp/ci-prod-mocks.tap
 
+      - name: M4-T4 production notification hook stripping (positive and negative controls)
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          test -s .next/standalone/server.js
+          node --input-type=module <<'EOF'
+          import assert from 'node:assert/strict';
+          import fs from 'node:fs';
+          import os from 'node:os';
+          import path from 'node:path';
+          const markers = ['CHAT_NOTIFICATION_TEST_HOOK_ACTIVE', 'CHAT_NOTIFICATION_TEST_BACKOFF_ACTIVE'];
+          function scan(directory) {
+            const files = fs.readdirSync(directory, { recursive: true, withFileTypes: true });
+            const scripts = files.filter((file) => file.isFile() && /\.(?:js|cjs|mjs)$/.test(file.name));
+            assert.ok(scripts.length, 'no compiled scripts to inspect');
+            const seen = new Set();
+            for (const file of scripts) {
+              const source = fs.readFileSync(path.join(file.parentPath, file.name), 'utf8');
+              for (const marker of markers) if (source.includes(marker)) seen.add(marker);
+            }
+            return markers.filter((marker) => seen.has(marker));
+          }
+          function assertStripped(directory) {
+            assert.deepEqual(scan(directory), [], 'ACTIVE_CHAT_HOOK_PRESENT');
+          }
+          assertStripped('.next/server');
+          assertStripped('.next/standalone/.next/server');
+          assert.deepEqual(scan('.next-original-build/server'), markers, 'TEST_CHAT_HOOK_MISSING');
+          assert.deepEqual(scan('.next-original-build/standalone/.next/server'), markers, 'TEST_CHAT_HOOK_MISSING');
+          const probe = fs.mkdtempSync(path.join(os.tmpdir(), 'm4t4-hook-negative-'));
+          try {
+            for (const marker of markers) {
+              fs.copyFileSync('.next/standalone/server.js', path.join(probe, 'server.js'));
+              fs.appendFileSync(path.join(probe, 'server.js'), `\nconsole.info(${JSON.stringify(marker)});\n`);
+              assert.deepEqual(scan(probe), [marker]);
+              assert.throws(() => assertStripped(probe), /ACTIVE_CHAT_HOOK_PRESENT/);
+            }
+          } finally { fs.rmSync(probe, { recursive: true }); }
+          console.log('M4T4_HOOK_STRIP production=PASS negative=DETECTED original=PASS markers=2');
+          EOF
+
       # 两段构建与断言的日志分开留存；失败也上传，便于复核。
       - name: 上传 production 构建与断言证据
         if: always()
@@ -389,6 +430,7 @@ jobs:
           # M4-T2 访客读游标真实 PG/route 回归：只认专属变量、必须 loopback；缺地址时上一条 require 直接失败。
           # 测试自建 chatread_<pid>_<hex> schema，事后按同名 DROP CASCADE，不落 public。
           B10_M4T2_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
+          B10_M4T4_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
           M3T2_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e?schema=m3t2
           M3T2_REQUIRE_DATABASE: 'true'
           M3T3_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e?schema=m3t3
@@ -441,6 +483,7 @@ jobs:
               'tests/chat-first-message.db.test.ts',
               'tests/cleanup-lock.db.test.ts',
               'tests/job-leases.db.test.ts',
+              'tests/chat-notification-worker.db.test.ts',
               'tests/last-admin.db.test.ts',
               'tests/admin-reset-initial-password.db.test.ts',
               'tests/admin-login-mode.db.test.ts',
@@ -496,6 +539,7 @@ jobs:
             tests/chat-first-message.db.test.ts \
             tests/cleanup-lock.db.test.ts \
             tests/job-leases.db.test.ts \
+            tests/chat-notification-worker.db.test.ts \
             tests/last-admin.db.test.ts \
             tests/admin-reset-initial-password.db.test.ts \
             tests/admin-login-mode.db.test.ts \
@@ -537,6 +581,7 @@ jobs:
             'tests/chat-first-message.db.test.ts',
             'tests/cleanup-lock.db.test.ts',
             'tests/job-leases.db.test.ts',
+            'tests/chat-notification-worker.db.test.ts',
             'tests/last-admin.db.test.ts',
             'tests/admin-reset-initial-password.db.test.ts',
             'tests/admin-login-mode.db.test.ts',
@@ -579,6 +624,75 @@ jobs:
           # M3-T20 DB-only 分母 16（2 URL/CI + 7 安全前置 + 7 真 PG）；本步无 standalone，HTTP suite 级 skip 不进 summary。
           # 精确断言 16：17（HTTP 意外执行）、9（DB skip）、缺文件/取消都不能被 pass>=1 的宽门吞掉。
           grep -Fqx $'tests/admin-self-rebind.db.test.ts\tpass=16\tfail=0\tskip=0\ttodo=0\tcancelled=0' /tmp/m3t2-file-gate.txt
+          grep -Fqx $'tests/chat-notification-worker.db.test.ts\tpass=26\tfail=0\tskip=0\ttodo=0\tcancelled=0' /tmp/m3t2-file-gate.txt
+          grep -F 'M4-T4 notification PostgreSQL' /tmp/pg-regressions.tap
+          # Named-case evidence. The 26 above is still owned by the exact file gate; this only
+          # persists WHICH 26 ran. Nothing captured from the TAP is printed or written: every
+          # output token comes from the fixed tables below (labels, zones, case list) or is a
+          # validated small integer. No TAP body, diagnostics block or title text leaves the job.
+          node --input-type=module <<'EOF'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          const SUITE = 'M4-T4 notification PostgreSQL';
+          const LABELS = ['AC1/S1', 'AC3/AC2', 'AC2b/AC11b', 'AC4', 'AC5', 'AC6a-e', 'AC6f/K3', 'AC7/K2', 'AC7b', 'AC8', 'AC9', 'AC10', 'AC11', 'AC12', 'AC13', 'AC14', 'AC15', 'AC16', 'AC-INV/K4', 'AC17', 'AC18', 'F04', 'F08', 'F02', 'AC-T', 'F05'];
+          const ZONES = ['Asia/Shanghai', 'America/Los_Angeles'];
+          const CASES = 'AC1/S1,AC3/AC2,AC7/K2';
+          const lines = readFileSync('/tmp/pg-regressions.tap', 'utf8').split(/\r?\n/);
+          const problems = [];
+          const opens = [];
+          lines.forEach((line, index) => { if (line === `# Subtest: ${SUITE}`) opens.push(index); });
+          const seen = new Map(LABELS.map((label) => [label, []]));
+          let unexpected = 0;
+          if (opens.length !== 1) problems.push(`SUITE_COUNT_${opens.length}`);
+          if (opens.length >= 1) {
+            let end = -1;
+            for (let i = opens[0] + 1; i < lines.length; i += 1) {
+              const close = lines[i].match(/^(ok|not ok) \d+ - M4-T4 notification PostgreSQL$/);
+              if (close) { end = i; if (close[1] !== 'ok') problems.push('SUITE_NOT_OK'); break; }
+            }
+            if (end < 0) { problems.push('SUITE_UNTERMINATED'); end = lines.length; }
+            for (let i = opens[0] + 1; i < end; i += 1) {
+              const child = lines[i].match(/^ {4}(ok|not ok) \d+ - (.*)$/);
+              if (!child) continue;
+              const title = child[2];
+              const cut = title.indexOf('：');
+              const label = cut > 0 ? title.slice(0, cut) : '';
+              if (!seen.has(label)) { unexpected += 1; continue; }
+              const directive = / # (SKIP|TODO)\b/i.test(title);
+              seen.get(label).push(child[1] === 'not ok' ? 'fail' : directive ? 'skip' : 'pass');
+            }
+          }
+          const rows = [];
+          let passed = 0;
+          for (const label of LABELS) {
+            const marks = seen.get(label);
+            const status = marks.length === 0 ? 'missing' : marks.length > 1 ? 'duplicate' : marks[0];
+            if (status === 'pass') passed += 1; else problems.push(`CASE_${status.toUpperCase()}_${label}`);
+            rows.push(`M4T4_NAMED ${status} ${label}`);
+          }
+          if (unexpected > 0) problems.push(`UNEXPECTED_CASES_${Math.min(unexpected, 99)}`);
+          rows.push(`M4T4_NAMED_SUMMARY expected=${LABELS.length} pass=${passed} other=${LABELS.length - passed} unexpected=${Math.min(unexpected, 99)}`);
+          const rounds = new Map();
+          let strays = 0;
+          for (const line of lines) {
+            const hit = line.match(/^# AC_T (Asia\/Shanghai|America\/Los_Angeles) passed=(\d{1,3}) cases=([A-Za-z0-9\/,]{1,64})$/);
+            if (!hit) { if (/^# AC_T /.test(line)) strays += 1; continue; }
+            rounds.set(hit[1], [...(rounds.get(hit[1]) ?? []), { passed: Number(hit[2]), cases: hit[3] === CASES }]);
+          }
+          if (strays > 0) problems.push('AC_T_UNRECOGNISED');
+          for (const zone of ZONES) {
+            const found = rounds.get(zone) ?? [];
+            const good = found.length === 1 && found[0].passed === 3 && found[0].cases;
+            rows.push(`M4T4_AC_T zone=${zone} rounds=${found.length} ${good ? `passed=3 cases=${CASES}` : 'not_proven'}`);
+            if (!good) problems.push(`AC_T_${zone.replace('/', '_')}`);
+          }
+          rows.push(problems.length === 0 ? 'M4T4_NAMED_GATE PASS' : `M4T4_NAMED_GATE FAIL problems=${problems.length}`);
+          writeFileSync('/tmp/m4t4-named.tsv', `${rows.join('\n')}\n`);
+          console.log(rows.join('\n'));
+          if (problems.length > 0) {
+            for (const problem of problems) console.error(`M4T4_NAMED_GATE ${problem}`);
+            process.exit(1);
+          }
+          EOF
       - name: Action grant PostgreSQL lock-wait evidence
         run: |
           node --input-type=module <<'EOF'
@@ -618,13 +732,37 @@ jobs:
           sudo sed -i -E 's#^URIs:.*#URIs: https://mirrors.edge.kernel.org/ubuntu/#' "$UBU"
           grep -q '^Signed-By:' "$UBU" || { echo 'APT_SIGNED_BY_MISSING_AFTER_REWRITE' >&2; exit 1; }
           grep -q '^Components:' "$UBU" || { echo 'APT_COMPONENTS_MISSING_AFTER_REWRITE' >&2; exit 1; }
-          if ! sudo apt-get update -o Acquire::Retries=3 -o Acquire::https::Timeout=30 \
-                 -o Acquire::https::Verify-Peer=true -o Acquire::https::Verify-Host=true; then
+          # apt-get update exits 0 while individual suites fail to download (W: Failed to
+          # fetch), so a dead mirror still printed READY in run 44568993782. Judge freshness
+          # from the exit status and from the English output (LC_ALL=C), but only for lines
+          # about the archive hosts of the source under test: a flaky third-party repository
+          # on the runner must not turn this step red. A stale mirror falls back once to the
+          # runner's original signed sources; both unusable is a hard stop.
+          apt_update() {
+            local tag=$1 hostre=$2 rc=0 bad log="/tmp/apt-update-$1.log"
+            sudo env LC_ALL=C apt-get update -o Acquire::Retries=3 -o Acquire::https::Timeout=30 \
+              -o Acquire::https::Verify-Peer=true -o Acquire::https::Verify-Host=true >"$log" 2>&1 || rc=$?
+            bad=$(grep -Ec "^E: |^(W: Failed to fetch|Err:[0-9]+) [^ ]*(${hostre})" "$log" || true)
+            if [ "$rc" -eq 0 ] && [ "$bad" -eq 0 ]; then
+              echo "APT_UPDATE_FRESH ${tag}"
+              return 0
+            fi
+            echo "APT_UPDATE_INCOMPLETE ${tag} exit=${rc} issues=${bad}" >&2
+            grep -E "^E: |^(W: Failed to fetch|Err:[0-9]+) [^ ]*(${hostre})" "$log" | head -n 8 | cut -c1-200 >&2 || true
+            return 1
+          }
+          if apt_update mirror 'mirrors\.edge\.kernel\.org'; then
+            echo 'APT_UBUNTU_MIRROR_READY https://mirrors.edge.kernel.org/ubuntu/'
+          else
             sudo cp -a /tmp/ubuntu.sources.bak "$UBU"
-            echo 'APT_MIRROR_UPDATE_FAILED' >&2
-            exit 1
+            grep -q '^Signed-By:' "$UBU" || { echo 'APT_SIGNED_BY_MISSING_AFTER_RESTORE' >&2; exit 1; }
+            if apt_update original 'archive\.ubuntu\.com|security\.ubuntu\.com|ports\.ubuntu\.com'; then
+              echo 'APT_UBUNTU_MIRROR_FALLBACK_ORIGINAL_SOURCES'
+            else
+              echo 'APT_UBUNTU_SOURCES_UNAVAILABLE' >&2
+              exit 1
+            fi
           fi
-          echo 'APT_UBUNTU_MIRROR_READY https://mirrors.edge.kernel.org/ubuntu/'
           # Same lockfile-pinned @playwright/test and the same --with-deps contract. This is a
           # bounded mitigation on a transient runner, not a claim that runner DNS is solved.
           for attempt in 1 2 3; do
@@ -914,6 +1052,16 @@ jobs:
           path: test-results/
           retention-days: 7
           if-no-files-found: warn
+      # M4-T4 named PG evidence: one small whitelisted TSV written by the PostgreSQL step. If that
+      # step failed before the projection ran there is no file; if-no-files-found: warn then
+      # uploads nothing and does not fail the job. Placed last so no existing step is renumbered.
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m4t4-named-pg-evidence
+          path: /tmp/m4t4-named.tsv
+          retention-days: 7
+          if-no-files-found: warn
 
   # Ubuntu 上名单内的安全用例必须实跑并通过。缺符号链接、POSIX 路径或 0600 时测试记 skip，作业不能算通过。
   posix-storage-security:
@@ -926,7 +1074,33 @@ jobs:
         with: { version: 10 }
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: pnpm }
-      - run: pnpm install --frozen-lockfile
+      # run 44568993782 step 5: the postinstall `prisma generate` died on a TLS ECONNRESET
+      # (attemptNumber 1, retriesLeft 2) before any repository test, while the identical frozen
+      # install succeeded in the other jobs. Retry the same command once, and only when that
+      # prisma generate failure is what ended the first attempt; every other failure returns
+      # its own exit code at once, and a second failure is final.
+      - name: Install dependencies (frozen lockfile)
+        timeout-minutes: 20
+        run: |
+          set -Eeuo pipefail
+          log=/tmp/pnpm-install-1.log
+          set +e
+          pnpm install --frozen-lockfile 2>&1 | tee "$log"
+          rc=${PIPESTATUS[0]}
+          set -e
+          if [ "$rc" -eq 0 ]; then
+            echo 'PNPM_INSTALL_OK attempt=1'
+            exit 0
+          fi
+          if awk '/prisma generate/ { seen = 1 } seen && /ECONNRESET/ { hit = 1 } END { exit !hit }' "$log"; then
+            echo 'PNPM_INSTALL_PRISMA_ECONNRESET_RETRY' >&2
+            sleep 10
+            pnpm install --frozen-lockfile
+            echo 'PNPM_INSTALL_OK attempt=2'
+            exit 0
+          fi
+          echo "PNPM_INSTALL_NOT_RETRIED exit=$rc" >&2
+          exit "$rc"
       - name: 存储权限与符号链接安全验收
         run: |
           set +e
@@ -1008,7 +1182,7 @@ jobs:
 
   mail-evidence:
     runs-on: ubuntu-24.04
-    timeout-minutes: 35
+    timeout-minutes: 42
     permissions:
       contents: read
     env:
@@ -1432,7 +1606,7 @@ jobs:
           console.log(JSON.stringify({ preparedRealModes: ['http', 'off'], source, modeManifests: modes, businessCredentialsUsed: false }));
           PREPARE
       - name: Isolated TLS SMTP integration
-        timeout-minutes: 27
+        timeout-minutes: 34
         shell: bash
         run: |
           set -- integration "$GITHUB_WORKSPACE" "$GITHUB_WORKSPACE/tests/evidence/local-smtp.mjs"
@@ -1584,7 +1758,7 @@ jobs:
           "$pg_bin/pg_ctl" -D /tmp/mail-evidence-pg -l /tmp/mail-evidence-pg.log -o '-h 127.0.0.1 -p 5432 -k /tmp' -w start >/dev/null
           node "$smtp_script" exec --root "$root" --mode postgres -- "$pg_bin/createdb" -h 127.0.0.1 -p 5432 -U postgres mail_evidence
           node "$smtp_script" exec --root "$root" --mode postgres -- pnpm prisma db push --skip-generate
-          node "$smtp_script" serve --root "$root" --report "$report_dir/admin-legacy-inquiries-smtp-final.json" &
+          node "$smtp_script" serve --root "$root" --chat --report "$report_dir/admin-legacy-inquiries-smtp-final.json" &
           sink_pid=$!
           # Readiness is bounded; never repeat a failed product test.
           node --input-type=module -e 'const end=Date.now()+10000;for(;;){try{const r=await fetch("http://127.0.0.1:3998/health");if(r.status===200)break}catch{}if(Date.now()>end)throw Error("SMTP_READINESS_FAILED");await new Promise(r=>setTimeout(r,100))}'
@@ -1770,11 +1944,23 @@ jobs:
           # P2: the namespace setup already started the root tick; phase seeds one due row,
           # restarts the http-real artifact, arms one tick and asserts SENT / JobState / sink.
           node "$smtp_script" exec --root "$root" --mode http-real -- node tests/evidence/mail-cron-phase.mjs --report "$report_dir/admin-legacy-inquiries-mail-cron.json"
+          # Additional isolated checks: absolute SMTP cutoff, actual retry counts, and five real minute ticks.
+          node "$smtp_script" exec --root "$root" --mode http-real -- env M4T4_SMTP_EVIDENCE=1 CHAT_NOTIFICATION_TEST_HOOK_BUILD=1 node --import tsx --test --test-reporter=tap tests/chat-notification-smtp.integration.test.ts | tee "$report_dir/chat-notification-smtp.tap"
+          grep -qx '# pass 5' "$report_dir/chat-notification-smtp.tap"
+          grep -qx '# fail 0' "$report_dir/chat-notification-smtp.tap"
+          grep -qx '# skipped 0' "$report_dir/chat-notification-smtp.tap"
+          grep -qx '# todo 0' "$report_dir/chat-notification-smtp.tap"
+          grep -qx '# cancelled 0' "$report_dir/chat-notification-smtp.tap"
+          for port in 465 587; do
+            grep -qx "# M4T4_TLS_REJECT port=$port code=CHAT_SMTP_TLS auth=0 mail=0" "$report_dir/chat-notification-smtp.tap"
+          done
+          node "$smtp_script" exec --root "$root" --mode http-real -- node tests/evidence/chat-notifications-phase.mjs --report "$report_dir/chat-notifications-phase.json"
           DRIVER
           chmod 600 "$root/driver.sh"
           # PID 1 owns the lifetime. Parent stdin EOF, a deadline, signal or driver failure ends that PID namespace.
           # Kernel namespace teardown also covers detached PostgreSQL daemons; traps remain for graceful file cleanup only.
-          namespace_budget=23m
+          # Keep the legacy namespace time plus 7 minutes for the additional bounded chat evidence.
+          namespace_budget=30m
           [[ "$mode" == preflight-only ]] && namespace_budget=3m
           timeout --signal=TERM --kill-after=10s "$namespace_budget" node "$smtp_script" namespace-launch --root "$root" --project "$project" --scenario "$mode" --report-dir "$report_dir"
       - name: Cleanup owned private fixture
@@ -1847,6 +2033,8 @@ jobs:
           name: m3-t21-mail-evidence
           path: |
             test-results/**/admin-legacy-inquiries*.json
+            test-results/**/chat-notifications-phase.json
+            test-results/**/chat-notification-smtp.tap
             test-results/**/inquiry-visual-*.png
             test-results/**/*.webm
           retention-days: 1

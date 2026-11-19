@@ -1,0 +1,226 @@
+{
+  "scope": "task-contract",
+  "patch": "m4t4-retry-contract-20261119",
+  "docsCommit": "02ea695fbc7d581392d0d29e2fdcb27f1e6b8acb",
+  "codeObject": "a7941062af916119d53e0802d1752b4c1ab02424",
+  "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4",
+  "note": "R1 只读复验（24 项）：2 项适用且仍满足，22 项不适用，不满足 0 项。verdict=pass 表示该项复验结论为“适用且仍满足”或“不适用”，不代表代码或数据库行为验收。docsCommit 之后的 12544dd9 只改 task-reviews.json、补丁 JSON、build-manifest.json、docs-data.js，revalidation.json 与 dispatch.json 与 02ea695f 相同。",
+  "tasks": {
+    "ANALYTICS-ROLLUP": {
+      "contractHash": "aeae79c2a5c989e197adccd8959d4f09e5f4a9d20700b1609910d4892127f3e7",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：固定对象：文档 02ea695f、代码 a7941062、补丁 m4t4-retry-contract-20261119；契约哈希 aeae79c2a5c989e197adccd8959d4f09e5f4a9d20700b1609910d4892127f3e7 与 revalidation.json、dispatch.json、补丁 changes.after.hash、补丁 evidence 模板逐项相等且不同于补丁前 b0124d798477…；changedFields=sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md（我按补丁前后的 sections 文件哈希重算，结果一致）。 登记范围 effectivePaths 10 条，在 a7941062 共扫描 10 个文件（登记但 a7941062 不存在的路径 0 条，不计入）；只有以下命中：prisma/schema.prisma 的命中是 MailMessage.requestStartedAt（:521，旧邮件队列）和 ChatNotification 模型与枚举定义（:649-:748），本补丁与本任务都不改 schema，契约不要求新迁移；tests/cron-analytics-rollup.test.ts:54 只是一条“其他 cron 行”的夹具字符串。",
+        "本补丁在 09/15/18 节的实际改动只有聊天通知出箱：09 L24（ChatNotification 行）、09 L174-181（通知状态图）、15 L31（聊天通知与既有邮件队列行）、18 L94（聊天可用性/通知策略行）；契约哈希变化来自整份共享章节文件的哈希，不是本任务条款变化。 本任务（统计按天汇总）的验收不涉及出箱次数上限、退避档位、租约过期判定或 DISABLED/UNKNOWN 转移。15 节本次只改 L31 一行，本任务所涉聚合/固定作业容量行未变；聚合 cron 与出箱租约是两条互不相干的路径。",
+        "依据：Git 对象 a7941062 的 git grep 与逐文件读取，未运行数据库或测试，未运行 status、verify、build、landed，未改标记。"
+      ]
+    },
+    "RETENTION-CLEANUP": {
+      "contractHash": "1000bb4325f2e15ee18bd132f206318a30aaf400f87ae81c9df3e7b4677ffa5c",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：固定对象：文档 02ea695f、代码 a7941062、补丁 m4t4-retry-contract-20261119；契约哈希 1000bb4325f2e15ee18bd132f206318a30aaf400f87ae81c9df3e7b4677ffa5c 与 revalidation.json、dispatch.json、补丁 changes.after.hash、补丁 evidence 模板逐项相等且不同于补丁前 4528df41440a…；changedFields=sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md（我按补丁前后的 sections 文件哈希重算，结果一致）。 登记范围 effectivePaths 15 条，在 a7941062 共扫描 15 个文件（登记但 a7941062 不存在的路径 0 条，不计入）；对 ChatNotification、stableMessageId、NotificationQueued、chat-notifications、chat_notifications、requestStartedAt 零引用。",
+        "本补丁在 09/15/18 节的实际改动只有聊天通知出箱：09 L24（ChatNotification 行）、09 L174-181（通知状态图）、15 L31（聊天通知与既有邮件队列行）、18 L94（聊天可用性/通知策略行）；契约哈希变化来自整份共享章节文件的哈希，不是本任务条款变化。 本任务（保留期清理）的验收不涉及出箱次数上限、退避档位、租约过期判定或 DISABLED/UNKNOWN 转移。聊天保留 chat-retention 在 src/、prisma/、deploy/ 里只出现在 src/lib/contracts/ops.ts:120、:127 的枚举里，没有注册，不属本任务；本任务的保留清理范围零引用聊天出箱。",
+        "依据：Git 对象 a7941062 的 git grep 与逐文件读取，未运行数据库或测试，未运行 status、verify、build、landed，未改标记。"
+      ]
+    },
+    "R7-T14077261": {
+      "contractHash": "a8465fab334b8c421e325225e0c4040bc67c865027871f148b5f1d37fac2e2ad",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：固定对象：文档 02ea695f、代码 a7941062、补丁 m4t4-retry-contract-20261119；契约哈希 a8465fab334b8c421e325225e0c4040bc67c865027871f148b5f1d37fac2e2ad 与 revalidation.json、dispatch.json、补丁 changes.after.hash、补丁 evidence 模板逐项相等且不同于补丁前 36f2b5859a70…；changedFields=sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md（我按补丁前后的 sections 文件哈希重算，结果一致）。 登记范围 effectivePaths 1 条，在 a7941062 共扫描 1 个文件（登记但 a7941062 不存在的路径 0 条，不计入）；对 ChatNotification、stableMessageId、NotificationQueued、chat-notifications、chat_notifications、requestStartedAt 零引用。",
+        "本补丁在 09/15/18 节的实际改动只有聊天通知出箱：09 L24（ChatNotification 行）、09 L174-181（通知状态图）、15 L31（聊天通知与既有邮件队列行）、18 L94（聊天可用性/通知策略行）；契约哈希变化来自整份共享章节文件的哈希，不是本任务条款变化。 本任务（补 M5-T3 E-82 超范围日的非空服务路径与原有数据保留用例）的验收不涉及出箱次数上限、退避档位、租约过期判定或 DISABLED/UNKNOWN 转移。本任务只改 tests/analytics-aggregate.db.test.ts，聚合时间语义与出箱租约时钟是两条独立路径。",
+        "依据：Git 对象 a7941062 的 git grep 与逐文件读取，未运行数据库或测试，未运行 status、verify、build、landed，未改标记。"
+      ]
+    },
+    "R7-T21418022": {
+      "contractHash": "1702ab45d7f97d7f30cc610e08ff1a4daed089c56ca76bc760a0bec88a0e02a8",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：固定对象：文档 02ea695f、代码 a7941062、补丁 m4t4-retry-contract-20261119；契约哈希 1702ab45d7f97d7f30cc610e08ff1a4daed089c56ca76bc760a0bec88a0e02a8 与 revalidation.json、dispatch.json、补丁 changes.after.hash、补丁 evidence 模板逐项相等且不同于补丁前 cb68a151b780…；changedFields=sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md（我按补丁前后的 sections 文件哈希重算，结果一致）。 登记范围 effectivePaths 3 条，在 a7941062 共扫描 3 个文件（登记但 a7941062 不存在的路径 0 条，不计入）；对 ChatNotification、stableMessageId、NotificationQueued、chat-notifications、chat_notifications、requestStartedAt 零引用。",
+        "本补丁在 09/15/18 节的实际改动只有聊天通知出箱：09 L24（ChatNotification 行）、09 L174-181（通知状态图）、15 L31（聊天通知与既有邮件队列行）、18 L94（聊天可用性/通知策略行）；契约哈希变化来自整份共享章节文件的哈希，不是本任务条款变化。 本任务（修复 M5-T3 非 UTC 会话下的聚合时间语义）的验收不涉及出箱次数上限、退避档位、租约过期判定或 DISABLED/UNKNOWN 转移。聚合时间语义（aggregate-repo.ts、aggregate.ts）不受本补丁的出箱时钟条款约束；09 L24 说的“应用注入的服务端时钟”只指出箱写回与清扫。",
+        "依据：Git 对象 a7941062 的 git grep 与逐文件读取，未运行数据库或测试，未运行 status、verify、build、landed，未改标记。"
+      ]
+    },
+    "R7-T31416198": {
+      "contractHash": "327f391f7bae067186c26b8e42c6a75acd6d23b8a897475ee5b4b047345bd35a",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：固定对象：文档 02ea695f、代码 a7941062、补丁 m4t4-retry-contract-20261119；契约哈希 327f391f7bae067186c26b8e42c6a75acd6d23b8a897475ee5b4b047345bd35a 与 revalidation.json、dispatch.json、补丁 changes.after.hash、补丁 evidence 模板逐项相等且不同于补丁前 39f2a7992d80…；changedFields=sections:02-设计/09-数据模型.md,03-质量/15-性能与容量假设.md,04-执行/18-部署与运维.md（我按补丁前后的 sections 文件哈希重算，结果一致）。 登记范围 effectivePaths 1 条，在 a7941062 共扫描 1 个文件（登记但 a7941062 不存在的路径 0 条，不计入）；对 ChatNotification、stableMessageId、NotificationQueued、chat-notifications、chat_notifications、requestStartedAt 零引用。",
+        "本补丁在 09/15/18 节的实际改动只有聊天通知出箱：09 L24（ChatNotification 行）、09 L174-181（通知状态图）、15 L31（聊天通知与既有邮件队列行）、18 L94（聊天可用性/通知策略行）；契约哈希变化来自整份共享章节文件的哈希，不是本任务条款变化。 本任务（补 M5-T3 同一连接内非 UTC 会话的时间边界证据）的验收不涉及出箱次数上限、退避档位、租约过期判定或 DISABLED/UNKNOWN 转移。本任务只改 tests/analytics-aggregate.db.test.ts，同一连接内非 UTC 会话的聚合边界与出箱无关。",
+        "依据：Git 对象 a7941062 的 git grep 与逐文件读取，未运行数据库或测试，未运行 status、verify、build、landed，未改标记。"
+      ]
+    },
+    "M1-T2": {
+      "contractHash": "19c1b4e2aab552d4aac2f7819f263e737e294b4611e136ca818cab70c26236f9",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：固定对象：文档 02ea695f、代码 a7941062、补丁 m4t4-retry-contract-20261119；契约哈希 19c1b4e2aab552d4aac2f7819f263e737e294b4611e136ca818cab70c26236f9 与 revalidation.json、dispatch.json、补丁 changes.after.hash、补丁 evidence 模板逐项相等且不同于补丁前 5669de9e34f6…；changedFields=sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md（我按补丁前后的 sections 文件哈希重算，结果一致）。 登记范围 effectivePaths 4 条，在 a7941062 共扫描 10 个文件（登记但 a7941062 不存在的路径 0 条，不计入）；只有以下命中：src/lib/contracts/ops.ts:25、:119、:128 是枚举取值与 jobKey 枚举，不含通知状态、次数或退避；tests/contracts-foundation.test.ts:423 枚举 jobKey 取值。",
+        "本补丁在 09/15/18 节的实际改动只有聊天通知出箱：09 L24（ChatNotification 行）、09 L174-181（通知状态图）、15 L31（聊天通知与既有邮件队列行）、18 L94（聊天可用性/通知策略行）；契约哈希变化来自整份共享章节文件的哈希，不是本任务条款变化。 本任务（导出新增领域共享schema与DTO）的验收不涉及出箱次数上限、退避档位、租约过期判定或 DISABLED/UNKNOWN 转移。jobKey 已含 chat-notifications 与 chat-retention（src/lib/contracts/ops.ts:116-128），本补丁未改；通知状态机在 contracts 里没有 DTO，故新 09 L24/L174-181 对本任务的导出没有约束。",
+        "依据：Git 对象 a7941062 的 git grep 与逐文件读取，未运行数据库或测试，未运行 status、verify、build、landed，未改标记。"
+      ]
+    },
+    "M1-T3": {
+      "contractHash": "9f4145cea29199a8c692a799baba94f7a8d58088efc032ee035f61d4d6b1628e",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：固定对象：文档 02ea695f、代码 a7941062、补丁 m4t4-retry-contract-20261119；契约哈希 9f4145cea29199a8c692a799baba94f7a8d58088efc032ee035f61d4d6b1628e 与 revalidation.json、dispatch.json、补丁 changes.after.hash、补丁 evidence 模板逐项相等且不同于补丁前 a99695721638…；changedFields=sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md（我按补丁前后的 sections 文件哈希重算，结果一致）。 登记范围 effectivePaths 18 条，在 a7941062 共扫描 276 个文件（登记但 a7941062 不存在的路径 0 条，不计入）；对 ChatNotification、stableMessageId、NotificationQueued、chat-notifications、chat_notifications、requestStartedAt 零引用。",
+        "本补丁在 09/15/18 节的实际改动只有聊天通知出箱：09 L24（ChatNotification 行）、09 L174-181（通知状态图）、15 L31（聊天通知与既有邮件队列行）、18 L94（聊天可用性/通知策略行）；契约哈希变化来自整份共享章节文件的哈希，不是本任务条款变化。 本任务（制作JPG换标及视频海报发布副本）的验收不涉及出箱次数上限、退避档位、租约过期判定或 DISABLED/UNKNOWN 转移。本任务是品牌与视频海报发布副本（public/brand、og、HeroVideo 等），与聊天通知无关。",
+        "依据：Git 对象 a7941062 的 git grep 与逐文件读取，未运行数据库或测试，未运行 status、verify、build、landed，未改标记。"
+      ]
+    },
+    "M4-T1": {
+      "contractHash": "0e078e69460a585e689c4ece3f3ba96f6d800854f6f82041cddc0b42aabe5111",
+      "verdict": "pass",
+      "evidence": [
+        "适用且仍满足：固定对象：文档 02ea695f、代码 a7941062、补丁 m4t4-retry-contract-20261119；契约哈希 0e078e69460a585e689c4ece3f3ba96f6d800854f6f82041cddc0b42aabe5111 与 revalidation.json、dispatch.json、补丁 changes.after.hash、补丁 evidence 模板逐项相等且不同于补丁前 6b2a478ba0ee…；changedFields=sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md（我按补丁前后的 sections 文件哈希重算，结果一致）。 本任务产出出箱行初态，新 09 L24、L174-181 与 18 L94 对它的要求都满足。src/lib/server/chat/repo.ts:224-256 的 insertNotification 写 status=QUEUED（:241）、attempts=0（:242）、availableAt=传入值（:243）、leaseVersion=0（:244），leaseOwner、lockedUntil、requestStartedAt、lastErrorCode 全为 NULL（:245-249），即“attempts=0 且 requestStartedAt 为空”，具备 18 L94 缺配置置 DISABLED 的资格，也满足 09 认领所需的 attempts<4 与 availableAt<=时钟；conversation-service.ts:185-192 以 availableAt=now 写入，与消息同一事务（:127 的 $transaction 内，:175 insertMessage 之后 :185 insertNotification）。",
+        "唯一出箱与幂等：schema.prisma:730 messageId 唯一；同载荷重放走 readExisting 分支返回 duplicate:true、不再插入（conversation-service.ts:108-114）。tests/chat-first-message.db.test.ts:307-309 断言通知为 QUEUED 且 stableMessageId=`${id}@chat.packjoyu`；:310 首次、:324 同 UUID 同载荷重放（用例 :313）、:341 异载荷 409（用例 :327）、:357 并发同名（用例 :344）的 counts 都保持 1/1/1；:448、:465 的 SQL 故障用例（:441）回滚后无残行。",
+        "边界：新契约的其余要求（领取时清空 requestStartedAt 且不计次、发送前同一有效租约原子写 requestStartedAt 并递增 attempts、清扫按标记分类、1m/5m/30m 档位、第 4 次确知失败直写 FAILED、缺配置置 DISABLED 的实际转移）属 M4-T4 实施，a7941062 没有出箱 worker，对 ChatNotification 的引用只有 repo.ts 入箱与计数、schema 与测试，本项不对它们作通过声明。未运行数据库或测试，仅读 Git 对象。"
+      ]
+    },
+    "M4-T2": {
+      "contractHash": "c33f99885c0fc11a84d017ab199ba0ef4a06f4210a4798f7a5664bd8c90acce5",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：固定对象：文档 02ea695f、代码 a7941062、补丁 m4t4-retry-contract-20261119；契约哈希 c33f99885c0fc11a84d017ab199ba0ef4a06f4210a4798f7a5664bd8c90acce5 与 revalidation.json、dispatch.json、补丁 changes.after.hash、补丁 evidence 模板逐项相等且不同于补丁前 d911aff34f44…；changedFields=sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md（我按补丁前后的 sections 文件哈希重算，结果一致）。 登记范围 effectivePaths 21 条，在 a7941062 共扫描 39 个文件（登记但 a7941062 不存在的路径 3 条，不计入）；只有以下命中：src/lib/server/chat/repo.ts 的命中是 insertNotification（:224-256）和 countNotifications（:307-312），即入箱与计数，不是出箱消费。",
+        "本补丁在 09/15/18 节的实际改动只有聊天通知出箱：09 L24（ChatNotification 行）、09 L174-181（通知状态图）、15 L31（聊天通知与既有邮件队列行）、18 L94（聊天可用性/通知策略行）；契约哈希变化来自整份共享章节文件的哈希，不是本任务条款变化。 本任务（读取访客消息页并单调推进读位置）的验收不涉及出箱次数上限、退避档位、租约过期判定或 DISABLED/UNKNOWN 转移。重点核对。读面只有 repo.ts:349 findOwnedConversation、:373 listMessages、:390-401 advanceVisitorRead（单条 UPDATE \"ChatConversation\" SET visitorReadSeq = LEAST(GREATEST(…), lastSeq)），read-cursor.ts、visitor-read.ts 扫描词零命中；repo.ts 的 6 处命中（:228、:233、:235、:241、:246、:309）全在 insertNotification（:224-256）和 countNotifications（:307-312），不在读面范围。锁序：读面只锁 ChatConversation 行；M4-T1 事务按会话→消息→出箱插入；出箱行的 UPDATE 不改 messageId，不触发父行外键检查，也不锁会话行，所以与 M4-T4 的出箱行认领、清扫、写回没有锁序交集，不会成环。该结论的前提是 M4-T4 的认领查询只锁 \"ChatNotification\" 行（FOR UPDATE OF \"ChatNotification\"，或不联表），否则会与 repo.ts:161 的 allocateSeq（conversation-service.ts:172 调用）和 :396 的 UPDATE 争会话行。",
+        "依据：Git 对象 a7941062 的 git grep 与逐文件读取，未运行数据库或测试，未运行 status、verify、build、landed，未改标记。"
+      ]
+    },
+    "M4-T8": {
+      "contractHash": "d4db6caf8bf32abd57ad7292ad741ec13e19d94be1a8b661fc2467c619dd3b20",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：固定对象：文档 02ea695f、代码 a7941062、补丁 m4t4-retry-contract-20261119；契约哈希 d4db6caf8bf32abd57ad7292ad741ec13e19d94be1a8b661fc2467c619dd3b20 与 revalidation.json、dispatch.json、补丁 changes.after.hash、补丁 evidence 模板逐项相等且不同于补丁前 d96521e811b9…；changedFields=sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md（我按补丁前后的 sections 文件哈希重算，结果一致）。 登记范围 effectivePaths 21 条，在 a7941062 共扫描 39 个文件（登记但 a7941062 不存在的路径 3 条，不计入）；只有以下命中：prisma/schema.prisma 的命中是 MailMessage.requestStartedAt（:521，旧邮件队列）和 ChatNotification 模型与枚举定义（:649-:748），本补丁与本任务都不改 schema，契约不要求新迁移。",
+        "本补丁在 09/15/18 节的实际改动只有聊天通知出箱：09 L24（ChatNotification 行）、09 L174-181（通知状态图）、15 L31（聊天通知与既有邮件队列行）、18 L94（聊天可用性/通知策略行）；契约哈希变化来自整份共享章节文件的哈希，不是本任务条款变化。 本任务（建立主动联系才签发的必要cookie）的验收不涉及出箱次数上限、退避档位、租约过期判定或 DISABLED/UNKNOWN 转移。本任务是必要 cookie 与访客会话（visitor-session.ts、/api/chat/session），与出箱无关。",
+        "依据：Git 对象 a7941062 的 git grep 与逐文件读取，未运行数据库或测试，未运行 status、verify、build、landed，未改标记。"
+      ]
+    },
+    "M4-T12": {
+      "contractHash": "6cc636a903fcac2fa14971403aa52bb3ed69b08db6f9bc9785a5a47e9f3c44c5",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：固定对象：文档 02ea695f、代码 a7941062、补丁 m4t4-retry-contract-20261119；契约哈希 6cc636a903fcac2fa14971403aa52bb3ed69b08db6f9bc9785a5a47e9f3c44c5 与 revalidation.json、dispatch.json、补丁 changes.after.hash、补丁 evidence 模板逐项相等且不同于补丁前 898d2e4298ef…；changedFields=sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md（我按补丁前后的 sections 文件哈希重算，结果一致）。 登记范围 effectivePaths 27 条，在 a7941062 共扫描 46 个文件（登记但 a7941062 不存在的路径 3 条，不计入）；只有以下命中：src/lib/server/mail/send.ts:148 是旧邮件队列对 MailMessage.requestStartedAt 的写入；tests/fixtures/mail-db.ts:58 是 MailMessage 夹具。",
+        "本补丁在 09/15/18 节的实际改动只有聊天通知出箱：09 L24（ChatNotification 行）、09 L174-181（通知状态图）、15 L31（聊天通知与既有邮件队列行）、18 L94（聊天可用性/通知策略行）；契约哈希变化来自整份共享章节文件的哈希，不是本任务条款变化。 本任务（注册既有邮件队列真实POST调度）的验收不涉及出箱次数上限、退避档位、租约过期判定或 DISABLED/UNKNOWN 转移。本任务只注册旧邮件队列的每分钟 POST：deploy/cron.nbshiyan:20 仍是 * * * * * 的 mail-queue POST。15 L31 一行里“既有邮件队列”部分与旧 unknown_delivery 协议未变，聊天通知的次数与档位文字不适用于 MailMessage；MailMessage.requestStartedAt 与 ChatNotification.requestStartedAt 是两张表的不同列。",
+        "依据：Git 对象 a7941062 的 git grep 与逐文件读取，未运行数据库或测试，未运行 status、verify、build、landed，未改标记。"
+      ]
+    },
+    "M4-T15": {
+      "contractHash": "e30b73144d22dae6490e2a6aedf3d2190039fdcadc6d868c5227e63d7450e517",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：固定对象：文档 02ea695f、代码 a7941062、补丁 m4t4-retry-contract-20261119；契约哈希 e30b73144d22dae6490e2a6aedf3d2190039fdcadc6d868c5227e63d7450e517 与 revalidation.json、dispatch.json、补丁 changes.after.hash、补丁 evidence 模板逐项相等且不同于补丁前 f2909d6c81cf…；changedFields=sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md（我按补丁前后的 sections 文件哈希重算，结果一致）。 登记范围 effectivePaths 26 条，在 a7941062 共扫描 141 个文件（登记但 a7941062 不存在的路径 6 条，不计入）；对 ChatNotification、stableMessageId、NotificationQueued、chat-notifications、chat_notifications、requestStartedAt 零引用。",
+        "本补丁在 09/15/18 节的实际改动只有聊天通知出箱：09 L24（ChatNotification 行）、09 L174-181（通知状态图）、15 L31（聊天通知与既有邮件队列行）、18 L94（聊天可用性/通知策略行）；契约哈希变化来自整份共享章节文件的哈希，不是本任务条款变化。 本任务（移除Tawk接线并说明必要人工咨询）的验收不涉及出箱次数上限、退避档位、租约过期判定或 DISABLED/UNKNOWN 转移。本任务是移除 Tawk 接线与人工咨询说明（UI、consent、messages），与出箱无关。",
+        "依据：Git 对象 a7941062 的 git grep 与逐文件读取，未运行数据库或测试，未运行 status、verify、build、landed，未改标记。"
+      ]
+    },
+    "M5-T1": {
+      "contractHash": "5406e7b90b31fd1145492df66eba6325a4dfc895ffebd203092c4200cb42289c",
+      "verdict": "pass",
+      "evidence": [
+        "适用且仍满足：固定对象：文档 02ea695f、代码 a7941062、补丁 m4t4-retry-contract-20261119；契约哈希 5406e7b90b31fd1145492df66eba6325a4dfc895ffebd203092c4200cb42289c 与 revalidation.json、dispatch.json、补丁 changes.after.hash、补丁 evidence 模板逐项相等且不同于补丁前 3fb7fa1dfc42…；changedFields=sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md（我按补丁前后的 sections 文件哈希重算，结果一致）。 09 L24 新写“结果写回与清扫使用同一个应用注入的服务端时钟，与 jobs 租约仓储一致；过期＝lockedUntil<=当前时钟，等于即视为已释放，与 M5-T1 一致”。a7941062 的租约仓储仍是这一语义：src/lib/server/jobs/types.ts:6-7 注释“到期等号视为已释放”且 JOB_LEASE_MS=90_000；lease-repo.ts:177、:216 领取条件 lockedUntil IS NULL OR lockedUntil <= now；:256（续租）、:332（独立完成）、:391（完成）都要求 lockedUntil > now；:428 过期判定 Date.parse(lockedUntil) <= now。",
+        "取锁后采样的先例：续租 :246、完成 :368 先 FOR UPDATE，完成路径随后 :370 才取注入时钟，再进 :391 带守卫的 UPDATE；这是 I1 要求出箱认领、清扫、写回照抄的顺序。tests/job-leases.db.test.ts:185-193 把时间推进整整 JOB_LEASE_MS 后旧 owner 的 renew 与 complete 均为 expired，:194-195 新领取为第 2 代。",
+        "边界：这是作业级 JobState 租约（key 级、90s、代次），不是出箱行租约；09 L24 的“与 jobs 租约仓储一致”只指注入时钟与等号语义。本项不对出箱 attempts、档位或 DISABLED 转移作通过声明，那些属 M4-T4 实施。未运行数据库或测试，仅读 Git 对象。"
+      ]
+    },
+    "M5-T2": {
+      "contractHash": "dfd42810168c8da9daf430aef497bc3e99f67e364e496f60cb728233831bb09d",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：固定对象：文档 02ea695f、代码 a7941062、补丁 m4t4-retry-contract-20261119；契约哈希 dfd42810168c8da9daf430aef497bc3e99f67e364e496f60cb728233831bb09d 与 revalidation.json、dispatch.json、补丁 changes.after.hash、补丁 evidence 模板逐项相等且不同于补丁前 ee7ced602720…；changedFields=sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md（我按补丁前后的 sections 文件哈希重算，结果一致）。 登记范围 effectivePaths 18 条，在 a7941062 共扫描 36 个文件（登记但 a7941062 不存在的路径 3 条，不计入）；对 ChatNotification、stableMessageId、NotificationQueued、chat-notifications、chat_notifications、requestStartedAt 零引用。",
+        "本补丁在 09/15/18 节的实际改动只有聊天通知出箱：09 L24（ChatNotification 行）、09 L174-181（通知状态图）、15 L31（聊天通知与既有邮件队列行）、18 L94（聊天可用性/通知策略行）；契约哈希变化来自整份共享章节文件的哈希，不是本任务条款变化。 本任务（接通服务端分析同意签名cookie）的验收不涉及出箱次数上限、退避档位、租约过期判定或 DISABLED/UNKNOWN 转移。本任务是分析同意签名 cookie，与出箱无关。",
+        "依据：Git 对象 a7941062 的 git grep 与逐文件读取，未运行数据库或测试，未运行 status、verify、build、landed，未改标记。"
+      ]
+    },
+    "M5-T3": {
+      "contractHash": "ea3a98c3d3a0e0e7cef49287d01b25189f93473bee88f5d52634ce580f1dccf5",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：固定对象：文档 02ea695f、代码 a7941062、补丁 m4t4-retry-contract-20261119；契约哈希 ea3a98c3d3a0e0e7cef49287d01b25189f93473bee88f5d52634ce580f1dccf5 与 revalidation.json、dispatch.json、补丁 changes.after.hash、补丁 evidence 模板逐项相等且不同于补丁前 5666e5745da8…；changedFields=sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md（我按补丁前后的 sections 文件哈希重算，结果一致）。 登记范围 effectivePaths 7 条，在 a7941062 共扫描 7 个文件（登记但 a7941062 不存在的路径 0 条，不计入）；只有以下命中：prisma/schema.prisma 的命中是 MailMessage.requestStartedAt（:521，旧邮件队列）和 ChatNotification 模型与枚举定义（:649-:748），本补丁与本任务都不改 schema，契约不要求新迁移。",
+        "本补丁在 09/15/18 节的实际改动只有聊天通知出箱：09 L24（ChatNotification 行）、09 L174-181（通知状态图）、15 L31（聊天通知与既有邮件队列行）、18 L94（聊天可用性/通知策略行）；契约哈希变化来自整份共享章节文件的哈希，不是本任务条款变化。 本任务（以一致快照重算并原子替换日聚合）的验收不涉及出箱次数上限、退避档位、租约过期判定或 DISABLED/UNKNOWN 转移。本任务是日聚合的一致快照重算，与出箱无关。",
+        "依据：Git 对象 a7941062 的 git grep 与逐文件读取，未运行数据库或测试，未运行 status、verify、build、landed，未改标记。"
+      ]
+    },
+    "M5-T4": {
+      "contractHash": "5a1fa7731ebfb548e63f386801c6f517622a9721076f624d9ac8edc504509d7f",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：固定对象：文档 02ea695f、代码 a7941062、补丁 m4t4-retry-contract-20261119；契约哈希 5a1fa7731ebfb548e63f386801c6f517622a9721076f624d9ac8edc504509d7f 与 revalidation.json、dispatch.json、补丁 changes.after.hash、补丁 evidence 模板逐项相等且不同于补丁前 5057dca01f29…；changedFields=sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md（我按补丁前后的 sections 文件哈希重算，结果一致）。 登记范围 effectivePaths 29 条，在 a7941062 共扫描 48 个文件（登记但 a7941062 不存在的路径 3 条，不计入）；只有以下命中：tests/jobs-runtime.http.test.ts:170 断言未注册的 chat-notifications 返回 400，是 M4-T4 注册后随 TA-G13 翻转的现状断言，不是本补丁条款；tests/operations-mail-switch.test.ts:185 用纯 mock registry（:3、:101）断言未注册 key 返回 400，不依赖生产注册。",
+        "本补丁在 09/15/18 节的实际改动只有聊天通知出箱：09 L24（ChatNotification 行）、09 L174-181（通知状态图）、15 L31（聊天通知与既有邮件队列行）、18 L94（聊天可用性/通知策略行）；契约哈希变化来自整份共享章节文件的哈希，不是本任务条款变化。 本任务（接通时区设置HTTP与重算范围查询）的验收不涉及出箱次数上限、退避档位、租约过期判定或 DISABLED/UNKNOWN 转移。范围内 tests/jobs-runtime.http.test.ts:170 经真实 createJobServices 断言 chat-notifications→400（现状，M4-T4 注册后翻转），tests/operations-mail-switch.test.ts:185 用纯 mock registry，二者都不是本补丁条款；本任务的时区设置 HTTP 与重算范围不受影响。",
+        "依据：Git 对象 a7941062 的 git grep 与逐文件读取，未运行数据库或测试，未运行 status、verify、build、landed，未改标记。"
+      ]
+    },
+    "M5-T5": {
+      "contractHash": "8c5edca68fc4f65ed207eefa4b4751bae7f511b7e68e80a86e9b54362bbccd71",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：固定对象：文档 02ea695f、代码 a7941062、补丁 m4t4-retry-contract-20261119；契约哈希 8c5edca68fc4f65ed207eefa4b4751bae7f511b7e68e80a86e9b54362bbccd71 与 revalidation.json、dispatch.json、补丁 changes.after.hash、补丁 evidence 模板逐项相等且不同于补丁前 3c22a77f2259…；changedFields=sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md（我按补丁前后的 sections 文件哈希重算，结果一致）。 登记范围 effectivePaths 3 条，在 a7941062 共扫描 3 个文件（登记但 a7941062 不存在的路径 0 条，不计入）；对 ChatNotification、stableMessageId、NotificationQueued、chat-notifications、chat_notifications、requestStartedAt 零引用。",
+        "本补丁在 09/15/18 节的实际改动只有聊天通知出箱：09 L24（ChatNotification 行）、09 L174-181（通知状态图）、15 L31（聊天通知与既有邮件队列行）、18 L94（聊天可用性/通知策略行）；契约哈希变化来自整份共享章节文件的哈希，不是本任务条款变化。 本任务（实现分析保留候选与覆盖边界计划器）的验收不涉及出箱次数上限、退避档位、租约过期判定或 DISABLED/UNKNOWN 转移。本任务是分析保留候选与覆盖边界计划器（纯规则），与出箱无关。",
+        "依据：Git 对象 a7941062 的 git grep 与逐文件读取，未运行数据库或测试，未运行 status、verify、build、landed，未改标记。"
+      ]
+    },
+    "M5-T6": {
+      "contractHash": "b22971b7c31b2a2f4f15dc72d657018b67370d6936898449a02ccce9382b7cde",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：固定对象：文档 02ea695f、代码 a7941062、补丁 m4t4-retry-contract-20261119；契约哈希 b22971b7c31b2a2f4f15dc72d657018b67370d6936898449a02ccce9382b7cde 与 revalidation.json、dispatch.json、补丁 changes.after.hash、补丁 evidence 模板逐项相等且不同于补丁前 a9b9f0eca7c1…；changedFields=sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md（我按补丁前后的 sections 文件哈希重算，结果一致）。 登记范围 effectivePaths 23 条，在 a7941062 共扫描 41 个文件（登记但 a7941062 不存在的路径 3 条，不计入）；只有以下命中：prisma/schema.prisma 的命中是 MailMessage.requestStartedAt（:521，旧邮件队列）和 ChatNotification 模型与枚举定义（:649-:748），本补丁与本任务都不改 schema，契约不要求新迁移。",
+        "本补丁在 09/15/18 节的实际改动只有聊天通知出箱：09 L24（ChatNotification 行）、09 L174-181（通知状态图）、15 L31（聊天通知与既有邮件队列行）、18 L94（聊天可用性/通知策略行）；契约哈希变化来自整份共享章节文件的哈希，不是本任务条款变化。 本任务（持久化严格白名单分析事件）的验收不涉及出箱次数上限、退避档位、租约过期判定或 DISABLED/UNKNOWN 转移。本任务是严格白名单分析事件的持久化，与出箱无关。",
+        "依据：Git 对象 a7941062 的 git grep 与逐文件读取，未运行数据库或测试，未运行 status、verify、build、landed，未改标记。"
+      ]
+    },
+    "M5-T7": {
+      "contractHash": "aa169021054862b67fdd55d745c9930bf2eaf41a56fe41eccc636eef8f034317",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：固定对象：文档 02ea695f、代码 a7941062、补丁 m4t4-retry-contract-20261119；契约哈希 aa169021054862b67fdd55d745c9930bf2eaf41a56fe41eccc636eef8f034317 与 revalidation.json、dispatch.json、补丁 changes.after.hash、补丁 evidence 模板逐项相等且不同于补丁前 2752b8e8c37f…；changedFields=sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md（我按补丁前后的 sections 文件哈希重算，结果一致）。 登记范围 effectivePaths 24 条，在 a7941062 共扫描 145 个文件（登记但 a7941062 不存在的路径 4 条，不计入）；对 ChatNotification、stableMessageId、NotificationQueued、chat-notifications、chat_notifications、requestStartedAt 零引用。",
+        "本补丁在 09/15/18 节的实际改动只有聊天通知出箱：09 L24（ChatNotification 行）、09 L174-181（通知状态图）、15 L31（聊天通知与既有邮件队列行）、18 L94（聊天可用性/通知策略行）；契约哈希变化来自整份共享章节文件的哈希，不是本任务条款变化。 本任务（接通同意UI、页面事件与隐私说明）的验收不涉及出箱次数上限、退避档位、租约过期判定或 DISABLED/UNKNOWN 转移。本任务是同意 UI、页面事件与隐私说明，与出箱无关。",
+        "依据：Git 对象 a7941062 的 git grep 与逐文件读取，未运行数据库或测试，未运行 status、verify、build、landed，未改标记。"
+      ]
+    },
+    "M5-T8": {
+      "contractHash": "00ed0de63a2ba09f8dfead5994a36ae0f996b394fe01eee6401bfba71af5384f",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：固定对象：文档 02ea695f、代码 a7941062、补丁 m4t4-retry-contract-20261119；契约哈希 00ed0de63a2ba09f8dfead5994a36ae0f996b394fe01eee6401bfba71af5384f 与 revalidation.json、dispatch.json、补丁 changes.after.hash、补丁 evidence 模板逐项相等且不同于补丁前 f447f9629446…；changedFields=sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md（我按补丁前后的 sections 文件哈希重算，结果一致）。 登记范围 effectivePaths 29 条，在 a7941062 共扫描 48 个文件（登记但 a7941062 不存在的路径 3 条，不计入）；只有以下命中：prisma/schema.prisma 的命中是 MailMessage.requestStartedAt（:521，旧邮件队列）和 ChatNotification 模型与枚举定义（:649-:748），本补丁与本任务都不改 schema，契约不要求新迁移；tests/cron-analytics-rollup.test.ts:54 只是一条“其他 cron 行”的夹具字符串；tests/jobs-runtime.http.test.ts:170 断言未注册的 chat-notifications 返回 400，是 M4-T4 注册后随 TA-G13 翻转的现状断言，不是本补丁条款。",
+        "本补丁在 09/15/18 节的实际改动只有聊天通知出箱：09 L24（ChatNotification 行）、09 L174-181（通知状态图）、15 L31（聊天通知与既有邮件队列行）、18 L94（聊天可用性/通知策略行）；契约哈希变化来自整份共享章节文件的哈希，不是本任务条款变化。 本任务（注册聚合作业并接通真实5分钟cron）的验收不涉及出箱次数上限、退避档位、租约过期判定或 DISABLED/UNKNOWN 转移。composition.ts:252 的 createJobRegistry 与 registry.ts 都没有 chat-notifications（扫描词零命中）；验收第 3 条“通知/邮件由 M4 注册，不导入未来服务或登记空实现”在 a7941062 仍成立（jobs-runtime.http.test.ts:170）。M4-T4 注册后该断言翻转是实施卡事项，不是对 M5-T8 的新要求。",
+        "依据：Git 对象 a7941062 的 git grep 与逐文件读取，未运行数据库或测试，未运行 status、verify、build、landed，未改标记。"
+      ]
+    },
+    "M5-T9": {
+      "contractHash": "c77ebeb7a945b0a4f6330d83c57660d194978148ec43c39c4e7ad7abc7c3bd4b",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：固定对象：文档 02ea695f、代码 a7941062、补丁 m4t4-retry-contract-20261119；契约哈希 c77ebeb7a945b0a4f6330d83c57660d194978148ec43c39c4e7ad7abc7c3bd4b 与 revalidation.json、dispatch.json、补丁 changes.after.hash、补丁 evidence 模板逐项相等且不同于补丁前 1af57cae92ab…；changedFields=sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md（我按补丁前后的 sections 文件哈希重算，结果一致）。 登记范围 effectivePaths 5 条，在 a7941062 共扫描 5 个文件（登记但 a7941062 不存在的路径 0 条，不计入）；对 ChatNotification、stableMessageId、NotificationQueued、chat-notifications、chat_notifications、requestStartedAt 零引用。",
+        "本补丁在 09/15/18 节的实际改动只有聊天通知出箱：09 L24（ChatNotification 行）、09 L174-181（通知状态图）、15 L31（聊天通知与既有邮件队列行）、18 L94（聊天可用性/通知策略行）；契约哈希变化来自整份共享章节文件的哈希，不是本任务条款变化。 本任务（建立版本化IANA时区与自然日仓储规则）的验收不涉及出箱次数上限、退避档位、租约过期判定或 DISABLED/UNKNOWN 转移。本任务是版本化 IANA 时区与自然日仓储规则，与出箱无关。",
+        "依据：Git 对象 a7941062 的 git grep 与逐文件读取，未运行数据库或测试，未运行 status、verify、build、landed，未改标记。"
+      ]
+    },
+    "M5-T10": {
+      "contractHash": "907933f9e8d96e3a4e616f6b88ff8d35fe666216c17e5c1460300ecaea06aee8",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：固定对象：文档 02ea695f、代码 a7941062、补丁 m4t4-retry-contract-20261119；契约哈希 907933f9e8d96e3a4e616f6b88ff8d35fe666216c17e5c1460300ecaea06aee8 与 revalidation.json、dispatch.json、补丁 changes.after.hash、补丁 evidence 模板逐项相等且不同于补丁前 d36573811cd9…；changedFields=sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md（我按补丁前后的 sections 文件哈希重算，结果一致）。 登记范围 effectivePaths 26 条，在 a7941062 共扫描 143 个文件（登记但 a7941062 不存在的路径 4 条，不计入）；对 ChatNotification、stableMessageId、NotificationQueued、chat-notifications、chat_notifications、requestStartedAt 零引用。",
+        "本补丁在 09/15/18 节的实际改动只有聊天通知出箱：09 L24（ChatNotification 行）、09 L174-181（通知状态图）、15 L31（聊天通知与既有邮件队列行）、18 L94（聊天可用性/通知策略行）；契约哈希变化来自整份共享章节文件的哈希，不是本任务条款变化。 本任务（呈现ADMIN时区表单与保存反馈）的验收不涉及出箱次数上限、退避档位、租约过期判定或 DISABLED/UNKNOWN 转移。本任务是 ADMIN 时区表单与保存反馈，与出箱无关。",
+        "依据：Git 对象 a7941062 的 git grep 与逐文件读取，未运行数据库或测试，未运行 status、verify、build、landed，未改标记。"
+      ]
+    },
+    "M5-T11": {
+      "contractHash": "d9a3b15579292b83fc48ba1a4597b424b63c3b82aa929cc26e3f6aa5bd258b05",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：固定对象：文档 02ea695f、代码 a7941062、补丁 m4t4-retry-contract-20261119；契约哈希 d9a3b15579292b83fc48ba1a4597b424b63c3b82aa929cc26e3f6aa5bd258b05 与 revalidation.json、dispatch.json、补丁 changes.after.hash、补丁 evidence 模板逐项相等且不同于补丁前 f1083e99e2ef…；changedFields=sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md（我按补丁前后的 sections 文件哈希重算，结果一致）。 登记范围 effectivePaths 12 条，在 a7941062 共扫描 12 个文件（登记但 a7941062 不存在的路径 0 条，不计入）；只有以下命中：tests/analytics-retention.db.test.ts:772 禁止分析保留清理删除 ChatNotification 表；tests/cron-analytics-rollup.test.ts:54 只是一条“其他 cron 行”的夹具字符串；tests/jobs-runtime.http.test.ts:170 断言未注册的 chat-notifications 返回 400，是 M4-T4 注册后随 TA-G13 翻转的现状断言，不是本补丁条款。",
+        "本补丁在 09/15/18 节的实际改动只有聊天通知出箱：09 L24（ChatNotification 行）、09 L174-181（通知状态图）、15 L31（聊天通知与既有邮件队列行）、18 L94（聊天可用性/通知策略行）；契约哈希变化来自整份共享章节文件的哈希，不是本任务条款变化。 本任务（注册默认dry-run的分析保留任务）的验收不涉及出箱次数上限、退避档位、租约过期判定或 DISABLED/UNKNOWN 转移。本任务注册默认 dry-run 的分析保留作业；analytics-retention.db.test.ts:772 仍禁止分析保留清理删除 ChatNotification，本补丁没有改变这条边界。",
+        "依据：Git 对象 a7941062 的 git grep 与逐文件读取，未运行数据库或测试，未运行 status、verify、build、landed，未改标记。"
+      ]
+    },
+    "M5-T12": {
+      "contractHash": "d724b854f24f40cfdfe4171814fc4191f8cb3e9841214bff0c9f1080940d4087",
+      "verdict": "pass",
+      "evidence": [
+        "不适用：固定对象：文档 02ea695f、代码 a7941062、补丁 m4t4-retry-contract-20261119；契约哈希 d724b854f24f40cfdfe4171814fc4191f8cb3e9841214bff0c9f1080940d4087 与 revalidation.json、dispatch.json、补丁 changes.after.hash、补丁 evidence 模板逐项相等且不同于补丁前 b73735d4da28…；changedFields=sections:02-设计/09-数据模型.md,04-执行/18-部署与运维.md（我按补丁前后的 sections 文件哈希重算，结果一致）。 登记范围 effectivePaths 32 条，在 a7941062 共扫描 32 个文件（登记但 a7941062 不存在的路径 0 条，不计入）；只有以下命中：prisma/schema.prisma 的命中是 MailMessage.requestStartedAt（:521，旧邮件队列）和 ChatNotification 模型与枚举定义（:649-:748），本补丁与本任务都不改 schema，契约不要求新迁移；tests/analytics-retention.db.test.ts:772 禁止分析保留清理删除 ChatNotification 表；tests/jobs-runtime.http.test.ts:170 断言未注册的 chat-notifications 返回 400，是 M4-T4 注册后随 TA-G13 翻转的现状断言，不是本补丁条款。",
+        "本补丁在 09/15/18 节的实际改动只有聊天通知出箱：09 L24（ChatNotification 行）、09 L174-181（通知状态图）、15 L31（聊天通知与既有邮件队列行）、18 L94（聊天可用性/通知策略行）；契约哈希变化来自整份共享章节文件的哈希，不是本任务条款变化。 本任务（补齐13个自然月无身份日聚合的3D耗时、配对终态与日级独立访客）的验收不涉及出箱次数上限、退避档位、租约过期判定或 DISABLED/UNKNOWN 转移。本任务补齐 13 个自然月无身份日聚合；analytics-retention.db.test.ts:772 仍禁止分析保留清理删除 ChatNotification，本补丁没有改变这条边界。",
+        "依据：Git 对象 a7941062 的 git grep 与逐文件读取，未运行数据库或测试，未运行 status、verify、build、landed，未改标记。"
+      ]
+    }
+  }
+}

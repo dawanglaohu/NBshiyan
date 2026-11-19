@@ -1853,7 +1853,22 @@
         "src/lib/server/config.ts",
         "prod-env-check.ts",
         "tests/chat-notification-worker.db.test.ts",
-        "tests/chat-notification-smtp.integration.test.ts"
+        "tests/chat-notification-smtp.integration.test.ts",
+        ".github/workflows/ci.yml",
+        "tests/jobs-runtime.http.test.ts",
+        "tests/prod-env-check.test.ts",
+        "tests/evidence/local-smtp.mjs",
+        "tests/evidence/chat-notifications-phase.mjs",
+        "tests/evidence/chat-notifications-tick.sh",
+        "src/lib/server/chat/notification-job.ts",
+        "src/lib/server/chat/notification-policy.ts",
+        "tests/chat-notifications.worker.test.ts",
+        "docs/PackJoyU-开发文档/图谱/任务/M4-T4.md",
+        "next.config.ts",
+        "tests/startup-env-check.test.ts",
+        "deploy/env.template",
+        ".env.example",
+        "src/lib/server/startup/env-check.ts"
       ],
       "outputPaths": [
         "src/lib/server/chat/notification-service.ts",

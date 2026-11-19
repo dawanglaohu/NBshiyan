@@ -3,7 +3,8 @@ import path from 'path';
 import { isProdEnvFrom } from './src/lib/site';
 import { policyConfigProblems } from './src/lib/server/config';
 import { parseRedisUrl } from './src/lib/server/ratelimit/redis';
-import { dailyCapValid, smtpBaseConfig } from './src/lib/server/mail/config';
+import { dailyCapValid, parseMailbox, smtpBaseConfig } from './src/lib/server/mail/config';
+import { CHAT_NOTIFICATION_HOOK_KEYS } from './src/lib/server/chat/notification-policy';
 // 生产环境配置自检：
 // - next.config 加载时执行（next build → 'build'，next start → 'runtime'）；
 // - 自建 standalone（node server.js 不会重新执行 next.config）由 src/instrumentation.ts 在启动时按 'runtime' 再查一遍。
@@ -57,9 +58,16 @@ function rateLimitProblems(env: Record<string, string | undefined>): string[] {
   return [`RATE_LIMIT_STORE 必须为 "upstash" 或 "redis"（当前：${kind ?? '未设置'}），多实例下内存限流无效`];
 }
 
+export function chatNotificationRecipientUnset(value: string | undefined): boolean {
+  return !/[^ \t]/.test(value ?? '');
+}
+
 export function prodEnvProblems(env: Record<string, string | undefined>, phase: EnvCheckPhase = 'any', deps: EnvCheckDeps = {}): string[] {
   if (!isProductionDeploy(env)) return [];
   const problems = publicProblems(env);
+  for (const key of CHAT_NOTIFICATION_HOOK_KEYS) {
+    if (env[key] !== undefined) problems.push(`${key}：生产环境禁止聊天通知测试钩子`);
+  }
   if (phase !== 'build') {
     problems.push(...rateLimitProblems(env));
     problems.push(...mailProblems(env), ...storageProblems(env, deps), ...secretProblems(env), ...runtimeSecretProblems(env), ...policyConfigProblems());
@@ -151,6 +159,14 @@ function defaultDirProblem(dir: string): string | null {
 // #74 发信（§16 Gmail SMTP）：只报变量名和原因，不输出任何值
 function mailProblems(env: Record<string, string | undefined>): string[] {
   const out: string[] = [];
+  const recipient = env.CHAT_NOTIFICATION_TO;
+  if (recipient !== undefined && !chatNotificationRecipientUnset(recipient)) {
+    const mailbox = parseMailbox(recipient);
+    // A bare address followed by a separator is a recipient list, even before a final angle address.
+    const extraAddress = mailbox && !recipient.trimStart().startsWith('"')
+      && mailbox.name.split(/[,;]/).slice(0, -1).some((part) => parseMailbox(part) !== null);
+    if (!mailbox || extraAddress) out.push('CHAT_NOTIFICATION_TO 必须是单个有效邮箱地址');
+  }
   // 生产环境必须显式 MAIL_SEND_ADAPTER=smtp：未设置、mock、log 或其他任何值都拒绝启动
   if ((env.MAIL_SEND_ADAPTER ?? '').trim() !== 'smtp') out.push('MAIL_SEND_ADAPTER：生产环境必须设置为 smtp（未设置 / mock / log 都不允许）');
   if (!dailyCapValid(env)) out.push('MAIL_DAILY_CAP 必须是 1–100000 的整数（默认 450）');

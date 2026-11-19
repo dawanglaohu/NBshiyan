@@ -156,7 +156,7 @@ describe('M5-T8 jobs runtime + cron operations route', { concurrency: false, ski
   function handler() {
     const clock = () => new Date(NOW);
     return createOperationsHandler({
-      services: createJobServices({ db: requireDb(), clock }).jobs,
+      services: createJobServices({ db: requireDb(), clock, chat: { getMailer: async () => null } }).jobs,
       clock,
       secret: SECRET,
     });
@@ -167,7 +167,15 @@ describe('M5-T8 jobs runtime + cron operations route', { concurrency: false, ski
     const handle = handler();
     assert.equal((await handle(post({ jobKey: 'analytics-aggregate' }, null))).status, 401);
     assert.equal((await handle(post({ jobKey: 'analytics-aggregate' }, 'Bearer wrong'))).status, 401);
-    assert.equal((await handle(post({ jobKey: 'chat-notifications' }))).status, 400);
+    const chat = await handle(post({ jobKey: 'chat-notifications' }));
+    assert.equal(chat.status, 200);
+    assert.equal((await chat.json()).jobKey, 'chat-notifications');
+    const state = await requireDb().jobState.findUniqueOrThrow({ where: { key: 'chat-notifications' } });
+    assert.equal(state.generation, 1);
+    assert.equal(state.lastStatus, 'SUCCEEDED');
+    assert.equal(state.leaseOwner, null);
+    assert.equal(state.lastErrorCode, null);
+    assert.equal((await handle(post({ jobKey: 'ops-sample' }))).status, 400);
     assert.equal((await handle(post({ jobKey: 'arbitrary-script' }))).status, 400);
     assert.equal((await handle(post({ jobKey: 'analytics-aggregate', extra: 1 }))).status, 400);
     const route = await import('../src/app/api/admin/cron/operations/route');

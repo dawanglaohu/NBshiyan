@@ -143,7 +143,7 @@ const nextConfig: NextConfig = {
 // sanity.ts / sitemap.ts 里的 import('./sanityMock') 分支就是死代码，生产包里没有 mock 文章和 mock chunk。
 // #323：发信 mock 适配器同理：生产构建（APP_ENV/VERCEL_ENV=production）内联为空字符串，mail/http.ts 里的 import('./mock') 是死代码；
 // 非生产构建为 '1'，运行时仍由 mockAdapterAllowed()（MAIL_SEND_ADAPTER=mock 且显式非生产 APP_ENV）决定。
-nextConfig.env = { ...nextConfig.env, SEO_AUDIT_MOCK_BUILD: seoMockEnabled() ? '1' : '', MAIL_MOCK_ADAPTER_BUILD: isProd ? '' : '1' };
+nextConfig.env = { ...nextConfig.env, SEO_AUDIT_MOCK_BUILD: seoMockEnabled() ? '1' : '', MAIL_MOCK_ADAPTER_BUILD: isProd ? '' : '1', CHAT_NOTIFICATION_TEST_HOOK_BUILD: isProd ? '' : '1' };
 // 文章分享图 /[locale]/articles/[slug]/og 的字体：route 里用 process.cwd() 读，追踪不到，手动带进 standalone
 nextConfig.outputFileTracingIncludes = { ...nextConfig.outputFileTracingIncludes, '/[locale]/articles/[slug]/og': ['./src/assets/og-fonts/*.ttf'] };
 // #350 /about 分享图复用同一模板和字体

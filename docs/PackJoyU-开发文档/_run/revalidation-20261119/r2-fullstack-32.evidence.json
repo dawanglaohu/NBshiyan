@@ -1,0 +1,380 @@
+{
+  "scope": "task-contract",
+  "note": "B10-M4T4-REVAL-R2 (全栈工程师/安全工程师). Read-only revalidation of patch m4t4-retry-contract-20261119 for 32 landed tasks. Docs fixed at 02ea695fbc7d581392d0d29e2fdcb27f1e6b8acb; landed code read from Git object a7941062af916119d53e0802d1752b4c1ab02424. No status/verify/build/landed was run; no markers, source, branches or worktrees changed; no DB/service/test started. Contract hashes are the current values in _run/revalidation.json, cross-checked against docs-data handoff.contracts and the patch evidence where present. Verdict pass means the item was checked; the 'conclusion' field gives the three-way result (适用且仍满足 / 不适用 / 不满足). All 32 are 不适用.",
+  "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4",
+  "patch": "m4t4-retry-contract-20261119",
+  "docsCommit": "02ea695fbc7d581392d0d29e2fdcb27f1e6b8acb",
+  "codeObject": "a7941062af916119d53e0802d1752b4c1ab02424",
+  "tasks": {
+    "BACKFILL-MJS": {
+      "contractHash": "d7dfe7f416f61b2dd2ec31b1c1dd45160f2d5fa9fe294d57d9b3577160a831ab",
+      "verdict": "pass",
+      "conclusion": "不适用",
+      "evidence": [
+        "不适用：本卡产出（图谱/任务/BACKFILL-MJS.md:L26）为「node 可执行的回填脚本，时长与应用内回填一致，并进入 standalone 镜像。」，不涉及 M4 聊天通知出箱；卡面对 ChatNotification/通知出箱/E-90~E-93/attempts 比较/availableAt 等关键词命中 0 处。",
+        "本补丁对本卡契约所含章节的实际改动仅为：09-数据模型.md:L24（ChatNotification 行说明列）与 :L174-L182（通知状态图）；15-性能与容量假设.md:L31（聊天通知次数/退避）；18-部署与运维.md:L94（聊天可用性/通知策略），全部是 M4 ChatNotification 的重试上限、attempts 计数、退避时钟、过期清扫、UNKNOWN 提升与 SMTP 缺配置 DISABLED 规则；ChatNotification 字段清单未变（09 行第 2 列逐字相同），其他行不变。",
+        "代码面：main a7941062 上通知出箱符号只出现在 prisma/schema.prisma, src/lib/server/chat/conversation-service.ts, src/lib/server/chat/repo.ts；本卡 6 条有效路径与之无交集。",
+        "结论：不适用，本卡契约不受该补丁实质影响，仍按原验收成立；契约哈希 d7dfe7f416f6… 与 revalidation.json、docs-data 契约及补丁证据一致。本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "BE-350A": {
+      "contractHash": "0c848319df2ae3ecc830937a2bee7bcdf608048a30931496c0d5a20bfc741ce8",
+      "verdict": "pass",
+      "conclusion": "不适用",
+      "evidence": [
+        "不适用：本卡产出（图谱/任务/BE-350A.md:L26）为「/media/ 成功响应的缓存头改为 public, max-age=300, s-maxage=3600，且不带 immutable。」，不涉及 M4 聊天通知出箱；卡面对 ChatNotification/通知出箱/E-90~E-93/attempts 比较/availableAt 等关键词命中 0 处。",
+        "本补丁对本卡契约所含章节的实际改动仅为：09-数据模型.md:L24（ChatNotification 行说明列）与 :L174-L182（通知状态图）；15-性能与容量假设.md:L31（聊天通知次数/退避）；18-部署与运维.md:L94（聊天可用性/通知策略），全部是 M4 ChatNotification 的重试上限、attempts 计数、退避时钟、过期清扫、UNKNOWN 提升与 SMTP 缺配置 DISABLED 规则；ChatNotification 字段清单未变（09 行第 2 列逐字相同），其他行不变。",
+        "代码面：main a7941062 上通知出箱符号只出现在 prisma/schema.prisma, src/lib/server/chat/conversation-service.ts, src/lib/server/chat/repo.ts；本卡 3 条有效路径与之无交集。",
+        "结论：不适用，本卡契约不受该补丁实质影响，仍按原验收成立；契约哈希 0c848319df2a… 与 revalidation.json、docs-data 契约及补丁证据一致。本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "BE-I18N-P0": {
+      "contractHash": "0f138168a4996384bec1a65d94bcbabfa1ae6f7a22834679a94c0ff5cdffd878",
+      "verdict": "pass",
+      "conclusion": "不适用",
+      "evidence": [
+        "不适用：本卡产出（图谱/任务/BE-I18N-P0.md:L26）为「邮件模板和 Sanity schema 支持 es/de/fr。这次不发布任何新语言。未发布语言的公开接口仍返回 400。」，不涉及 M4 聊天通知出箱；卡面对 ChatNotification/通知出箱/E-90~E-93/attempts 比较/availableAt 等关键词命中 0 处。",
+        "本补丁对本卡契约所含章节的实际改动仅为：09-数据模型.md:L24（ChatNotification 行说明列）与 :L174-L182（通知状态图）；15-性能与容量假设.md:L31（聊天通知次数/退避）；18-部署与运维.md:L94（聊天可用性/通知策略），全部是 M4 ChatNotification 的重试上限、attempts 计数、退避时钟、过期清扫、UNKNOWN 提升与 SMTP 缺配置 DISABLED 规则；ChatNotification 字段清单未变（09 行第 2 列逐字相同），其他行不变。",
+        "代码面：main a7941062 上通知出箱符号只出现在 prisma/schema.prisma, src/lib/server/chat/conversation-service.ts, src/lib/server/chat/repo.ts；本卡 12 条有效路径与之无交集。",
+        "命中的「邮件」均为询盘确认邮件模板与语言表（图谱/任务/BE-I18N-P0.md:L26、:L46-L49），不是聊天通知。",
+        "结论：不适用，本卡契约不受该补丁实质影响，仍按原验收成立；契约哈希 0f138168a499… 与 revalidation.json、docs-data 契约及补丁证据一致。本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "BE-RATELIMIT-P3": {
+      "contractHash": "c27cb212bf31c3e3492857fd3a0f35e1843ac5d7e3a93bd6c60488625a97ebca",
+      "verdict": "pass",
+      "conclusion": "不适用",
+      "evidence": [
+        "不适用：本卡产出（图谱/任务/BE-RATELIMIT-P3.md:L26）为「文档或实现覆盖账号级 key 的清理边界；reset 脚本在正常部署里清限流成功；TCP Redis 的 RateLimitStore。」，不涉及 M4 聊天通知出箱；卡面对 ChatNotification/通知出箱/E-90~E-93/attempts 比较/availableAt 等关键词命中 0 处。",
+        "本补丁对本卡契约所含章节的实际改动仅为：09-数据模型.md:L24（ChatNotification 行说明列）与 :L174-L182（通知状态图）；15-性能与容量假设.md:L31（聊天通知次数/退避）；18-部署与运维.md:L94（聊天可用性/通知策略），全部是 M4 ChatNotification 的重试上限、attempts 计数、退避时钟、过期清扫、UNKNOWN 提升与 SMTP 缺配置 DISABLED 规则；ChatNotification 字段清单未变（09 行第 2 列逐字相同），其他行不变。",
+        "代码面：main a7941062 上通知出箱符号只出现在 prisma/schema.prisma, src/lib/server/chat/conversation-service.ts, src/lib/server/chat/repo.ts；本卡 4 条有效路径与之无交集。",
+        "结论：不适用，本卡契约不受该补丁实质影响，仍按原验收成立；契约哈希 c27cb212bf31… 与 revalidation.json、docs-data 契约及补丁证据一致。本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "BE-RESET-STDIN-TTY": {
+      "contractHash": "b4f2fc95ca8f54d61f442170669ad9ce7486cb01bddd67cb0d91c77f995cdbdc",
+      "verdict": "pass",
+      "conclusion": "不适用",
+      "evidence": [
+        "不适用：本卡产出（图谱/任务/BE-RESET-STDIN-TTY.md:L26）为「记账。stdin 不是终端时退出 2，不读密码，不改数据，不签发令牌。」，不涉及 M4 聊天通知出箱；卡面对 ChatNotification/通知出箱/E-90~E-93/attempts 比较/availableAt 等关键词命中 0 处。",
+        "本补丁对本卡契约所含章节的实际改动仅为：09-数据模型.md:L24（ChatNotification 行说明列）与 :L174-L182（通知状态图）；15-性能与容量假设.md:L31（聊天通知次数/退避）；18-部署与运维.md:L94（聊天可用性/通知策略），全部是 M4 ChatNotification 的重试上限、attempts 计数、退避时钟、过期清扫、UNKNOWN 提升与 SMTP 缺配置 DISABLED 规则；ChatNotification 字段清单未变（09 行第 2 列逐字相同），其他行不变。",
+        "代码面：main a7941062 上通知出箱符号只出现在 prisma/schema.prisma, src/lib/server/chat/conversation-service.ts, src/lib/server/chat/repo.ts；本卡 11 条有效路径与之无交集。",
+        "结论：不适用，本卡契约不受该补丁实质影响，仍按原验收成立；契约哈希 b4f2fc95ca8f… 与 revalidation.json、docs-data 契约及补丁证据一致。本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "BE-RESET-TTY": {
+      "contractHash": "9ce3f9b5700b14814e7dacd8404e8e7afb9c672ac3cc9224564ea03c52d97f0f",
+      "verdict": "pass",
+      "conclusion": "不适用",
+      "evidence": [
+        "不适用：本卡产出（图谱/任务/BE-RESET-TTY.md:L26）为「示例都带交互终端，并写明没有终端时的行为。」，不涉及 M4 聊天通知出箱；卡面对 ChatNotification/通知出箱/E-90~E-93/attempts 比较/availableAt 等关键词命中 0 处。",
+        "本补丁对本卡契约所含章节的实际改动仅为：09-数据模型.md:L24（ChatNotification 行说明列）与 :L174-L182（通知状态图）；15-性能与容量假设.md:L31（聊天通知次数/退避）；18-部署与运维.md:L94（聊天可用性/通知策略），全部是 M4 ChatNotification 的重试上限、attempts 计数、退避时钟、过期清扫、UNKNOWN 提升与 SMTP 缺配置 DISABLED 规则；ChatNotification 字段清单未变（09 行第 2 列逐字相同），其他行不变。",
+        "代码面：main a7941062 上通知出箱符号只出现在 prisma/schema.prisma, src/lib/server/chat/conversation-service.ts, src/lib/server/chat/repo.ts；本卡 4 条有效路径与之无交集。",
+        "结论：不适用，本卡契约不受该补丁实质影响，仍按原验收成立；契约哈希 9ce3f9b5700b… 与 revalidation.json、docs-data 契约及补丁证据一致。本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "GUARD-503": {
+      "contractHash": "941f278149bb3282097b610a1721174761e6809665f73b5d5d9405771763dd39",
+      "verdict": "pass",
+      "conclusion": "不适用",
+      "evidence": [
+        "不适用：本卡产出（图谱/任务/GUARD-503.md:L26）为「数据库不可用时页面显示错误卡（HTTP 200）并保留登录 cookie；后台 API 返回 503，其他异常返回 500。」，不涉及 M4 聊天通知出箱；卡面对 ChatNotification/通知出箱/E-90~E-93/attempts 比较/availableAt 等关键词命中 0 处。",
+        "本补丁对本卡契约所含章节的实际改动仅为：09-数据模型.md:L24（ChatNotification 行说明列）与 :L174-L182（通知状态图）；15-性能与容量假设.md:L31（聊天通知次数/退避）；18-部署与运维.md:L94（聊天可用性/通知策略），全部是 M4 ChatNotification 的重试上限、attempts 计数、退避时钟、过期清扫、UNKNOWN 提升与 SMTP 缺配置 DISABLED 规则；ChatNotification 字段清单未变（09 行第 2 列逐字相同），其他行不变。",
+        "代码面：main a7941062 上通知出箱符号只出现在 prisma/schema.prisma, src/lib/server/chat/conversation-service.ts, src/lib/server/chat/repo.ts；本卡 15 条有效路径与之无交集。",
+        "结论：不适用，本卡契约不受该补丁实质影响，仍按原验收成立；契约哈希 941f278149bb… 与 revalidation.json、docs-data 契约及补丁证据一致。本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "HOTFIX-LOGIN-EMPTY": {
+      "contractHash": "a3505127cfd8b7a4dd74b1211bfe7fddbaa1cadada0ff3fda0450230b236fd4a",
+      "verdict": "pass",
+      "conclusion": "不适用",
+      "evidence": [
+        "不适用：本卡产出（图谱/任务/HOTFIX-LOGIN-EMPTY.md:L26）为「空白的 mode、rememberDevice、recoveryCode、totp 不再让严格契约失败。空邮箱和未知字段仍拒绝。」，不涉及 M4 聊天通知出箱；卡面对 ChatNotification/通知出箱/E-90~E-93/attempts 比较/availableAt 等关键词命中 0 处。",
+        "本补丁对本卡契约所含章节的实际改动仅为：09-数据模型.md:L24（ChatNotification 行说明列）与 :L174-L182（通知状态图）；15-性能与容量假设.md:L31（聊天通知次数/退避）；18-部署与运维.md:L94（聊天可用性/通知策略），全部是 M4 ChatNotification 的重试上限、attempts 计数、退避时钟、过期清扫、UNKNOWN 提升与 SMTP 缺配置 DISABLED 规则；ChatNotification 字段清单未变（09 行第 2 列逐字相同），其他行不变。",
+        "代码面：main a7941062 上通知出箱符号只出现在 prisma/schema.prisma, src/lib/server/chat/conversation-service.ts, src/lib/server/chat/repo.ts；本卡 3 条有效路径与之无交集。",
+        "结论：不适用，本卡契约不受该补丁实质影响，仍按原验收成立；契约哈希 a3505127cfd8… 与 revalidation.json、docs-data 契约及补丁证据一致。本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "R4-T16305211": {
+      "contractHash": "09b5b6920c2815cab37bffb6b6e7e027ed04e1767374eb71832a0f649c11647e",
+      "verdict": "pass",
+      "conclusion": "不适用",
+      "evidence": [
+        "不适用：本卡产出（图谱/任务/R4-T16305211.md:L23）为「在新的 adjudicate 返回 adopt.action=take 之后，只落实被采纳的那一条。改边界则更新 E-20 源行和 M4-T15 验收，使它们描述现页的无独立聊天开关。恢复开关则增加默认关闭的独立聊天开关，并更新锁定开关文案不存在的测试。两条都保留询盘和邮箱，都不加载 Tawk，都不声称 2.7 GB」，不涉及 M4 聊天通知出箱；卡面对 ChatNotification/通知出箱/E-90~E-93/attempts 比较/availableAt 等关键词命中 0 处。",
+        "本补丁对本卡契约所含章节的实际改动仅为：09-数据模型.md:L24（ChatNotification 行说明列）与 :L174-L182（通知状态图）；15-性能与容量假设.md:L31（聊天通知次数/退避）；18-部署与运维.md:L94（聊天可用性/通知策略），全部是 M4 ChatNotification 的重试上限、attempts 计数、退避时钟、过期清扫、UNKNOWN 提升与 SMTP 缺配置 DISABLED 规则；ChatNotification 字段清单未变（09 行第 2 列逐字相同），其他行不变。",
+        "代码面：main a7941062 上通知出箱符号只出现在 prisma/schema.prisma, src/lib/server/chat/conversation-service.ts, src/lib/server/chat/repo.ts；本卡 7 条有效路径与之无交集。",
+        "结论：不适用，本卡契约不受该补丁实质影响，仍按原验收成立；契约哈希 09b5b6920c28… 与 revalidation.json、docs-data 契约及补丁证据一致。本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "R4-T64765902": {
+      "contractHash": "ad0fb29d55c377186d401e04340a17fc5d959fed54b5deaab665cff3314b147a",
+      "verdict": "pass",
+      "conclusion": "不适用",
+      "evidence": [
+        "不适用：本卡产出（图谱/任务/R4-T64765902.md:L23）为「删除无调用方的 adminPath.ts，并删除或改写只为它存在的测试，使测试不再声称非后台路径允许 Tawk」，不涉及 M4 聊天通知出箱；卡面对 ChatNotification/通知出箱/E-90~E-93/attempts 比较/availableAt 等关键词命中 0 处。",
+        "本补丁对本卡契约所含章节的实际改动仅为：09-数据模型.md:L24（ChatNotification 行说明列）与 :L174-L182（通知状态图）；15-性能与容量假设.md:L31（聊天通知次数/退避）；18-部署与运维.md:L94（聊天可用性/通知策略），全部是 M4 ChatNotification 的重试上限、attempts 计数、退避时钟、过期清扫、UNKNOWN 提升与 SMTP 缺配置 DISABLED 规则；ChatNotification 字段清单未变（09 行第 2 列逐字相同），其他行不变。",
+        "代码面：main a7941062 上通知出箱符号只出现在 prisma/schema.prisma, src/lib/server/chat/conversation-service.ts, src/lib/server/chat/repo.ts；本卡 2 条有效路径与之无交集。",
+        "有效路径 src/lib/chat/adminPath.ts 是第三方 Tawk 路径判断的删除（图谱/任务/R4-T64765902.md:L24、:L28），与站内聊天通知无关。",
+        "结论：不适用，本卡契约不受该补丁实质影响，仍按原验收成立；契约哈希 ad0fb29d55c3… 与 revalidation.json、docs-data 契约及补丁证据一致。本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "R4-T76958784": {
+      "contractHash": "ac0ac6034a7d581d77e06871f388afda2e4ed4e02d59fd294e46b4da62db3865",
+      "verdict": "pass",
+      "conclusion": "不适用",
+      "evidence": [
+        "不适用：本卡产出（图谱/任务/R4-T76958784.md:L23）为「更新 en/ru 隐私文案及锁定这句的测试与 e2e，使隐私页出现 7 天闲置、30 天绝对、90 天设计默认和生产清理未启用；询盘仍为 2 年；页面仍无 Tawk」，不涉及 M4 聊天通知出箱；卡面对 ChatNotification/通知出箱/E-90~E-93/attempts 比较/availableAt 等关键词命中 0 处。",
+        "本补丁对本卡契约所含章节的实际改动仅为：09-数据模型.md:L24（ChatNotification 行说明列）与 :L174-L182（通知状态图）；15-性能与容量假设.md:L31（聊天通知次数/退避）；18-部署与运维.md:L94（聊天可用性/通知策略），全部是 M4 ChatNotification 的重试上限、attempts 计数、退避时钟、过期清扫、UNKNOWN 提升与 SMTP 缺配置 DISABLED 规则；ChatNotification 字段清单未变（09 行第 2 列逐字相同），其他行不变。",
+        "代码面：main a7941062 上通知出箱符号只出现在 prisma/schema.prisma, src/lib/server/chat/conversation-service.ts, src/lib/server/chat/repo.ts；本卡 4 条有效路径与之无交集。",
+        "有效路径 e2e/chat-consent-migration.spec.ts 只锁隐私页聊天 cookie 期限文案（图谱/任务/R4-T76958784.md:L28、:L40），不涉及通知出箱或重试。",
+        "结论：不适用，本卡契约不受该补丁实质影响，仍按原验收成立；契约哈希 ac0ac6034a7d… 与 revalidation.json、docs-data 契约及补丁证据一致。本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "R4-T78812657": {
+      "contractHash": "825dfd22bc6cfaac1c9ee079aca504207c28fbd8c7536403f4d6ca80832c71a4",
+      "verdict": "pass",
+      "conclusion": "不适用",
+      "evidence": [
+        "不适用：本卡产出（图谱/任务/R4-T78812657.md:L23）为「固定为方案 A：保留 12 小时绝对截止，改文档去贴合代码。更新 E-01 源行、09 设备行、19 节 M3-T1 与 M3-T15 验收和 en/ru 的 adminSessions，写明 2 小时滑动另加创建后 12 小时绝对截止。记住设备保持 7 天闲置和 30 天绝对。方案 B 必须由 Ryan 和安全审查明…」，不涉及 M4 聊天通知出箱；卡面对 ChatNotification/通知出箱/E-90~E-93/attempts 比较/availableAt 等关键词命中 0 处。",
+        "本补丁对本卡契约所含章节的实际改动仅为：09-数据模型.md:L24（ChatNotification 行说明列）与 :L174-L182（通知状态图）；15-性能与容量假设.md:L31（聊天通知次数/退避）；18-部署与运维.md:L94（聊天可用性/通知策略），全部是 M4 ChatNotification 的重试上限、attempts 计数、退避时钟、过期清扫、UNKNOWN 提升与 SMTP 缺配置 DISABLED 规则；ChatNotification 字段清单未变（09 行第 2 列逐字相同），其他行不变。",
+        "代码面：main a7941062 上通知出箱符号只出现在 prisma/schema.prisma, src/lib/server/chat/conversation-service.ts, src/lib/server/chat/repo.ts；本卡 10 条有效路径含 prisma/schema.prisma，但本卡对该文件的义务与通知行无关（见下条）。",
+        "有效路径含 prisma/schema.prisma 与 09-数据模型.md，义务是 AdminDeviceSession.hardExpiresAt 注释与 E-01 期限口径（图谱/任务/R4-T78812657.md:L22-L24、:L43）；本补丁未改 09 节 AdminDeviceSession 行与 schema 字段。",
+        "结论：不适用，本卡契约不受该补丁实质影响，仍按原验收成立；契约哈希 825dfd22bc6c… 与 revalidation.json、docs-data 契约及补丁证据一致。本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "R5-T10248697": {
+      "contractHash": "91366ebcccae35e68ed923977e418d2fa25f0e6b7da9770f8b4506bddd50b084",
+      "verdict": "pass",
+      "conclusion": "不适用",
+      "evidence": [
+        "不适用：本卡产出（图谱/任务/R5-T10248697.md:L23）为「跳过的本地午夜改用该本地日最早存在的瞬间做左闭端，并用同一瞬间做前一天的右开端。合法 IANA 不因这种日期被设置更新拒绝。在 tests/analytics-day-boundaries.test.ts 增加回归」，不涉及 M4 聊天通知出箱；卡面对 ChatNotification/通知出箱/E-90~E-93/attempts 比较/availableAt 等关键词命中 0 处。",
+        "本补丁对本卡契约所含章节的实际改动仅为：09-数据模型.md:L24（ChatNotification 行说明列）与 :L174-L182（通知状态图）；15-性能与容量假设.md:L31（聊天通知次数/退避）；18-部署与运维.md:L94（聊天可用性/通知策略），全部是 M4 ChatNotification 的重试上限、attempts 计数、退避时钟、过期清扫、UNKNOWN 提升与 SMTP 缺配置 DISABLED 规则；ChatNotification 字段清单未变（09 行第 2 列逐字相同），其他行不变。",
+        "代码面：main a7941062 上通知出箱符号只出现在 prisma/schema.prisma, src/lib/server/chat/conversation-service.ts, src/lib/server/chat/repo.ts；本卡 3 条有效路径与之无交集。",
+        "结论：不适用，本卡契约不受该补丁实质影响，仍按原验收成立；契约哈希 91366ebcccae… 与 revalidation.json、docs-data 契约及补丁证据一致。本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "R5-T59021355": {
+      "contractHash": "d3a6b73d9824fd668c5bf192eb27055a6b9d99097cff609b79a72a9e8bfd0b4d",
+      "verdict": "pass",
+      "conclusion": "不适用",
+      "evidence": [
+        "不适用：本卡产出（图谱/任务/R5-T59021355.md:L23）为「普通 Credentials 上的非空 recoveryCode 改为与未知账号相同的失败，不核销恢复码，不 open 设备。更新 tests/admin-login-mode.db.test.ts 中把该成功登录锁成期望的用例。不在本任务实现 M3-T19 的受限重绑入口」，不涉及 M4 聊天通知出箱；卡面对 ChatNotification/通知出箱/E-90~E-93/attempts 比较/availableAt 等关键词命中 0 处。",
+        "本补丁对本卡契约所含章节的实际改动仅为：09-数据模型.md:L24（ChatNotification 行说明列）与 :L174-L182（通知状态图）；15-性能与容量假设.md:L31（聊天通知次数/退避）；18-部署与运维.md:L94（聊天可用性/通知策略），全部是 M4 ChatNotification 的重试上限、attempts 计数、退避时钟、过期清扫、UNKNOWN 提升与 SMTP 缺配置 DISABLED 规则；ChatNotification 字段清单未变（09 行第 2 列逐字相同），其他行不变。",
+        "代码面：main a7941062 上通知出箱符号只出现在 prisma/schema.prisma, src/lib/server/chat/conversation-service.ts, src/lib/server/chat/repo.ts；本卡 4 条有效路径与之无交集。",
+        "结论：不适用，本卡契约不受该补丁实质影响，仍按原验收成立；契约哈希 d3a6b73d9824… 与 revalidation.json、docs-data 契约及补丁证据一致。本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M3-T1": {
+      "contractHash": "e02041d588f8e9991c2069402436e552631d8a657bcf8bf32976d325221182a4",
+      "verdict": "pass",
+      "conclusion": "不适用",
+      "evidence": [
+        "不适用：本卡产出（图谱/任务/M3-T1.md:L22）为「AdminDeviceSession；Auth.js登录/读取/普通signOut的sid适配；GET /api/admin/account的当前设备摘要及当前权限守卫。 本卡增加User.passwordlessEnabled并默认false，保证首个AccountDTO字段齐；真实GET account最终响应消费…」，不涉及 M4 聊天通知出箱；卡面对 ChatNotification/通知出箱/E-90~E-93/attempts 比较/availableAt 等关键词命中 0 处。",
+        "本补丁对本卡契约所含章节的实际改动仅为：09-数据模型.md:L24（ChatNotification 行说明列）与 :L174-L182（通知状态图）；18-部署与运维.md:L94（聊天可用性/通知策略），全部是 M4 ChatNotification 的重试上限、attempts 计数、退避时钟、过期清扫、UNKNOWN 提升与 SMTP 缺配置 DISABLED 规则；ChatNotification 字段清单未变（09 行第 2 列逐字相同），其他行不变。",
+        "代码面：main a7941062 上通知出箱符号只出现在 prisma/schema.prisma, src/lib/server/chat/conversation-service.ts, src/lib/server/chat/repo.ts；本卡 38 条有效路径含 prisma/schema.prisma，但本卡对该文件的义务与通知行无关（见下条）。",
+        "有效路径中的 src/app/api/admin/chat/, src/app/api/chat/ 是本卡共享后台守卫/会话接线所列的路由目录；main 上这些目录不含通知出箱符号（通知符号仅在上列 3 个文件），本卡没有对通知状态、次数或退避的义务。 有效路径含 prisma/schema.prisma，本卡对它的义务是后台账号/设备/恢复相关模型（图谱/任务/M3-T1.md:L58,L59）；ChatNotification 模型（schema.prisma:727）字段清单本补丁未改（09:L24 第 2 列逐字相同），本卡没有通知行义务。",
+        "结论：不适用，本卡契约不受该补丁实质影响，仍按原验收成立；契约哈希 e02041d588f8… 与 revalidation.json、docs-data 契约及补丁证据一致。本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M3-T2": {
+      "contractHash": "240e8b2d1ff79f7675d2302aeedb6dbfc1458910cd17f106079a185045777b0b",
+      "verdict": "pass",
+      "conclusion": "不适用",
+      "evidence": [
+        "不适用：本卡产出（图谱/任务/M3-T2.md:L27）为「Credentials 的 password/totp 模式与恢复码拒绝；消费M3-T1已增加且默认false的User.passwordlessEnabled，不重复建字段；当前 secret/sv/step 的 TOTP CAS；POST /api/auth-admin/enroll、POST /api/auth-…」，不涉及 M4 聊天通知出箱；卡面对 ChatNotification/通知出箱/E-90~E-93/attempts 比较/availableAt 等关键词命中 0 处。",
+        "本补丁对本卡契约所含章节的实际改动仅为：09-数据模型.md:L24（ChatNotification 行说明列）与 :L174-L182（通知状态图）；18-部署与运维.md:L94（聊天可用性/通知策略），全部是 M4 ChatNotification 的重试上限、attempts 计数、退避时钟、过期清扫、UNKNOWN 提升与 SMTP 缺配置 DISABLED 规则；ChatNotification 字段清单未变（09 行第 2 列逐字相同），其他行不变。",
+        "代码面：main a7941062 上通知出箱符号只出现在 prisma/schema.prisma, src/lib/server/chat/conversation-service.ts, src/lib/server/chat/repo.ts；本卡 25 条有效路径含 prisma/schema.prisma，但本卡对该文件的义务与通知行无关（见下条）。",
+        "有效路径中的 src/app/api/admin/chat/, src/app/api/chat/ 是本卡共享后台守卫/会话接线所列的路由目录；main 上这些目录不含通知出箱符号（通知符号仅在上列 3 个文件），本卡没有对通知状态、次数或退避的义务。 有效路径含 prisma/schema.prisma，本卡对它的义务是后台账号/设备/恢复相关模型（图谱/任务/M3-T2.md:卡面未列 schema 代码行）；ChatNotification 模型（schema.prisma:727）字段清单本补丁未改（09:L24 第 2 列逐字相同），本卡没有通知行义务。",
+        "结论：不适用，本卡契约不受该补丁实质影响，仍按原验收成立；契约哈希 240e8b2d1ff7… 与 revalidation.json、docs-data 契约及补丁证据一致。本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M3-T3": {
+      "contractHash": "6d9595da6d90cf5e2a508cf4d76538170b0e9eae303bec13d0df055e2428dd50",
+      "verdict": "pass",
+      "conclusion": "不适用",
+      "evidence": [
+        "不适用：本卡产出（图谱/任务/M3-T3.md:L22）为「AdminActionGrant及POST /api/admin/account/reauth，组合服务直接消费当前身份。」，不涉及 M4 聊天通知出箱；卡面对 ChatNotification/通知出箱/E-90~E-93/attempts 比较/availableAt 等关键词命中 0 处。",
+        "本补丁对本卡契约所含章节的实际改动仅为：09-数据模型.md:L24（ChatNotification 行说明列）与 :L174-L182（通知状态图）；18-部署与运维.md:L94（聊天可用性/通知策略），全部是 M4 ChatNotification 的重试上限、attempts 计数、退避时钟、过期清扫、UNKNOWN 提升与 SMTP 缺配置 DISABLED 规则；ChatNotification 字段清单未变（09 行第 2 列逐字相同），其他行不变。",
+        "代码面：main a7941062 上通知出箱符号只出现在 prisma/schema.prisma, src/lib/server/chat/conversation-service.ts, src/lib/server/chat/repo.ts；本卡 23 条有效路径含 prisma/schema.prisma，但本卡对该文件的义务与通知行无关（见下条）。",
+        "有效路径中的 src/app/api/admin/chat/, src/app/api/chat/ 是本卡共享后台守卫/会话接线所列的路由目录；main 上这些目录不含通知出箱符号（通知符号仅在上列 3 个文件），本卡没有对通知状态、次数或退避的义务。 有效路径含 prisma/schema.prisma，本卡对它的义务是后台账号/设备/恢复相关模型（图谱/任务/M3-T3.md:L51）；ChatNotification 模型（schema.prisma:727）字段清单本补丁未改（09:L24 第 2 列逐字相同），本卡没有通知行义务。",
+        "结论：不适用，本卡契约不受该补丁实质影响，仍按原验收成立；契约哈希 6d9595da6d90… 与 revalidation.json、docs-data 契约及补丁证据一致。本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M3-T4": {
+      "contractHash": "d49230a68e4d3a526d3e48f8b2c8040b9f512c94f616af1574e2083f55272fb5",
+      "verdict": "pass",
+      "conclusion": "不适用",
+      "evidence": [
+        "不适用：本卡产出（图谱/任务/M3-T4.md:L22）为「AdminRecoveryPermit；POST /api/admin/account/recovery-authorizations及POST /api/admin/users/[id]/reset-2fa兼容别名。」，不涉及 M4 聊天通知出箱；卡面对 ChatNotification/通知出箱/E-90~E-93/attempts 比较/availableAt 等关键词命中 0 处。",
+        "本补丁对本卡契约所含章节的实际改动仅为：09-数据模型.md:L24（ChatNotification 行说明列）与 :L174-L182（通知状态图）；18-部署与运维.md:L94（聊天可用性/通知策略），全部是 M4 ChatNotification 的重试上限、attempts 计数、退避时钟、过期清扫、UNKNOWN 提升与 SMTP 缺配置 DISABLED 规则；ChatNotification 字段清单未变（09 行第 2 列逐字相同），其他行不变。",
+        "代码面：main a7941062 上通知出箱符号只出现在 prisma/schema.prisma, src/lib/server/chat/conversation-service.ts, src/lib/server/chat/repo.ts；本卡 26 条有效路径含 prisma/schema.prisma，但本卡对该文件的义务与通知行无关（见下条）。",
+        "有效路径中的 src/app/api/admin/chat/, src/app/api/chat/ 是本卡共享后台守卫/会话接线所列的路由目录；main 上这些目录不含通知出箱符号（通知符号仅在上列 3 个文件），本卡没有对通知状态、次数或退避的义务。 有效路径含 prisma/schema.prisma，本卡对它的义务是后台账号/设备/恢复相关模型（图谱/任务/M3-T4.md:L49,L50）；ChatNotification 模型（schema.prisma:727）字段清单本补丁未改（09:L24 第 2 列逐字相同），本卡没有通知行义务。",
+        "结论：不适用，本卡契约不受该补丁实质影响，仍按原验收成立；契约哈希 d49230a68e4d… 与 revalidation.json、docs-data 契约及补丁证据一致。本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M3-T5": {
+      "contractHash": "209e855a9a3b5261e6c8d6ad0a03e55a4691765156921d20291a228bb0ca771e",
+      "verdict": "pass",
+      "conclusion": "不适用",
+      "evidence": [
+        "不适用：本卡产出（图谱/任务/M3-T5.md:L22）为「POST /api/auth-admin/recovery/enroll和POST /api/auth-admin/recovery/confirm；重入与原子发布新因素。」，不涉及 M4 聊天通知出箱；卡面对 ChatNotification/通知出箱/E-90~E-93/attempts 比较/availableAt 等关键词命中 0 处。",
+        "本补丁对本卡契约所含章节的实际改动仅为：09-数据模型.md:L24（ChatNotification 行说明列）与 :L174-L182（通知状态图）；18-部署与运维.md:L94（聊天可用性/通知策略），全部是 M4 ChatNotification 的重试上限、attempts 计数、退避时钟、过期清扫、UNKNOWN 提升与 SMTP 缺配置 DISABLED 规则；ChatNotification 字段清单未变（09 行第 2 列逐字相同），其他行不变。",
+        "代码面：main a7941062 上通知出箱符号只出现在 prisma/schema.prisma, src/lib/server/chat/conversation-service.ts, src/lib/server/chat/repo.ts；本卡 23 条有效路径与之无交集。",
+        "有效路径中的 src/app/api/admin/chat/, src/app/api/chat/ 是本卡共享后台守卫/会话接线所列的路由目录；main 上这些目录不含通知出箱符号（通知符号仅在上列 3 个文件），本卡没有对通知状态、次数或退避的义务。",
+        "结论：不适用，本卡契约不受该补丁实质影响，仍按原验收成立；契约哈希 209e855a9a3b… 与 revalidation.json、docs-data 契约及补丁证据一致。本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M3-T7": {
+      "contractHash": "059db9e311af892a5b9286732a5325675045bc209b74ef6cd7220bfb3a9c3849",
+      "verdict": "pass",
+      "conclusion": "不适用",
+      "evidence": [
+        "不适用：本卡产出（图谱/任务/M3-T7.md:L22）为「统一后台外壳、角色导航显示、AdminSessionActivity与普通退出；个人安全表单由M3-T12交付。 本卡首先在src/lib/client/account.ts提供GET account与POST activity方法，后继只追加领域方法，不重造请求基础。」，不涉及 M4 聊天通知出箱；卡面对 ChatNotification/通知出箱/E-90~E-93/attempts 比较/availableAt 等关键词命中 0 处。",
+        "本补丁对本卡契约所含章节的实际改动仅为：09-数据模型.md:L24（ChatNotification 行说明列）与 :L174-L182（通知状态图）；18-部署与运维.md:L94（聊天可用性/通知策略），全部是 M4 ChatNotification 的重试上限、attempts 计数、退避时钟、过期清扫、UNKNOWN 提升与 SMTP 缺配置 DISABLED 规则；ChatNotification 字段清单未变（09 行第 2 列逐字相同），其他行不变。",
+        "代码面：main a7941062 上通知出箱符号只出现在 prisma/schema.prisma, src/lib/server/chat/conversation-service.ts, src/lib/server/chat/repo.ts；本卡 22 条有效路径与之无交集。",
+        "有效路径中的 src/app/admin/chat/ 是本卡共享后台守卫/会话接线所列的路由目录；main 上这些目录不含通知出箱符号（通知符号仅在上列 3 个文件），本卡没有对通知状态、次数或退避的义务。",
+        "结论：不适用，本卡契约不受该补丁实质影响，仍按原验收成立；契约哈希 059db9e311af… 与 revalidation.json、docs-data 契约及补丁证据一致。本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M3-T14": {
+      "contractHash": "cc936e672466e034cd82f49598bd039c451c123088bb43bf7b6b8abc7b2861a3",
+      "verdict": "pass",
+      "conclusion": "不适用",
+      "evidence": [
+        "不适用：本卡产出（图谱/任务/M3-T14.md:L22）为「共享server/config、唯一服务端HTTP错误映射与计数适配；ApiDailyCounter schema。完整GET /api/admin/account及真实响应计数由M3-T1接线。」，不涉及 M4 聊天通知出箱；卡面对 ChatNotification/通知出箱/E-90~E-93/attempts 比较/availableAt 等关键词命中 0 处。",
+        "本补丁对本卡契约所含章节的实际改动仅为：09-数据模型.md:L24（ChatNotification 行说明列）与 :L174-L182（通知状态图）；18-部署与运维.md:L94（聊天可用性/通知策略），全部是 M4 ChatNotification 的重试上限、attempts 计数、退避时钟、过期清扫、UNKNOWN 提升与 SMTP 缺配置 DISABLED 规则；ChatNotification 字段清单未变（09 行第 2 列逐字相同），其他行不变。",
+        "代码面：main a7941062 上通知出箱符号只出现在 prisma/schema.prisma, src/lib/server/chat/conversation-service.ts, src/lib/server/chat/repo.ts；本卡 9 条有效路径含 prisma/schema.prisma，但本卡对该文件的义务与通知行无关（见下条）。",
+        "有效路径含 prisma/schema.prisma，义务是 ApiDailyCounter（图谱/任务/M3-T14.md:L40）；routeId 白名单不含 mail-queue（:L49、:L72），与通知出箱无关。",
+        "结论：不适用，本卡契约不受该补丁实质影响，仍按原验收成立；契约哈希 cc936e672466… 与 revalidation.json、docs-data 契约及补丁证据一致。本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M3-T15": {
+      "contractHash": "e796f93900a9f5297a45297e699f6bbda78a6d49a629fa9627bd0e29c7816a20",
+      "verdict": "pass",
+      "conclusion": "不适用",
+      "evidence": [
+        "不适用：本卡产出（图谱/任务/M3-T15.md:L27）为「POST /api/admin/account/session/activity与Auth.js期限适配；真实浏览器初登/activity/SSR/signOut和关闭重开证据。」，不涉及 M4 聊天通知出箱；卡面对 ChatNotification/通知出箱/E-90~E-93/attempts 比较/availableAt 等关键词命中 0 处。",
+        "本补丁对本卡契约所含章节的实际改动仅为：09-数据模型.md:L24（ChatNotification 行说明列）与 :L174-L182（通知状态图）；18-部署与运维.md:L94（聊天可用性/通知策略），全部是 M4 ChatNotification 的重试上限、attempts 计数、退避时钟、过期清扫、UNKNOWN 提升与 SMTP 缺配置 DISABLED 规则；ChatNotification 字段清单未变（09 行第 2 列逐字相同），其他行不变。",
+        "代码面：main a7941062 上通知出箱符号只出现在 prisma/schema.prisma, src/lib/server/chat/conversation-service.ts, src/lib/server/chat/repo.ts；本卡 20 条有效路径与之无交集。",
+        "有效路径中的 src/app/api/admin/chat/, src/app/api/chat/ 是本卡共享后台守卫/会话接线所列的路由目录；main 上这些目录不含通知出箱符号（通知符号仅在上列 3 个文件），本卡没有对通知状态、次数或退避的义务。",
+        "结论：不适用，本卡契约不受该补丁实质影响，仍按原验收成立；契约哈希 e796f93900a9… 与 revalidation.json、docs-data 契约及补丁证据一致。本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M3-T16": {
+      "contractHash": "96d3724edbc610a267da8c3876028301e8f54b21d4370111d3190e6a1f83d6f9",
+      "verdict": "pass",
+      "conclusion": "不适用",
+      "evidence": [
+        "不适用：本卡产出（图谱/任务/M3-T16.md:L22）为「PATCH /api/admin/account/login-mode、POST /api/admin/account/password及同事务grant核销/审计/sv撤销。」，不涉及 M4 聊天通知出箱；卡面对 ChatNotification/通知出箱/E-90~E-93/attempts 比较/availableAt 等关键词命中 0 处。",
+        "本补丁对本卡契约所含章节的实际改动仅为：09-数据模型.md:L24（ChatNotification 行说明列）与 :L174-L182（通知状态图）；18-部署与运维.md:L94（聊天可用性/通知策略），全部是 M4 ChatNotification 的重试上限、attempts 计数、退避时钟、过期清扫、UNKNOWN 提升与 SMTP 缺配置 DISABLED 规则；ChatNotification 字段清单未变（09 行第 2 列逐字相同），其他行不变。",
+        "代码面：main a7941062 上通知出箱符号只出现在 prisma/schema.prisma, src/lib/server/chat/conversation-service.ts, src/lib/server/chat/repo.ts；本卡 21 条有效路径与之无交集。",
+        "有效路径中的 src/app/api/admin/chat/, src/app/api/chat/ 是本卡共享后台守卫/会话接线所列的路由目录；main 上这些目录不含通知出箱符号（通知符号仅在上列 3 个文件），本卡没有对通知状态、次数或退避的义务。",
+        "结论：不适用，本卡契约不受该补丁实质影响，仍按原验收成立；契约哈希 96d3724edbc6… 与 revalidation.json、docs-data 契约及补丁证据一致。本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M3-T17": {
+      "contractHash": "938acf288bbddfd09a2ca628ae3505caa508e2cb70507a131b098f2174ef939c",
+      "verdict": "pass",
+      "conclusion": "不适用",
+      "evidence": [
+        "不适用：本卡产出（图谱/任务/M3-T17.md:L22）为「GET /api/admin/account/devices、POST /api/admin/account/devices/[id]/revoke、POST /api/admin/account/logout-all。」，不涉及 M4 聊天通知出箱；卡面对 ChatNotification/通知出箱/E-90~E-93/attempts 比较/availableAt 等关键词命中 0 处。",
+        "本补丁对本卡契约所含章节的实际改动仅为：09-数据模型.md:L24（ChatNotification 行说明列）与 :L174-L182（通知状态图）；18-部署与运维.md:L94（聊天可用性/通知策略），全部是 M4 ChatNotification 的重试上限、attempts 计数、退避时钟、过期清扫、UNKNOWN 提升与 SMTP 缺配置 DISABLED 规则；ChatNotification 字段清单未变（09 行第 2 列逐字相同），其他行不变。",
+        "代码面：main a7941062 上通知出箱符号只出现在 prisma/schema.prisma, src/lib/server/chat/conversation-service.ts, src/lib/server/chat/repo.ts；本卡 22 条有效路径与之无交集。",
+        "有效路径中的 src/app/api/admin/chat/, src/app/api/chat/ 是本卡共享后台守卫/会话接线所列的路由目录；main 上这些目录不含通知出箱符号（通知符号仅在上列 3 个文件），本卡没有对通知状态、次数或退避的义务。",
+        "结论：不适用，本卡契约不受该补丁实质影响，仍按原验收成立；契约哈希 938acf288bbd… 与 revalidation.json、docs-data 契约及补丁证据一致。本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M3-T18": {
+      "contractHash": "fb3ec540ac0a751b994a10dae1cffd894463fc63a711bc18fcb2e97b29bed8d4",
+      "verdict": "pass",
+      "conclusion": "不适用",
+      "evidence": [
+        "不适用：本卡产出（图谱/任务/M3-T18.md:L22）为「scripts/admin-authorize-recovery.mjs；显式target/role/reason、TTY隐式密码预授权及安全审计。」，不涉及 M4 聊天通知出箱；卡面对 ChatNotification/通知出箱/E-90~E-93/attempts 比较/availableAt 等关键词命中 0 处。",
+        "本补丁对本卡契约所含章节的实际改动仅为：09-数据模型.md:L24（ChatNotification 行说明列）与 :L174-L182（通知状态图）；18-部署与运维.md:L94（聊天可用性/通知策略），全部是 M4 ChatNotification 的重试上限、attempts 计数、退避时钟、过期清扫、UNKNOWN 提升与 SMTP 缺配置 DISABLED 规则；ChatNotification 字段清单未变（09 行第 2 列逐字相同），其他行不变。",
+        "代码面：main a7941062 上通知出箱符号只出现在 prisma/schema.prisma, src/lib/server/chat/conversation-service.ts, src/lib/server/chat/repo.ts；本卡 6 条有效路径与之无交集。",
+        "结论：不适用，本卡契约不受该补丁实质影响，仍按原验收成立；契约哈希 fb3ec540ac0a… 与 revalidation.json、docs-data 契约及补丁证据一致。本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M3-T19": {
+      "contractHash": "091bf8c0b7158a5a94dcc9751cfcd273116937529f2c5ce3f4fb5e3183fe5690",
+      "verdict": "pass",
+      "conclusion": "不适用",
+      "evidence": [
+        "不适用：本卡产出（图谱/任务/M3-T19.md:L22）为「AdminRecoverySession；POST /api/auth-admin/recovery/start与受限HttpOnly cookie。」，不涉及 M4 聊天通知出箱；卡面对 ChatNotification/通知出箱/E-90~E-93/attempts 比较/availableAt 等关键词命中 0 处。",
+        "本补丁对本卡契约所含章节的实际改动仅为：09-数据模型.md:L24（ChatNotification 行说明列）与 :L174-L182（通知状态图）；18-部署与运维.md:L94（聊天可用性/通知策略），全部是 M4 ChatNotification 的重试上限、attempts 计数、退避时钟、过期清扫、UNKNOWN 提升与 SMTP 缺配置 DISABLED 规则；ChatNotification 字段清单未变（09 行第 2 列逐字相同），其他行不变。",
+        "代码面：main a7941062 上通知出箱符号只出现在 prisma/schema.prisma, src/lib/server/chat/conversation-service.ts, src/lib/server/chat/repo.ts；本卡 21 条有效路径含 prisma/schema.prisma，但本卡对该文件的义务与通知行无关（见下条）。",
+        "有效路径中的 src/app/api/admin/chat/, src/app/api/chat/ 是本卡共享后台守卫/会话接线所列的路由目录；main 上这些目录不含通知出箱符号（通知符号仅在上列 3 个文件），本卡没有对通知状态、次数或退避的义务。 有效路径含 prisma/schema.prisma，本卡对它的义务是后台账号/设备/恢复相关模型（图谱/任务/M3-T19.md:L49,L50,L51）；ChatNotification 模型（schema.prisma:727）字段清单本补丁未改（09:L24 第 2 列逐字相同），本卡没有通知行义务。",
+        "结论：不适用，本卡契约不受该补丁实质影响，仍按原验收成立；契约哈希 091bf8c0b715… 与 revalidation.json、docs-data 契约及补丁证据一致。本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M3-T20": {
+      "contractHash": "6ff5b1d2b9a2f2a322c0ba8a850b247c2b6045776595eaf0a95caa718962b2d4",
+      "verdict": "pass",
+      "conclusion": "不适用",
+      "evidence": [
+        "不适用：本卡产出（图谱/任务/M3-T20.md:L22）为「POST /api/admin/account/2fa/reset的SELF_REAUTH受限session与旧响应兼容。」，不涉及 M4 聊天通知出箱；卡面对 ChatNotification/通知出箱/E-90~E-93/attempts 比较/availableAt 等关键词命中 0 处。",
+        "本补丁对本卡契约所含章节的实际改动仅为：09-数据模型.md:L24（ChatNotification 行说明列）与 :L174-L182（通知状态图）；18-部署与运维.md:L94（聊天可用性/通知策略），全部是 M4 ChatNotification 的重试上限、attempts 计数、退避时钟、过期清扫、UNKNOWN 提升与 SMTP 缺配置 DISABLED 规则；ChatNotification 字段清单未变（09 行第 2 列逐字相同），其他行不变。",
+        "代码面：main a7941062 上通知出箱符号只出现在 prisma/schema.prisma, src/lib/server/chat/conversation-service.ts, src/lib/server/chat/repo.ts；本卡 24 条有效路径与之无交集。",
+        "有效路径中的 src/app/api/admin/chat/, src/app/api/chat/ 是本卡共享后台守卫/会话接线所列的路由目录；main 上这些目录不含通知出箱符号（通知符号仅在上列 3 个文件），本卡没有对通知状态、次数或退避的义务。",
+        "结论：不适用，本卡契约不受该补丁实质影响，仍按原验收成立；契约哈希 6ff5b1d2b9a2… 与 revalidation.json、docs-data 契约及补丁证据一致。本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M3-T21": {
+      "contractHash": "f0e3a02e100bb30ec63bbc440c9519db94bc50dca5667a008e788d6afdb7e818",
+      "verdict": "pass",
+      "conclusion": "不适用",
+      "evidence": [
+        "不适用：本卡产出（图谱/任务/M3-T21.md:L22）为「legacy-inquiries-ui；询盘列表/详情与既有邮件往来统一视觉和回归证据，不修改询盘业务。」，不涉及 M4 聊天通知出箱；卡面对 ChatNotification/通知出箱/E-90~E-93/attempts 比较/availableAt 等关键词命中 0 处。",
+        "本补丁对本卡契约所含章节的实际改动仅为：18-部署与运维.md:L94（聊天可用性/通知策略），全部是 M4 ChatNotification 的重试上限、attempts 计数、退避时钟、过期清扫、UNKNOWN 提升与 SMTP 缺配置 DISABLED 规则；ChatNotification 字段清单未变（09 行第 2 列逐字相同），其他行不变。",
+        "代码面：main a7941062 上通知出箱符号只出现在 prisma/schema.prisma, src/lib/server/chat/conversation-service.ts, src/lib/server/chat/repo.ts；本卡 28 条有效路径与之无交集。",
+        "本卡的 status/retry 是既有询盘 MailThread 的 GET/POST /api/admin/inquiries/[id]/mail（图谱/任务/M3-T21.md:L31）与离线 SMTP 探针 tests/evidence/local-smtp.mjs（:L81），属既有邮件队列；本卡契约只含 18 节，18 节既有邮件行（L48-L57、L125 mail-queue）未改，改动的 L94 只约束 M4 聊天通知。",
+        "结论：不适用，本卡契约不受该补丁实质影响，仍按原验收成立；契约哈希 f0e3a02e100b… 与 revalidation.json、docs-data 契约及补丁证据一致。本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M3-T22": {
+      "contractHash": "e03560df3979facf9f5003cd165add9abde7ef64c590e474787491bda9544bc2",
+      "verdict": "pass",
+      "conclusion": "不适用",
+      "evidence": [
+        "不适用：本卡产出（图谱/任务/M3-T22.md:L22）为「legacy-unassigned-ui；未归类组件样式统一及真实关闭门禁/零请求证据；不开放邮件功能。」，不涉及 M4 聊天通知出箱；卡面对 ChatNotification/通知出箱/E-90~E-93/attempts 比较/availableAt 等关键词命中 0 处。",
+        "本补丁对本卡契约所含章节的实际改动仅为：18-部署与运维.md:L94（聊天可用性/通知策略），全部是 M4 ChatNotification 的重试上限、attempts 计数、退避时钟、过期清扫、UNKNOWN 提升与 SMTP 缺配置 DISABLED 规则；ChatNotification 字段清单未变（09 行第 2 列逐字相同），其他行不变。",
+        "代码面：main a7941062 上通知出箱符号只出现在 prisma/schema.prisma, src/lib/server/chat/conversation-service.ts, src/lib/server/chat/repo.ts；本卡 6 条有效路径与之无交集。",
+        "本卡是未归类邮件样式迁移且门禁保持关闭（图谱/任务/M3-T22.md:L22、:L71-L73），不新增后端；18 节改动 L94 只约束 M4 聊天通知。",
+        "结论：不适用，本卡契约不受该补丁实质影响，仍按原验收成立；契约哈希 e03560df3979… 与 revalidation.json、docs-data 契约及补丁证据一致。本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M3-T23": {
+      "contractHash": "ed345ad0f0170ea601229f6a6ff8b04bf087787f1044f0db066716b8bc9afd90",
+      "verdict": "pass",
+      "conclusion": "不适用",
+      "evidence": [
+        "不适用：本卡产出（图谱/任务/M3-T23.md:L22）为「legacy-model-admin-ui；既有模型上传/检查/预览/发布控件统一视觉，列表重定向不变。」，不涉及 M4 聊天通知出箱；卡面对 ChatNotification/通知出箱/E-90~E-93/attempts 比较/availableAt 等关键词命中 0 处。",
+        "本补丁对本卡契约所含章节的实际改动仅为：18-部署与运维.md:L94（聊天可用性/通知策略），全部是 M4 ChatNotification 的重试上限、attempts 计数、退避时钟、过期清扫、UNKNOWN 提升与 SMTP 缺配置 DISABLED 规则；ChatNotification 字段清单未变（09 行第 2 列逐字相同），其他行不变。",
+        "代码面：main a7941062 上通知出箱符号只出现在 prisma/schema.prisma, src/lib/server/chat/conversation-service.ts, src/lib/server/chat/repo.ts；本卡 6 条有效路径与之无交集。",
+        "结论：不适用，本卡契约不受该补丁实质影响，仍按原验收成立；契约哈希 ed345ad0f017… 与 revalidation.json、docs-data 契约及补丁证据一致。本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "M3-T24": {
+      "contractHash": "817989874b8e9086f4c283935f97d6f16e7321eb9dad2063674c8b53ae27be66",
+      "verdict": "pass",
+      "conclusion": "不适用",
+      "evidence": [
+        "不适用：本卡产出（图谱/任务/M3-T24.md:L22）为「legacy-specs-ui；SSR规格导航及原编辑表单统一视觉，不变规格业务。」，不涉及 M4 聊天通知出箱；卡面对 ChatNotification/通知出箱/E-90~E-93/attempts 比较/availableAt 等关键词命中 0 处。",
+        "本补丁对本卡契约所含章节的实际改动仅为：18-部署与运维.md:L94（聊天可用性/通知策略），全部是 M4 ChatNotification 的重试上限、attempts 计数、退避时钟、过期清扫、UNKNOWN 提升与 SMTP 缺配置 DISABLED 规则；ChatNotification 字段清单未变（09 行第 2 列逐字相同），其他行不变。",
+        "代码面：main a7941062 上通知出箱符号只出现在 prisma/schema.prisma, src/lib/server/chat/conversation-service.ts, src/lib/server/chat/repo.ts；本卡 7 条有效路径与之无交集。",
+        "结论：不适用，本卡契约不受该补丁实质影响，仍按原验收成立；契约哈希 817989874b8e… 与 revalidation.json、docs-data 契约及补丁证据一致。本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    },
+    "R9-T71605271": {
+      "contractHash": "bccf5ecd1c566fffd448a6cc9f7599d48fa9ab34914251b2577ca7a4f6539aa3",
+      "verdict": "pass",
+      "conclusion": "不适用",
+      "evidence": [
+        "不适用：本卡产出（图谱/任务/R9-T71605271.md:L23）为「修改 contact 页与询盘向导的最小布局，并按现行 11-UI:217 更新 tests/inquiry-a11y-308.test.ts 中钉死 640 布局的断言（:98）；产出 1920/1440/390 三视口几何与截图证据；不改变询盘 POST 与无同意不写库行为，焦点/ARIA/隐私/44px 等其它断…」，不涉及 M4 聊天通知出箱；卡面对 ChatNotification/通知出箱/E-90~E-93/attempts 比较/availableAt 等关键词命中 0 处。",
+        "本补丁对本卡契约所含章节的实际改动仅为：09-数据模型.md:L24（ChatNotification 行说明列）与 :L174-L182（通知状态图）；15-性能与容量假设.md:L31（聊天通知次数/退避）；18-部署与运维.md:L94（聊天可用性/通知策略），全部是 M4 ChatNotification 的重试上限、attempts 计数、退避时钟、过期清扫、UNKNOWN 提升与 SMTP 缺配置 DISABLED 规则；ChatNotification 字段清单未变（09 行第 2 列逐字相同），其他行不变。",
+        "代码面：main a7941062 上通知出箱符号只出现在 prisma/schema.prisma, src/lib/server/chat/conversation-service.ts, src/lib/server/chat/repo.ts；本卡 4 条有效路径与之无交集。",
+        "结论：不适用，本卡契约不受该补丁实质影响，仍按原验收成立；契约哈希 bccf5ecd1c56… 与 revalidation.json、docs-data 契约及补丁证据一致。本条是只读文档契约复核，不冒充代码验收或运行证据。"
+      ]
+    }
+  }
+}

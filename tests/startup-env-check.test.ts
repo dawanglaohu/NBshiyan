@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { runStartupEnvCheck, appEnvMismatch } from '../src/lib/server/startup/env-check';
+import { CHAT_NOTIFICATION_HOOK_KEYS } from '../src/lib/server/chat/notification-policy';
 
 const SECRET = 'fake-startup-value-0123456789abcdef-XYZ';
 const prod = {
@@ -12,6 +13,7 @@ const prod = {
   PRIVACY_HASH_SECRET: SECRET, CRON_SECRET: SECRET, TURNSTILE_SECRET_KEY: '0x4AAAAAAArealSecretKey', NEXT_PUBLIC_TURNSTILE_SITE_KEY: '0x4AAAAAAArealSiteKey',
   SMTP_HOST: 'smtp.gmail.com', SMTP_PORT: '465', SMTP_USER: 'u@gmail.com', SMTP_PASS: SECRET, MAIL_FROM: 'PackJoyU <u@gmail.com>', INQUIRY_NOTIFY_EMAIL: 'n@example.com',
   MAIL_SEND_ADAPTER: 'smtp', MAIL_WEBHOOK_SECRET: SECRET, NEXT_PUBLIC_SITE_URL: 'https://packjoyu.com', APP_ORIGIN: 'https://packjoyu.com', EDGE_AUTH_SECRET: SECRET,
+  CHAT_NOTIFICATION_TO: 'chat-ops@example.test',
 };
 function run(env: Record<string, string | undefined>) {
   const logs: string[] = []; const exits: number[] = [];
@@ -81,4 +83,38 @@ test('#323 APP_ENV 构建时内联：NODE_ENV=production 且运行时 APP_ENV �
 test('#323 next.config 把构建时的 APP_ENV 内联为 APP_ENV_AT_BUILD；env-check 直接读 process.env.APP_ENV_AT_BUILD（才会被内联）', () => {
   assert.match(readFileSync('next.config.ts', 'utf8'), /APP_ENV_AT_BUILD: process\.env\.APP_ENV \?\? ''/);
   assert.match(readFileSync('src/lib/server/startup/env-check.ts', 'utf8'), /=> process\.env\.APP_ENV_AT_BUILD;/);
+});
+
+test('M4-T4 G10：standalone启动hook导致exit(1)，探针不进入日志', () => {
+  for (const key of CHAT_NOTIFICATION_HOOK_KEYS) {
+    const probe = 'startup-hook-private-probe';
+    const result = run({ ...prod, [key]: probe });
+    assert.deepEqual(result.exits, [1]);
+    assert.equal(result.logs.length, 1);
+    assert.ok(result.logs[0].includes(key));
+    assert.ok(!result.logs[0].includes(probe));
+  }
+});
+
+test('M4-T4 S3: optional recipient allows startup and warns once per process', () => {
+  const warnings: string[] = [];
+  const deps = { dirProblem: () => null, cwd: '/app', warn: (message: string) => warnings.push(message),
+    exit: (code: number): never => { throw new Error(`unexpected_exit_${code}`); } };
+  runStartupEnvCheck({ APP_ENV: 'preview' }, deps);
+  runStartupEnvCheck(prod, deps);
+  assert.deepEqual(warnings, []);
+  for (const value of [undefined, '', ' \t ']) runStartupEnvCheck({ ...prod, CHAT_NOTIFICATION_TO: value }, deps);
+  assert.deepEqual(warnings, ['CHAT_NOTIFICATION_RECIPIENT_MISSING: CHAT_NOTIFICATION_TO 未设置，聊天邮件通知未启用']);
+});
+
+test('M4-T4 S3: malformed, multiple and control-bearing recipients exit without logging the value', () => {
+  const probe = 'startup-chat-recipient-private-probe';
+  for (const value of [probe, `${probe}@example.test, b@example.test`, `${probe}@example.test, Ops <b@example.test>`,
+    `${probe}@example.test\r`, `${probe}@example.test\n`, `${probe}@example.test\0`, ' \n', '\r', '\0']) {
+    const result = run({ ...prod, CHAT_NOTIFICATION_TO: value });
+    assert.deepEqual(result.exits, [1]);
+    assert.equal(result.logs.length, 1);
+    assert.match(result.logs[0], /^- CHAT_NOTIFICATION_TO 必须是单个有效邮箱地址$/m);
+    assert.ok(!result.logs[0].includes(probe));
+  }
 });

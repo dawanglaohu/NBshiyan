@@ -1,0 +1,217 @@
+{
+  "scope": "task-contract",
+  "note": "R4 只读复验 18 项：每项以 revalidation.json 的 changedFields（sections:09、15、18）和补丁实际差异为准，只核聊天通知出箱的重试/租约/退避/DISABLED 条款对本任务是否适用；18 项全部不适用且原验收/原限制未被触及，无不满足项。evidence 的 verdict=pass 仅登记文档契约复核，不代表代码或 CI 验收。",
+  "sourceVersion": "c9509a4948b9054805e821289da7c7a59e95f0fb27b4a8b45ef37b1e420a37c4",
+  "patch": "m4t4-retry-contract-20261119",
+  "docsCommit": "02ea695fbc7d581392d0d29e2fdcb27f1e6b8acb",
+  "codeObject": "a7941062af916119d53e0802d1752b4c1ab02424",
+  "tasks": {
+    "CI-DB-TESTS": {
+      "contractHash": "9c1b00dea257ec7bc07526aa4b0d2ce66c6d795c394c9bcdb9aba5e646a94b78",
+      "evidence": [
+        "任务职责：数据库测试接进 PostgreSQL 17（图谱/任务/CI-DB-TESTS.md:9 标题；产出 :26；验收 :31；有效路径 :27）。",
+        "不适用：本次 09/15/18 节实际改动只涉及聊天通知出箱（ChatNotification，M4）的重试与租约语义：首次发送后最多重试3次、每条出箱最多4次已标记开始的发送尝试、requestStartedAt/attempts 原子标记、1m/5m/30m 自结果写入起算、清扫与回写 CAS 共用取锁后的服务端时钟、SMTP 缺配置只把从未尝试的 QUEUED 置 DISABLED（02ea695f：09-数据模型.md:24、:174、:179；15-性能与容量假设.md:31；18-部署与运维.md:94）。本任务有效路径（dispatch 提示词『只改这些路径』）为 .github/workflows/ci.yml；a7941062 上 git grep ChatNotification|requestStartedAt|stableMessageId 命中 10 个文件（prisma/schema.prisma、prisma/sql/74-mail-backend.sql、deploy/tests/fixtures/first-deploy-91db98e.sql、src/lib/server/chat/conversation-service.ts、src/lib/server/chat/repo.ts、src/lib/server/mail/send.ts、tests/analytics-retention.db.test.ts、tests/chat-first-message.db.test.ts、tests/mail-thread.test.ts、tests/fixtures/mail-db.ts），与本任务有效路径交集为 0。",
+        "原验收仍满足：e2e job 的 PostgreSQL 步骤 “Analytics, chat, and other PostgreSQL regressions” 在 a7941062 的 .github/workflows/ci.yml:376，串行 --test-concurrency=1（:480），清单含 chat-session（:495）、chat-visitor-read（:489）、chat-first-message（:496）等，并断言 TAP skipped/fail/todo/cancelled 为 0、pass≥1（:516–:520）。卡片登记的 ci.yml:93 已随后续任务漂移到 :376，内容未被本次条款触及；出箱相关用例只断言新消息的出箱初值 QUEUED（tests/chat-first-message.db.test.ts:308、src/lib/server/chat/repo.ts:241），本次条款未改初值。",
+        "代码位置核对：卡片 1 处位置，路径在 a7941062 存在 1/1，行号均未越界。逐行文本只对与变更条款相邻的 CI、CODEOWNERS、mail/config 项做了核对，其余仅核路径与行号范围。",
+        "契约哈希 9c1b00dea257ec7bc07526aa4b0d2ce66c6d795c394c9bcdb9aba5e646a94b78：与 _run/revalidation.json、补丁证据模板、dispatch.json 契约版本、AFFECTED-BY-FIELD.tsv 的 after 四处一致；previousStatus=done，patches 仅 m4t4-retry-contract-20261119，changedFields=sections:09-数据模型、15-性能与容量假设、18-部署与运维。",
+        "本窗只读：未运行 status/verify/build/landed，未改标记、源码、分支，未起数据库、服务或 CI；未改变原门禁与限制。"
+      ],
+      "verdict": "pass"
+    },
+    "CI-DEVICE-SERIAL": {
+      "contractHash": "4cd0853b23e6d7d901648928fe8020f44005e23b56e8be0c3776380de9ecf5b3",
+      "evidence": [
+        "任务职责：设备会话回归串行执行并在失败时打印 TAP（图谱/任务/CI-DEVICE-SERIAL.md:9 标题；产出 :26；验收 :31；有效路径 :27）。",
+        "不适用：本次 09/15/18 节实际改动只涉及聊天通知出箱（ChatNotification，M4）的重试与租约语义：首次发送后最多重试3次、每条出箱最多4次已标记开始的发送尝试、requestStartedAt/attempts 原子标记、1m/5m/30m 自结果写入起算、清扫与回写 CAS 共用取锁后的服务端时钟、SMTP 缺配置只把从未尝试的 QUEUED 置 DISABLED（02ea695f：09-数据模型.md:24、:174、:179；15-性能与容量假设.md:31；18-部署与运维.md:94）。本任务有效路径（dispatch 提示词『只改这些路径』）为 .github/workflows/ci.yml、tests/admin-session-activity.http.test.ts；a7941062 上 git grep ChatNotification|requestStartedAt|stableMessageId 命中 10 个文件（prisma/schema.prisma、prisma/sql/74-mail-backend.sql、deploy/tests/fixtures/first-deploy-91db98e.sql、src/lib/server/chat/conversation-service.ts、src/lib/server/chat/repo.ts、src/lib/server/mail/send.ts、tests/analytics-retention.db.test.ts、tests/chat-first-message.db.test.ts、tests/mail-thread.test.ts、tests/fixtures/mail-db.ts），与本任务有效路径交集为 0。",
+        "原验收仍满足：设备会话步骤 ci.yml:282，串行 --test-concurrency=1 在 :320，失败路径 cat TAP 与按文件门禁后 exit 1 在 :328，成功路径 skipped 0 在 :329、todo 0 在 :331。卡片登记的 ci.yml:125/133/136 已漂移到 :320/:328/:331；tests/admin-session-activity.http.test.ts 的 activityThrottleMs + 1_000 边界在 :348（卡片 :351，漂移 3 行）。",
+        "代码位置核对：卡片 4 处位置，路径在 a7941062 存在 4/4，行号均未越界。逐行文本只对与变更条款相邻的 CI、CODEOWNERS、mail/config 项做了核对，其余仅核路径与行号范围。",
+        "契约哈希 4cd0853b23e6d7d901648928fe8020f44005e23b56e8be0c3776380de9ecf5b3：与 _run/revalidation.json、补丁证据模板、dispatch.json 契约版本、AFFECTED-BY-FIELD.tsv 的 after 四处一致；previousStatus=done，patches 仅 m4t4-retry-contract-20261119，changedFields=sections:09-数据模型、15-性能与容量假设、18-部署与运维。",
+        "本窗只读：未运行 status/verify/build/landed，未改标记、源码、分支，未起数据库、服务或 CI；未改变原门禁与限制。"
+      ],
+      "verdict": "pass"
+    },
+    "DEP-AUDIT-1": {
+      "contractHash": "4e62cf5359d91704e90a49f4cbb821de295fd45acefbb3ef9e27bdd3cd431e8c",
+      "evidence": [
+        "任务职责：依赖扫描修复与 zod 临时豁免（图谱/任务/DEP-AUDIT-1.md:9 标题；产出 :26；验收 :31；有效路径 :27）。",
+        "不适用：本次 09/15/18 节实际改动只涉及聊天通知出箱（ChatNotification，M4）的重试与租约语义：首次发送后最多重试3次、每条出箱最多4次已标记开始的发送尝试、requestStartedAt/attempts 原子标记、1m/5m/30m 自结果写入起算、清扫与回写 CAS 共用取锁后的服务端时钟、SMTP 缺配置只把从未尝试的 QUEUED 置 DISABLED（02ea695f：09-数据模型.md:24、:174、:179；15-性能与容量假设.md:31；18-部署与运维.md:94）。本任务有效路径（dispatch 提示词『只改这些路径』）为 package.json、scripts/audit-exceptions.json、scripts/audit-high-prod.ts、tests/audit-high-prod.test.ts；a7941062 上 git grep ChatNotification|requestStartedAt|stableMessageId 命中 10 个文件（prisma/schema.prisma、prisma/sql/74-mail-backend.sql、deploy/tests/fixtures/first-deploy-91db98e.sql、src/lib/server/chat/conversation-service.ts、src/lib/server/chat/repo.ts、src/lib/server/mail/send.ts、tests/analytics-retention.db.test.ts、tests/chat-first-message.db.test.ts、tests/mail-thread.test.ts、tests/fixtures/mail-db.ts），与本任务有效路径交集为 0。",
+        "代码位置核对：卡片 4 处位置，路径在 a7941062 存在 4/4，行号均未越界。逐行文本只对与变更条款相邻的 CI、CODEOWNERS、mail/config 项做了核对，其余仅核路径与行号范围。",
+        "契约哈希 4e62cf5359d91704e90a49f4cbb821de295fd45acefbb3ef9e27bdd3cd431e8c：与 _run/revalidation.json、补丁证据模板、dispatch.json 契约版本、AFFECTED-BY-FIELD.tsv 的 after 四处一致；previousStatus=done，patches 仅 m4t4-retry-contract-20261119，changedFields=sections:09-数据模型、15-性能与容量假设、18-部署与运维。",
+        "本窗只读：未运行 status/verify/build/landed，未改标记、源码、分支，未起数据库、服务或 CI；未改变原门禁与限制。"
+      ],
+      "verdict": "pass"
+    },
+    "DEPLOY-FIX-1": {
+      "contractHash": "d64f24f91c50c35a15dc06c1e0b79f6524feb99a6c41695ae0ea16f6af84b5ca",
+      "evidence": [
+        "任务职责：首页海报移出 docs（图谱/任务/DEPLOY-FIX-1.md:9 标题；产出 :24；验收 :29；有效路径 :25）。",
+        "不适用：本次 09/15/18 节实际改动只涉及聊天通知出箱（ChatNotification，M4）的重试与租约语义：首次发送后最多重试3次、每条出箱最多4次已标记开始的发送尝试、requestStartedAt/attempts 原子标记、1m/5m/30m 自结果写入起算、清扫与回写 CAS 共用取锁后的服务端时钟、SMTP 缺配置只把从未尝试的 QUEUED 置 DISABLED（02ea695f：09-数据模型.md:24、:174、:179；15-性能与容量假设.md:31；18-部署与运维.md:94）。本任务有效路径（dispatch 提示词『只改这些路径』）为 public/brand/packjoyu-industrial-city-v3-loop-poster.png、src/app/[locale]/page.tsx、src/lib/home/brandMedia.ts；a7941062 上 git grep ChatNotification|requestStartedAt|stableMessageId 命中 10 个文件（prisma/schema.prisma、prisma/sql/74-mail-backend.sql、deploy/tests/fixtures/first-deploy-91db98e.sql、src/lib/server/chat/conversation-service.ts、src/lib/server/chat/repo.ts、src/lib/server/mail/send.ts、tests/analytics-retention.db.test.ts、tests/chat-first-message.db.test.ts、tests/mail-thread.test.ts、tests/fixtures/mail-db.ts），与本任务有效路径交集为 0。",
+        "代码位置核对：卡片 3 处位置，路径在 a7941062 存在 3/3，行号均未越界。逐行文本只对与变更条款相邻的 CI、CODEOWNERS、mail/config 项做了核对，其余仅核路径与行号范围。",
+        "契约哈希 d64f24f91c50c35a15dc06c1e0b79f6524feb99a6c41695ae0ea16f6af84b5ca：与 _run/revalidation.json、补丁证据模板、dispatch.json 契约版本、AFFECTED-BY-FIELD.tsv 的 after 四处一致；previousStatus=done，patches 仅 m4t4-retry-contract-20261119，changedFields=sections:09-数据模型、15-性能与容量假设、18-部署与运维。",
+        "本窗只读：未运行 status/verify/build/landed，未改标记、源码、分支，未起数据库、服务或 CI；未改变原门禁与限制。"
+      ],
+      "verdict": "pass"
+    },
+    "DOCKER-UPLOADS-1": {
+      "contractHash": "bb4d689846c17a14db1c7e39b71f907e2a9f83542de365d0c5b18246cb7203f5",
+      "evidence": [
+        "任务职责：dockerignore 不再排除上传路由（图谱/任务/DOCKER-UPLOADS-1.md:9 标题；产出 :24；验收 :29；有效路径 :25）。",
+        "不适用：本次 09/15/18 节实际改动只涉及聊天通知出箱（ChatNotification，M4）的重试与租约语义：首次发送后最多重试3次、每条出箱最多4次已标记开始的发送尝试、requestStartedAt/attempts 原子标记、1m/5m/30m 自结果写入起算、清扫与回写 CAS 共用取锁后的服务端时钟、SMTP 缺配置只把从未尝试的 QUEUED 置 DISABLED（02ea695f：09-数据模型.md:24、:174、:179；15-性能与容量假设.md:31；18-部署与运维.md:94）。本任务有效路径（dispatch 提示词『只改这些路径』）为 .dockerignore；a7941062 上 git grep ChatNotification|requestStartedAt|stableMessageId 命中 10 个文件（prisma/schema.prisma、prisma/sql/74-mail-backend.sql、deploy/tests/fixtures/first-deploy-91db98e.sql、src/lib/server/chat/conversation-service.ts、src/lib/server/chat/repo.ts、src/lib/server/mail/send.ts、tests/analytics-retention.db.test.ts、tests/chat-first-message.db.test.ts、tests/mail-thread.test.ts、tests/fixtures/mail-db.ts），与本任务有效路径交集为 0。",
+        "代码位置核对：卡片 1 处位置，路径在 a7941062 存在 1/1，行号均未越界。逐行文本只对与变更条款相邻的 CI、CODEOWNERS、mail/config 项做了核对，其余仅核路径与行号范围。",
+        "契约哈希 bb4d689846c17a14db1c7e39b71f907e2a9f83542de365d0c5b18246cb7203f5：与 _run/revalidation.json、补丁证据模板、dispatch.json 契约版本、AFFECTED-BY-FIELD.tsv 的 after 四处一致；previousStatus=done，patches 仅 m4t4-retry-contract-20261119，changedFields=sections:09-数据模型、15-性能与容量假设、18-部署与运维。",
+        "本窗只读：未运行 status/verify/build/landed，未改标记、源码、分支，未起数据库、服务或 CI；未改变原门禁与限制。"
+      ],
+      "verdict": "pass"
+    },
+    "E2E-CONSENT-FIX": {
+      "contractHash": "4697d3468847a86c947b1e4e8a3200279b5b8b7f90c4c703911c9dfee03e6488",
+      "evidence": [
+        "任务职责：分析同意导航去重用例在 Node 侧读取回执（图谱/任务/E2E-CONSENT-FIX.md:9 标题；产出 :26；验收 :31；有效路径 :27）。",
+        "不适用：本次 09/15/18 节实际改动只涉及聊天通知出箱（ChatNotification，M4）的重试与租约语义：首次发送后最多重试3次、每条出箱最多4次已标记开始的发送尝试、requestStartedAt/attempts 原子标记、1m/5m/30m 自结果写入起算、清扫与回写 CAS 共用取锁后的服务端时钟、SMTP 缺配置只把从未尝试的 QUEUED 置 DISABLED（02ea695f：09-数据模型.md:24、:174、:179；15-性能与容量假设.md:31；18-部署与运维.md:94）。本任务有效路径（dispatch 提示词『只改这些路径』）为 e2e/analytics-consent.spec.ts；a7941062 上 git grep ChatNotification|requestStartedAt|stableMessageId 命中 10 个文件（prisma/schema.prisma、prisma/sql/74-mail-backend.sql、deploy/tests/fixtures/first-deploy-91db98e.sql、src/lib/server/chat/conversation-service.ts、src/lib/server/chat/repo.ts、src/lib/server/mail/send.ts、tests/analytics-retention.db.test.ts、tests/chat-first-message.db.test.ts、tests/mail-thread.test.ts、tests/fixtures/mail-db.ts），与本任务有效路径交集为 0。",
+        "代码位置核对：卡片 7 处位置，路径在 a7941062 存在 7/7，行号均未越界。逐行文本只对与变更条款相邻的 CI、CODEOWNERS、mail/config 项做了核对，其余仅核路径与行号范围。",
+        "契约哈希 4697d3468847a86c947b1e4e8a3200279b5b8b7f90c4c703911c9dfee03e6488：与 _run/revalidation.json、补丁证据模板、dispatch.json 契约版本、AFFECTED-BY-FIELD.tsv 的 after 四处一致；previousStatus=done，patches 仅 m4t4-retry-contract-20261119，changedFields=sections:09-数据模型、15-性能与容量假设、18-部署与运维。",
+        "本窗只读：未运行 status/verify/build/landed，未改标记、源码、分支，未起数据库、服务或 CI；未改变原门禁与限制。"
+      ],
+      "verdict": "pass"
+    },
+    "GATE-HARDEN": {
+      "contractHash": "aa3d71a12f129200cc83cfa7ef868dceeeaf921979964aa95e574cccab1a24d7",
+      "evidence": [
+        "任务职责：安全审查 gate 防止 workflow 绕过（图谱/任务/GATE-HARDEN.md:9 标题；产出 :26；验收 :31；有效路径 :27）。",
+        "不适用：本次 09/15/18 节实际改动只涉及聊天通知出箱（ChatNotification，M4）的重试与租约语义：首次发送后最多重试3次、每条出箱最多4次已标记开始的发送尝试、requestStartedAt/attempts 原子标记、1m/5m/30m 自结果写入起算、清扫与回写 CAS 共用取锁后的服务端时钟、SMTP 缺配置只把从未尝试的 QUEUED 置 DISABLED（02ea695f：09-数据模型.md:24、:174、:179；15-性能与容量假设.md:31；18-部署与运维.md:94）。本任务有效路径（dispatch 提示词『只改这些路径』）为 .github/workflows/security-review-replay.yml、.github/workflows/security-review-rerun.yml、.github/workflows/security-review.yml；a7941062 上 git grep ChatNotification|requestStartedAt|stableMessageId 命中 10 个文件（prisma/schema.prisma、prisma/sql/74-mail-backend.sql、deploy/tests/fixtures/first-deploy-91db98e.sql、src/lib/server/chat/conversation-service.ts、src/lib/server/chat/repo.ts、src/lib/server/mail/send.ts、tests/analytics-retention.db.test.ts、tests/chat-first-message.db.test.ts、tests/mail-thread.test.ts、tests/fixtures/mail-db.ts），与本任务有效路径交集为 0。",
+        "附带漂移事实：卡片引用的 .github/workflows/security-review.yml、security-review-replay.yml、security-review-rerun.yml 在 a7941062 不存在；提交 82f74bcc（chore(ci): retire security-review gate tied to deleted App）是 a7941062 的祖先，并删除这三个文件。此为原任务既有漂移，与本次补丁无关，交原任务流程处理，本窗不改卡。",
+        "代码位置核对：卡片 5 处位置，路径在 a7941062 存在 0/5，缺失 5 处（.github/workflows/security-review-replay.yml:1、.github/workflows/security-review-rerun.yml:1、.github/workflows/security-review.yml:3、.github/workflows/security-review.yml:4、.github/workflows/security-review.yml:31），行号均未越界。逐行文本只对与变更条款相邻的 CI、CODEOWNERS、mail/config 项做了核对，其余仅核路径与行号范围。",
+        "契约哈希 aa3d71a12f129200cc83cfa7ef868dceeeaf921979964aa95e574cccab1a24d7：与 _run/revalidation.json、补丁证据模板、dispatch.json 契约版本、AFFECTED-BY-FIELD.tsv 的 after 四处一致；previousStatus=done，patches 仅 m4t4-retry-contract-20261119，changedFields=sections:09-数据模型、15-性能与容量假设、18-部署与运维。",
+        "本窗只读：未运行 status/verify/build/landed，未改标记、源码、分支，未起数据库、服务或 CI；未改变原门禁与限制。"
+      ],
+      "verdict": "pass"
+    },
+    "GATE-HARDEN-2": {
+      "contractHash": "edb918dba94733bfce24a32a095678b4d700e88bc249611b3846f506a2eff778",
+      "evidence": [
+        "任务职责：gate 合入后的路径清单后续（图谱/任务/GATE-HARDEN-2.md:9 标题；产出 :26；验收 :31；有效路径 :27）。",
+        "不适用：本次 09/15/18 节实际改动只涉及聊天通知出箱（ChatNotification，M4）的重试与租约语义：首次发送后最多重试3次、每条出箱最多4次已标记开始的发送尝试、requestStartedAt/attempts 原子标记、1m/5m/30m 自结果写入起算、清扫与回写 CAS 共用取锁后的服务端时钟、SMTP 缺配置只把从未尝试的 QUEUED 置 DISABLED（02ea695f：09-数据模型.md:24、:174、:179；15-性能与容量假设.md:31；18-部署与运维.md:94）。本任务有效路径（dispatch 提示词『只改这些路径』）为 .github/CODEOWNERS、.github/workflows/security-review-replay.yml、.github/workflows/security-review-rerun.yml、.github/workflows/security-review.yml；a7941062 上 git grep ChatNotification|requestStartedAt|stableMessageId 命中 10 个文件（prisma/schema.prisma、prisma/sql/74-mail-backend.sql、deploy/tests/fixtures/first-deploy-91db98e.sql、src/lib/server/chat/conversation-service.ts、src/lib/server/chat/repo.ts、src/lib/server/mail/send.ts、tests/analytics-retention.db.test.ts、tests/chat-first-message.db.test.ts、tests/mail-thread.test.ts、tests/fixtures/mail-db.ts），与本任务有效路径交集为 0。",
+        "原限制仍满足：.github/CODEOWNERS:1 `/.github/workflows/ OWNER` 与 :2 `/.github/CODEOWNERS OWNER` 均在（@dawanglaohu）；有效路径里三个 security-review*.yml 已由 82f74bcc 删除，规则仍覆盖 ci.yml。",
+        "代码位置核对：卡片 2 处位置，路径在 a7941062 存在 2/2，行号均未越界。逐行文本只对与变更条款相邻的 CI、CODEOWNERS、mail/config 项做了核对，其余仅核路径与行号范围。",
+        "契约哈希 edb918dba94733bfce24a32a095678b4d700e88bc249611b3846f506a2eff778：与 _run/revalidation.json、补丁证据模板、dispatch.json 契约版本、AFFECTED-BY-FIELD.tsv 的 after 四处一致；previousStatus=done，patches 仅 m4t4-retry-contract-20261119，changedFields=sections:09-数据模型、15-性能与容量假设、18-部署与运维。",
+        "本窗只读：未运行 status/verify/build/landed，未改标记、源码、分支，未起数据库、服务或 CI；未改变原门禁与限制。"
+      ],
+      "verdict": "pass"
+    },
+    "GATE-PATHS-1": {
+      "contractHash": "0d00e206b365a6a7a99a3af3975f49592b8e5b5066ccbf7491359adbde6b6663",
+      "evidence": [
+        "任务职责：安全审查补齐构建与部署敏感路径（图谱/任务/GATE-PATHS-1.md:9 标题；产出 :24；验收 :29；有效路径 :25）。",
+        "不适用：本次 09/15/18 节实际改动只涉及聊天通知出箱（ChatNotification，M4）的重试与租约语义：首次发送后最多重试3次、每条出箱最多4次已标记开始的发送尝试、requestStartedAt/attempts 原子标记、1m/5m/30m 自结果写入起算、清扫与回写 CAS 共用取锁后的服务端时钟、SMTP 缺配置只把从未尝试的 QUEUED 置 DISABLED（02ea695f：09-数据模型.md:24、:174、:179；15-性能与容量假设.md:31；18-部署与运维.md:94）。本任务有效路径（dispatch 提示词『只改这些路径』）为 .github/workflows/security-review.yml；a7941062 上 git grep ChatNotification|requestStartedAt|stableMessageId 命中 10 个文件（prisma/schema.prisma、prisma/sql/74-mail-backend.sql、deploy/tests/fixtures/first-deploy-91db98e.sql、src/lib/server/chat/conversation-service.ts、src/lib/server/chat/repo.ts、src/lib/server/mail/send.ts、tests/analytics-retention.db.test.ts、tests/chat-first-message.db.test.ts、tests/mail-thread.test.ts、tests/fixtures/mail-db.ts），与本任务有效路径交集为 0。",
+        "附带漂移事实：卡片引用的 .github/workflows/security-review.yml、security-review-replay.yml、security-review-rerun.yml 在 a7941062 不存在；提交 82f74bcc（chore(ci): retire security-review gate tied to deleted App）是 a7941062 的祖先，并删除这三个文件。此为原任务既有漂移，与本次补丁无关，交原任务流程处理，本窗不改卡。",
+        "代码位置核对：卡片 1 处位置，路径在 a7941062 存在 0/1，缺失 1 处（.github/workflows/security-review.yml），行号均未越界。逐行文本只对与变更条款相邻的 CI、CODEOWNERS、mail/config 项做了核对，其余仅核路径与行号范围。",
+        "契约哈希 0d00e206b365a6a7a99a3af3975f49592b8e5b5066ccbf7491359adbde6b6663：与 _run/revalidation.json、补丁证据模板、dispatch.json 契约版本、AFFECTED-BY-FIELD.tsv 的 after 四处一致；previousStatus=done，patches 仅 m4t4-retry-contract-20261119，changedFields=sections:09-数据模型、15-性能与容量假设、18-部署与运维。",
+        "本窗只读：未运行 status/verify/build/landed，未改标记、源码、分支，未起数据库、服务或 CI；未改变原门禁与限制。"
+      ],
+      "verdict": "pass"
+    },
+    "GATE-PATHS-2": {
+      "contractHash": "c5eb70fb40884fea4a59feaed507ecc040b639b52fa9892f95a197d48e679eca",
+      "evidence": [
+        "任务职责：安全审查补齐认证与后台路径（图谱/任务/GATE-PATHS-2.md:9 标题；产出 :24；验收 :29；有效路径 :25）。",
+        "不适用：本次 09/15/18 节实际改动只涉及聊天通知出箱（ChatNotification，M4）的重试与租约语义：首次发送后最多重试3次、每条出箱最多4次已标记开始的发送尝试、requestStartedAt/attempts 原子标记、1m/5m/30m 自结果写入起算、清扫与回写 CAS 共用取锁后的服务端时钟、SMTP 缺配置只把从未尝试的 QUEUED 置 DISABLED（02ea695f：09-数据模型.md:24、:174、:179；15-性能与容量假设.md:31；18-部署与运维.md:94）。本任务有效路径（dispatch 提示词『只改这些路径』）为 .github/workflows/security-review.yml；a7941062 上 git grep ChatNotification|requestStartedAt|stableMessageId 命中 10 个文件（prisma/schema.prisma、prisma/sql/74-mail-backend.sql、deploy/tests/fixtures/first-deploy-91db98e.sql、src/lib/server/chat/conversation-service.ts、src/lib/server/chat/repo.ts、src/lib/server/mail/send.ts、tests/analytics-retention.db.test.ts、tests/chat-first-message.db.test.ts、tests/mail-thread.test.ts、tests/fixtures/mail-db.ts），与本任务有效路径交集为 0。",
+        "附带漂移事实：卡片引用的 .github/workflows/security-review.yml、security-review-replay.yml、security-review-rerun.yml 在 a7941062 不存在；提交 82f74bcc（chore(ci): retire security-review gate tied to deleted App）是 a7941062 的祖先，并删除这三个文件。此为原任务既有漂移，与本次补丁无关，交原任务流程处理，本窗不改卡。",
+        "代码位置核对：卡片 1 处位置，路径在 a7941062 存在 0/1，缺失 1 处（.github/workflows/security-review.yml），行号均未越界。逐行文本只对与变更条款相邻的 CI、CODEOWNERS、mail/config 项做了核对，其余仅核路径与行号范围。",
+        "契约哈希 c5eb70fb40884fea4a59feaed507ecc040b639b52fa9892f95a197d48e679eca：与 _run/revalidation.json、补丁证据模板、dispatch.json 契约版本、AFFECTED-BY-FIELD.tsv 的 after 四处一致；previousStatus=done，patches 仅 m4t4-retry-contract-20261119，changedFields=sections:09-数据模型、15-性能与容量假设、18-部署与运维。",
+        "本窗只读：未运行 status/verify/build/landed，未改标记、源码、分支，未起数据库、服务或 CI；未改变原门禁与限制。"
+      ],
+      "verdict": "pass"
+    },
+    "MAIN-E2E-FIX": {
+      "contractHash": "71588c1986699ef225ca9886513e6b8a4ff8aff0a5c41fa0915c2e17060587ed",
+      "evidence": [
+        "任务职责：修复 main 上 analytics 数据库测试的品类规则（图谱/任务/MAIN-E2E-FIX.md:9 标题；产出 :26；验收 :31；有效路径 :27）。",
+        "不适用：本次 09/15/18 节实际改动只涉及聊天通知出箱（ChatNotification，M4）的重试与租约语义：首次发送后最多重试3次、每条出箱最多4次已标记开始的发送尝试、requestStartedAt/attempts 原子标记、1m/5m/30m 自结果写入起算、清扫与回写 CAS 共用取锁后的服务端时钟、SMTP 缺配置只把从未尝试的 QUEUED 置 DISABLED（02ea695f：09-数据模型.md:24、:174、:179；15-性能与容量假设.md:31；18-部署与运维.md:94）。本任务有效路径（dispatch 提示词『只改这些路径』）为 tests/analytics-ingest.http.db.test.ts、tests/analytics-ingest.test.ts、tests/catalog-merge.test.ts；a7941062 上 git grep ChatNotification|requestStartedAt|stableMessageId 命中 10 个文件（prisma/schema.prisma、prisma/sql/74-mail-backend.sql、deploy/tests/fixtures/first-deploy-91db98e.sql、src/lib/server/chat/conversation-service.ts、src/lib/server/chat/repo.ts、src/lib/server/mail/send.ts、tests/analytics-retention.db.test.ts、tests/chat-first-message.db.test.ts、tests/mail-thread.test.ts、tests/fixtures/mail-db.ts），与本任务有效路径交集为 0。",
+        "代码位置核对：卡片 3 处位置，路径在 a7941062 存在 3/3，行号均未越界。逐行文本只对与变更条款相邻的 CI、CODEOWNERS、mail/config 项做了核对，其余仅核路径与行号范围。",
+        "契约哈希 71588c1986699ef225ca9886513e6b8a4ff8aff0a5c41fa0915c2e17060587ed：与 _run/revalidation.json、补丁证据模板、dispatch.json 契约版本、AFFECTED-BY-FIELD.tsv 的 after 四处一致；previousStatus=done，patches 仅 m4t4-retry-contract-20261119，changedFields=sections:09-数据模型、15-性能与容量假设、18-部署与运维。",
+        "本窗只读：未运行 status/verify/build/landed，未改标记、源码、分支，未起数据库、服务或 CI；未改变原门禁与限制。"
+      ],
+      "verdict": "pass"
+    },
+    "POST-LAUNCH-P3": {
+      "contractHash": "8e1ff7a5729c6217de617adfb92628b3e93d95cabaae414eef883ff8249469e9",
+      "evidence": [
+        "任务职责：上线后小任务（图谱/任务/POST-LAUNCH-P3.md:9 标题；产出 :26；验收 :31；有效路径 :27）。",
+        "不适用：本次 09/15/18 节实际改动只涉及聊天通知出箱（ChatNotification，M4）的重试与租约语义：首次发送后最多重试3次、每条出箱最多4次已标记开始的发送尝试、requestStartedAt/attempts 原子标记、1m/5m/30m 自结果写入起算、清扫与回写 CAS 共用取锁后的服务端时钟、SMTP 缺配置只把从未尝试的 QUEUED 置 DISABLED（02ea695f：09-数据模型.md:24、:174、:179；15-性能与容量假设.md:31；18-部署与运维.md:94）。本任务有效路径（dispatch 提示词『只改这些路径』）为 e2e/home-media.spec.ts、next.config.ts、public/brand/packjoyu-industrial-city-v3-loop-preview.gif、public/brand/packjoyu-industrial-city-v3-loop.gif、scripts/admin-reset-initial-password-lib.d.mts、scripts/admin-reset-initial-password-lib.mjs、scripts/smoke.ts、security-headers.ts、src/app/[locale]/layout.tsx、src/app/api/auth-admin/enroll/confirm/route.ts、src/app/api/auth-admin/enroll/route.ts、src/auth.ts、src/components/layout/BrandScene.tsx、src/lib/home/brandMedia.ts、src/lib/server/admin/guard.ts、src/lib/server/ratelimit/index.ts、src/lib/server/ratelimit/redis.ts、tests/admin-reset-initial-password.test.ts、tests/home-brand-media.test.ts、tests/og-static-cache.test.ts、tests/ratelimit.test.ts、tests/smoke.test.ts；a7941062 上 git grep ChatNotification|requestStartedAt|stableMessageId 命中 10 个文件（prisma/schema.prisma、prisma/sql/74-mail-backend.sql、deploy/tests/fixtures/first-deploy-91db98e.sql、src/lib/server/chat/conversation-service.ts、src/lib/server/chat/repo.ts、src/lib/server/mail/send.ts、tests/analytics-retention.db.test.ts、tests/chat-first-message.db.test.ts、tests/mail-thread.test.ts、tests/fixtures/mail-db.ts），与本任务有效路径交集为 0。",
+        "卡中含 retry/重试/mail 字样的条款是登录桶 429 的 retryAfter/Retry-After（图谱/任务/POST-LAUNCH-P3.md:55、:58、:86）和重置脚本，与聊天通知出箱的重试无关；卡内两处已删除的 GIF（public/brand/packjoyu-industrial-city-v3-loop.gif 与 -loop-preview.gif）在 a7941062 确实不存在，与卡片『已删除』一致。",
+        "代码位置核对：卡片 38 处位置，路径在 a7941062 存在 36/38，缺失 2 处（public/brand/packjoyu-industrial-city-v3-loop.gif、public/brand/packjoyu-industrial-city-v3-loop-preview.gif），行号均未越界。逐行文本只对与变更条款相邻的 CI、CODEOWNERS、mail/config 项做了核对，其余仅核路径与行号范围。",
+        "契约哈希 8e1ff7a5729c6217de617adfb92628b3e93d95cabaae414eef883ff8249469e9：与 _run/revalidation.json、补丁证据模板、dispatch.json 契约版本、AFFECTED-BY-FIELD.tsv 的 after 四处一致；previousStatus=done，patches 仅 m4t4-retry-contract-20261119，changedFields=sections:09-数据模型、15-性能与容量假设、18-部署与运维。",
+        "本窗只读：未运行 status/verify/build/landed，未改标记、源码、分支，未起数据库、服务或 CI；未改变原门禁与限制。"
+      ],
+      "verdict": "pass"
+    },
+    "SEO-1": {
+      "contractHash": "9a12935a5a8975dccecce08795d2f95dbcb07c3f1de36363eadb2aaafeb6942c",
+      "evidence": [
+        "任务职责：/about 进入 sitemap 并带 1600 图（图谱/任务/SEO-1.md:9 标题；产出 :26；验收 :31；有效路径 :27）。",
+        "不适用：本次 09/15/18 节实际改动只涉及聊天通知出箱（ChatNotification，M4）的重试与租约语义：首次发送后最多重试3次、每条出箱最多4次已标记开始的发送尝试、requestStartedAt/attempts 原子标记、1m/5m/30m 自结果写入起算、清扫与回写 CAS 共用取锁后的服务端时钟、SMTP 缺配置只把从未尝试的 QUEUED 置 DISABLED（02ea695f：09-数据模型.md:24、:174、:179；15-性能与容量假设.md:31；18-部署与运维.md:94）。本任务有效路径（dispatch 提示词『只改这些路径』）为 src/app/sitemap.ts、src/lib/seo/sitemapEntries.ts、src/lib/server/site-settings.ts、tests/sitemap.test.ts；a7941062 上 git grep ChatNotification|requestStartedAt|stableMessageId 命中 10 个文件（prisma/schema.prisma、prisma/sql/74-mail-backend.sql、deploy/tests/fixtures/first-deploy-91db98e.sql、src/lib/server/chat/conversation-service.ts、src/lib/server/chat/repo.ts、src/lib/server/mail/send.ts、tests/analytics-retention.db.test.ts、tests/chat-first-message.db.test.ts、tests/mail-thread.test.ts、tests/fixtures/mail-db.ts），与本任务有效路径交集为 0。",
+        "代码位置核对：卡片 4 处位置，路径在 a7941062 存在 4/4，行号均未越界。逐行文本只对与变更条款相邻的 CI、CODEOWNERS、mail/config 项做了核对，其余仅核路径与行号范围。",
+        "契约哈希 9a12935a5a8975dccecce08795d2f95dbcb07c3f1de36363eadb2aaafeb6942c：与 _run/revalidation.json、补丁证据模板、dispatch.json 契约版本、AFFECTED-BY-FIELD.tsv 的 after 四处一致；previousStatus=done，patches 仅 m4t4-retry-contract-20261119，changedFields=sections:09-数据模型、15-性能与容量假设、18-部署与运维。",
+        "本窗只读：未运行 status/verify/build/landed，未改标记、源码、分支，未起数据库、服务或 CI；未改变原门禁与限制。"
+      ],
+      "verdict": "pass"
+    },
+    "SEO-2": {
+      "contractHash": "b00b7ded37a29f43876d8fe7073bd67b8e9556f5f1afc7267377eab55879bd18",
+      "evidence": [
+        "任务职责：静态 /og jpg 的缓存头（图谱/任务/SEO-2.md:9 标题；产出 :26；验收 :31；有效路径 :27）。",
+        "不适用：本次 09/15/18 节实际改动只涉及聊天通知出箱（ChatNotification，M4）的重试与租约语义：首次发送后最多重试3次、每条出箱最多4次已标记开始的发送尝试、requestStartedAt/attempts 原子标记、1m/5m/30m 自结果写入起算、清扫与回写 CAS 共用取锁后的服务端时钟、SMTP 缺配置只把从未尝试的 QUEUED 置 DISABLED（02ea695f：09-数据模型.md:24、:174、:179；15-性能与容量假设.md:31；18-部署与运维.md:94）。本任务有效路径（dispatch 提示词『只改这些路径』）为 next.config.ts；a7941062 上 git grep ChatNotification|requestStartedAt|stableMessageId 命中 10 个文件（prisma/schema.prisma、prisma/sql/74-mail-backend.sql、deploy/tests/fixtures/first-deploy-91db98e.sql、src/lib/server/chat/conversation-service.ts、src/lib/server/chat/repo.ts、src/lib/server/mail/send.ts、tests/analytics-retention.db.test.ts、tests/chat-first-message.db.test.ts、tests/mail-thread.test.ts、tests/fixtures/mail-db.ts），与本任务有效路径交集为 0。",
+        "代码位置核对：卡片 5 处位置，路径在 a7941062 存在 5/5，行号均未越界。逐行文本只对与变更条款相邻的 CI、CODEOWNERS、mail/config 项做了核对，其余仅核路径与行号范围。",
+        "契约哈希 b00b7ded37a29f43876d8fe7073bd67b8e9556f5f1afc7267377eab55879bd18：与 _run/revalidation.json、补丁证据模板、dispatch.json 契约版本、AFFECTED-BY-FIELD.tsv 的 after 四处一致；previousStatus=done，patches 仅 m4t4-retry-contract-20261119，changedFields=sections:09-数据模型、15-性能与容量假设、18-部署与运维。",
+        "本窗只读：未运行 status/verify/build/landed，未改标记、源码、分支，未起数据库、服务或 CI；未改变原门禁与限制。"
+      ],
+      "verdict": "pass"
+    },
+    "SEO-4": {
+      "contractHash": "f294d880856e5673a59e447364c390abd9d28c3fd9f288585b51832f5ff39e54",
+      "evidence": [
+        "任务职责：生产环境只认 APP_ENV（图谱/任务/SEO-4.md:9 标题；产出 :26；验收 :31；有效路径 :27）。",
+        "不适用：本次 09/15/18 节实际改动只涉及聊天通知出箱（ChatNotification，M4）的重试与租约语义：首次发送后最多重试3次、每条出箱最多4次已标记开始的发送尝试、requestStartedAt/attempts 原子标记、1m/5m/30m 自结果写入起算、清扫与回写 CAS 共用取锁后的服务端时钟、SMTP 缺配置只把从未尝试的 QUEUED 置 DISABLED（02ea695f：09-数据模型.md:24、:174、:179；15-性能与容量假设.md:31；18-部署与运维.md:94）。本任务有效路径（dispatch 提示词『只改这些路径』）为 src/lib/seo/mock.ts、src/lib/server/admin/enroll-token.ts、src/lib/server/mail/config.ts、src/lib/server/privacy.ts、src/lib/server/security.ts、src/lib/site.ts；a7941062 上 git grep ChatNotification|requestStartedAt|stableMessageId 命中 10 个文件（prisma/schema.prisma、prisma/sql/74-mail-backend.sql、deploy/tests/fixtures/first-deploy-91db98e.sql、src/lib/server/chat/conversation-service.ts、src/lib/server/chat/repo.ts、src/lib/server/mail/send.ts、tests/analytics-retention.db.test.ts、tests/chat-first-message.db.test.ts、tests/mail-thread.test.ts、tests/fixtures/mail-db.ts），与本任务有效路径交集为 0。",
+        "邻近项核对：有效路径含 src/lib/server/mail/config.ts，但 SEO-4 只改发信 mock 的 APP_ENV 判断（config.ts:124）；新条款依赖的『SMTP 是否已配置』判定是 smtpConfig()（:104）和 sendingEnabled()（:114），不在 SEO-4 范围，也未被其改动。",
+        "代码位置核对：卡片 11 处位置，路径在 a7941062 存在 11/11，行号均未越界。逐行文本只对与变更条款相邻的 CI、CODEOWNERS、mail/config 项做了核对，其余仅核路径与行号范围。",
+        "契约哈希 f294d880856e5673a59e447364c390abd9d28c3fd9f288585b51832f5ff39e54：与 _run/revalidation.json、补丁证据模板、dispatch.json 契约版本、AFFECTED-BY-FIELD.tsv 的 after 四处一致；previousStatus=done，patches 仅 m4t4-retry-contract-20261119，changedFields=sections:09-数据模型、15-性能与容量假设、18-部署与运维。",
+        "本窗只读：未运行 status/verify/build/landed，未改标记、源码、分支，未起数据库、服务或 CI；未改变原门禁与限制。"
+      ],
+      "verdict": "pass"
+    },
+    "SEO-5": {
+      "contractHash": "67ad0f2dd586956ec3e461f2b8c18ddd26c3f5b82865466a0614bab88c20756b",
+      "evidence": [
+        "任务职责：404 页只留一个 robots meta（图谱/任务/SEO-5.md:9 标题；产出 :26；验收 :31；有效路径 :27）。",
+        "不适用：本次 09/15/18 节实际改动只涉及聊天通知出箱（ChatNotification，M4）的重试与租约语义：首次发送后最多重试3次、每条出箱最多4次已标记开始的发送尝试、requestStartedAt/attempts 原子标记、1m/5m/30m 自结果写入起算、清扫与回写 CAS 共用取锁后的服务端时钟、SMTP 缺配置只把从未尝试的 QUEUED 置 DISABLED（02ea695f：09-数据模型.md:24、:174、:179；15-性能与容量假设.md:31；18-部署与运维.md:94）。本任务有效路径（dispatch 提示词『只改这些路径』）为 e2e/not-found-robots.spec.ts、src/app/[locale]/locale-unavailable/not-found.tsx、src/app/[locale]/not-found.tsx、src/app/[locale]/products/[slug]/page.tsx、tests/middleware-locale-gate.test.ts、tests/not-found-meta.test.ts；a7941062 上 git grep ChatNotification|requestStartedAt|stableMessageId 命中 10 个文件（prisma/schema.prisma、prisma/sql/74-mail-backend.sql、deploy/tests/fixtures/first-deploy-91db98e.sql、src/lib/server/chat/conversation-service.ts、src/lib/server/chat/repo.ts、src/lib/server/mail/send.ts、tests/analytics-retention.db.test.ts、tests/chat-first-message.db.test.ts、tests/mail-thread.test.ts、tests/fixtures/mail-db.ts），与本任务有效路径交集为 0。",
+        "代码位置核对：卡片 11 处位置，路径在 a7941062 存在 11/11，行号均未越界。逐行文本只对与变更条款相邻的 CI、CODEOWNERS、mail/config 项做了核对，其余仅核路径与行号范围。",
+        "契约哈希 67ad0f2dd586956ec3e461f2b8c18ddd26c3f5b82865466a0614bab88c20756b：与 _run/revalidation.json、补丁证据模板、dispatch.json 契约版本、AFFECTED-BY-FIELD.tsv 的 after 四处一致；previousStatus=done，patches 仅 m4t4-retry-contract-20261119，changedFields=sections:09-数据模型、15-性能与容量假设、18-部署与运维。",
+        "本窗只读：未运行 status/verify/build/landed，未改标记、源码、分支，未起数据库、服务或 CI；未改变原门禁与限制。"
+      ],
+      "verdict": "pass"
+    },
+    "SEO-6": {
+      "contractHash": "9ceebde434969b51649877e52f07f03e89cf9ed033b57fc160415a6ff8185cba",
+      "evidence": [
+        "任务职责：首页城市场景 GIF 改为视频（图谱/任务/SEO-6.md:9 标题；产出 :26；验收 :31；有效路径 :27）。",
+        "不适用：本次 09/15/18 节实际改动只涉及聊天通知出箱（ChatNotification，M4）的重试与租约语义：首次发送后最多重试3次、每条出箱最多4次已标记开始的发送尝试、requestStartedAt/attempts 原子标记、1m/5m/30m 自结果写入起算、清扫与回写 CAS 共用取锁后的服务端时钟、SMTP 缺配置只把从未尝试的 QUEUED 置 DISABLED（02ea695f：09-数据模型.md:24、:174、:179；15-性能与容量假设.md:31；18-部署与运维.md:94）。本任务有效路径（dispatch 提示词『只改这些路径』）为 e2e/brand-smoke.spec.ts、e2e/home-media.spec.ts、src/components/layout/BrandScene.tsx、src/lib/home/brandMedia.ts；a7941062 上 git grep ChatNotification|requestStartedAt|stableMessageId 命中 10 个文件（prisma/schema.prisma、prisma/sql/74-mail-backend.sql、deploy/tests/fixtures/first-deploy-91db98e.sql、src/lib/server/chat/conversation-service.ts、src/lib/server/chat/repo.ts、src/lib/server/mail/send.ts、tests/analytics-retention.db.test.ts、tests/chat-first-message.db.test.ts、tests/mail-thread.test.ts、tests/fixtures/mail-db.ts），与本任务有效路径交集为 0。",
+        "卡中『重试』指视频出错后用户点播放重试（图谱/任务/SEO-6.md:45），与出箱重试无关。",
+        "代码位置核对：卡片 7 处位置，路径在 a7941062 存在 7/7，行号均未越界。逐行文本只对与变更条款相邻的 CI、CODEOWNERS、mail/config 项做了核对，其余仅核路径与行号范围。",
+        "契约哈希 9ceebde434969b51649877e52f07f03e89cf9ed033b57fc160415a6ff8185cba：与 _run/revalidation.json、补丁证据模板、dispatch.json 契约版本、AFFECTED-BY-FIELD.tsv 的 after 四处一致；previousStatus=done，patches 仅 m4t4-retry-contract-20261119，changedFields=sections:09-数据模型、15-性能与容量假设、18-部署与运维。",
+        "本窗只读：未运行 status/verify/build/landed，未改标记、源码、分支，未起数据库、服务或 CI；未改变原门禁与限制。"
+      ],
+      "verdict": "pass"
+    },
+    "SEO-7": {
+      "contractHash": "8b921e804929f16ee90c850270145e93f977f0b2da8be462ff81acaea0c3467d",
+      "evidence": [
+        "任务职责：/about 的 sitemap 与页面统一规则（图谱/任务/SEO-7.md:9 标题；产出 :26；验收 :31；有效路径 :27）。",
+        "不适用：本次 09/15/18 节实际改动只涉及聊天通知出箱（ChatNotification，M4）的重试与租约语义：首次发送后最多重试3次、每条出箱最多4次已标记开始的发送尝试、requestStartedAt/attempts 原子标记、1m/5m/30m 自结果写入起算、清扫与回写 CAS 共用取锁后的服务端时钟、SMTP 缺配置只把从未尝试的 QUEUED 置 DISABLED（02ea695f：09-数据模型.md:24、:174、:179；15-性能与容量假设.md:31；18-部署与运维.md:94）。本任务有效路径（dispatch 提示词『只改这些路径』）为 src/app/[locale]/about/page.tsx、src/app/sitemap.ts、src/lib/about/model.ts、src/lib/seo/about.ts、tests/about-seo.test.ts；a7941062 上 git grep ChatNotification|requestStartedAt|stableMessageId 命中 10 个文件（prisma/schema.prisma、prisma/sql/74-mail-backend.sql、deploy/tests/fixtures/first-deploy-91db98e.sql、src/lib/server/chat/conversation-service.ts、src/lib/server/chat/repo.ts、src/lib/server/mail/send.ts、tests/analytics-retention.db.test.ts、tests/chat-first-message.db.test.ts、tests/mail-thread.test.ts、tests/fixtures/mail-db.ts），与本任务有效路径交集为 0。",
+        "代码位置核对：卡片 5 处位置，路径在 a7941062 存在 5/5，行号均未越界。逐行文本只对与变更条款相邻的 CI、CODEOWNERS、mail/config 项做了核对，其余仅核路径与行号范围。",
+        "契约哈希 8b921e804929f16ee90c850270145e93f977f0b2da8be462ff81acaea0c3467d：与 _run/revalidation.json、补丁证据模板、dispatch.json 契约版本、AFFECTED-BY-FIELD.tsv 的 after 四处一致；previousStatus=done，patches 仅 m4t4-retry-contract-20261119，changedFields=sections:09-数据模型、15-性能与容量假设、18-部署与运维。",
+        "本窗只读：未运行 status/verify/build/landed，未改标记、源码、分支，未起数据库、服务或 CI；未改变原门禁与限制。"
+      ],
+      "verdict": "pass"
+    }
+  }
+}

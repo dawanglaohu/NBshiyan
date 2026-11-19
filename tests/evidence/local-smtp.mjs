@@ -173,6 +173,11 @@ src="$proj/tests/evidence/mail-cron-tick.sh"
 printf '%s\\t%s\\t%s\\t%s\\n' "$2" "$3" "$9" "$SETPRIV" > /tmp/mail-cron/run.conf
 chmod 600 /tmp/mail-cron/run.conf
 printf '* * * * * %s /tmp/mail-cron/tick.sh\\n' "$SH_BIN" > /tmp/mail-cron/spool/root
+chat_src="$proj/tests/evidence/chat-notifications-tick.sh"
+[ -f "$chat_src" ] && [ ! -L "$chat_src" ] || { echo CHAT_CRON_TICK_SOURCE_REJECTED >&2; exit 71; }
+"$INSTALL" -m 0700 -o 0 -g 0 "$chat_src" /tmp/mail-cron/chat-tick.sh
+"$INSTALL" -d -m 0700 -o "$2" -g "$3" /tmp/chat-notifications-cron
+printf '* * * * * %s /tmp/mail-cron/chat-tick.sh\\n' "$SH_BIN" >> /tmp/mail-cron/spool/root
 chmod 600 /tmp/mail-cron/spool/root
 "$BB" crond -f -c /tmp/mail-cron/spool -L /tmp/mail-cron/crond.log -l 0 </dev/null >/dev/null 2>&1 &
 crond_pid=$!
@@ -251,10 +256,10 @@ function envelopeAddress(line, verb) {
 }
 
 function session(socket, shared, privateData, upgrade) {
-  let pending = '', dataBytes = 0;
+  let pending = '', dataBytes = 0, messageId = null, dataHeaders = true;
   let ehlo = false, authenticated = false, sender = false, recipient = false, inData = false, authLogin = 0;
   const send = (line) => socket.write(line + '\r\n');
-  const reset = () => { sender = false; recipient = false; inData = false; dataBytes = 0; };
+  const reset = () => { sender = false; recipient = false; inData = false; dataBytes = 0; messageId = null; dataHeaders = true; };
   const authPlain = (encoded) => {
     const parts = Buffer.from(encoded, 'base64').toString('utf8').split('\0');
     const ok = parts.length === 3 && same(parts[1], privateData.smtpUser) && same(parts[2], privateData.smtpPass);
@@ -263,8 +268,33 @@ function session(socket, shared, privateData, upgrade) {
   const onLine = (line) => {
     if (inData) {
       if (line === '.') {
-        shared.received++; shared.acceptedBytes += dataBytes; reset(); send('250 Accepted into local sink');
+        const id = messageId, bytes = dataBytes;
+        const action = shared.chatEvidence?.afterData;
+        if (shared.chatEvidence) shared.chatEvidence.afterData = null;
+        reset();
+        const accept = () => {
+          if (socket.destroyed) return;
+          shared.received++; shared.acceptedBytes += bytes;
+          if (id && shared.chatEvidence && shared.chatEvidence.acceptedIds.length < 128) shared.chatEvidence.acceptedIds.push(id);
+          send('250 Accepted into local sink');
+        };
+        if (action) shared.chatEvidence.dataEnds++;
+        if (action === 'reset') { socket.destroy(); }
+        else if (action === 'slow') {
+          // Stay active so the server's idle timeout cannot satisfy the client's absolute deadline test.
+          const interval = setInterval(() => send('250-Processing'), 4_000);
+          const final = setTimeout(accept, 25_000);
+          socket.once('close', () => { clearInterval(interval); clearTimeout(final); shared.chatEvidence.dataCloses++; });
+        } else if (action === 'delay') {
+          const final = setTimeout(accept, 19_000);
+          socket.once('close', () => clearTimeout(final));
+        } else accept();
       } else {
+        if (shared.chatEvidence && dataHeaders) {
+          if (line === '') dataHeaders = false;
+          const hit = /^Message-ID: (<[0-9a-f-]{36}@[a-z0-9.-]{1,64}>)$/i.exec(line);
+          if (hit) messageId = hit[1];
+        }
         dataBytes += Buffer.byteLength(line) + 2;
         if (dataBytes > MAX_DATA) { reset(); send('552 Message too large'); socket.end(); }
       }
@@ -305,6 +335,9 @@ function session(socket, shared, privateData, upgrade) {
         const address = envelopeAddress(line, 'RCPT TO');
         if (!address || !same(address.toLowerCase(), privateData.recipient.toLowerCase())) { shared.rejectedRecipients++; send('550 Local allowlist only'); break; }
         if (shared.failNextRcpt) { shared.failNextRcpt = false; shared.rcptFailures++; send('451 Temporary local refusal'); break; }
+        if (shared.chatEvidence?.rcptRemaining > 0) {
+          shared.chatEvidence.rcptRemaining--; shared.rcptFailures++; send('451 M4T4 controlled refusal probe'); break;
+        }
         recipient = true; send('250 Recipient accepted'); break;
       }
       case 'DATA':
@@ -331,7 +364,7 @@ function session(socket, shared, privateData, upgrade) {
   return { greet: () => send('220 Local SMTP evidence sink'), onLine };
 }
 
-async function startSink(root, { rogue = false, control = false } = {}) {
+async function startSink(root, { rogue = false, control = false, chat = false } = {}) {
   const privateData = readPrivate(root, 'private.json');
   const prefix = rogue ? 'rogue-' : '';
   const options = { key: fs.readFileSync(path.join(root, `${prefix}leaf.key.pem`)), cert: fs.readFileSync(path.join(root, `${prefix}leaf.cert.pem`)), minVersion: 'TLSv1.2' };
@@ -339,6 +372,7 @@ async function startSink(root, { rogue = false, control = false } = {}) {
   const state = { connections: 0, connections465: 0, connections587: 0, tlsAttempts465: 0, tlsAttempts587: 0,
     certificateAlerts465: 0, certificateAlerts587: 0, authenticated: 0, rcptAttempts: 0, received: 0, acceptedBytes: 0,
     rejectedRecipients: 0, rcptFailures: 0, failNextRcpt: false, tls12: 0, tls13: 0 };
+  if (chat) state.chatEvidence = { rcptRemaining: 0, afterData: null, acceptedIds: [], dataEnds: 0, dataCloses: 0 };
   const sockets = new Set();
   const track = (socket) => { sockets.add(socket); socket.once('close', () => sockets.delete(socket)); socket.on('error', () => {}); };
   const secured = (socket, greet) => {
@@ -372,6 +406,16 @@ async function startSink(root, { rogue = false, control = false } = {}) {
         if (Number(req.headers['content-length'] || 0) !== 0 || req.headers['transfer-encoding']) return respond(400, { error: 'empty_body_required' });
         if (state.failNextRcpt) return respond(409, { error: 'already_armed' });
         state.failNextRcpt = true; return respond(200, { armed: true });
+      }
+      if (state.chatEvidence && req.method === 'POST' && same(req.headers['x-mail-evidence-control'], privateData.controlKey)) {
+        const match = /^\/chat\/(rcpt-([1-4])|delay|slow|reset)$/.exec(req.url || '');
+        if (match) {
+          if (Number(req.headers['content-length'] || 0) !== 0 || req.headers['transfer-encoding']) return respond(400, { error: 'empty_body_required' });
+          if (state.chatEvidence.rcptRemaining || state.chatEvidence.afterData) return respond(409, { error: 'already_armed' });
+          if (match[2]) state.chatEvidence.rcptRemaining = Number(match[2]);
+          else state.chatEvidence.afterData = match[1];
+          return respond(200, { armed: true });
+        }
       }
       req.resume(); respond(404, { error: 'not_found' });
     });
@@ -526,10 +570,11 @@ function exec() {
   const env = { ...process.env, POSTGRES_PASSWORD: secret.pgPass, PGPASSWORD: secret.pgPass, POSTGRES_DB: 'mail_evidence', PGDATA: '/tmp/mail-evidence-pg',
     DATABASE_URL: `postgresql://postgres:${secret.pgPass}@127.0.0.1:5432/mail_evidence`,
     CI: 'true', AUTH_SECRET: secret.authSecret, ADMIN_TOTP_KEY: secret.totpKey, PRIVACY_HASH_SECRET: secret.privacySecret, CRON_SECRET: secret.cronSecret,
-    AUTH_URL: 'http://localhost:3100', AUTH_TRUST_HOST: 'true', APP_ORIGIN: 'http://localhost:3100', NEXT_PUBLIC_SITE_URL: 'http://localhost:3100', NEXT_PUBLIC_ADMIN_API: 'http', APP_ENV: 'test',
+    EDGE_AUTH_SECRET: secret.privacySecret, AUTH_URL: 'http://localhost:3100', AUTH_TRUST_HOST: 'true', APP_ORIGIN: 'http://localhost:3100', NEXT_PUBLIC_SITE_URL: 'http://localhost:3100', NEXT_PUBLIC_ADMIN_API: 'http', APP_ENV: 'test',
     NEXT_PUBLIC_ADMIN_MAIL: stage === 'off' ? 'off' : 'http', MAIL_SEND_ADAPTER: 'smtp', SMTP_HOST: HOST, SMTP_PORT: '465', SMTP_USER: secret.smtpUser,
     SMTP_PASS: stage === 'http-disabled' ? undefined : secret.smtpPass, MAIL_FROM: 'Evidence <sender@example.test>', REPLY_DOMAIN: 'reply.example.test',
     ADMIN_ALERT_EMAIL: secret.recipient, INQUIRY_NOTIFY_EMAIL: secret.recipient,
+    CHAT_NOTIFICATION_TO: secret.recipient,
     SMTP_EVIDENCE_MODE: stage, SMTP_EVIDENCE_ROOT: root, SMTP_EVIDENCE_RECIPIENT: secret.recipient,
     SMTP_EVIDENCE_CONTROL: secret.controlKey, SMTP_EVIDENCE_TARGET_PATH: path.join(root, 'target.json'),
     NODE_EXTRA_CA_CERTS: path.join(root, 'ca.cert.pem'), NODE_TLS_REJECT_UNAUTHORIZED: undefined,
@@ -617,7 +662,7 @@ function verifyArtifact() {
 
 async function serve() {
   const { root } = rootInfo(); await requireOfflineNamespace();
-  const sink = await startSink(root, { control: true });
+  const sink = await startSink(root, { control: true, chat: args.includes('--chat') });
   console.log(JSON.stringify({ smtpSinkReady: true, loopbackOnly: true, noRelay: true }));
   let shuttingDown = false;
   const stop = async () => {

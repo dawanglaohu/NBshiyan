@@ -1,6 +1,7 @@
-import { prodEnvProblems, type EnvCheckDeps } from '../../../../prod-env-check';
+import { chatNotificationRecipientUnset, isProductionDeploy, prodEnvProblems, type EnvCheckDeps } from '../../../../prod-env-check';
 
 type Exit = (code: number) => never;
+let warnedChatNotificationRecipient = false;
 
 /**
  * #323：构建时的 APP_ENV。next.config 的 `env` 把 `process.env.APP_ENV_AT_BUILD` 内联成构建时 APP_ENV 的值（未设置时为空字符串），
@@ -27,11 +28,17 @@ export function appEnvMismatch(env: Record<string, string | undefined>, built: s
  */
 export function runStartupEnvCheck(
   env: Record<string, string | undefined> = process.env,
-  deps: EnvCheckDeps & { exit?: Exit; log?: (msg: string) => void; builtAppEnv?: string } = {},
+  deps: EnvCheckDeps & { exit?: Exit; log?: (msg: string) => void; warn?: (msg: string) => void; builtAppEnv?: string } = {},
 ): void {
   const mismatch = appEnvMismatch(env, 'builtAppEnv' in deps ? deps.builtAppEnv : builtAppEnv());
   const problems = [...(mismatch ? [mismatch] : []), ...prodEnvProblems(env, 'runtime', deps)];
-  if (!problems.length) return;
+  if (!problems.length) {
+    if (isProductionDeploy(env) && chatNotificationRecipientUnset(env.CHAT_NOTIFICATION_TO) && !warnedChatNotificationRecipient) {
+      warnedChatNotificationRecipient = true;
+      (deps.warn ?? console.warn)('CHAT_NOTIFICATION_RECIPIENT_MISSING: CHAT_NOTIFICATION_TO 未设置，聊天邮件通知未启用');
+    }
+    return;
+  }
   (deps.log ?? console.error)(`生产环境配置检查未通过，拒绝启动：\n- ${problems.join('\n- ')}`);
   (deps.exit ?? ((code: number) => process.exit(code)))(1);
 }
