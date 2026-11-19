@@ -314,3 +314,94 @@ export function createChatRepo(db: ChatWriteDb) {
 }
 
 export type ChatRepo = ReturnType<typeof createChatRepo>;
+
+// ---------------------------------------------------------------------------
+// 访客读取面（M4-T2）
+//
+// GET 同步与 read 都只按访客 cookie 范围读/写自己那张会话，走独立只读库面：
+// GET 不产生任何写操作（不 touch 会话、不推进读位置），read 只有一条夹逼 UPDATE。
+// ---------------------------------------------------------------------------
+
+/** 读取面只用到会话/消息模型与一条带 RETURNING 的原生 UPDATE。 */
+export type ChatReadDb = Pick<PrismaClient, 'chatConversation' | 'chatMessage' | '$queryRaw'>;
+
+export type ChatConversationViewRow = {
+  id: string;
+  locale: string;
+  productSlug: string | null;
+  sourcePath: string | null;
+  status: 'OPEN' | 'CLOSED';
+  version: number;
+  lastSeq: number;
+  visitorReadSeq: number;
+  createdAt: Date;
+  updatedAt: Date;
+  lastActivityAt: Date;
+  retainUntil: Date;
+  anonymizedAt: Date | null;
+};
+
+export type ChatMessagePageRow = Pick<ChatMessageRow, 'id' | 'seq' | 'sender' | 'bodyText' | 'createdAt'>;
+
+export function createChatReadRepo(db: ChatReadDb) {
+  return {
+    /** 只按 (conversationId, visitorSessionId) 取；不属于本 cookie 的会话一律查不到（E-19）。 */
+    async findOwnedConversation(
+      conversationId: string,
+      visitorSessionId: string,
+    ): Promise<ChatConversationViewRow | null> {
+      return db.chatConversation.findFirst({
+        where: { id: conversationId, visitorSessionId },
+        select: {
+          id: true,
+          locale: true,
+          productSlug: true,
+          sourcePath: true,
+          status: true,
+          version: true,
+          lastSeq: true,
+          visitorReadSeq: true,
+          createdAt: true,
+          updatedAt: true,
+          lastActivityAt: true,
+          retainUntil: true,
+          anonymizedAt: true,
+        },
+      });
+    },
+
+    async listMessages(
+      conversationId: string,
+      afterSeq: number,
+      take: number,
+    ): Promise<ChatMessagePageRow[]> {
+      return db.chatMessage.findMany({
+        where: { conversationId, seq: { gt: afterSeq } },
+        orderBy: { seq: 'asc' },
+        take,
+        select: { id: true, seq: true, sender: true, bodyText: true, createdAt: true },
+      });
+    },
+
+    /**
+     * read 采用 MAX：单条 UPDATE 内 GREATEST 保证不回退、LEAST 保证不越过 lastSeq。
+     * 行锁让并发/乱序请求串行到同一结果；返回最终落库的 visitorReadSeq，0 行说明会话已不在本 cookie 范围。
+     */
+    async advanceVisitorRead(
+      conversationId: string,
+      visitorSessionId: string,
+      requested: number,
+    ): Promise<number | null> {
+      const rows = await db.$queryRaw<{ visitorReadSeq: number }[]>`
+        UPDATE "ChatConversation"
+        SET "visitorReadSeq" = LEAST(GREATEST("visitorReadSeq", ${requested}), "lastSeq")
+        WHERE "id" = ${conversationId} AND "visitorSessionId" = ${visitorSessionId}
+        RETURNING "visitorReadSeq"
+      `;
+      const value = rows[0]?.visitorReadSeq;
+      return typeof value === 'number' && Number.isInteger(value) ? value : null;
+    },
+  };
+}
+
+export type ChatReadRepo = ReturnType<typeof createChatReadRepo>;
