@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import { randomBytes } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { Prisma, PrismaClient } from '@prisma/client';
-import { createOperationsHandler, createJobRegistry } from '../src/lib/server/jobs/registry';
+import { createAnalyticsAggregateJob, createOperationsHandler, createJobRegistry } from '../src/lib/server/jobs/registry';
 import {
   ANALYTICS_RETENTION_KEY,
   abortsRetentionRun,
@@ -473,6 +473,114 @@ test('R5 服务级假 DB：preflight 的 generation/settings 前置失败按守�
     assert.equal(run.report.deletedEvents, 1);
     assert.equal(stats.deletedEvents, 1);
   }
+});
+
+for (const unknownAt of ['state', 'marker'] as const) test(`T12 元数据读取与删除共用批事务，${unknownAt} 提交答复丢失后只计已确认删除`, async () => {
+  const oldDay = '2025-01-03';
+  const row = (timezoneRevision: number) => ({ localDate: oldDay, timezoneRevision, timezone: 'UTC' });
+  const settings = { version: 1, timezone: TZ, timezoneRevision: 1, changedAt: NOW.toISOString(), updatedBy: null };
+  const leaseRow = {
+    generation: 1, lastStatus: 'RUNNING', lastStartedAt: null, lastFinishedAt: null,
+    lastSucceededAt: null, lockedUntil: '2027-03-15T04:05:00.000Z', lastErrorCode: null, summary: null,
+  };
+  const observed: Array<{ id: number; action: string; limit?: number }> = [];
+  let sequence = 0;
+  let statePages = 0;
+  let terminalWrites = 0;
+  const textOf = (query: Prisma.Sql | TemplateStringsArray) => 'text' in query ? query.text : query.join(' ');
+  const db = {
+    async $transaction<T>(work: (tx: unknown) => Promise<T>): Promise<T> {
+      const id = ++sequence;
+      let loseCommitReply = false;
+      const tx = {
+        $executeRawUnsafe: async () => 0,
+        $queryRaw: async (query: Prisma.Sql | TemplateStringsArray) => {
+          const text = textOf(query);
+          if (text.includes('FROM "SiteSetting"')) {
+            if (text.includes('FOR UPDATE')) observed.push({ id, action: 'revision' });
+            return [{ value: settings }];
+          }
+          if (text.includes('INSERT INTO "JobState"')) {
+            if (id !== 1) terminalWrites += 1;
+            return [leaseRow];
+          }
+          if (text.includes('UPDATE "JobState"')) {
+            if (text.includes('SET "lockedUntil"')) observed.push({ id, action: 'renew' });
+            return [leaseRow];
+          }
+          if (text.includes('FROM "JobState"')) return [{ generation: 1 }];
+          if (text.includes('FROM "AnalyticsAggregateDayState"') && 'text' in query) {
+            if (text.includes('"markerVersions"')) {
+              observed.push({ id, action: 'marker coverage' });
+              return [{ ...row(1), markerVersions: { '2025-01-01': '1' } }];
+            }
+            if (text.includes('SELECT "localDate", "timezoneRevision", "timezone"')) {
+              // 首次 state 查询属于 dry-run 共用的候选计数，只有后续页参加删除预算。
+              if (statePages++ === 0) return [];
+              observed.push({ id, action: 'state page', limit: Number(query.values.at(-1)) });
+              if (statePages === 2) return Array.from({ length: 500 }, (_, index) => row(index + 1));
+              if (statePages === 3) {
+                assert.deepEqual(query.values.slice(1, -1), [oldDay, 500]);
+                return Array.from({ length: 500 }, (_, index) => row(index + 501));
+              }
+              assert.deepEqual(query.values.slice(1, -1), [oldDay, 1000]);
+              return [row(1001)];
+            }
+          }
+          return [];
+        },
+        $executeRaw: async (query: Prisma.Sql | TemplateStringsArray) => {
+          const text = textOf(query);
+          if (text.includes('DELETE FROM "AnalyticsAggregateDayState"') && 'text' in query) {
+            observed.push({ id, action: 'state delete', limit: Number(query.values.at(-1)) });
+            assert.match(text, /NOT EXISTS \([\s\S]+FROM "AnalyticsDaily"/);
+            loseCommitReply = unknownAt === 'state' && statePages === 4;
+            return statePages === 2 ? 0 : 1;
+          }
+          if (text.includes('DELETE FROM "AnalyticsDayChange"') && 'text' in query) {
+            assert.ok(query.values.includes('2025-01-01'), '必须保留存续 state 的 marker 键');
+            assert.match(text, /target\."version" = picked\."version"/);
+            observed.push({ id, action: 'marker delete', limit: Number(query.values.at(-1)) });
+            loseCommitReply = unknownAt === 'marker';
+            return 1;
+          }
+          return 0;
+        },
+      };
+      const result = await work(tx);
+      if (loseCommitReply) throw new Error('simulated lost commit reply');
+      return result;
+    },
+  } as unknown as Parameters<typeof runAnalyticsRetention>[0]['db'];
+
+  const run = await runAnalyticsRetention({ db, context: context(NOW, false), clock: () => NOW, deleteAuthorized: true });
+  const pages = observed.filter((entry) => entry.action === 'state page');
+  const deletes = observed.filter((entry) => entry.action === 'state delete');
+  const markerRead = observed.find((entry) => entry.action === 'marker coverage');
+  const markerWrite = observed.find((entry) => entry.action === 'marker delete');
+  assert.deepEqual(pages.map((entry) => entry.id), deletes.map((entry) => entry.id), '候选页和 DELETE 必须共用批事务');
+  assert.deepEqual(pages.map((entry) => entry.limit), [500, 500, 500], '有剩余额度时继续扫描下一页');
+  assert.deepEqual(deletes.map((entry) => entry.limit), [500, 500, 499], '受保护的扫描页不占删除额度');
+  if (unknownAt === 'marker') {
+    assert.ok(markerRead && markerWrite);
+    assert.equal(markerRead.id, markerWrite.id);
+    assert.ok(markerRead.id > pages[2].id);
+  } else {
+    assert.equal(markerRead, undefined);
+    assert.equal(markerWrite, undefined);
+  }
+  for (const id of [...pages.map((entry) => entry.id), ...(markerRead ? [markerRead.id] : [])]) {
+    assert.deepEqual(observed.filter((entry) => entry.id === id).map((entry) => entry.action).slice(0, 2),
+      ['renew', 'revision']);
+  }
+  assert.equal(sequence, markerWrite?.id ?? pages[2].id, '提交不明后不得进入新事务');
+  assert.equal(terminalWrites, 0);
+  assert.equal(run.kind, 'finish_failed');
+  if (run.kind !== 'finish_failed') return;
+  const confirmed = unknownAt === 'state' ? 1 : 2;
+  assert.equal(run.report.deletedDayStates, confirmed);
+  assert.equal(run.report.deletedDayChanges, 0);
+  assert.equal(run.report.batches, confirmed);
 });
 
 test('R4 失败阶段：守卫失败必须终止，普通聚合失败仍 gap，预算错误保留', () => {
@@ -1006,6 +1114,31 @@ function dbThatBumpsBeforePreflight(client: PrismaClient, bump: () => Promise<vo
   return wrapped as unknown as PrismaClient;
 }
 
+function beforeRetentionSql(
+  client: PrismaClient,
+  beforeExecute: (tx: Prisma.TransactionClient, sql: string) => Promise<void>,
+): Parameters<typeof runAnalyticsRetention>[0]['db'] {
+  return {
+    $queryRaw: client.$queryRaw.bind(client),
+    $executeRaw: client.$executeRaw.bind(client),
+    $transaction: (
+      work: (tx: Prisma.TransactionClient) => Promise<unknown>,
+      options?: { maxWait?: number; timeout?: number; isolationLevel?: Prisma.TransactionIsolationLevel },
+    ) => client.$transaction(async (tx) => work(new Proxy(tx, {
+      get(target, key) {
+        if (key === '$executeRaw') {
+          return async (query: Prisma.Sql | TemplateStringsArray, ...values: unknown[]) => {
+            await beforeExecute(target, 'text' in query ? query.text : query.join(' '));
+            return target.$executeRaw(query, ...values);
+          };
+        }
+        const method = Reflect.get(target, key);
+        return typeof method === 'function' ? method.bind(target) : method;
+      },
+    })), options),
+  } as Parameters<typeof runAnalyticsRetention>[0]['db'];
+}
+
 describe('analytics retention job', { concurrency: false, skip, timeout: 180_000 }, () => {
   before(async () => {
     assert.ok(db);
@@ -1083,6 +1216,120 @@ describe('analytics retention job', { concurrency: false, skip, timeout: 180_000
     assert.equal(summary.counts?.candidateCount, 5);
     assert.equal(summary.counts?.deletedCount, 0);
     assert.equal(summary.versions?.timezoneRevision, 1);
+  });
+
+  test('T12 真 PG：前一整页受保护后仍删除下一页，并保留存续 state 引用的 marker', async () => {
+    assert.ok(db);
+    const date = '2025-01-03';
+    const protectedKey = '2025-01-01';
+    const unusedKey = '2025-01-02';
+    assert.ok(url);
+    const writer = new PrismaClient({ datasources: { db: { url } } });
+    let inserted = false;
+    try {
+      await db.$executeRaw`
+        INSERT INTO "AnalyticsAggregateDayState" ("localDate", "timezoneRevision", "timezone", "markerVersions", "updatedAt")
+        SELECT ${date}, revision, 'UTC', ${JSON.stringify({ [protectedKey]: '1' })}::jsonb, ${utc(NOW)}
+        FROM generate_series(1, 501) AS revision
+      `;
+      await db.$executeRaw`
+        INSERT INTO "AnalyticsDaily" (
+          "localDate", "timezoneRevision", "timezone", "dimension", "visitors", "pageViews", "productViews",
+          "modelStarts", "modelSuccesses", "modelFailures", "chatStarts", "durationMsSum", "loadDurationSamples",
+          "aggregatedAt", "expiresAt"
+        )
+        SELECT ${date}, revision, 'UTC', 'site', 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          ${utc(NOW)}, ${utc(new Date(NOW.getTime() + 60_000))}
+        FROM generate_series(1, 499) AS revision
+      `;
+      await db.$executeRaw`
+        INSERT INTO "AnalyticsDayChange" ("utcDate", "version", "updatedAt")
+        VALUES (${protectedKey}, 1, ${utc(NOW)}), (${unusedKey}, 1, ${utc(NOW)}), (${date}, 1, ${utc(NOW)})
+      `;
+      const observedDb = beforeRetentionSql(db, async (_tx, sql) => {
+        if (inserted || !sql.includes('DELETE FROM "AnalyticsAggregateDayState"')) return;
+        // 第二连接在候选读完、DELETE 开始前提交同键未到期行。
+        await writer.$executeRaw`
+          INSERT INTO "AnalyticsDaily" (
+            "localDate", "timezoneRevision", "timezone", "dimension", "visitors", "pageViews", "productViews",
+            "modelStarts", "modelSuccesses", "modelFailures", "chatStarts", "durationMsSum", "loadDurationSamples",
+            "aggregatedAt", "expiresAt"
+          ) VALUES (${date}, 500, 'UTC', 'site', 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            ${utc(NOW)}, ${utc(new Date(NOW.getTime() + 60_000))})
+        `;
+        inserted = true;
+      });
+      const run = await runAnalyticsRetention({
+        db: observedDb, context: context(NOW, false), clock: () => NOW, deleteAuthorized: true,
+        afterClaim: async () => {
+          const aggregation = createAnalyticsAggregateJob({ db: writer, clock: () => NOW });
+          assert.deepEqual(await aggregation.run(context(NOW)), { kind: 'busy' });
+        },
+      });
+      assert.equal(inserted, true);
+      assert.equal(run.kind, 'completed');
+      assert.notEqual(run.status, 'FAILED');
+      assert.equal(run.report.deletedDayStates, 1);
+      assert.equal(run.report.deletedDayChanges, 1);
+      const states = await db.$queryRaw<{ timezoneRevision: number }[]>`
+        SELECT "timezoneRevision" FROM "AnalyticsAggregateDayState" WHERE "localDate" = ${date}
+        ORDER BY "timezoneRevision"
+      `;
+      assert.deepEqual(states.map((state) => state.timezoneRevision), Array.from({ length: 500 }, (_, i) => i + 1));
+      const markers = await db.$queryRaw<{ utcDate: string }[]>`
+        SELECT "utcDate" FROM "AnalyticsDayChange" WHERE "utcDate" IN (${protectedKey}, ${unusedKey}, ${date})
+        ORDER BY "utcDate"
+      `;
+      assert.deepEqual(markers.map((marker) => marker.utcDate), [protectedKey, date]);
+      assert.equal((await retentionState(db)).deletedCount, run.counts.deletedCount);
+    } finally {
+      await db.$executeRaw`DELETE FROM "AnalyticsDaily" WHERE "localDate" = ${date}`;
+      await db.$executeRaw`DELETE FROM "AnalyticsAggregateDayState" WHERE "localDate" = ${date}`;
+      await writer.$disconnect();
+      await db.$executeRaw`DELETE FROM "AnalyticsDayChange" WHERE "utcDate" IN (${protectedKey}, ${unusedKey}, ${date})`;
+    }
+  });
+
+  test('T12 真 PG：marker 覆盖锁等待超时后停止本轮', async () => {
+    assert.ok(db);
+    assert.ok(url);
+    const date = '2025-01-02';
+    const writer = new PrismaClient({ datasources: { db: { url } } });
+    let lockAttempted = false;
+    let releaseWriter!: () => void;
+    const hold = new Promise<void>((resolve) => { releaseWriter = resolve; });
+    let writerTx: Promise<void> | undefined;
+    try {
+      await db.$executeRaw`
+        INSERT INTO "AnalyticsDayChange" ("utcDate", "version", "updatedAt") VALUES (${date}, 1, ${utc(NOW)})
+      `;
+      const observedDb = beforeRetentionSql(db, async (tx, sql) => {
+        if (!sql.includes('LOCK TABLE "AnalyticsAggregateDayState" IN SHARE MODE')) return;
+        lockAttempted = true;
+        let ready!: () => void;
+        const readyToTest = new Promise<void>((resolve) => { ready = resolve; });
+        writerTx = writer.$transaction(async (writerConnection) => {
+          await writerConnection.$executeRaw`LOCK TABLE "AnalyticsAggregateDayState" IN ROW EXCLUSIVE MODE`;
+          ready();
+          await hold;
+        }, { timeout: 10_000 });
+        await Promise.race([readyToTest, writerTx]);
+        await tx.$executeRaw`SET LOCAL lock_timeout = '100ms'`;
+      });
+      const run = await runAnalyticsRetention({ db: observedDb, context: context(NOW, false), clock: () => NOW, deleteAuthorized: true });
+      assert.equal(lockAttempted, true);
+      assert.deepEqual(run, { kind: 'timeout' });
+      assert.equal(await count(db, Prisma.sql`SELECT COUNT(*) AS count FROM "AnalyticsDayChange" WHERE "utcDate" = ${date}`), 1);
+      assert.equal(await count(db, Prisma.sql`SELECT COUNT(*) AS count FROM "JobState" WHERE "key" = ${ANALYTICS_RETENTION_KEY}`), 0);
+    } finally {
+      releaseWriter();
+      try {
+        await writerTx;
+      } finally {
+        await writer.$disconnect();
+        await db.$executeRaw`DELETE FROM "AnalyticsDayChange" WHERE "utcDate" = ${date}`;
+      }
+    }
   });
 
   test('未授权删除请求：记 FAILED/forbidden，删 0 行，只返回候选计数', async () => {
