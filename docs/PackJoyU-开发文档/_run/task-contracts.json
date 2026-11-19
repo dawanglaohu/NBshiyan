@@ -1865,7 +1865,10 @@
         "tests/chat-notifications.worker.test.ts",
         "docs/PackJoyU-开发文档/图谱/任务/M4-T4.md",
         "next.config.ts",
-        "tests/startup-env-check.test.ts"
+        "tests/startup-env-check.test.ts",
+        "deploy/env.template",
+        ".env.example",
+        "src/lib/server/startup/env-check.ts"
       ],
       "outputPaths": [
         "src/lib/server/chat/notification-service.ts",
