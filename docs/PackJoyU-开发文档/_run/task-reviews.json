@@ -1195,14 +1195,14 @@
   },
   "M4-T4": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "3bd5901b682f61d659ff52584c9d69a6c5c1fe07610b4f1ee8a4b4be4d9afb2f",
+    "contractHash": "1cb57e9411addd1725c5f4afdfc0030aa95715c3e824fdb6f9f8da7f109b0f2f",
     "evidence": [
-      "本项仅为文档契约语义复核，非代码实现或数据库行为验收：未起PostgreSQL、未跑测试/CI、未联网。任务M4-T4；文档提交d7b3e7e967ec46ec1af390e6cb0dd63eac16c484（唯一父d7b62ad48742b6ed32392953661ffa603bc0b307，tree bc44e725d14b802ee54ee2349a0f1fe82174cb10，9条路径均在docs/PackJoyU-开发文档下）；补丁m4t4-support-paths-20261119（status=synced，依据R1-O1；G10 F2/F4）；目标契约哈希3bd5901b682f61d659ff52584c9d69a6c5c1fe07610b4f1ee8a4b4be4d9afb2f，补丁前79fdde72572e20a63a00beeba04b4d7dcd79361ce99c4d8339d07674b5d3eb6d。PM回执里的226项单测、vault检查等是作者证据，未重跑。",
-      "源码变化只有_run/task-contracts.json（13增1删）：M4-T4的supportPaths在原列表末尾追加12条，旧列表是新列表的精确前缀；追加项与产品经理FINAL-SUPPORT-PATHS.tsv 12行逐条同序一致，无重复且不与M4-T4其他路径字段重叠；有效路径由25增至37；其中包含数据库R1-O1要求的.github/workflows/ci.yml与tests/jobs-runtime.http.test.ts，以及G10采纳项的next.config.ts（F2）与tests/startup-env-check.test.ts（F4）。86个任务键集不变，除M4-T4外无任务被改，M4-T4内部也只有这一个字段变化。",
-      "14项todo契约哈希变化的原因与预估一致：M4-T4的context只在definition.supportPaths变化且effectivePaths随之变化；其余13项的context与effectivePaths完全相同，哈希只经providers（handoff_contract.py的digest为context加providers，providers取全部祖先的基础哈希）变化，且以M4-T4为祖先的任务恰好就是这13项，均未落地。补丁记录的before/after哈希与PM的AFFECTED.tsv 14/14一致，docs-data.js的contracts恰好这14项变化，dispatch批次聚合哈希只在含这14项的10个批次变化。revalidation.json补丁前后同为{}，新增待复验0项；M4-T4.evidence-template.json、task-reviews.json、maintenance.js与生成器脚本在父子提交中blob相同。",
-      "生成物复现：在仓库外临时导出树里，对该提交源重新build（返回0）后全部受跟踪文件字节不变，build的超预算提示词警告集合与补丁前相同，非本补丁引入。另发现：父提交d7b62ad4的dispatch.json仍保留106个已落地任务的复验提示词（revalidation.json当时已清空，生成物未重生），对父源重生成与父提交有106项差异；本补丁的sync把这106项恢复为常规提示词，属生成物回正而非契约变化。M3-T21至T24、M5-T5、R3-T09233008、R3-T22883505共7个已落地任务的实施提示词冲突清单新增M4-T4（共享路径所致），契约哈希未变。本证据不覆盖实现行为；其余13个todo任务的契约仍待各自开工审查时复核。"
+      "仅登记支持路径文档契约语义，不代表产品或数据库通过。审核候选 18977cabdfff7ad96496b0ee3c4d99f7d8ec2728（父 5b63cebc51b631208e63a032a23ac53d828dc375，tree aebf859dc8d18a89b1fbc3ee51bcf891dbaa3e02，9 条文档路径），补丁 m4t4-support-paths-2-20261119，PR #561。",
+      "源仅在 M4-T4 的 supportPaths 列表末尾追加 deploy/env.template、.env.example、src/lib/server/startup/env-check.ts；模板用于通知收件地址说明，启动入口用于生产环境校验；这些目标文件在本提交中未改。其他任务/字段不变，有效路径 37→40，且与其余任务有效路径无交集。",
+      "逐项重算 14 项 todo 契约哈希，与 PM AFFECTED.tsv 和预估 HASH-COST.tsv 第二案完全一致；本任务 3bd5901b682f61d659ff52584c9d69a6c5c1fe07610b4f1ee8a4b4be4d9afb2f→1cb57e9411addd1725c5f4afdfc0030aa95715c3e824fdb6f9f8da7f109b0f2f，其余 13 个传递依赖只因 providers 变更；新增待复验 0，dispatch/manifest/review 与 docs-data 变动均符合预期，既有复核和证据模板不变。",
+      "固定提交在仓库外重建返回 0，4538 件受跟踪文件字节无变化。单独重跑 baseline a7941062 与该候选的 ledger 既知失败，均为第 110 行相同列表断言；不修 #560，不跑产品测试、PG 或 CI。"
     ],
-    "reviewed": "2026-11-19T14:04:22.743509+00:00",
+    "reviewed": "2026-11-19T16:20:50.190738+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
