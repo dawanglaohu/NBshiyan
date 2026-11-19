@@ -27,17 +27,23 @@ export function notificationMailConfig(env: NotificationEnv = process.env): Noti
   try {
     const site = new URL(env.NEXT_PUBLIC_SITE_URL ?? '');
     const testSite = env.APP_ENV === 'test' && process.env.CHAT_NOTIFICATION_TEST_HOOK_BUILD === '1';
-    if (base.cfg.host.toLowerCase() === 'smtp.evidence.test' && env.APP_ENV !== 'test') return null;
+    if (base.cfg.host.toLowerCase() === 'smtp.evidence.test' && !testSite) return null;
     if (site.username || site.password || site.search || site.hash || site.pathname !== '/') return null;
     if (site.protocol !== 'https:' && !(testSite && site.protocol === 'http:' && ['localhost', '127.0.0.1', '[::1]'].includes(site.hostname))) return null;
     return { smtp: base.cfg, to: to.address, site: site.origin };
   } catch { return null; }
 }
 
+// The shared adapter bounds codes for logging, which truncates several TLS error names.
+const TLS_FAILURE_CODES = new Set([
+  'ETLS', 'CERT_HAS_EXPIRED', 'DEPTH_ZERO_SELF_SIGNED_CERT', 'SELF_SIGNED_CERT_IN_CHAIN',
+  'UNABLE_TO_VERIFY_LEAF_SIGNATURE', 'ERR_TLS_CERT_ALTNAME_INVALID', 'UNABLE_TO_GET_ISSUER_CERT_LOCALLY',
+]);
+
 /** Network codes alone never prove that this attempt failed before DATA. */
 export function classifyNotificationFailure(error: unknown, beforeHandoff: boolean): NotificationOutcome {
   const candidate = classifySmtpError(error);
-  const shaped = error as { responseCode?: unknown; command?: unknown } | null;
+  const shaped = error as { responseCode?: unknown; command?: unknown; code?: unknown; originalCode?: unknown } | null;
   const explicitRefusal = typeof shaped?.responseCode === 'number' && Number.isInteger(shaped.responseCode)
     && shaped.responseCode >= 400 && shaped.responseCode <= 599
     && typeof shaped.command === 'string' && /^(?:CONN|EHLO|HELO|STARTTLS|AUTH|MAIL|RCPT|DATA)(?: |$)/.test(shaped.command);
@@ -49,7 +55,9 @@ export function classifyNotificationFailure(error: unknown, beforeHandoff: boole
       case 'message_rejected': return { kind: 'failed', code: 'CHAT_SMTP_REJECTED' };
     }
   }
-  if (beforeHandoff && candidate.reason === 'smtp_tls') return { kind: 'failed', code: 'CHAT_SMTP_TLS' };
+  if ([shaped?.code, shaped?.originalCode].some((code) => typeof code === 'string' && TLS_FAILURE_CODES.has(code))) {
+    return { kind: 'failed', code: 'CHAT_SMTP_TLS' };
+  }
   if (beforeHandoff && candidate.reason === 'send_unavailable') return { kind: 'retry', code: 'CHAT_SMTP_UNAVAILABLE' };
   return { kind: 'unknown', code: 'CHAT_SMTP_UNKNOWN' };
 }

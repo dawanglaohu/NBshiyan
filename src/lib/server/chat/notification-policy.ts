@@ -44,7 +44,12 @@ export async function pauseAfterNotificationAcceptance(signal: AbortSignal): Pro
 
 export function notificationBackoffMs(attempts: number, env: NotificationEnv = process.env): number {
   if (!Number.isInteger(attempts) || attempts < 1 || attempts >= CHAT_NOTIFICATION_MAX_ATTEMPTS) throw new Error('chat_notification_backoff_invalid');
-  return CHAT_NOTIFICATION_BACKOFF_MS[attempts - 1] * notificationTestHooks(env).backoffScale;
+  const backoff = CHAT_NOTIFICATION_BACKOFF_MS[attempts - 1];
+  if (process.env.CHAT_NOTIFICATION_TEST_HOOK_BUILD !== '1') return backoff;
+  const { backoffScale } = notificationTestHooks(env);
+  if (backoffScale === 1) return backoff;
+  console.info('CHAT_NOTIFICATION_TEST_BACKOFF_ACTIVE');
+  return backoff * backoffScale;
 }
 
 export const CHAT_NOTIFICATION_SAFE_CODES = [

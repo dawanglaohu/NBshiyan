@@ -13,6 +13,7 @@ const prod = {
   PRIVACY_HASH_SECRET: SECRET, CRON_SECRET: SECRET, TURNSTILE_SECRET_KEY: '0x4AAAAAAArealSecretKey', NEXT_PUBLIC_TURNSTILE_SITE_KEY: '0x4AAAAAAArealSiteKey',
   SMTP_HOST: 'smtp.gmail.com', SMTP_PORT: '465', SMTP_USER: 'u@gmail.com', SMTP_PASS: SECRET, MAIL_FROM: 'PackJoyU <u@gmail.com>', INQUIRY_NOTIFY_EMAIL: 'n@example.com',
   MAIL_SEND_ADAPTER: 'smtp', MAIL_WEBHOOK_SECRET: SECRET, NEXT_PUBLIC_SITE_URL: 'https://packjoyu.com', APP_ORIGIN: 'https://packjoyu.com', EDGE_AUTH_SECRET: SECRET,
+  CHAT_NOTIFICATION_TO: 'chat-ops@example.test',
 };
 function run(env: Record<string, string | undefined>) {
   const logs: string[] = []; const exits: number[] = [];
@@ -91,6 +92,29 @@ test('M4-T4 G10：standalone启动hook导致exit(1)，探针不进入日志', ()
     assert.deepEqual(result.exits, [1]);
     assert.equal(result.logs.length, 1);
     assert.ok(result.logs[0].includes(key));
+    assert.ok(!result.logs[0].includes(probe));
+  }
+});
+
+test('M4-T4 S3: optional recipient allows startup and warns once per process', () => {
+  const warnings: string[] = [];
+  const deps = { dirProblem: () => null, cwd: '/app', warn: (message: string) => warnings.push(message),
+    exit: (code: number): never => { throw new Error(`unexpected_exit_${code}`); } };
+  runStartupEnvCheck({ APP_ENV: 'preview' }, deps);
+  runStartupEnvCheck(prod, deps);
+  assert.deepEqual(warnings, []);
+  for (const value of [undefined, '', ' \t ']) runStartupEnvCheck({ ...prod, CHAT_NOTIFICATION_TO: value }, deps);
+  assert.deepEqual(warnings, ['CHAT_NOTIFICATION_RECIPIENT_MISSING: CHAT_NOTIFICATION_TO 未设置，聊天邮件通知未启用']);
+});
+
+test('M4-T4 S3: malformed, multiple and control-bearing recipients exit without logging the value', () => {
+  const probe = 'startup-chat-recipient-private-probe';
+  for (const value of [probe, `${probe}@example.test, b@example.test`, `${probe}@example.test, Ops <b@example.test>`,
+    `${probe}@example.test\r`, `${probe}@example.test\n`, `${probe}@example.test\0`, ' \n', '\r', '\0']) {
+    const result = run({ ...prod, CHAT_NOTIFICATION_TO: value });
+    assert.deepEqual(result.exits, [1]);
+    assert.equal(result.logs.length, 1);
+    assert.match(result.logs[0], /^- CHAT_NOTIFICATION_TO 必须是单个有效邮箱地址$/m);
     assert.ok(!result.logs[0].includes(probe));
   }
 });

@@ -230,23 +230,35 @@ jobs:
           import fs from 'node:fs';
           import os from 'node:os';
           import path from 'node:path';
-          const marker = 'CHAT_NOTIFICATION_TEST_HOOK_ACTIVE';
+          const markers = ['CHAT_NOTIFICATION_TEST_HOOK_ACTIVE', 'CHAT_NOTIFICATION_TEST_BACKOFF_ACTIVE'];
           function scan(directory) {
             const files = fs.readdirSync(directory, { recursive: true, withFileTypes: true });
             const scripts = files.filter((file) => file.isFile() && /\.(?:js|cjs|mjs)$/.test(file.name));
             assert.ok(scripts.length, 'no compiled scripts to inspect');
-            const hits = scripts.filter((file) => fs.readFileSync(path.join(file.parentPath, file.name), 'utf8').includes(marker));
-            assert.equal(hits.length, 0, 'ACTIVE_CHAT_HOOK_PRESENT');
+            const seen = new Set();
+            for (const file of scripts) {
+              const source = fs.readFileSync(path.join(file.parentPath, file.name), 'utf8');
+              for (const marker of markers) if (source.includes(marker)) seen.add(marker);
+            }
+            return markers.filter((marker) => seen.has(marker));
           }
-          scan('.next/server');
-          scan('.next/standalone/.next/server');
+          function assertStripped(directory) {
+            assert.deepEqual(scan(directory), [], 'ACTIVE_CHAT_HOOK_PRESENT');
+          }
+          assertStripped('.next/server');
+          assertStripped('.next/standalone/.next/server');
+          assert.deepEqual(scan('.next-original-build/server'), markers, 'TEST_CHAT_HOOK_MISSING');
+          assert.deepEqual(scan('.next-original-build/standalone/.next/server'), markers, 'TEST_CHAT_HOOK_MISSING');
           const probe = fs.mkdtempSync(path.join(os.tmpdir(), 'm4t4-hook-negative-'));
           try {
-            fs.copyFileSync('.next/standalone/server.js', path.join(probe, 'server.js'));
-            fs.appendFileSync(path.join(probe, 'server.js'), `\nconsole.info(${JSON.stringify(marker)});\n`);
-            assert.throws(() => scan(probe), /ACTIVE_CHAT_HOOK_PRESENT/);
+            for (const marker of markers) {
+              fs.copyFileSync('.next/standalone/server.js', path.join(probe, 'server.js'));
+              fs.appendFileSync(path.join(probe, 'server.js'), `\nconsole.info(${JSON.stringify(marker)});\n`);
+              assert.deepEqual(scan(probe), [marker]);
+              assert.throws(() => assertStripped(probe), /ACTIVE_CHAT_HOOK_PRESENT/);
+            }
           } finally { fs.rmSync(probe, { recursive: true }); }
-          console.log('M4T4_HOOK_STRIP production=PASS negative=DETECTED');
+          console.log('M4T4_HOOK_STRIP production=PASS negative=DETECTED original=PASS markers=2');
           EOF
 
       # 两段构建与断言的日志分开留存；失败也上传，便于复核。
@@ -1806,12 +1818,15 @@ jobs:
           # restarts the http-real artifact, arms one tick and asserts SENT / JobState / sink.
           node "$smtp_script" exec --root "$root" --mode http-real -- node tests/evidence/mail-cron-phase.mjs --report "$report_dir/admin-legacy-inquiries-mail-cron.json"
           # Additional isolated checks: absolute SMTP cutoff, actual retry counts, and five real minute ticks.
-          node "$smtp_script" exec --root "$root" --mode http-real -- env M4T4_SMTP_EVIDENCE=1 node --import tsx --test --test-reporter=tap tests/chat-notification-smtp.integration.test.ts | tee "$report_dir/chat-notification-smtp.tap"
+          node "$smtp_script" exec --root "$root" --mode http-real -- env M4T4_SMTP_EVIDENCE=1 CHAT_NOTIFICATION_TEST_HOOK_BUILD=1 node --import tsx --test --test-reporter=tap tests/chat-notification-smtp.integration.test.ts | tee "$report_dir/chat-notification-smtp.tap"
           grep -qx '# pass 5' "$report_dir/chat-notification-smtp.tap"
           grep -qx '# fail 0' "$report_dir/chat-notification-smtp.tap"
           grep -qx '# skipped 0' "$report_dir/chat-notification-smtp.tap"
           grep -qx '# todo 0' "$report_dir/chat-notification-smtp.tap"
           grep -qx '# cancelled 0' "$report_dir/chat-notification-smtp.tap"
+          for port in 465 587; do
+            grep -qx "# M4T4_TLS_REJECT port=$port code=CHAT_SMTP_TLS auth=0 mail=0" "$report_dir/chat-notification-smtp.tap"
+          done
           node "$smtp_script" exec --root "$root" --mode http-real -- node tests/evidence/chat-notifications-phase.mjs --report "$report_dir/chat-notifications-phase.json"
           DRIVER
           chmod 600 "$root/driver.sh"
@@ -1891,6 +1906,8 @@ jobs:
           name: m3-t21-mail-evidence
           path: |
             test-results/**/admin-legacy-inquiries*.json
+            test-results/**/chat-notifications-phase.json
+            test-results/**/chat-notification-smtp.tap
             test-results/**/inquiry-visual-*.png
             test-results/**/*.webm
           retention-days: 1

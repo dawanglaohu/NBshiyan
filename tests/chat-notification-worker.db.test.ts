@@ -54,13 +54,38 @@ async function seed(data: Partial<Prisma.ChatNotificationUncheckedCreateInput> =
   await conn.chatVisitorSession.create({ data: { id: visitor, tokenHash: createHash('sha256').update(visitor).digest('hex'), createdAt: clock(), lastActivityAt: clock(), absoluteExpiresAt: new Date(time + 86400000) } });
   await conn.chatConversation.create({ data: { id: conversation, visitorSessionId: visitor, clientConversationId: randomUUID(), createPayloadHash: 'a'.repeat(64), locale: 'en', lastSeq: 1, createdAt: clock(), updatedAt: clock(), lastActivityAt: clock(), retainUntil: new Date(time + 86400000) } });
   await conn.chatMessage.create({ data: { id: message, conversationId: conversation, seq: 1, sender: 'VISITOR', clientMessageId: randomUUID(), payloadHash: 'b'.repeat(64), bodyText: 'private-body-probe', createdAt: clock() } });
-  return conn.chatNotification.create({ data: { id, conversationId: conversation, messageId: message, stableMessageId: `<${message}@notifications.example.test>`, availableAt: clock(), createdAt: clock(), updatedAt: clock(), ...data } });
+  return conn.chatNotification.create({ data: { id, conversationId: conversation, messageId: message, stableMessageId: `${message}@notifications.example.test`, availableAt: clock(), createdAt: clock(), updatedAt: clock(), ...data } });
 }
 async function started(attempts = 1) {
   const row = await seed({ attempts: attempts - 1 });
   const r = repo(); const claimed = await r.claimDue('owner-a'); assert.equal(claimed?.id, row.id);
   const result = await r.startAttempt(notificationToken(claimed!)); assert.ok(result);
   return result;
+}
+function loadRepoMutation(mutate: (source: string) => string) {
+  const sourcePath = path.resolve('src/lib/server/chat/notification-repo.ts');
+  const source = readFileSync(sourcePath, 'utf8');
+  const mutant = mutate(source)
+    .replace("'@prisma/client'", JSON.stringify(require.resolve('@prisma/client')))
+    .replace("'../jobs/registry'", JSON.stringify(path.resolve('src/lib/server/jobs/registry.ts')))
+    .replace("'./notification-policy'", JSON.stringify(path.resolve('src/lib/server/chat/notification-policy.ts')));
+  const root = mkdtempSync(path.join(os.tmpdir(), 'nbshiyan-m4t4-mutation-'));
+  const cleanup = () => {
+    const resolved = realpathSync(root);
+    assert.equal(path.dirname(resolved), realpathSync(os.tmpdir()));
+    assert.ok(path.basename(resolved).startsWith('nbshiyan-m4t4-mutation-'));
+    rmSync(resolved, { recursive: true });
+  };
+  try {
+    const output = ts.transpileModule(mutant, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
+    const file = path.join(root, 'notification-repo.cjs');
+    writeFileSync(file, output);
+    const mod = require(file) as { createNotificationRepo: typeof createNotificationRepo };
+    return { source, mutant, cleanup, create: (db: NotificationDb) => mod.createNotificationRepo({ db, clock, env: {} }) };
+  } catch (error) {
+    cleanup();
+    throw error;
+  }
 }
 async function probe() {
   const rows = await conn.$queryRawUnsafe<{ last_value: bigint; is_called: boolean }[]>(`SELECT last_value,is_called FROM "${schema}"."m4t4_cap_probe"`);
@@ -93,6 +118,8 @@ async function installProbe() {
 
 before(async () => {
   if (skip) return;
+  const processZone = process.env.M4T4_PG_SESSION_TZ;
+  if (processZone) assert.equal(Intl.DateTimeFormat().resolvedOptions().timeZone, processZone);
   admin = new PrismaClient({ datasources: { db: { url: supplied! } } });
   const version = await admin.$queryRaw<{ version: string }[]>`SELECT current_setting('server_version_num') AS version`;
   assert.equal(Math.floor(Number(version[0].version) / 10000), 17, 'dedicated PostgreSQL 17 required');
@@ -135,6 +162,8 @@ describe('M4-T4 notification PostgreSQL', { skip, concurrency: false, timeout: 1
     const row = await started(); const r = repo(); const token = notificationToken(row);
     assert.equal(await r.startAttempt(token), null);
     assert.equal(await r.finish(token, { kind: 'retry', code: 'CHAT_SMTP_TEMPORARY' }), true);
+    assert.equal(row.lockedUntil?.getTime(), time + CHAT_NOTIFICATION_LEASE_MS);
+    assert.equal(row.requestStartedAt?.getUTCMilliseconds(), 123);
     const queued = await stored(row.id); assert.equal(queued.availableAt.getTime(), time + 60000);
     assert.equal(queued.updatedAt.getTime(), time); assert.equal(queued.leaseOwner, null); assert.equal(queued.lockedUntil, null); assert.ok(queued.requestStartedAt);
     time = queued.availableAt.getTime() - 1; assert.equal(await r.claimDue('owner-b'), null);
@@ -205,8 +234,12 @@ describe('M4-T4 notification PostgreSQL', { skip, concurrency: false, timeout: 1
     const old = await started(); time = old.lockedUntil!.getTime(); await repo().recoverExpiredLease(clock());
     time = (await stored(old.id)).availableAt.getTime(); await repo().promoteUnknown(clock());
     const next = await repo().claimDue('owner-a'); assert.ok(next); assert.equal(next.leaseVersion, old.leaseVersion + 1);
-    const before = await stored(old.id); assert.equal(await repo().finish(notificationToken(old), { kind: 'sent' }), false); assert.deepEqual(await stored(old.id), before);
-    const marked = await repo().startAttempt(notificationToken(next)); assert.ok(marked);
+    const marked = await repo().startAttempt(notificationToken(next)); assert.ok(marked?.requestStartedAt);
+    assert.equal(marked.leaseOwner, old.leaseOwner);
+    assert.ok(marked.lockedUntil && marked.lockedUntil.getTime() > time);
+    const before = await stored(old.id);
+    assert.equal(await repo().finish(notificationToken(old), { kind: 'sent' }), false);
+    assert.deepEqual(await stored(old.id), before);
     assert.equal(await repo().finish(notificationToken(marked), { kind: 'sent' }), true);
   });
 
@@ -231,7 +264,7 @@ describe('M4-T4 notification PostgreSQL', { skip, concurrency: false, timeout: 1
       try {
         const end = Date.now() + 1000; let blocked = false;
         while (Date.now() < end) {
-          if (p2) { const locks = await conn.$queryRaw<{ pids: number[] }[]>`SELECT pg_blocking_pids(${p2}) AS pids`; if (locks[0].pids.includes(p1)) { blocked = true; break; } }
+          if (p2) { const locks = await conn.$queryRaw<{ pids: number[] }[]>`SELECT pg_blocking_pids(${p2}::int) AS pids`; if (locks[0].pids.includes(p1)) { blocked = true; break; } }
           await delay(10);
         }
         assert.ok(blocked, 'C2 must be blocked by this exact C1'); assert.equal(sampled, 0);
@@ -273,7 +306,7 @@ describe('M4-T4 notification PostgreSQL', { skip, concurrency: false, timeout: 1
     await repo().recoverExpiredLease(clock()); await repo().disableNeverStartedQueued();
     assert.equal((await stored(marked.id)).status, 'UNKNOWN'); assert.equal((await stored(empty.id)).status, 'QUEUED');
   });
-  test('AC12：已标记后不可观测中断UNKNOWN，确知未调用则按已知失败', async () => {
+  test('AC12：已标记后中断清扫为UNKNOWN，确知未调用暂时失败回QUEUED', async () => {
     const dead = await started(); time = dead.lockedUntil!.getTime(); await repo().recoverExpiredLease(clock()); assert.equal((await stored(dead.id)).status, 'UNKNOWN');
     const live = await started(); await repo().finish(notificationToken(live), { kind: 'retry', code: 'CHAT_PRE_SEND_FAULT' }); assert.equal((await stored(live.id)).status, 'QUEUED');
   });
@@ -291,11 +324,46 @@ describe('M4-T4 notification PostgreSQL', { skip, concurrency: false, timeout: 1
   test('AC15：精确id一次INSERT豁免，异常QUEUED4不迁移或发送，UPDATE探针回滚仍可读', async () => {
     const id = randomUUID(); expectedCapId = id;
     await conn.$executeRawUnsafe(`INSERT INTO "${schema}"."m4t4_ac15_exemption" VALUES (true,$1,true)`, id);
-    await seed({ id, attempts: 4 }); const before = await stored(id);
-    assert.equal(await repo().claimDue('a'), null); assert.deepEqual(await stored(id), before);
+    const invariantViolation = (error: unknown) => error instanceof Error && error.message.includes('M4T4_QUEUED_CAP_INVARIANT');
     expectedProbeDelta = 1;
-    await assert.rejects(conn.chatNotification.update({ where: { id }, data: { updatedAt: clock() } }));
-    assert.equal((await probe()) - probeBefore, 1); assert.deepEqual(await stored(id), before);
+    await assert.rejects(seed({ attempts: 4 }), invariantViolation);
+    assert.equal(await conn.chatNotification.count(), 0);
+    assert.equal((await probe()) - probeBefore, 1);
+    await seed({ id, attempts: 4 }); const before = await stored(id);
+    let sends = 0;
+    const run = (notificationRepo: NotificationRepo) => processChatNotifications({
+      repo: notificationRepo, owner: 'a', getMailer: async () => ({ async send() { sends++; return { kind: 'sent' }; } }),
+    }, { now: clock(), budget: { deadlineAt: new Date(Date.now() + 54_750), signal: new AbortController().signal } });
+    await run(repo());
+    assert.equal(sends, 0);
+    assert.deepEqual(await stored(id), before);
+    assert.equal((await probe()) - probeBefore, 1);
+
+    expectedProbeDelta = 2;
+    await assert.rejects(conn.chatNotification.update({ where: { id }, data: { updatedAt: clock() } }), invariantViolation);
+    assert.equal((await probe()) - probeBefore, 2);
+    assert.deepEqual(await stored(id), before);
+
+    const fourth = await seed({ attempts: 3 });
+    const brokenRepo = loadRepoMutation((source) => {
+      const capBranch = "outcome.kind === 'failed' || cap ? 'FAILED'";
+      assert.equal(source.split(capBranch).length, 2);
+      return source.replace(capBranch, "outcome.kind === 'failed' ? 'FAILED'");
+    });
+    try {
+      expectedProbeDelta = 3;
+      await assert.rejects(processChatNotifications({
+        repo: brokenRepo.create(configuredDb(conn)), owner: 'a', limit: 1,
+        getMailer: async () => ({ async send() { sends++; return { kind: 'retry', code: 'CHAT_SMTP_TEMPORARY' }; } }),
+      }, { now: clock(), budget: { deadlineAt: new Date(Date.now() + 54_750), signal: new AbortController().signal } }), invariantViolation);
+      const unchanged = await stored(fourth.id);
+      assert.equal(unchanged.status, 'SENDING');
+      assert.equal(unchanged.attempts, 4);
+      assert.ok(unchanged.requestStartedAt);
+      assert.equal(unchanged.availableAt.getTime(), fourth.availableAt.getTime());
+      assert.equal(sends, 1); assert.equal((await probe()) - probeBefore, 3);
+      assert.deepEqual(await stored(id), before);
+    } finally { brokenRepo.cleanup(); }
   });
   test('AC16：第四次确知未调用单CAS FAILED，本次调用0/attempts4，安全码不泄露', async () => {
     const source = await seed({ attempts: 3 }); let calls = 0;
@@ -316,8 +384,14 @@ describe('M4-T4 notification PostgreSQL', { skip, concurrency: false, timeout: 1
   });
   test('AC18：pre-send后僵尸恢复不能覆盖新租约', async () => {
     const zombie = await started(); time = zombie.lockedUntil!.getTime(); await repo().recoverExpiredLease(clock()); time = (await stored(zombie.id)).availableAt.getTime(); await repo().promoteUnknown(clock());
-    const next = await repo().claimDue('b'); assert.ok(next); const before = await stored(zombie.id);
-    assert.equal(await repo().finish(notificationToken(zombie), { kind: 'sent' }), false); assert.deepEqual(await stored(zombie.id), before);
+    const next = await repo().claimDue('owner-a'); assert.ok(next);
+    const marked = await repo().startAttempt(notificationToken(next)); assert.ok(marked?.requestStartedAt);
+    assert.equal(marked.leaseOwner, zombie.leaseOwner);
+    assert.equal(marked.leaseVersion, zombie.leaseVersion + 1);
+    const before = await stored(zombie.id);
+    assert.equal(await repo().finish(notificationToken(zombie), { kind: 'sent' }), false);
+    assert.deepEqual(await stored(zombie.id), before);
+    assert.equal(await repo().finish(notificationToken(marked), { kind: 'sent' }), true);
   });
   test('F04：有候选claim采样2次，其余有效单行方法采样1次', async () => {
     await seed(); let calls = 0; const r = repo(() => { calls++; return clock(); });
@@ -331,7 +405,7 @@ describe('M4-T4 notification PostgreSQL', { skip, concurrency: false, timeout: 1
     await seed();
     calls = 0; assert.equal(await r.disableNeverStartedQueued(), 1); assert.equal(calls, 1);
   });
-  test('F08：通知锁不锁会话或ChatMessage，NOWAIT探针可获取两者', async () => {
+  test('F08：认领锁定同一通知行，NOWAIT仍可锁两个关联行', async () => {
     const row = await seed(); let unlock!: () => void, ready!: () => void;
     const gate = new Promise<void>((r) => { unlock = r; }); const entered = new Promise<void>((r) => { ready = r; });
     const withProbe = () => configuredDb(conn, undefined, (tx) => new Proxy(tx, {
@@ -346,14 +420,21 @@ describe('M4-T4 notification PostgreSQL', { skip, concurrency: false, timeout: 1
         };
       },
     }));
+    const lockedNowait = (error: unknown) => error instanceof Prisma.PrismaClientKnownRequestError && error.meta?.code === '55P03';
     const takeOtherLocks = () => conn.$transaction(async (tx) => {
-      await tx.$queryRaw`SELECT "id" FROM "ChatConversation" WHERE "id"=${row.conversationId} FOR UPDATE NOWAIT`;
-      await tx.$queryRaw`SELECT "id" FROM "ChatMessage" WHERE "id"=${row.messageId} FOR UPDATE NOWAIT`;
+      const conversations = await tx.$queryRaw`SELECT "id" FROM "ChatConversation" WHERE "id"=${row.conversationId} FOR UPDATE NOWAIT`;
+      const messages = await tx.$queryRaw`SELECT "id" FROM "ChatMessage" WHERE "id"=${row.messageId} FOR UPDATE NOWAIT`;
+      assert.deepEqual(conversations, [{ id: row.conversationId }]);
+      assert.deepEqual(messages, [{ id: row.messageId }]);
     });
+    const takeNotificationLock = () => conn.$transaction((tx) =>
+      tx.$queryRaw`SELECT "id" FROM "ChatNotification" WHERE "id"=${row.id} FOR UPDATE NOWAIT`);
     const worker = repo(clock, withProbe()).claimDue('a');
     await entered;
-    try { await takeOtherLocks(); } finally { unlock(); }
-    assert.ok(await worker);
+    try {
+      await assert.rejects(takeNotificationLock(), lockedNowait);
+      await takeOtherLocks();
+    } finally { unlock(); assert.equal((await worker)?.id, row.id); }
     await conn.chatNotification.update({ where: { id: row.id }, data: { status: 'QUEUED', leaseOwner: null, lockedUntil: null } });
     const mutantGate = new Promise<void>((r) => { unlock = r; });
     const mutantReady = new Promise<void>((r) => { ready = r; });
@@ -363,7 +444,7 @@ describe('M4-T4 notification PostgreSQL', { skip, concurrency: false, timeout: 1
     });
     const mutant = repo(clock, mutantDb).claimDue('a');
     await mutantReady;
-    try { await assert.rejects(takeOtherLocks(), (error: unknown) => error instanceof Prisma.PrismaClientKnownRequestError && error.meta?.code === '55P03'); }
+    try { await assert.rejects(takeOtherLocks(), lockedNowait); }
     finally { unlock(); await mutant; }
   });
   test('F02：实际锁超时是预算耗尽，不冒充affected0', async () => {
@@ -376,31 +457,36 @@ describe('M4-T4 notification PostgreSQL', { skip, concurrency: false, timeout: 1
   });
   test('AC-T：两种非UTC进程和同一事务会话时区重跑AC1/AC3/AC7', () => {
     for (const zone of ['Asia/Shanghai', 'America/Los_Angeles']) {
-      const result = spawnSync(process.execPath, ['--import', 'tsx', '--test', '--test-name-pattern=AC1/S1|AC3/AC2|AC7/K2', 'tests/chat-notification-worker.db.test.ts'], { cwd: process.cwd(), env: { ...process.env, TZ: zone, M4T4_PG_SESSION_TZ: zone }, encoding: 'utf8', timeout: 120000 });
-      assert.equal(result.status, 0, `non-UTC round failed: ${zone}`); assert.match(result.stdout, /# pass 3/); console.log(`AC_T ${zone} passed=3`);
+      const env: NodeJS.ProcessEnv = { ...process.env, TZ: zone, M4T4_PG_SESSION_TZ: zone };
+      delete env.NODE_TEST_CONTEXT;
+      const result = spawnSync(process.execPath, ['--import', 'tsx', '--test', '--test-reporter=tap', '--test-name-pattern=AC1/S1|AC3/AC2|AC7/K2', 'tests/chat-notification-worker.db.test.ts'], { cwd: process.cwd(), env, encoding: 'utf8', timeout: 120000 });
+      assert.equal(result.status, 0, `non-UTC round failed: ${zone}`);
+      const passed = [...result.stdout.matchAll(/^ +ok \d+ - (AC1\/S1|AC3\/AC2|AC7\/K2)：[^\r\n#]+$/gm)].map((match) => match[1]);
+      assert.deepEqual(passed, ['AC1/S1', 'AC3/AC2', 'AC7/K2'], `non-UTC cases: ${zone}`);
+      assert.match(result.stdout, /^# pass 3$/m);
+      for (const field of ['fail', 'skipped', 'cancelled', 'todo']) assert.match(result.stdout, new RegExp(`^# ${field} 0$`, 'm'));
+      console.log(`AC_T ${zone} passed=3 cases=${passed.join(',')}`);
     }
   });
   test('F05：仓库外源码副本裸Date变异必须被同一UTC租约断言检出', async () => {
-    const sourcePath = path.resolve('src/lib/server/chat/notification-repo.ts'); const source = readFileSync(sourcePath, 'utf8');
-    const needle = "return Prisma.sql`${date.toISOString()}::timestamptz AT TIME ZONE 'UTC'`;"; assert.equal(source.split(needle).length - 1, 1);
-    const mutant = source.replace(needle, 'return date as unknown as Prisma.Sql;')
-      .replace("'@prisma/client'", JSON.stringify(require.resolve('@prisma/client')))
-      .replace("'../jobs/registry'", JSON.stringify(path.resolve('src/lib/server/jobs/registry.ts')))
-      .replace("'./notification-policy'", JSON.stringify(path.resolve('src/lib/server/chat/notification-policy.ts')));
-    const root = mkdtempSync(path.join(os.tmpdir(), 'nbshiyan-m4t4-utc-'));
+    const mutation = loadRepoMutation((source) => {
+      const needle = "return Prisma.sql`${date.toISOString()}::timestamptz AT TIME ZONE 'UTC'`;";
+      assert.equal(source.split(needle).length, 2);
+      return source.replace(needle, 'return date as unknown as Prisma.Sql;');
+    });
+    const oldZone = process.env.M4T4_PG_SESSION_TZ;
+    process.env.M4T4_PG_SESSION_TZ = 'Asia/Shanghai';
     try {
-      const output = ts.transpileModule(mutant, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
-      const file = path.join(root, 'notification-repo.cjs'); writeFileSync(file, output);
-      const mod = require(file) as { createNotificationRepo: typeof createNotificationRepo };
-      const oldZone = process.env.M4T4_PG_SESSION_TZ; process.env.M4T4_PG_SESSION_TZ = 'Asia/Shanghai';
-      try {
-        await seed();
-        const exercise = async (r: NotificationRepo) => { const claim = await r.claimDue('a'); assert.ok(claim); assert.equal(claim.lockedUntil!.getTime(), time + CHAT_NOTIFICATION_LEASE_MS, 'utc lease exact'); };
-        await exercise(repo());
-        await conn.chatNotification.deleteMany(); await seed();
-        await assert.rejects(exercise(mod.createNotificationRepo({ db: configuredDb(conn), clock, env: {} })), { code: 'ERR_ASSERTION' });
-        console.log(`UTC_MUTATION naked_date=DETECTED original=${createHash('sha256').update(source).digest('hex')} mutant=${createHash('sha256').update(mutant).digest('hex')}`);
-      } finally { if (oldZone === undefined) delete process.env.M4T4_PG_SESSION_TZ; else process.env.M4T4_PG_SESSION_TZ = oldZone; }
-    } finally { const resolved = realpathSync(root); assert.equal(path.dirname(resolved), realpathSync(os.tmpdir())); assert.ok(path.basename(resolved).startsWith('nbshiyan-m4t4-utc-')); rmSync(resolved, { recursive: true }); }
+      await seed();
+      const exercise = async (r: NotificationRepo) => { const claim = await r.claimDue('a'); assert.ok(claim); assert.equal(claim.lockedUntil!.getTime(), time + CHAT_NOTIFICATION_LEASE_MS, 'utc lease exact'); };
+      await exercise(repo());
+      await conn.chatNotification.deleteMany(); await seed();
+      await assert.rejects(exercise(mutation.create(configuredDb(conn))), { code: 'ERR_ASSERTION', message: /utc lease exact/ });
+      console.log(`UTC_MUTATION naked_date=DETECTED original=${createHash('sha256').update(mutation.source).digest('hex')} mutant=${createHash('sha256').update(mutation.mutant).digest('hex')}`);
+    } finally {
+      if (oldZone === undefined) delete process.env.M4T4_PG_SESSION_TZ;
+      else process.env.M4T4_PG_SESSION_TZ = oldZone;
+      mutation.cleanup();
+    }
   });
 });

@@ -3,8 +3,12 @@ import assert from 'node:assert/strict';
 import { randomUUID, randomBytes, createHash } from 'node:crypto';
 import { spawn, spawnSync } from 'node:child_process';
 import { once } from 'node:events';
+import { createConnection, createServer, type Socket } from 'node:net';
+import { createSecureContext, TLSSocket } from 'node:tls';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { readFileSync, readlinkSync } from 'node:fs';
+import { mkdtempSync, readFileSync, readlinkSync, rmSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { setTimeout as delay } from 'node:timers/promises';
 import { PrismaClient } from '@prisma/client';
@@ -77,6 +81,77 @@ async function run(clock: () => Date, deps: { port: '465' | '587'; beforeSend?: 
   return { called, sendMs };
 }
 
+async function assertUntrustedCertificate(port: '465' | '587') {
+  const host = 'smtp.example.test';
+  const root = mkdtempSync(join(tmpdir(), 'm4t4-smtp-self-signed-'));
+  try {
+    const cert = spawnSync('openssl', ['req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-days', '1',
+      '-subj', `/CN=${host}`, '-addext', `subjectAltName=DNS:${host}`, '-keyout', 'key.pem', '-out', 'cert.pem'],
+    { cwd: root, stdio: 'ignore', timeout: 15_000 });
+    assert.equal(cert.status, 0, 'ephemeral SMTP TLS certificate generation failed');
+    const secureContext = createSecureContext({ key: readFileSync(join(root, 'key.pem')), cert: readFileSync(join(root, 'cert.pem')) });
+    const seen = { connections: 0, handshake: 0, starttls: 0, auth: 0, mail: 0 };
+    const peers = new Set<Socket>();
+    function serve(socket: Socket, cleartext: boolean) {
+      let pending = '';
+      const onData = (chunk: Buffer) => {
+        pending += chunk.toString();
+        while (pending.includes('\r\n')) {
+          const end = pending.indexOf('\r\n');
+          const verb = pending.slice(0, end).split(' ', 1)[0].toUpperCase();
+          pending = pending.slice(end + 2);
+          if (verb === 'EHLO') socket.write(cleartext ? '250-localhost\r\n250-STARTTLS\r\n250 AUTH PLAIN\r\n' : '250-localhost\r\n250 AUTH PLAIN\r\n');
+          else if (verb === 'STARTTLS' && cleartext) {
+            seen.starttls++;
+            socket.off('data', onData);
+            socket.write('220 Ready to start TLS\r\n');
+            upgrade(socket, false);
+            return;
+          } else if (verb === 'AUTH') { seen.auth++; socket.write('235 Authentication successful\r\n'); }
+          else if (verb === 'MAIL') { seen.mail++; socket.write('550 Test sink rejects all mail\r\n'); }
+          else socket.write('500 Unexpected command\r\n');
+        }
+      };
+      socket.on('data', onData);
+    }
+    function upgrade(socket: Socket, greet: boolean) {
+      const tls = new TLSSocket(socket, { isServer: true, secureContext });
+      peers.add(tls);
+      tls.on('error', () => {});
+      tls.once('secure', () => {
+        seen.handshake++;
+        serve(tls, false);
+        if (greet) tls.write('220 localhost SMTP\r\n');
+      });
+    }
+    const server = createServer((socket) => {
+      peers.add(socket);
+      socket.on('error', () => {});
+      seen.connections++;
+      if (port === '465') upgrade(socket, true);
+      else { serve(socket, true); socket.write('220 localhost SMTP\r\n'); }
+    });
+    try {
+      await once(server.listen(0, '127.0.0.1'), 'listening');
+      const address = server.address(); assert.ok(address && typeof address !== 'string');
+      const cfg = notificationMailConfig({ SMTP_HOST: host, SMTP_PORT: port, SMTP_USER: 'fixture', SMTP_PASS: 'fixture',
+        MAIL_FROM: 'sender@example.test', NEXT_PUBLIC_SITE_URL: 'https://example.test', CHAT_NOTIFICATION_TO: 'ops@example.test' });
+      assert.ok(cfg);
+      const mailer = createNotificationMailer(cfg, { connect: (options) => {
+        assert.equal(options.host, host); assert.equal(options.port, Number(port));
+        return createConnection({ host: '127.0.0.1', port: address.port, signal: options.signal });
+      } });
+      const result = await mailer.send({ stableMessageId: 'tls-probe@example.test', conversationId: 'test-only', locale: 'en', receivedAt: new Date() }, new AbortController().signal);
+      assert.deepEqual(result, { kind: 'failed', code: 'CHAT_SMTP_TLS' });
+      assert.deepEqual(seen, { connections: 1, handshake: 0, starttls: port === '587' ? 1 : 0, auth: 0, mail: 0 });
+      console.log(`M4T4_TLS_REJECT port=${port} code=CHAT_SMTP_TLS auth=0 mail=0`);
+    } finally {
+      for (const socket of peers) socket.destroy();
+      if (server.listening) await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+    }
+  } finally { rmSync(root, { recursive: true }); }
+}
+
 async function crashAfterAcceptance() {
   const url = namespaceDatabase();
   assert.match(url.searchParams.get('schema') ?? '', /^chatnotify_\d+_[a-f0-9]{8}$/);
@@ -114,6 +189,7 @@ describe('M4-T4 isolated TLS SMTP and durable writes', { skip: !required && 'pri
   });
 
   test('AC2c: implicit TLS accepts at about 19s and the current lease commits SENT', async () => {
+    await assertUntrustedCertificate('465');
     const row = await seed(); await arm('delay');
     const before = await stats();
     const result = await run(() => new Date(), { port: '465' });
@@ -127,6 +203,7 @@ describe('M4-T4 isolated TLS SMTP and durable writes', { skip: !required && 'pri
   });
 
   test('AC2d: busy DATA over 20s destroys the STARTTLS socket and writes UNKNOWN without sweep', async () => {
+    await assertUntrustedCertificate('587');
     const row = await seed(); await arm('slow'); const before = await stats();
     const result = await run(() => new Date(), { port: '587' });
     const saved = await db!.chatNotification.findUniqueOrThrow({ where: { id: row.id } });

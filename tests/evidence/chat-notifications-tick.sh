@@ -12,12 +12,12 @@ exec "$setpriv_bin" --reuid="$uid" --regid="$gid" --init-groups --no-new-privs \
   -- "$node_bin" --input-type=module - <<'NODE'
 import fs from 'node:fs';
 const state = '/tmp/chat-notifications-cron';
-const at = Date.now();
 const taken = `${state}/taken`;
 try { fs.renameSync(`${state}/armed`, taken); } catch (error) {
   if (error.code === 'ENOENT') process.exit(0);
   process.exit(1);
 }
+const at = Date.now();
 function readPrivate(file) {
   const fd = fs.openSync(file, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW | fs.constants.O_NONBLOCK);
   try {

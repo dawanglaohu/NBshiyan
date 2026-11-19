@@ -99,14 +99,23 @@ function attempts() {
   if (!fs.existsSync(`${state}/attempts.jsonl`)) return [];
   return fs.readFileSync(`${state}/attempts.jsonl`, 'utf8').trim().split('\n').filter(Boolean).map((x) => JSON.parse(x));
 }
-function arm() { const count = attempts().length; privateFile(`${state}/armed`, '1'); return count; }
-async function tick(index, expected) {
+function arm() {
+  const index = attempts().length;
+  const armedAt = Date.now();
+  privateFile(`${state}/armed`, '1');
+  return { index, armedAt };
+}
+async function tick({ index, armedAt }, expected) {
   const entries = await until(() => { const values = attempts(); return values.length > index ? values : null; }, 120_000);
   assert.equal(entries.length, index + 1);
   const entry = entries[index];
   assert.equal(entry.status, expected);
-  report.ticks.push(entry);
-  return entry;
+  const elapsed = entry.at - armedAt;
+  const minute = 60_000;
+  const offset = entry.at % minute;
+  assert.ok(elapsed >= 0 && elapsed <= minute + 5_000, 'tick missed the first minute after arming');
+  assert.ok(Math.min(offset, minute - offset) <= 5_000, 'tick was not aligned to a real minute');
+  report.ticks.push({ at: entry.at, status: entry.status, armedAt });
 }
 
 try {
@@ -134,8 +143,9 @@ try {
   assert.equal(unauth.status, 401); await unauth.body?.cancel();
   const defaultRow = await visitorMessage();
   const sinkBefore = await stats();
+  const baselineGeneration = (await db.jobState.findUnique({ where: { key } }))?.generation ?? 0;
   await stop(); await start();
-  const initialTick = await tick(arm(), 200);
+  await tick(arm(), 200);
   const sent = await readRow(defaultRow);
   assert.equal(sent.status, 'SENT'); assert.equal(sent.attempts, 1); assert.equal(app.marker, false);
   const sinkAfter = await stats();
@@ -152,8 +162,7 @@ try {
   assert.equal(paused.status, 'SENDING'); assert.equal(paused.attempts, 1); assert.ok(paused.requestStartedAt);
   assert.equal((await stats()).chatEvidence.acceptedIds.filter((x) => x === `<${crashRow.stableMessageId}>`).length, 1);
   await stop('SIGKILL');
-  const crashTick = await tick(crashIndex, 0);
-  assert.ok(crashTick.at - initialTick.at >= 55_000 && crashTick.at - initialTick.at <= 65_000);
+  await tick(crashIndex, 0);
   await start({ [scale]: '0.01' });
   report.stage = 'restart-sweep';
   await tick(arm(), 409); // The 90s JobState lease still owns the first minute after the kill.
@@ -171,7 +180,12 @@ try {
     { status: 'SENDING', requestStartedAt: null, attempts: { gte: 4 } },
     { status: 'SENDING', OR: [{ leaseOwner: null }, { lockedUntil: null }] },
   ] } }), 0);
-  assert.equal(JSON.stringify((await db.jobState.findUniqueOrThrow({ where: { key } })).summary).includes('m4t4-private-'), false);
+  const job = await db.jobState.findUniqueOrThrow({ where: { key } });
+  assert.equal(job.generation, baselineGeneration + 4);
+  assert.equal(job.lastStatus, 'SUCCEEDED');
+  assert.equal(job.leaseOwner, null);
+  assert.equal(JSON.stringify(job.summary).includes('m4t4-private-'), false);
+  report.checks.jobGenerations = { before: baselineGeneration, after: job.generation };
   report.checks.stableIdAfterKill = true;
   report.checks.singlePostPerArm = attempts().length === report.ticks.length;
   assert.equal(report.checks.singlePostPerArm, true);

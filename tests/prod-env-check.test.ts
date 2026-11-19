@@ -465,3 +465,19 @@ test('M4-T4 G10：生产build/runtime/any拒绝所有已定义hook值，诊断�
   }
   assert.deepEqual(prodEnvProblems({ ...prodFull, CHAT_NOTIFICATION_TEST_PAUSE_AFTER_ACCEPT: undefined, CHAT_NOTIFICATION_TEST_BACKOFF_SCALE: undefined }), []);
 });
+
+test('M4-T4 S3: only production runtime validates the optional single recipient', () => {
+  const probe = 'private-chat-recipient-probe';
+  const problem = 'CHAT_NOTIFICATION_TO 必须是单个有效邮箱地址';
+  for (const value of [undefined, '', ' \t ', 'ops@example.test', '"Ops, East" <ops@example.test>']) {
+    assert.deepEqual(prodEnvProblems({ ...prodFull, CHAT_NOTIFICATION_TO: value }, 'runtime'), []);
+  }
+  for (const value of [probe, `${probe}@example.test, ops@example.test`, `${probe}@example.test, Ops <ops@example.test>`,
+    `${probe}\r`, `${probe}\n`, `${probe}\0`, ' \n', '\r', '\0']) {
+    const env = { ...prodFull, CHAT_NOTIFICATION_TO: value };
+    assert.deepEqual(prodEnvProblems(env, 'build'), []);
+    assert.deepEqual(prodEnvProblems(env, 'runtime'), [problem]);
+    assert.deepEqual(prodEnvProblems(env), [problem]);
+    assert.deepEqual(prodEnvProblems({ ...env, APP_ENV: 'preview' }, 'runtime'), []);
+  }
+});

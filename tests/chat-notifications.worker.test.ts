@@ -13,7 +13,7 @@ import { classifyNotificationFailure, createNotificationMailer, notificationMail
 const NOW = new Date('2026-11-19T12:00:00.123Z');
 function row(attempts = 1): NotificationRow {
   return { id: 'notification-1', conversationId: 'conversation-1', messageId: 'message-1',
-    stableMessageId: '<stable@example.test>', status: 'SENDING', attempts, availableAt: NOW,
+    stableMessageId: 'stable@example.test', status: 'SENDING', attempts, availableAt: NOW,
     leaseVersion: 1, leaseOwner: 'worker-a', lockedUntil: new Date(NOW.getTime() + CHAT_NOTIFICATION_LEASE_MS),
     requestStartedAt: NOW, lastErrorCode: null, providerMessageId: null, sentAt: null, createdAt: NOW, updatedAt: NOW };
 }
@@ -31,7 +31,7 @@ function fixture(attempts = 1) {
     async loadContent() { calls.push('load'); return { conversationId: 'conversation-1', locale: 'en', receivedAt: NOW }; },
     async finish(_token, outcome) { calls.push('finish'); outcomes.push(outcome); return true; },
   };
-  const mailer: NotificationMailer = { async send(mail) { calls.push('send'); sends++; assert.equal(mail.stableMessageId, '<stable@example.test>'); return { kind: 'sent' }; } };
+  const mailer: NotificationMailer = { async send(mail) { calls.push('send'); sends++; assert.equal(mail.stableMessageId, 'stable@example.test'); return { kind: 'sent' }; } };
   const context = { now: NOW, budget: { deadlineAt: new Date(Date.now() + 54_750), signal: new AbortController().signal } };
   return { repo, mailer, context, outcomes, calls, get sends() { return sends; } };
 }
@@ -69,6 +69,9 @@ test('PM-P2：DATA后或阶段未知ECONNRESET不能变成第四次确知失败'
   assert.deepEqual(classifyNotificationFailure({ code: 'ECONNRESET' }, false), { kind: 'unknown', code: 'CHAT_SMTP_UNKNOWN' });
   assert.deepEqual(classifyNotificationFailure({ code: 'ECONNREFUSED' }, true), { kind: 'retry', code: 'CHAT_SMTP_UNAVAILABLE' });
   assert.deepEqual(classifyNotificationFailure({ responseCode: 451, command: 'RCPT' }, false), { kind: 'retry', code: 'CHAT_SMTP_TEMPORARY' });
+  assert.deepEqual(classifyNotificationFailure({ code: 'ESOCKET', command: 'CONN', originalCode: 'DEPTH_ZERO_SELF_SIGNED_CERT' }, false), { kind: 'failed', code: 'CHAT_SMTP_TLS' });
+  assert.deepEqual(classifyNotificationFailure({ code: 'ETLS', command: 'STARTTLS' }, false), { kind: 'failed', code: 'CHAT_SMTP_TLS' });
+  assert.deepEqual(classifyNotificationFailure({ code: 'ESOCKET', originalCode: 'ECONNRESET', message: 'CERT_HAS_EXPIRED' }, false), { kind: 'unknown', code: 'CHAT_SMTP_UNKNOWN' });
 });
 
 test('脱敏：未列入安全码的响应、地址和原始错误只得到固定fallback', () => {
@@ -144,7 +147,18 @@ test('chat配置独立于旧mail UI开关，缺少专属收件目标保持不可
   assert.ok(notificationMailConfig(env));
   assert.equal(notificationMailConfig({ ...env, CHAT_NOTIFICATION_TO: undefined }), null);
   assert.equal(notificationMailConfig({ ...env, SMTP_PORT: '25' }), null);
-  assert.equal(notificationMailConfig({ ...env, APP_ENV: 'production', SMTP_HOST: 'smtp.evidence.test' }), null);
+  const host = { ...env, APP_ENV: 'test', SMTP_HOST: 'smtp.evidence.test' };
+  const prev = process.env.CHAT_NOTIFICATION_TEST_HOOK_BUILD;
+  try {
+    process.env.CHAT_NOTIFICATION_TEST_HOOK_BUILD = '';
+    assert.equal(notificationMailConfig(host), null);
+    process.env.CHAT_NOTIFICATION_TEST_HOOK_BUILD = '1';
+    assert.ok(notificationMailConfig(host));
+    assert.equal(notificationMailConfig({ ...host, APP_ENV: 'production' }), null);
+  } finally {
+    if (prev === undefined) delete process.env.CHAT_NOTIFICATION_TEST_HOOK_BUILD;
+    else process.env.CHAT_NOTIFICATION_TEST_HOOK_BUILD = prev;
+  }
 });
 
 test('SMTP截止：已有连接在20s封成UNKNOWN并销毁，迟到回调不更改结果', async (t) => {
@@ -157,14 +171,14 @@ test('SMTP截止：已有连接在20s封成UNKNOWN并销毁，迟到回调不更
   const lateReply = new Promise<void>((resolve) => { after = resolve; });
   const mailer = createNotificationMailer(cfg, { monotonic: () => current, connect: () => socket, createTransport: (options) => ({
     async sendMail(mail) {
-      assert.equal(mail.messageId, '<stable@example.test>');
+      assert.equal(mail.messageId, 'stable@example.test');
       assert.match(String(mail.text), /https:\/\/example\.test\/admin\/chat\/conversation-1/);
       await new Promise<void>((resolve, reject) => options.getSocket({}, (err) => err ? reject(err) : resolve()));
       return lateReply;
     },
     close() { closed++; },
   }) });
-  const result = mailer.send({ stableMessageId: '<stable@example.test>', conversationId: 'conversation-1', locale: 'en', receivedAt: NOW }, new AbortController().signal);
+  const result = mailer.send({ stableMessageId: 'stable@example.test', conversationId: 'conversation-1', locale: 'en', receivedAt: NOW }, new AbortController().signal);
   socket.emit('connect');
   current = CHAT_SMTP_DEADLINE_MS;
   t.mock.timers.tick(CHAT_SMTP_DEADLINE_MS);
@@ -180,7 +194,7 @@ test('SMTP截止：完成回调先于计时器时仍按19999ms/20000ms区分', a
   for (const elapsed of [19_999, 20_000]) {
     let now = 0;
     const mailer = createNotificationMailer(cfg, { monotonic: () => now, createTransport: () => ({ async sendMail() { now = elapsed; } }) });
-    const result = await mailer.send({ stableMessageId: '<stable@example.test>', conversationId: 'conversation-1', locale: 'en', receivedAt: NOW }, new AbortController().signal);
+    const result = await mailer.send({ stableMessageId: 'stable@example.test', conversationId: 'conversation-1', locale: 'en', receivedAt: NOW }, new AbortController().signal);
     assert.deepEqual(result, elapsed < CHAT_SMTP_DEADLINE_MS ? { kind: 'sent' } : { kind: 'unknown', code: 'CHAT_SMTP_DEADLINE' });
   }
 });
