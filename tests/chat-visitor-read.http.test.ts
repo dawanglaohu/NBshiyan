@@ -548,6 +548,57 @@ describe('M4-T2 访客 GET 同步与 read 单调推进', { concurrency: false, s
     assert.deepEqual(after, before);
   });
 
+  test('POST read：本人 cookie 闲置过期、绝对过期或撤销后返回 401，已读与消息保持（E-85）', async () => {
+    const now = Date.now();
+    const idleCutoff = new Date(now - CHAT_VISITOR_POLICY.idleMs - 5_000);
+    const issuedBeforeAbsoluteExpiry = new Date(now - CHAT_VISITOR_POLICY.absoluteMs - 5_000);
+    const cases = [
+      { label: '闲置过期', data: { createdAt: idleCutoff, lastActivityAt: idleCutoff } },
+      {
+        label: '绝对过期',
+        data: {
+          createdAt: issuedBeforeAbsoluteExpiry,
+          lastActivityAt: new Date(now - 6_000),
+          absoluteExpiresAt: new Date(now - 5_000),
+        },
+      },
+      { label: '撤销', data: { revokedAt: new Date(now) } },
+    ];
+
+    for (const { label, data } of cases) {
+      const owner = await seedVisitor();
+      const { conversationId } = await createConversation(owner, 'Keep the first message intact.');
+      const nextSeq = await addMessage(conversationId, 'OPERATOR', 'Keep the reply intact.');
+      const cookie = cookieOf(owner);
+      const control = await postRead(conversationId, { lastReadSeq: 1 }, { cookie });
+      assert.equal(control.status, 200, `${label}：同一 cookie 失效前可推进本人会话`);
+
+      const conversation = {
+        where: { id: conversationId },
+        select: { visitorReadSeq: true, lastSeq: true },
+      } as const;
+      const messages = {
+        where: { conversationId },
+        orderBy: { seq: 'asc' },
+        select: { id: true, seq: true, bodyText: true, createdAt: true, redactedAt: true },
+      } as const;
+      const before = await db().chatConversation.findUniqueOrThrow(conversation);
+      const beforeMessages = await db().chatMessage.findMany(messages);
+      assert.deepEqual(before, { visitorReadSeq: 1, lastSeq: nextSeq });
+      assert.ok(nextSeq > before.visitorReadSeq);
+      assert.deepEqual(beforeMessages.map(({ bodyText }) => bodyText), [
+        'Keep the first message intact.',
+        'Keep the reply intact.',
+      ]);
+
+      await db().chatVisitorSession.update({ where: { id: owner.id }, data });
+      const response = await postRead(conversationId, { lastReadSeq: nextSeq }, { cookie });
+      assert.equal(response.status, 401, label);
+      assert.deepEqual(await db().chatConversation.findUniqueOrThrow(conversation), before, label);
+      assert.deepEqual(await db().chatMessage.findMany(messages), beforeMessages, label);
+    }
+  });
+
   test('read 的写入口：缺 Origin/跨源 403，非法请求 400，非本人 404', async () => {
     const owner = await seedVisitor();
     const other = await seedVisitor();
