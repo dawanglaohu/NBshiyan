@@ -988,7 +988,7 @@ async function http(pathname: string, init: RequestInit = {}, jar?: CookieJar): 
   return response;
 }
 
-async function login(email: string, password: string, totp: string): Promise<{ jar: CookieJar; response: Response }> {
+async function login(email: string, password: string, totp: string, mode?: 'totp'): Promise<{ jar: CookieJar; response: Response }> {
   const jar = new CookieJar();
   const csrfResponse = await http('/api/auth/csrf', {}, jar);
   assert.equal(csrfResponse.status, 200);
@@ -997,7 +997,7 @@ async function login(email: string, password: string, totp: string): Promise<{ j
     method: 'POST',
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
-      csrfToken, email, password, totp, rememberDevice: 'false', callbackUrl: `${httpBase}/admin`,
+      csrfToken, email, ...(mode === 'totp' ? { mode } : { password }), totp, rememberDevice: 'false', callbackUrl: `${httpBase}/admin`,
     }).toString(),
   }, jar);
   return { jar, response };
@@ -1118,5 +1118,101 @@ describe('M3-T20 真实 socket/Next HTTP（实例阶段）', { concurrency: 1, s
     const newLogin = await login(member.user.email, PASSWORD, authenticator.clone({ epoch: Date.now() + 30_000 }).generate(newSecret));
     assert.equal(loginSucceeded(newLogin), true);
     assert.equal((await http('/api/admin/account', {}, newLogin.jar)).status, 200);
+
+    const assertBindingKept = (actual: User, before: User) => {
+      for (const field of ['passwordHash', 'totpSecret', 'totpEnabled', 'passwordlessEnabled'] as const) {
+        assert.ok(actual[field] === before[field], `${field} must stay unchanged before confirm`);
+      }
+      assert.ok(JSON.stringify(actual.recoveryCodes) === JSON.stringify(before.recoveryCodes), 'recovery code hashes must stay unchanged');
+    };
+
+    // 兼容分支用独立账号；真实登录消耗的步不能再次用于 reset。
+    const compatible = await makeAccount();
+    const compatibleLogin = await login(compatible.user.email, PASSWORD, wallCode(compatible.plain));
+    assert.equal(loginSucceeded(compatibleLogin), true);
+    const compatibleBefore = await userRow(compatible.user.id);
+    const compatibleDevice = await db.adminDeviceSession.findFirstOrThrow({
+      where: { userId: compatible.user.id, id: { not: compatible.deviceId }, revokedAt: null },
+    });
+    assert.equal(compatibleDevice.sessionVersion, compatibleBefore.sessionVersion);
+    const compatibleEpoch = Date.now() + 30_000;
+    const compatibleStep = Math.floor(compatibleEpoch / 30_000);
+    assert.ok(compatibleBefore.totpLastStep !== null && compatibleStep > compatibleBefore.totpLastStep);
+    const compatibleReset = await http('/api/admin/account/2fa/reset', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ currentPassword: PASSWORD, totp: authenticator.clone({ epoch: compatibleEpoch }).generate(compatible.plain) }),
+    }, compatibleLogin.jar);
+    assert.equal(compatibleReset.status, 200);
+    const compatibleBody = await compatibleReset.json() as { ok: boolean; reenrollRequired: boolean; enrollLink: string; expiresAt: string };
+    assert.equal(compatibleBody.ok, true);
+    assert.equal(compatibleBody.reenrollRequired, true);
+    assert.equal(compatibleBody.enrollLink, `${httpBase}/admin-recovery`);
+    assert.ok(Number.isFinite(Date.parse(compatibleBody.expiresAt)));
+    const recoveryHeaders = compatibleReset.headers.getSetCookie().filter((value) => value.startsWith('pj_recovery='));
+    assert.equal(recoveryHeaders.length, 1);
+    for (const attribute of ['Path=/api/auth-admin/recovery', 'HttpOnly', 'Secure', 'SameSite=Strict']) {
+      assert.ok(recoveryHeaders[0]!.split(';').map((part) => part.trim()).includes(attribute), `restricted cookie requires ${attribute}`);
+    }
+    const compatibleRestricted = new CookieJar();
+    compatibleRestricted.copyFrom(compatibleReset);
+    assert.equal(compatibleRestricted.has('pj_recovery'), true);
+    const compatibleAfter = await userRow(compatible.user.id);
+    assertBindingKept(compatibleAfter, compatibleBefore);
+    assert.equal(compatibleAfter.sessionVersion, compatibleBefore.sessionVersion + 1);
+    assert.equal(compatibleAfter.totpLastStep, compatibleStep);
+    const compatibleSessions = await db.adminRecoverySession.findMany({ where: { userId: compatible.user.id } });
+    assert.equal(compatibleSessions.length, 1);
+    assert.equal(compatibleSessions[0]!.source, 'SELF_REAUTH');
+    assert.equal(compatibleSessions[0]!.sessionVersion, compatibleAfter.sessionVersion);
+    assert.equal(compatibleSessions[0]!.pendingSecretEncrypted, null);
+    assert.equal(compatibleSessions[0]!.pendingPasswordHash, null);
+    assert.equal(compatibleSessions[0]!.completedAt, null);
+    assert.equal(compatibleSessions[0]!.revokedAt, null);
+    assert.equal(await db.adminActionGrant.count({ where: { userId: compatible.user.id } }), 0);
+    const compatibleOldDevice = await db.adminDeviceSession.findUniqueOrThrow({ where: { id: compatibleDevice.id } });
+    assert.ok(compatibleOldDevice.revokedAt !== null);
+    assert.equal(compatibleOldDevice.revokedReason, 'self_reauth');
+    assert.equal((await http('/api/admin/account', {}, compatibleLogin.jar)).status, 401);
+    assert.equal((await http('/api/admin/account', {}, compatibleRestricted)).status, 401);
+    console.log('M3T20_RESET_HTTP_COVERAGE current_password_totp status=200 restricted=true source=SELF_REAUTH old_device_revoked=true binding_kept=true');
+
+    // 基线取无密码真实登录之后；只排除正常活动时间，保留设备代次与撤销/到期状态比较。
+    const passwordless = await makeAccount();
+    await db.user.update({ where: { id: passwordless.user.id }, data: { passwordlessEnabled: true } });
+    const passwordlessLogin = await login(passwordless.user.email, '', wallCode(passwordless.plain), 'totp');
+    assert.equal(loginSucceeded(passwordlessLogin), true);
+    assert.equal((await http('/api/admin/account', {}, passwordlessLogin.jar)).status, 200);
+    const passwordlessBefore = await userRow(passwordless.user.id);
+    assert.equal(passwordlessBefore.passwordlessEnabled, true);
+    const deviceState = () => db.adminDeviceSession.findMany({
+      where: { userId: passwordless.user.id }, orderBy: { id: 'asc' },
+      select: { id: true, userId: true, sessionVersion: true, remembered: true, createdAt: true, absoluteExpiresAt: true, hardExpiresAt: true, revokedAt: true, revokedReason: true },
+    });
+    const devicesBefore = await deviceState();
+    assert.equal(devicesBefore.filter((device) => device.id !== passwordless.deviceId && device.revokedAt === null).length, 1);
+    assert.equal(await db.adminActionGrant.count({ where: { userId: passwordless.user.id } }), 0);
+    assert.equal(await db.adminRecoverySession.count({ where: { userId: passwordless.user.id } }), 0);
+    const passwordlessTotp = authenticator.clone({ epoch: Date.now() + 30_000 }).generate(passwordless.plain);
+    for (const [scenario, body] of [
+      ['passwordless_session_only', {}],
+      ['passwordless_totp_only', { totp: passwordlessTotp }],
+    ] as const) {
+      const denied = await http('/api/admin/account/2fa/reset', {
+        method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body),
+      }, passwordlessLogin.jar);
+      assert.equal(denied.status, 400, scenario);
+      assert.equal((await denied.json() as { error: string }).error, 'invalid');
+      assert.equal(denied.headers.getSetCookie().some((value) => value.startsWith('pj_recovery=')), false);
+      assert.equal(passwordlessLogin.jar.has('pj_recovery'), false);
+      assert.equal((await http('/api/admin/account', {}, passwordlessLogin.jar)).status, 200);
+      const still = await userRow(passwordless.user.id);
+      assertBindingKept(still, passwordlessBefore);
+      assert.equal(still.sessionVersion, passwordlessBefore.sessionVersion);
+      assert.equal(still.totpLastStep, passwordlessBefore.totpLastStep);
+      assert.ok(JSON.stringify(await deviceState()) === JSON.stringify(devicesBefore), `${scenario}: device state must stay unchanged`);
+      assert.equal(await db.adminActionGrant.count({ where: { userId: passwordless.user.id } }), 0);
+      assert.equal(await db.adminRecoverySession.count({ where: { userId: passwordless.user.id } }), 0);
+      console.log(`M3T20_RESET_HTTP_COVERAGE ${scenario} status=400 restricted=false binding_kept=true session_version_kept=true devices_kept=true totp_step_kept=true`);
+    }
   });
 });
