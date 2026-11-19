@@ -762,3 +762,49 @@ model ChatVisitorSession {
   @@index([absoluteExpiresAt])
   @@index([lastActivityAt])
 }
+
+// 站点/产品日级无身份聚合。不存 browserHash/eventId/viewId/navigationId/IP/UA。
+model AnalyticsDaily {
+  localDate           String
+  timezoneRevision    Int
+  timezone            String
+  dimension           String // site | product:<已发布 slug>
+  visitors            Int
+  pageViews           Int? // 仅 site 实测；product 为 NULL
+  productViews        Int
+  modelStarts         Int
+  modelSuccesses      Int
+  modelFailures       Int
+  chatStarts          Int
+  durationMsSum       BigInt
+  loadDurationSamples Int
+  sourceThrough       DateTime?
+  aggregatedAt        DateTime
+  expiresAt           DateTime // 行内 timezone 的正推 13 自然月
+
+  @@id([localDate, timezoneRevision, dimension])
+  @@index([expiresAt])
+  @@index([dimension, localDate])
+}
+
+// marker 游标/defer/gap 落点；timezone 固定为该 revision 的站点时区（E 选择）。
+model AnalyticsAggregateDayState {
+  localDate        String
+  timezoneRevision Int
+  timezone         String
+  markerVersions   Json
+  deferUntil       DateTime?
+  gapKind          String?
+  gapSince         DateTime?
+  updatedAt        DateTime @updatedAt
+
+  @@id([localDate, timezoneRevision])
+  @@index([timezoneRevision, localDate])
+}
+
+// UTC 日 live 版本；无 id，只以 utcDate 为键。
+model AnalyticsDayChange {
+  utcDate   String   @id
+  version   BigInt   @default(0)
+  updatedAt DateTime @updatedAt
+}

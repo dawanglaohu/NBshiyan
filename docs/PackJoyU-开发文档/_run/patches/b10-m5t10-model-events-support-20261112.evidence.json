@@ -1,0 +1,35 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M3-T25": {
+      "contractHash": "c881b4034c76bbfe00dca95b1d2aed0af97546c1e0f5f5f90fd203d016e57b09",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M5-T10": {
+      "contractHash": "23ecfbef33eb886367342aa452e3cf512a155aa0cbee83b59c4beb71da4973c3",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T10": {
+      "contractHash": "13c5a0f415d6a05a913a769bcdd0ea74858b5ebc309c8b540b6ae631aa0df7f7",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T3": {
+      "contractHash": "f559cf9906dee6199d4ae4107338e1bb49a142c28ae21a8dfec7e7f0b2b0af0f",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T8": {
+      "contractHash": "78c016d3275552ab885d824cd41c83d654bc506d394f387e1e1a7f26bc4f0ead",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T9": {
+      "contractHash": "74d30c35e31bbbb8d969ba21bd4d3f828f5aedeacdff1ac8c41b7c7b4c7b8848",
+      "evidence": [],
+      "verdict": "pending"
+    }
+  }
+}

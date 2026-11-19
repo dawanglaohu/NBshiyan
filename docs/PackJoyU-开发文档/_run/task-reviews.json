@@ -1211,13 +1211,24 @@
   },
   "M5-T10": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "f6b993cc773d8b7cd346cc544da4c50fdb988ac5c9bf7ba401c2a9e2e97a9c15",
+    "contractHash": "d36573811cd97714d541fe4ad88d4a582de17062d7fd83980656b7dd92efbc0d",
     "evidence": [
-      "固定对象：L bed4436b7bb26d67583373c24777eb2953f19cc3 / tree ace1e3fc305c882758b406ffb2cd00d5012aea0c / 唯一父 K 81cdb260224d359bb04bb6d35306c2e944a6958f；task/M5-T4 工作树 clean；本登记只写本补丁证据、task-reviews 与正常派生，不改 task-contracts.json、任务状态、源码/测试/CI/包锁/schema 与生成器。",
-      "本键为传播变更：契约对象在 K→L 逐字节相同（对象摘要 11e313b80e0086b6 = 11e313b80e0086b6）；provides=1/requires=3/sections=14/supportPaths=0/outputPaths=4 全为原值；当前契约 hash f6b993cc773d8b7cd346cc544da4c50fdb988ac5c9bf7ba401c2a9e2e97a9c15 变化仅因依赖闭包含 M5-T4（直连 requires 含 M5-T4），能力与接口未变。",
-      "范围限定：本记录只是 L 当前契约语义复核，不证明该任务已实现、不改变其 todo/status；M5-T4 亦不证明真实 PG 用例 15./16. 通过、不证明新 CI 转绿；未重验 P2/O1 或旧 43，未顺手清理既有 stale。"
+      "固定头 233eda0fa623cfb16c10524787a58efd1482fa44 / merge checkout f75352e88470d75eb4c16dd9d51beba5110bc988 / tree 62dacb36e20951bc8442b54d02f9edb94dd5d28d / 双父 231482872fdcf4ea333eb8d3bfc66839725f7c23 与 233eda0f…；run 44378770960 attempt 1 全作业 success；PR #556 当次为开放草稿。产品 sync 后契约哈希 d36573811cd97714d541fe4ad88d4a582de17062d7fd83980656b7dd92efbc0d、源版本 438307052cb7e8adecda2a223c8167b1e4251ec234866d6b8d396b74de5bb6c5、补丁 t10-233eda0f-metadata-20261118（synced）。",
+      "验收 1 真浏览器链：录制变体在 /admin/inquiries 点 nav#adm-nav「站点设置」→ /admin/settings → 分区「统计时区」，断言链接 href 与最终 URL（CI 日志 3043-3052），并留 frame 00；四张原帧、成品首帧预览与五张解码代表帧已由媒体卡通过可读性/隐私复核（analytics-style-actual-request-gif-20261118/progress.md；画面为合成测试管理员、询盘列表为空）。shipped spec:26/32/49/332/394 覆盖未登录、非 ADMIN、分区入口、两时区+三尺寸密度、409，run 日志 2367-2371 五例全 ✓（104ms/442ms/1.7s/2.2s/1.2s）。",
+      "GET 四字段：页内捕获恰好 1 笔同源主帧 GET，200，键名恰为 recomputableFrom/timezone/timezoneRevision/version（spec:130-151）；GIF requests.json.get = {timezone UTC, version 0, timezoneRevision 1, recomputableFrom null}。",
+      "PATCH：点击保存恰好 1 笔主帧 PATCH，postDataJSON 精确 {timezone:'Asia/Tokyo',expectedVersion:0}，200；响应 version=1、timezoneRevision=2、rebuildScheduled=true、recomputableFrom=2026-10-20T15:00:00.000Z；UI 断言 timezone/revision/rebuild/「已保存」（spec:262-281）；requests.json.feedback 精确「✓ 已保存：version 1 · revision 2 · 已登记重算」。",
+      "recomputableFrom 与 partial：component:45-49 utcText 区分 null「无可用重算待办（null 不表示重建已完成）」与非 null「partial：仅 … 起可重算；更早历史保留原时区标签」；录制变体对该文本有断言（CI 日志补丁段），frame 03 留存。shipped spec 只断言 visible（:151），文案回归缺口见 G4。",
+      "E-59 拒绝侧：本地预检不发 PATCH、字段错可见、输入保留 bad、右栏保留 target、revision 不变（spec:291-306）；服务端 400 error=invalid + fieldErrors.timezone，重读 timezone/version/revision 全部不变（spec:308-329）；SALES 直接 GET/PATCH 403、页面 404（spec:32-43）；未登录 401+3xx（spec:26-29）。",
+      "验收 2：页面文案「这里是全站共用的站点时区…与打开页面的浏览器时区无关」（component:189）、「IANA 时区」标签（:214）与 hint（:236）；America/New_York 与 Asia/Tokyo 两个 context 读到同一文本（spec:332-345）；本任务只验设置页，指标图表/导出由 M6 集成。",
+      "验收 3 密度：density-evidence.ts:22 固定 type=form、density=7、gutter=16、gap=16、pad=16、main=.st-page；三视口 spec:347-375 断言 overflow、D3 与桌面 D1/D2/D4/D5/D6、fill≥0.55、leftGap≤40；probe 原值 0.698/18、0.916/18、390 0.826/34，overflow 0/match；逐视口判读见 D:/xiangmu/.codex-plans/NBShiyan-m5-t10/analytics-form-style-live-20261118/VERDICT.tsv。",
+      "样式：同次附件 VERIFY-STYLE 115 PASS / 0 FAIL / 6 GAP（cursor 与 border bottom/left 未采集），固定 CSS tokens.css:92-143 的 border 简写 + cursor:not-allowed 静态闭合，扫描 15 份 CSS 无 longhand 覆盖；三视口顶部 16/16/16、grid 800+320、input 36/44、save 36/44、2px/0/近黑、save disabled/dashed/opacity 1；证据 D:/xiangmu/.codex-plans/NBShiyan-m5-t10/analytics-form-style-live-20261118/。",
+      "实际请求 GIF：附件 14466515907 恰 4 帧 1440×900 + requests.json + identity.json；GIF-VERIFY = PROOF_PASS；identity 绑定 head/checkout/tree/parents/buildId/spec blob edd520e66d20a77d933686613d14406e86637255/recorder sha 8884cc44…；CI 内 T10_GIF_VERIFY 校验请求、帧、反馈（日志 3295-3300）。四帧、成品首帧预览与五张解码代表帧已通过可读性/隐私复核（analytics-style-actual-request-gif-20261118/progress.md），画面为合成测试管理员、询盘列表为空。成品 149,381 B / 0E8EB233D1853AED6532A2C3256BDEE0FA01CBC81DB06D48260028387F6B3C96，解码 1200×750、80 帧、8.0 秒（1.5/1.5/1.5/3.5），媒体提交 fe7aa779…（父 e2094828…，仅新增 blob a472f6a4…）；新旧嵌入 URL 均 200 image/gif 且逐字节核同；#556 在发布前后均为 233eda0f。PR 正文追加 1,247 B（成文 12,405 B / c17b0ae7a8280829bbb5d937d002126028c9e96342e4ca93ad38efe964f98088），Ego Browser 在实际正文核到新旧各一个可见播放器，新版点击播放读回 1200×750、图像可见、按钮播放→暂停（analytics-style-gif-pr-body-20261118/RECEIPT.md）。",
+      "接口与文件门：tests/analytics-settings.db.test.ts pass=9、tests/analytics-settings.http.test.ts pass=10（CI 日志 794-795）；PostgreSQL 文件门 26 文件 pass 合计 347、异常 0（RECEIPT.json）。两文件在 base 已存在，属 M5-T4 的接口测试。",
+      "代码锚点（233eda0f）：page.tsx:16/20；component:45/58/107/120/207/219/241/257/261/264/267；module.css:1/5/11/15；tokens.css:92/137（本任务未改）；ops.ts:25/40；SettingsSections:9/13；spec:26/32/72/205/291/332/347/366/394；density-evidence.ts:16/111/262/303/321/347/361/455/571/635/737；density_probe.js:91。任务笔记锚点已由产品在 sync 中回填。",
+      "同步后写域：outputPaths 4 条不变（组件 .tsx、src/app/admin/settings/、e2e/analytics-settings.spec.ts、src/lib/client/ops.ts）；supportPaths 共 8 条，已追加 .gitignore、e2e/density-evidence.ts 与本任务新增的 src/components/admin/stats/AnalyticsSettingsContainer.module.css，新增产品文件落入有效写域。",
+      "限界：390 为 Desktop Chromium 非真实触屏（物理触控板测试用户已取消，记豁免不记通过）；D5 空/加载/错误变体、软键盘、safe-area、hover-only、BFCache 未覆盖；server/lockfile 原始字节未独立读取；shipped spec 未锁 recomputable 文案与 settings-link 链（G4/G5）。"
     ],
-    "reviewed": "2026-11-11T05:34:58.660575+00:00",
+    "reviewed": "2026-11-18T20:45:27.665704+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -1238,22 +1249,18 @@
   },
   "M5-T12": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "160976ad5a9f3d8dbe2b32f64628f99268968e1abf54fde98acb7a68a98e23f7",
+    "contractHash": "b73735d4da286ffc53a2977ce007630a2f6bbc5be9ceb6eba0deccb120383350",
     "evidence": [
-      "19 节新增 M5-T12 一行（M5-T11 后、M6-T1 前），依赖 M5-T3/M5-T11；卡片由生成器从该行派生，未手改 图谱/任务/M5-T12.md。",
-      "契约新增 M5-T12：provides analytics-anon-aggregate；10 outputPaths/6 supportPaths（含共享 src/lib/analytics/day-boundaries.ts 的 utcDatesCovered）/wiring [migrations]/integrationTask M6-T1；presentation taskPaths 9 条；有效范围=taskPaths+supportPaths+wiring 展开（17 条）。",
-      "09 节 L26 AnalyticsDaily 为替换而非新增同名行：durationMsSum BigInt、loadDurationSamples、pageViews Int?、sourceThrough DateTime?、行内 timezone/expiresAt、索引 [expiresAt]/[dimension, localDate]；紧随新增 AnalyticsAggregateDayState（timezone/索引）与 AnalyticsDayChange（utcDate 主键、version @default(0)、无 id）；R1 在三行行内均补“由 M5-T12 实施后生效；当前 schema 尚无此表”，ff2 原缺此标注已更正。",
-      "08/18/data-retention 同步四类数据表 20,000/5,000/1,000 与两元数据表各 500/合计 1,000 独立；03:30 旧三表、04:30 实施后唯一清理新三表、共用租约、不新增 cron；当前三表不存在，不写已上线。",
-      "M6-T1 依赖末尾追加 M5-T12、requires 追加 analytics-anon-aggregate；保留 M2-T4/M2-T7，不补 model-event-rules；输入/验收 1/2 按合稿追加；M6-T6/M7-T3 各加读取口径一句、不新增依赖。",
-      "M5-T12 仍 todo、未实施源码/测试/schema；真实 PG/性能/API/CI 未验；本 pass 仅为文档契约复核，不是业务或实现通过。",
-      "当前 hash 160976ad 与旧 pass 同值续接：main403 合入 M2-T7 后 M5-T12 契约 definition 与 main403 逐值相同，effectivePaths 相对 main403 0 漂移，故无需改写定义。",
-      "M2-T7 行现明示「平均耗时与samples、无样本null、零成功0%由 M6-T1 计算、M6-T6 输出、M7-T3 终验，不在本任务重复验收」；M5-T12 provides analytics-anon-aggregate，M6-T1 requires 含 {M5-T12, analytics-anon-aggregate}，原始事件（M2-T7）与统计聚合（M6-T1/M6-T6）分工不重叠。",
-      "09 三行仍标「由 M5-T12 实施后生效；当前 schema 尚无此表」；data-retention 原始 AnalyticsEvent 30 天、AnalyticsDaily/DayState 13 自然月、DayChange UTC 13 月＋2 天，03:30 旧三表与实施后 04:30 唯一清理者不冲突。",
-      "main403 集成后当前契约 hash 由生成器现算，与该任务在 7abc4b5c:docs/PackJoyU-开发文档/_run/task-contracts.json 一致；非作者差量独审复算 145/145 after=现算、98 条 revalidation 全匹配、manifest dict-equal 36/6、dispatch 145/23 与 86 任务批号 0 移动（独审 D:/xiangmu/.codex-plans/NBShiYan-m5-t12/testing-m5t12-main403-review-20261109/testing-m5t12-main403-review-20261109.md，D4C2093284994B969DBF030263834529CBEC6786F531745ACC97945F3D776314）。",
-      "19 手合保留：M6-T6/M7-T3 行=main 职责正文＋ours「读取口径」句（去该句即 main 行），M6-T1 行保留 ours（main 未改该行），M2-T7 行取 main；本任务职责、依赖与验收未因合并丢失或改写。",
-      "本文件只声明文档契约与 main403 集成核验：本轮未跑 PG/HTTP/CI，不声明三表或统计 API 已实现；M5-T12 仍 todo，98 条待复验未清；旧 pass 不是业务复验，新 hash 只代表当前契约已按真实源并集重核。"
+      "固定对象：工作树 HEAD 4b243af576312193c4cd0d27dccce9745f392979、分支 task/M5-T12。契约源 task-contracts.json 相对 HEAD 的差异为 +1/−0 一行（hunk 位于 M5-T12 supportPaths 列表内，新增 tests/analytics-daily-coverage.test.ts），无删除、无其他源文件改动。",
+      "独立重算（只读调用项目生成器）：M5-T12 supportPaths 17→18、effectivePaths 31→32，两者均包含刚登记的测试路径；该契约变更字段仅 definition 与 effectivePaths，契约哈希 b73735d4da286ffc53a2977ce007630a2f6bbc5be9ceb6eba0deccb120383350。",
+      "基线可信：补丁 baseline 的 37 份 sourceContents 与 HEAD 对应文件逐字符相等（仅换行归一）；37 条 sourceInputs 指纹用 HEAD 内容重算全部相等；baseline sourceVersion 9e44c31764ab712dd69eaa10d63cdae5fc60aa2c8e5df875b276a37e13482f69，当前 01ab2d36cd932acf786bbaadb9095a01966a7ddd0f417f93b8f541e6bcd6027a。",
+      "影响面重算：以核实过的 baseline 复算受影响契约集合为 24 项，与 record.affected 完全相等；其中 M5-T12 变化字段为 definition/effectivePaths，其余 23 项仅 providers（前置契约哈希传播），context 其余字段不变；record.changes 的前后哈希与重算一致；24 项当前均为 todo，M5-T10 仍为 done。",
+      "五个修复文件与固定 Git 对象逐字节一致：worktree blob = HEAD blob = 声明 blob（aggregate.ts d70443b51c5f990c92d2555f5f10142d39f58b4f、analytics-daily.test.ts 0eac9fcd722e697bc2bf584a06970e882d23f8ed、analytics-daily-coverage.test.ts 2b1bc03fa45db73fe92d39d6480c590e9a03d45e、retention.ts aafac43cfee6fadef1fbcfce3bbbc1aaaf9215f8、analytics-retention.db.test.ts 408c5d9b1df77ec4495942e123dd9a9a94264909），blob 对象存在且这些路径工作区干净。",
+      "结构检查：review 0 BLOCK / 28 WARN / 1 INFO，M5-T12 无阻断项；契约总数 146；构建清单输入 37 项、产物 6 项，与同步声明一致。",
+      "既有登记：M5-T10 复核保持契约 d36573811cd97714d541fe4ad88d4a582de17062d7fd83980656b7dd92efbc0d、verdict pass、14 条证据；M5-T12 原复核为旧契约 5dd0bb1fd4a4c07e68455b124e79a3b405fbcfd40130808615dab7b9e029c84d 的 pass、6 条证据，本次按新契约登记。",
+      "边界：本复核只针对文档契约与路径登记，不代替代码审查、真实 PostgreSQL 17 的 28 文件门与阶段钟 24 例验收，也不代表 R2 已修复；未修改源码、未推送、未触发 CI。"
     ],
-    "reviewed": "2026-11-10T00:56:55.092436+00:00",
+    "reviewed": "2026-11-19T03:41:55.582384+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
