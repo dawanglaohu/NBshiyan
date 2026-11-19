@@ -9,47 +9,6 @@ import build_docs
 
 
 ROOT = Path(__file__).resolve().parents[2]
-WANT = {
-    'FE-347': 'todo',
-    'FE-378': 'hold',
-    'SEO-1': 'done',
-    'SEO-2': 'done',
-    'SEO-3': 'hold',
-    'SEO-4': 'done',
-    'SEO-5': 'done',
-    'SEO-6': 'done',
-    'SEO-7': 'done',
-    'CITY-STILL-WEBP': 'done',
-    'BE-I18N-P0': 'done',
-    'BE-RESET-TTY': 'done',
-    'BE-RESET-STDIN-TTY': 'done',
-    'BE-RATELIMIT-P3': 'done',
-    'BE-350A': 'done',
-    'BE-350B': 'ops',
-    'DEP-AUDIT-1': 'done',
-    'DEPLOY-FIX-1': 'done',
-    'DOCKER-UPLOADS-1': 'done',
-    'GATE-PATHS-1': 'done',
-    'GATE-PATHS-2': 'done',
-    'GATE-HARDEN': 'done',
-    'GATE-HARDEN-2': 'done',
-    'POST-LAUNCH-P3': 'done',
-    'FE-404-TITLE': 'done',
-    'GIFT-CARDS-RENAME': 'done',
-    'GIFT-CARD-ASSETS': 'done',
-    'CLIENT-API-DEADLINE': 'done',
-    'CATALOG-MERGE': 'done',
-    'CI-DB-TESTS': 'done',
-    'MAIN-E2E-FIX': 'done',
-    'FE-FAB-390': 'done',
-    'ANALYTICS-ROLLUP': 'done',
-    'RETENTION-CLEANUP': 'done',
-    'GUARD-503': 'done',
-    'CI-DEVICE-SERIAL': 'done',
-    'HOTFIX-LOGIN-EMPTY': 'done',
-    'BACKFILL-MJS': 'done',
-    'E2E-CONSENT-FIX': 'done',
-}
 MERGED = {
     'DEP-AUDIT-1': '950b63c235a3ce945fa6140dedf0bfad7a946bc3',
     'DEPLOY-FIX-1': '40b2eb5c52361ac57390530c7347498e3b2e07b1',
@@ -121,8 +80,10 @@ class IssueLedgerTests(unittest.TestCase):
         records = build_docs.read_batch_records(str(ROOT))
         build_docs.inject_repair_tasks(data, records)
         issues, contracts = build_docs.inject_issue_tasks(data, ROOT)
-        self.assertEqual([t['id'] for t in issues], list(WANT))
-        self.assertEqual({t['id']: t['ledgerStatus'] for t in issues}, WANT)
+        for field in ('id', 'ledgerStatus', 'pr', 'merged'):
+            with self.subTest(overlay_field=field):
+                self.assertEqual([t[field] for t in data['tasks'] if t.get('issue')],
+                                 [t[field] for t in issues])
         base = [t for t in data['tasks'] if not t.get('issue') and not t.get('repair')]
         self.assertEqual([t['id'] for t in base], [t['id'] for t in original])
         self.assertEqual(build_docs.task_layers(base), before)
@@ -229,16 +190,25 @@ class IssueLedgerTests(unittest.TestCase):
                'BE-RESET-STDIN-TTY': '457', 'BE-RATELIMIT-P3': '454', 'BE-350A': '452',
                'SEO-5': '456'}
         for tid, sha in MERGED.items():
-            self.assertEqual(by_id[tid]['merged'], sha)
-            self.assertEqual(by_id[tid]['pr'], prs[tid])
-        batch3 = tuple(sorted(['M1-T6', 'M1-T8', 'M1-T9', 'M2-T4', 'M3-T14', 'M5-T1']))
+            with self.subTest(merged_issue=tid):
+                self.assertEqual(by_id[tid]['ledgerStatus'], 'done')
+                self.assertEqual(by_id[tid]['merged'], sha)
+                self.assertEqual(by_id[tid]['pr'], prs[tid])
+
+        batch3 = ('M1-T6', 'M1-T8', 'M1-T9', 'M2-T4', 'M3-T14', 'M5-T1')
+        self.assertEqual(tuple(sorted(tid for tid, layer in before.items() if layer == 2)), batch3)
+        progress = build_docs.progress_state(str(ROOT))
+        for tid in batch3:
+            self.assertEqual(progress.get(tid), 'done', f'第 3 批任务 {tid} 应保持已落地')
+        historical = records['batch-3-20261024-r6']
+        self.assertEqual(tuple(historical['tasks']), batch3)
+        self.assertEqual(historical['verdict'], 'clean')
         latest = None
         for name, rec in sorted(records.items(), key=lambda item: (str(item[1].get('date', '')), item[0])):
             if tuple(rec['tasks']) == batch3:
                 latest = (name, rec)
         self.assertIsNotNone(latest)
         self.assertEqual(latest[1]['verdict'], 'clean')
-        self.assertEqual(latest[0], 'batch-3-20261024-r6')
         ui = (ROOT / '02-设计' / '11-UI.md').read_text(encoding='utf-8')
         self.assertIn('待理顺：实际实现是 1240', ui)
         self.assertIn('publicBrand；正文≤75ch左对齐', ui)
