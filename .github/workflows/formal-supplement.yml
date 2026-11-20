@@ -1,0 +1,463 @@
+name: Formal supplement (Linux)
+
+# B4 PG17 evidence runner wiring (integrated R3 on top of wiring R2). Separate workflow: ci.yml, its jobs and the 26/5/phase/244 gates are untouched.
+# Natural pull_request only, and only when the B4 files or this file change. No workflow_dispatch, no schedule,
+# no secrets, contents: read.
+#
+# Shape (Chief ruling, one job): ONE frozen install and test-mode build, ONE `stage`, ONE runtime-image build, then the
+# two modes run in parallel in two isolated containers (own name, own network namespace, own empty /evidence), each exit
+# code is kept, and `pair` runs on the host once both result sets exist. Two matrix jobs would build twice and break the
+# same BUILD_ID / standalone tree hash / image id requirement (next.config.ts has no generateBuildId).
+#
+# Interface: tests/evidence/b4-pg17.sh from backend R2 (ACCEPTANCE.md), sealed b286acce...07e9:
+#   stage <checkout> <commit> <tree> <manifest> <approval-sha> <attestation>
+#   run   <stage-sha> <approval-sha> <mode>       (inside the container, PID 1)
+#   pair  <conflict-evidence> <control-evidence> <report>
+on:
+  pull_request:
+    paths:
+      - 'tests/evidence/b4-pg17.*'
+      - '.github/workflows/formal-supplement.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: formal-supplement-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  b4-pg17:
+    name: b4-pg17 (with-guard + guard-control, one build)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 100
+    env:
+      CI: 'true'
+      NEXT_TELEMETRY_DISABLED: '1'
+      B4_PR_HEAD: ${{ github.event.pull_request.head.sha }}
+      # Formal acceptance baseline (main run 44618201957). Must be an ancestor of the checked-out merge ref.
+      B4_BASE_COMMIT: ed9685a23b724baef64f43476b4f1e0c9ef06d63
+      B4_BASE_TREE: 282e2d9224b7bb51371164d22a25bfd28427e22d
+      # Official postgres:17 index digest pulled by run 44618201957 (PostgreSQL 17.12, Debian 13).
+      B4_PG_BASE: postgres:17@sha256:b60e90042aa6b8dbecd58e224b3e36114dbf8ad754465264c2476ad58a86e45c
+      B4_PG_BIN: /usr/lib/postgresql/17/bin
+      # Same busybox-static pins as the mail-evidence job in ci.yml.
+      B4_BUSYBOX_DEB_SHA256: 944b2728f53ceb3916cec2c962873c9951e612408099601751db2a0a5d81e0ed
+      B4_BUSYBOX_BIN_SHA256: dbac288c29ba568459550a2da9e7ae0ded6b1fc728ee9fad3044c44e62d6ac14
+      # The runtime-image recipe is not part of the 16-file manifest, so it is pinned here (visible in this workflow's diff).
+      B4_DOCKERFILE_SHA256: 06675c5dcd050b47aa93e4f2137a705ec1312700b5b647fd221b61ba651c1e1f
+      # Approved by the independent database review R2 (seal 22/22 3948517c6e2ce8b99068c22f44de095cad34113ff6f24366183ed3b019229ba7,
+      # MANIFEST-APPROVED.sha256): generated from the ed9685a2 git blobs plus the three added B4 files and byte-identical to the
+      # backend candidate manifest (1460 B, 16 lines). The text is the 16-line `sha256sum` manifest in LC_ALL=C path order; the
+      # digest is the SHA-256 of exactly that text. The stage step checks the text against the pin outside the checkout, then the
+      # checkout against the text; b4-pg17.sh stage and run repeat the check.
+      B4_APPROVAL_SHA256: 53edb0deae4bc63bdf40d8edee3e029d14a55431df22bd6c134ad9516b0d8e82
+      B4_APPROVED_MANIFEST_TEXT: |
+        c0d3456a93ab010d0bbc5ee836dc1b211042e9a2397299cbe650e07afb832683  deploy/cron.nbshiyan
+        fcd9810487f9b5a780a070cb37b9cad758169c12362223a995db40214353e5ad  e2e/analytics-job-runtime.spec.ts
+        6f21f4279054ae135d54aac6fec22d6352dfe98b5573fe6b80d88567d7c350bd  e2e/analytics-settings.spec.ts
+        db96381bee311ba7e92b918d4abad1b9a768aeb2a825c4c1dc81171f7572b5b8  e2e/run-auth.ts
+        6603b8ca984ee5145a858d22cc8e5b3d5620583684555dc0bd2c2aaa910d93f1  next.config.ts
+        011e489eb9ca19f2940fa6f928403ad6ae3a0d64f9b8da846a738d26545880d1  package.json
+        d4fcc3ea7dbc1fc72e34206bc1d5b9db4b0e9968a1a32b96f6ddf84d6e9e9b3a  playwright.config.ts
+        21bb5136f878d31656205f8045822e34b33cc87066b26ce8878944144668de2f  pnpm-lock.yaml
+        995882505612364b1576592f3d2e0548a75ca89ddf8813b321c2aa7488c855a8  prisma/schema.prisma
+        bd2f21b98bbf6a68c79a00a20c123ed93c58c591533279872a0b4958ec5ce112  scripts/create-admin.mjs
+        816a21727b8ab13c9d8f79d482d8de3cea2b50f516433dfc6d76d00bb8949c04  src/lib/analytics/daily-aggregate.ts
+        8f14da7176c59d5700c73fe47d610f51c076dc2bcc27760f114c41bc39cdc0d1  src/lib/analytics/day-boundaries.ts
+        6ceaab8a080e76bba1d64d1c9da4469d93e537e502838dacd0106d8927f994e5  src/lib/contracts/account.ts
+        6752c2e02e542e19095cd6171390cef573da98f80138a6cf58698afd86e67948  tests/evidence/b4-pg17.config.ts
+        33914d6882c5a161ae48a827968fc236ecbafaba42c5f59ef4540ede0ac6ccb5  tests/evidence/b4-pg17.sh
+        0fafbf5500baf73e75f34a68d9bc74e8f714af2e8ce0e423c8330eaf6d4a86c0  tests/evidence/b4-pg17.spec.ts
+    steps:
+      # Full history: b4-pg17.sh stage needs the baseline commit object (merge-base --is-ancestor, tree of the baseline).
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+
+      - name: Bind subject identity (merge ref, both parents, baseline ancestry)
+        shell: bash
+        timeout-minutes: 5
+        run: |
+          set -Eeuo pipefail
+          head=$(git rev-parse HEAD)
+          tree=$(git rev-parse 'HEAD^{tree}')
+          [[ $head == "$GITHUB_SHA" ]] || { echo 'SUBJECT_NOT_GITHUB_SHA' >&2; exit 1; }
+          [[ $(git rev-parse --is-shallow-repository) == false ]] || { echo 'CHECKOUT_STILL_SHALLOW' >&2; exit 1; }
+          # Count parents as array elements: a newline-less `printf | tr | wc -l` reports 1 for two parents.
+          mapfile -t parents < <(git cat-file -p HEAD | sed -n 's/^parent //p')
+          [[ ${#parents[@]} == 2 && ${parents[1]} == "$B4_PR_HEAD" ]] || { echo "SUBJECT_PARENTS_UNEXPECTED count=${#parents[@]}" >&2; exit 1; }
+          [[ $(git rev-parse "$B4_BASE_COMMIT^{tree}") == "$B4_BASE_TREE" ]] || { echo 'BASELINE_TREE_MISMATCH' >&2; exit 1; }
+          git merge-base --is-ancestor "$B4_BASE_COMMIT" HEAD || { echo 'BASELINE_NOT_ANCESTOR' >&2; exit 1; }
+          meta="$RUNNER_TEMP/b4-meta"
+          mkdir -m 700 "$meta"
+          {
+            printf 'merge_ref=%s\ntree=%s\nparent_base=%s\nparent_pr_head=%s\n' "$head" "$tree" "${parents[0]}" "${parents[1]}"
+            printf 'baseline_commit=%s\nbaseline_tree=%s\n' "$B4_BASE_COMMIT" "$B4_BASE_TREE"
+            printf 'run_id=%s\nrun_attempt=%s\nevent=%s\n' "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" "$GITHUB_EVENT_NAME"
+            printf 'node=%s\npnpm=%s\n' "$(node --version)" "$(pnpm --version)"
+            printf 'nproc=%s\n' "$(nproc)"
+            printf 'mem_total_kib=%s\n' "$(awk '/^MemTotal:/ {print $2}' /proc/meminfo)"
+            printf 'docker=%s\n' "$(docker version --format '{{.Server.Version}} api={{.Server.APIVersion}}')"
+          } > "$meta/identity.txt"
+          {
+            printf 'B4_SUBJECT_COMMIT=%s\n' "$head"
+            printf 'B4_SUBJECT_TREE=%s\n' "$tree"
+            printf 'B4_META=%s\n' "$meta"
+            printf 'B4_ATTEST=%s\n' "$RUNNER_TEMP/b4-attestation"
+            printf 'B4_APPROVAL_DIR=%s\n' "$RUNNER_TEMP/b4-approval"
+            printf 'B4_EVIDENCE_ROOT=%s\n' "$RUNNER_TEMP/b4-evidence"
+            printf 'B4_PAIR_DIR=%s\n' "$RUNNER_TEMP/b4-pair"
+            printf 'B4_CTX=%s\n' "$RUNNER_TEMP/b4-image-ctx"
+          } >> "$GITHUB_ENV"
+
+      # Same retry rule as the other ci.yml jobs: one retry, only when the prisma generate postinstall hit ECONNRESET.
+      - name: Frozen install
+        shell: bash
+        timeout-minutes: 20
+        run: |
+          set -Eeuo pipefail
+          log="$RUNNER_TEMP/pnpm-install-1.log"
+          set +e
+          pnpm install --frozen-lockfile 2>&1 | tee "$log"
+          rc=${PIPESTATUS[0]}
+          set -e
+          attempt=1
+          if [ "$rc" -ne 0 ]; then
+            if awk '/prisma generate/ { seen = 1 } seen && /ECONNRESET/ { hit = 1 } END { exit !hit }' "$log"; then
+              echo 'PNPM_INSTALL_PRISMA_ECONNRESET_RETRY' >&2
+              sleep 10
+              pnpm install --frozen-lockfile
+              attempt=2
+            else
+              echo "PNPM_INSTALL_NOT_RETRIED exit=$rc" >&2
+              exit "$rc"
+            fi
+          fi
+          printf 'install_attempt=%s\nlock_sha256=%s\n' "$attempt" "$(sha256sum pnpm-lock.yaml | cut -d' ' -f1)" >> "$B4_META/identity.txt"
+
+      - name: Test-mode standalone build (real font chain, no application credentials)
+        shell: bash
+        timeout-minutes: 20
+        run: |
+          set -Eeuo pipefail
+          # No application secret exists in this job's env; b4-pg17.sh stage later reads APP_ENV_AT_BUILD from the artifact.
+          APP_ENV=test pnpm build
+          test -s .next/standalone/server.js
+          test -s .next/standalone/.next/BUILD_ID
+          printf 'build_id=%s\n' "$(cat .next/standalone/.next/BUILD_ID)" >> "$B4_META/identity.txt"
+          # stage requires an unchanged tracked tree; name the file if the build touched one.
+          if ! git diff --quiet HEAD --; then
+            git diff --name-only HEAD -- | sed 's/^/TRACKED_DRIFT_AFTER_BUILD /' >&2
+            exit 1
+          fi
+
+      - name: Verify the approved manifest outside the checkout, then the checkout against it
+        shell: bash
+        timeout-minutes: 5
+        run: |
+          set -Eeuo pipefail
+          mkdir -m 700 "$B4_APPROVAL_DIR"
+          manifest="$B4_APPROVAL_DIR/approved-files.sha256"
+          printf '%s' "$B4_APPROVED_MANIFEST_TEXT" > "$manifest"
+          [[ $B4_APPROVAL_SHA256 =~ ^[a-f0-9]{64}$ ]] || { echo 'APPROVAL_SHA_FORMAT' >&2; exit 1; }
+          printf '%s  %s\n' "$B4_APPROVAL_SHA256" "$manifest" | sha256sum --strict -c - || { echo 'APPROVAL_MANIFEST_DIGEST_MISMATCH' >&2; exit 1; }
+          [[ $(wc -l < "$manifest") == 16 ]] || { echo 'APPROVAL_MANIFEST_LINE_COUNT' >&2; exit 1; }
+          LC_ALL=C sort -c -k2 "$manifest" || { echo 'APPROVAL_MANIFEST_NOT_PATH_SORTED' >&2; exit 1; }
+          (cd "$GITHUB_WORKSPACE" && sha256sum --strict -c "$manifest" >/dev/null) || { echo 'CHECKOUT_DOES_NOT_MATCH_APPROVED_MANIFEST' >&2; exit 1; }
+          printf 'approval_sha256=%s\n' "$B4_APPROVAL_SHA256" >> "$B4_META/identity.txt"
+
+      - name: Stage and seal the verified build (b4-pg17.sh stage)
+        shell: bash
+        timeout-minutes: 10
+        run: |
+          set -Eeuo pipefail
+          # attestation must not exist yet and must be outside the checkout; stage creates it.
+          /bin/bash "$GITHUB_WORKSPACE/tests/evidence/b4-pg17.sh" stage \
+            "$GITHUB_WORKSPACE" "$B4_SUBJECT_COMMIT" "$B4_SUBJECT_TREE" "$B4_APPROVAL_DIR/approved-files.sha256" \
+            "$B4_APPROVAL_SHA256" "$B4_ATTEST" > "$B4_META/stage-output.txt"
+          stage_sha=$(sha256sum "$B4_ATTEST/source.receipt" | cut -d' ' -f1)
+          [[ $stage_sha =~ ^[a-f0-9]{64}$ ]]
+          printf 'B4_STAGE_SHA=%s\n' "$stage_sha" >> "$GITHUB_ENV"
+          printf 'stage_receipt_sha256=%s\n' "$stage_sha" >> "$B4_META/identity.txt"
+          # Receipt lines: commit, tree, build id, standalone tree sha, build mode, approval sha.
+          [[ $(sed -n 1p "$B4_ATTEST/source.receipt") == "$B4_SUBJECT_COMMIT" && $(sed -n 2p "$B4_ATTEST/source.receipt") == "$B4_SUBJECT_TREE" ]]
+
+      - name: Pin PostgreSQL 17 base image by digest
+        shell: bash
+        timeout-minutes: 10
+        run: |
+          set -Eeuo pipefail
+          docker pull "$B4_PG_BASE"
+          digest=${B4_PG_BASE#*@}
+          docker image inspect --format '{{json .RepoDigests}}' "$B4_PG_BASE" | grep -F "$digest" >/dev/null || { echo 'PG_BASE_DIGEST_MISMATCH' >&2; exit 1; }
+          printf 'base_ref=%s\nbase_id=%s\n' "$B4_PG_BASE" "$(docker image inspect --format '{{.Id}}' "$B4_PG_BASE")" >> "$B4_META/image-provenance.txt"
+
+      - name: Supply pinned static BusyBox with crond
+        shell: bash
+        timeout-minutes: 5
+        run: |
+          set -Eeuo pipefail
+          mkdir -p "$B4_CTX"
+          deb="$RUNNER_TEMP/busybox-static_1.36.1-6ubuntu3.1_amd64.deb"
+          urls=(
+            https://mirrors.edge.kernel.org/ubuntu/pool/main/b/busybox/busybox-static_1.36.1-6ubuntu3.1_amd64.deb
+            https://archive.ubuntu.com/ubuntu/pool/main/b/busybox/busybox-static_1.36.1-6ubuntu3.1_amd64.deb
+          )
+          ok=0
+          for url in "${urls[@]}"; do
+            if curl --fail --silent --show-error --location --retry 2 --retry-delay 3 --connect-timeout 15 --max-time 30 --output "$deb" "$url" \
+              && [[ $(sha256sum "$deb" | cut -d' ' -f1) == "$B4_BUSYBOX_DEB_SHA256" ]]; then ok=1; break; fi
+          done
+          [[ $ok == 1 ]] || { echo 'BUSYBOX_DEB_UNAVAILABLE_OR_MISMATCH' >&2; exit 1; }
+          dpkg-deb -x "$deb" "$RUNNER_TEMP/busybox-x"
+          [[ $(sha256sum "$RUNNER_TEMP/busybox-x/usr/bin/busybox" | cut -d' ' -f1) == "$B4_BUSYBOX_BIN_SHA256" ]] || { echo 'BUSYBOX_BIN_MISMATCH' >&2; exit 1; }
+          install -m 0755 "$RUNNER_TEMP/busybox-x/usr/bin/busybox" "$B4_CTX/busybox"
+          "$B4_CTX/busybox" --list | grep -Fx crond >/dev/null
+          printf 'busybox_deb_sha256=%s\nbusybox_bin_sha256=%s\n' "$B4_BUSYBOX_DEB_SHA256" "$B4_BUSYBOX_BIN_SHA256" >> "$B4_META/image-provenance.txt"
+
+      - name: Build the runtime image once (one image id for both containers)
+        shell: bash
+        timeout-minutes: 10
+        run: |
+          set -Eeuo pipefail
+          [[ $(sha256sum "$GITHUB_WORKSPACE/tests/evidence/b4-pg17.Dockerfile" | cut -d' ' -f1) == "$B4_DOCKERFILE_SHA256" ]] || { echo 'DOCKERFILE_DIGEST_MISMATCH' >&2; exit 1; }
+          docker build --pull=false --build-arg "B4_PG_BASE=$B4_PG_BASE" \
+            -f "$GITHUB_WORKSPACE/tests/evidence/b4-pg17.Dockerfile" -t b4-pg17-runtime:ci "$B4_CTX"
+          image_id=$(docker image inspect --format '{{.Id}}' b4-pg17-runtime:ci)
+          tool_id=${image_id#sha256:}
+          [[ $tool_id =~ ^[a-f0-9]{64}$ ]] || { echo 'IMAGE_ID_FORMAT' >&2; exit 1; }
+          printf 'runtime_image_id=%s\n' "$image_id" >> "$B4_META/image-provenance.txt"
+          printf 'B4_TOOL_ID=%s\n' "$tool_id" >> "$GITHUB_ENV"
+          node_root=$(dirname "$(dirname "$(readlink -f "$(command -v node)")")")
+          [[ -x $node_root/bin/node ]] || { echo 'NODE_ROOT_UNUSABLE' >&2; exit 1; }
+          printf 'B4_NODE_ROOT=%s\n' "$node_root" >> "$GITHUB_ENV"
+
+      # One definition of the container flags, sourced by the preflight and by both real runs, so the preflight proves the
+      # exact mount layout and capability set the runs use. The container shape is the R2 contract: PID 1 is the script's
+      # bash, network is lo only, /build/source and /build/attestation are separate read-only mount points, /evidence is
+      # an empty writable bind mount, /tmp is a private tmpfs.
+      - name: Write the shared container launch helper
+        shell: bash
+        timeout-minutes: 2
+        run: |
+          set -Eeuo pipefail
+          cat > "$RUNNER_TEMP/b4-launch.sh" <<'LAUNCH'
+          b4_args() {
+            B4_ARGS=(--pull=never --network none --read-only --user 0:0 --shm-size=256m
+              --tmpfs /tmp:rw,exec,nosuid,nodev,mode=1777,size=4g
+              --security-opt no-new-privileges
+              --cap-drop ALL --cap-add CHOWN --cap-add DAC_OVERRIDE --cap-add FOWNER --cap-add SETGID --cap-add SETUID --cap-add KILL
+              --mount "type=bind,src=$GITHUB_WORKSPACE,dst=/build/source,readonly"
+              --mount "type=bind,src=$B4_ATTEST,dst=/build/attestation,readonly"
+              --mount "type=bind,src=$1,dst=/evidence"
+              --mount "type=bind,src=$B4_NODE_ROOT,dst=/opt/node,readonly"
+              -e PATH=/opt/node/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+              -e "B4_TOOL_ID=$B4_TOOL_ID" -e "B4_PG_BIN=$B4_PG_BIN")
+          }
+          LAUNCH
+          cat > "$RUNNER_TEMP/b4-preflight.sh" <<'PREFLIGHT'
+          #!/bin/bash
+          set -Eeuo pipefail
+          fail() { printf 'PREFLIGHT_FAIL %s\n' "$1" >&2; exit 1; }
+          [[ $$ == 1 ]] || fail pid1
+          [[ $(node --version) == v22.* ]] || fail node_major
+          printf 'node=%s\n' "$(node --version)"
+          pgv=$("$B4_PG_BIN/postgres" --version)
+          [[ $pgv =~ ^postgres\ \(PostgreSQL\)\ 17\. ]] || fail pg_major
+          printf 'pg=%s\n' "$pgv"
+          for t in postgres initdb pg_ctl psql createdb createuser; do [[ -x $B4_PG_BIN/$t ]] || fail "pg_tool_$t"; done
+          bb=$(realpath -e -- "$(command -v busybox)")
+          [[ $(sha256sum "$bb" | cut -d' ' -f1) == "$B4_BUSYBOX_BIN_SHA256" ]] || fail busybox_sha
+          busybox --list | grep -Fx crond >/dev/null || fail crond_applet
+          for t in bash tar sha256sum cmp find awk sort install mktemp realpath findmnt ip ss setpriv getent id chown; do command -v "$t" >/dev/null || fail "missing_$t"; done
+          tar --version | head -n 1 | grep -q 'GNU tar' || fail gnu_tar
+          [[ $(id -u postgres) -gt 0 && $(id -u nobody) -gt 0 && $(id -u nobody) != "$(id -u postgres)" ]] || fail distinct_uids
+          for m in /build/source /build/attestation /opt/node; do
+            [[ ,$(findmnt -n -o OPTIONS --mountpoint "$m"), == *,ro,* ]] || fail "not_readonly_$m"
+          done
+          [[ $(findmnt -n -o TARGET --mountpoint /evidence) == /evidence ]] || fail evidence_mountpoint
+          [[ -z $(find /evidence -mindepth 1 -print -quit) ]] || fail evidence_not_empty
+          : > /evidence/.probe; rm -f /evidence/.probe
+          ( : > /build/source/.probe ) 2>/dev/null && fail source_writable
+          ( : > /build/attestation/.probe ) 2>/dev/null && fail attestation_writable
+          ( : > /probe ) 2>/dev/null && fail rootfs_writable
+          [[ $(findmnt -n -o FSTYPE --mountpoint /tmp) == tmpfs ]] || fail tmp_not_tmpfs
+          [[ ,$(findmnt -n -o OPTIONS --mountpoint /tmp), != *,noexec,* ]] || fail tmp_noexec
+          [[ $(ip -o link show | awk -F': ' '{print $2}') == lo ]] || fail interfaces
+          [[ -z $(ip -4 route show) ]] || fail ipv4_route
+          [[ $(df -m /dev/shm | awk 'NR==2 {print $2}') -ge 250 ]] || fail shm_size
+          [[ -s /build/source/tests/evidence/b4-pg17.sh && -s /build/attestation/source.receipt ]] || fail mounted_inputs
+          printf 'busybox_sha256=%s\n' "$B4_BUSYBOX_BIN_SHA256"
+          dpkg-query -W -f='iproute2=${Version}\n' iproute2
+          dpkg-query -W -f='util-linux=${Version}\n' util-linux
+          sed -n 's/^PRETTY_NAME=/os=/p' /etc/os-release
+          printf 'PREFLIGHT_OK\n'
+          PREFLIGHT
+
+      - name: Preflight (same flags, same mounts, no network, host Node)
+        shell: bash
+        timeout-minutes: 5
+        run: |
+          set -Eeuo pipefail
+          source "$RUNNER_TEMP/b4-launch.sh"
+          probe="$RUNNER_TEMP/b4-preflight-evidence"
+          mkdir -m 700 "$probe"
+          b4_args "$probe"
+          docker run --rm "${B4_ARGS[@]}" \
+            --mount "type=bind,src=$RUNNER_TEMP/b4-preflight.sh,dst=/preflight.sh,readonly" \
+            -e "B4_BUSYBOX_BIN_SHA256=$B4_BUSYBOX_BIN_SHA256" \
+            --entrypoint /bin/bash b4-pg17-runtime:ci /preflight.sh | tee "$B4_META/preflight.txt"
+          grep -Fx PREFLIGHT_OK "$B4_META/preflight.txt" >/dev/null
+          grep -E '^(node|pg|iproute2|util-linux|os|busybox_sha256)=' "$B4_META/preflight.txt" >> "$B4_META/image-provenance.txt"
+
+      - name: Run both modes in parallel isolated containers
+        id: run_modes
+        shell: bash
+        timeout-minutes: 50
+        run: |
+          set -Eeuo pipefail
+          source "$RUNNER_TEMP/b4-launch.sh"
+          modes=(with-guard guard-control)
+          mkdir -m 700 "$B4_EVIDENCE_ROOT"
+          for m in "${modes[@]}"; do mkdir -m 700 "$B4_EVIDENCE_ROOT/$m"; done
+          for m in "${modes[@]}"; do
+            b4_args "$B4_EVIDENCE_ROOT/$m"
+            docker run -d --name "b4-$m-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" "${B4_ARGS[@]}" \
+              --entrypoint /bin/bash b4-pg17-runtime:ci \
+              /build/source/tests/evidence/b4-pg17.sh run "$B4_STAGE_SHA" "$B4_APPROVAL_SHA256" "$m" > /dev/null
+          done
+          overall=0
+          : > "$B4_META/exit-codes.txt"
+          for m in "${modes[@]}"; do
+            name="b4-$m-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+            code=$(timeout 2700 docker wait "$name" 2>/dev/null) || code=wait_timeout
+            printf '%s=%s\n' "$m" "$code" >> "$B4_META/exit-codes.txt"
+            [[ $code == 0 ]] || overall=1
+            # Only the script's fixed failure-phase line is kept; nothing else from container output leaves the runner.
+            docker logs "$name" 2>&1 | grep -E '^B4_FAILED phase=[a-z_0-9]+$' > "$B4_META/phase-$m.txt" || true
+          done
+          # Files written by container root; hand them to the runner user so they can be read and uploaded.
+          sudo chown -R "$(id -u):$(id -g)" "$B4_EVIDENCE_ROOT"
+          chmod -R u+rwX "$B4_EVIDENCE_ROOT"
+          exit "$overall"
+
+      - name: Pair gate (host, after both result sets exist)
+        id: pair
+        if: ${{ success() }}
+        shell: bash
+        timeout-minutes: 5
+        run: |
+          set -Eeuo pipefail
+          mkdir -m 700 "$B4_PAIR_DIR"
+          /bin/bash "$GITHUB_WORKSPACE/tests/evidence/b4-pg17.sh" pair \
+            "$B4_EVIDENCE_ROOT/with-guard" "$B4_EVIDENCE_ROOT/guard-control" "$B4_PAIR_DIR/pair-report.json"
+          grep -Fq '"pass":true' "$B4_PAIR_DIR/pair-report.json"
+
+      - name: Collect the fixed upload set
+        id: collect
+        if: ${{ always() }}
+        shell: bash
+        timeout-minutes: 5
+        run: |
+          set -Eeuo pipefail
+          for m in with-guard guard-control; do docker rm -fv "b4-$m-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" >/dev/null 2>&1 || true; done
+          up="$RUNNER_TEMP/b4-upload"
+          mkdir -m 700 "$up" "$up/meta"
+          max=1048576
+          # Structure is a closed list: these names, regular files only, size-capped. Nothing is copied by directory, so
+          # no build/install log, standalone server log, database file or private runner log can be swept in.
+          evidence_names=(result.json cron.jsonl result-gate.json source.receipt cleanup.txt cron-preflight.txt failed-reason.txt failed-stage.txt)
+          meta_names=(identity.txt image-provenance.txt preflight.txt exit-codes.txt phase-with-guard.txt phase-guard-control.txt)
+          : > "$up/meta/unexpected-and-withheld.txt"
+          take() { # src dst
+            if [[ -f $1 && ! -L $1 && $(stat -c %s "$1") -le $max ]]; then cp -- "$1" "$2"; return 0; fi
+            [[ -e $1 ]] && printf 'withheld_not_regular_or_too_large %s\n' "$(basename "$1")" >> "$up/meta/unexpected-and-withheld.txt"
+            return 0
+          }
+          if [[ -n ${B4_META:-} && -d $B4_META ]]; then
+            for n in "${meta_names[@]}"; do take "$B4_META/$n" "$up/meta/$n"; done
+          fi
+          if [[ -n ${B4_PAIR_DIR:-} ]]; then take "$B4_PAIR_DIR/pair-report.json" "$up/meta/pair-report.json"; fi
+          if [[ -n ${B4_ATTEST:-} ]]; then take "$B4_ATTEST/source.receipt" "$up/meta/attestation-source.receipt"; fi
+          for m in with-guard guard-control; do
+            src="${B4_EVIDENCE_ROOT:-/nonexistent}/$m"
+            [[ -d $src ]] || continue
+            mkdir -m 700 "$up/$m"
+            for n in "${evidence_names[@]}"; do take "$src/$n" "$up/$m/$n"; done
+            # Record, by sanitized name only, anything else the run wrote; it is not uploaded.
+            while IFS= read -r f; do
+              b=$(basename "$f")
+              printf 'unexpected %s/%s\n' "$m" "$(printf '%s' "$b" | tr -c 'A-Za-z0-9._-' '_')" >> "$up/meta/unexpected-and-withheld.txt"
+            done < <(find "$src" -mindepth 1 -maxdepth 1 \( -type f -o -type l -o -type d \) | grep -vE '/(result\.json|cron\.jsonl|result-gate\.json|source\.receipt|cleanup\.txt|cron-preflight\.txt|failed-reason\.txt|failed-stage\.txt)$' || true)
+          done
+          # Last line of defence: drop any file that looks like it carries a credential or connection string.
+          while IFS= read -r f; do
+            if grep -Eq 'Bearer [A-Za-z0-9]|postgres(ql)?://[^[:space:]]*:[^[:space:]@]*@|CRON_SECRET|AUTH_SECRET|PRIVACY_HASH_SECRET|ADMIN_TOTP_KEY|-----BEGIN' "$f"; then
+              printf 'withheld_secret_pattern %s\n' "${f#"$up"/}" >> "$up/meta/unexpected-and-withheld.txt"
+              rm -f -- "$f"
+            fi
+          done < <(find "$up" -type f ! -name unexpected-and-withheld.txt)
+          {
+            printf '### B4 PG17 (one build, two isolated containers)\n\n'
+            printf -- '- merge ref `%s`\n- tree `%s`\n' "${B4_SUBJECT_COMMIT:-unknown}" "${B4_SUBJECT_TREE:-unknown}"
+            printf -- '- stage receipt `%s`\n' "${B4_STAGE_SHA:-absent}"
+            [[ -f $up/meta/exit-codes.txt ]] && sed 's/^/- exit /' "$up/meta/exit-codes.txt" || printf -- '- exit codes: absent\n'
+            for m in with-guard guard-control; do
+              if [[ -s $up/$m/failed-stage.txt ]]; then printf -- '- %s failed stage: `%s`\n' "$m" "$(head -c 64 "$up/$m/failed-stage.txt" | tr -c 'a-z_\n' '?')"; fi
+              if [[ -s $up/$m/result-gate.json ]]; then printf -- '- %s result gate: `%s`\n' "$m" "$(head -c 400 "$up/$m/result-gate.json" | tr -d '\n`')"; else printf -- '- %s result gate: **absent**\n' "$m"; fi
+            done
+            if [[ -s $up/meta/pair-report.json ]]; then printf -- '- pair: `%s`\n' "$(head -c 600 "$up/meta/pair-report.json" | tr -d '\n`')"; else printf -- '- pair: **absent**\n'; fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload B4 evidence
+        id: upload
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: b4-pg17-evidence
+          path: ${{ runner.temp }}/b4-upload
+          retention-days: 14
+          if-no-files-found: error
+
+      # Final gate. The job is green only when both containers exited 0, the pair report says pass, the five required result
+      # files of each mode reached the upload set (a file withheld by the size or credential protection counts as missing,
+      # because the collect step deletes it from the set), and the artifact upload itself succeeded. Printed names come from a
+      # fixed vocabulary; nothing from the evidence files is echoed.
+      - name: Require the complete result set
+        if: ${{ always() }}
+        shell: bash
+        timeout-minutes: 5
+        env:
+          RUN_OUTCOME: ${{ steps.run_modes.outcome }}
+          PAIR_OUTCOME: ${{ steps.pair.outcome }}
+          COLLECT_OUTCOME: ${{ steps.collect.outcome }}
+          UPLOAD_OUTCOME: ${{ steps.upload.outcome }}
+        run: |
+          set -Eeuo pipefail
+          up="$RUNNER_TEMP/b4-upload"
+          problems=()
+          want() { [[ $2 == success ]] || problems+=("$1_not_success"); }
+          want run_modes "$RUN_OUTCOME"
+          want pair "$PAIR_OUTCOME"
+          want collect "$COLLECT_OUTCOME"
+          want upload "$UPLOAD_OUTCOME"
+          for m in with-guard guard-control; do
+            [[ -f $up/meta/exit-codes.txt ]] && grep -Fxq "$m=0" "$up/meta/exit-codes.txt" || problems+=("exit_$m")
+            for n in result.json cron.jsonl result-gate.json source.receipt cleanup.txt; do
+              [[ -s $up/$m/$n ]] || problems+=("missing_${m}_${n//./_}")
+            done
+          done
+          [[ -s $up/meta/pair-report.json ]] && grep -Fq '"pass":true' "$up/meta/pair-report.json" || problems+=(pair_report)
+          [[ -f $up/meta/unexpected-and-withheld.txt ]] || problems+=(note_missing)
+          if [[ -f $up/meta/unexpected-and-withheld.txt ]] && grep -q '^withheld_' "$up/meta/unexpected-and-withheld.txt"; then problems+=(evidence_withheld); fi
+          if (( ${#problems[@]} )); then
+            printf 'B4_GATE_RED %s\n' "${problems[*]}" >&2
+            exit 1
+          fi
+          echo 'B4_GATE_GREEN'

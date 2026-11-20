@@ -2039,3 +2039,32 @@ jobs:
             test-results/**/*.webm
           retention-days: 1
           if-no-files-found: error
+
+  deploy-scripts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: 前置：bash 版本与 zstd（import-scan 唯一真依赖）
+        run: |
+          set -eu
+          bash --version | head -n 1
+          if ! command -v zstd >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq zstd
+          fi
+          zstd --version
+      - name: deploy/tests 固定 9 项（绿/红都留固定字段报表）
+        run: bash deploy/tests/run-all.sh deploy-test-logs
+      - name: 安全报表（绿红都收；固定字段，不含脚本原文）
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy-tests-report
+          path: |
+            deploy-test-logs/report.json
+            deploy-test-logs/summary.tsv
+            deploy-test-logs/checkout.txt
+            deploy-test-logs/failures/
+          retention-days: 7
+          if-no-files-found: warn
