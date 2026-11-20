@@ -347,6 +347,97 @@ jobs:
           chmod -R u+rwX "$B4_EVIDENCE_ROOT"
           exit "$overall"
 
+      # Diagnostic only: not evidence, not required by the final gate, runs only after run_modes failed. One throw-away
+      # container with the same image, flags, mounts and arguments, and its own empty evidence mount, runs the same checks as
+      # tests/evidence/b4-pg17.sh lines 121-130 one atomic predicate at a time (I01-I17), then the approved lines themselves
+      # (L121-L129, only when their digest matches). Only a fixed vocabulary of short codes and small integers is kept; the
+      # container log is filtered on the host and the container is always removed.
+      - name: Isolation locator (fixed codes only)
+        id: diag
+        if: ${{ failure() && steps.run_modes.outcome == 'failure' }}
+        shell: bash
+        timeout-minutes: 5
+        env:
+          B4_DIAG_LINES_SHA256: a2f125e322129a5cc286628d32b22e8cf5d38e76260a1d6de42271c1e06547cd
+        run: |
+          set -Eeuo pipefail
+          source "$RUNNER_TEMP/b4-launch.sh"
+          dg="$RUNNER_TEMP/b4-diag-evidence"
+          mkdir -m 700 "$dg"
+          cat > "$RUNNER_TEMP/b4-diag.sh" <<'DIAG'
+          #!/bin/bash
+          # Diagnostic only. Mirrors tests/evidence/b4-pg17.sh lines 121-130 one atomic predicate at a time and then evaluates the real
+          # lines verbatim. Output is a closed vocabulary of short codes and small integers; no expanded value, address or log leaves.
+          set -u
+          set -o pipefail
+          exec 2>/dev/null
+          src=/build/source/tests/evidence/b4-pg17.sh
+          want=${B4_DIAG_LINES_SHA256:-}
+          node_bin=$(realpath -e -- "$(command -v node)")
+          cnt() { grep -c . || true; }
+
+          printf 'I01 ok=%s\n' "$([ "$#" -eq 4 ] && printf 1 || printf 0)"
+          printf 'I02 ok=%s\n' "$([ "$(uname -s)" = Linux ] && printf 1 || printf 0)"
+          printf 'I03 ok=%s\n' "$([ "$EUID" -eq 0 ] && printf 1 || printf 0)"
+          printf 'I04 ok=%s\n' "$([ "$$" -eq 1 ] && printf 1 || printf 0)"
+          v=$("$node_bin" --version); rc=$?
+          printf 'I05 rc=%s major22=%s\n' "$rc" "$([[ $v == v22.* ]] && printf 1 || printf 0)"
+          a=$(readlink /proc/self/ns/net); ra=$?
+          b=$(readlink /proc/1/ns/net); rb=$?
+          printf 'I06 ra=%s rb=%s eq=%s\n' "$ra" "$rb" "$([ "$a" = "$b" ] && printf 1 || printf 0)"
+          a=$(readlink /proc/self/ns/pid); ra=$?
+          b=$(readlink /proc/1/ns/pid); rb=$?
+          printf 'I07 ra=%s rb=%s eq=%s\n' "$ra" "$rb" "$([ "$a" = "$b" ] && printf 1 || printf 0)"
+          out=$(ip -o link show); rc=$?
+          names=$(printf '%s\n' "$out" | awk -F': ' '{print $2}')
+          printf 'I08 rc=%s only_lo=%s n=%s\n' "$rc" "$([[ $names == lo ]] && printf 1 || printf 0)" "$(printf '%s\n' "$names" | cnt)"
+          out=$(ip -4 -o addr show dev lo to 127.0.0.1/32); rc=$?
+          printf 'I09 rc=%s filtered_nonempty=%s\n' "$rc" "$([ -n "$out" ] && printf 1 || printf 0)"
+          out=$(ip -4 -o addr show dev lo); rc=$?
+          printf 'I10 rc=%s plain_nonempty=%s\n' "$rc" "$([ -n "$out" ] && printf 1 || printf 0)"
+          out=$(ip -4 route show); rc=$?
+          printf 'I11 rc=%s empty=%s\n' "$rc" "$([ -z "$out" ] && printf 1 || printf 0)"
+          out=$(ip -6 route show default); rc=$?
+          printf 'I12 rc=%s empty=%s\n' "$rc" "$([ -z "$out" ] && printf 1 || printf 0)"
+          out=$(getent ahostsv4 localhost); rc=$?
+          u=$(printf '%s\n' "$out" | awk '{print $1}' | sort -u)
+          printf 'I13 rc=%s distinct=%s only127=%s\n' "$rc" "$(printf '%s\n' "$u" | cnt)" "$([[ $u == 127.0.0.1 ]] && printf 1 || printf 0)"
+          out=$(findmnt -n -o FSTYPE --mountpoint /tmp); rc=$?
+          printf 'I14 rc=%s tmpfs=%s\n' "$rc" "$([[ $out == tmpfs ]] && printf 1 || printf 0)"
+          printf 'I15 ok=%s\n' "$([[ ${2:-} =~ ^[a-f0-9]{64}$ ]] && printf 1 || printf 0)"
+          printf 'I16 ok=%s\n' "$([[ ${3:-} =~ ^[a-f0-9]{64}$ ]] && printf 1 || printf 0)"
+          printf 'I17 ok=%s\n' "$([[ ${4:-} == schedule || ${4:-} == with-guard || ${4:-} == guard-control ]] && printf 1 || printf 0)"
+
+          # Objective cross-check: the approved script's own lines, evaluated as written, in this same PID 1 shell with the same arguments.
+          digest=$(sed -n '121,130p' "$src" | sha256sum | cut -d' ' -f1)
+          match=$([ -n "$want" ] && [ "$digest" = "$want" ] && printf 1 || printf 0)
+          printf 'LDG ok=%s\n' "$match"
+          if [ "$match" = 1 ]; then
+            for n in 121 122 123 124 125 126 127 128 129; do
+              line=$(sed -n "${n}p" "$src")
+              if ( eval "$line" ) >/dev/null 2>&1; then r=1; else r=0; fi
+              printf 'L%s ok=%s\n' "$n" "$r"
+            done
+          fi
+          printf 'DIAG_END\n'
+          DIAG
+          chmod 0644 "$RUNNER_TEMP/b4-diag.sh"
+          b4_args "$dg"
+          name="b4-diag-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          cleanup() { docker rm -fv "$name" >/dev/null 2>&1 || true; }
+          trap cleanup EXIT
+          docker run -d --name "$name" "${B4_ARGS[@]}" \
+            --mount "type=bind,src=$RUNNER_TEMP/b4-diag.sh,dst=/diag.sh,readonly" \
+            -e "B4_DIAG_LINES_SHA256=$B4_DIAG_LINES_SHA256" \
+            --entrypoint /bin/bash b4-pg17-runtime:ci \
+            /diag.sh run "$B4_STAGE_SHA" "$B4_APPROVAL_SHA256" with-guard > /dev/null
+          code=$(timeout 60 docker wait "$name" 2>/dev/null) || code=still_running
+          [[ $code =~ ^[0-9]{1,3}$ ]] || code=still_running
+          {
+            printf 'diag_exit=%s\n' "$code"
+            docker logs "$name" 2>/dev/null | grep -aE '^((I(0[1-9]|1[0-7])|L12[1-9]|LDG) [a-z0-9_= ]{1,60}|DIAG_END)$' | head -n 40 || true
+          } > "$B4_META/diag-isolation.txt"
+          cat "$B4_META/diag-isolation.txt"
       - name: Pair gate (host, after both result sets exist)
         id: pair
         if: ${{ success() }}
@@ -373,7 +464,7 @@ jobs:
           # Structure is a closed list: these names, regular files only, size-capped. Nothing is copied by directory, so
           # no build/install log, standalone server log, database file or private runner log can be swept in.
           evidence_names=(result.json cron.jsonl result-gate.json source.receipt cleanup.txt cron-preflight.txt failed-reason.txt failed-stage.txt)
-          meta_names=(identity.txt image-provenance.txt preflight.txt exit-codes.txt phase-with-guard.txt phase-guard-control.txt)
+          meta_names=(identity.txt image-provenance.txt preflight.txt exit-codes.txt phase-with-guard.txt phase-guard-control.txt diag-isolation.txt)
           : > "$up/meta/unexpected-and-withheld.txt"
           take() { # src dst
             if [[ -f $1 && ! -L $1 && $(stat -c %s "$1") -le $max ]]; then cp -- "$1" "$2"; return 0; fi
