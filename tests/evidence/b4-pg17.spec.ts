@@ -4,10 +4,11 @@ import { access, readFile, realpath, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { test, type APIRequestContext } from '@playwright/test';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, type Prisma } from '@prisma/client';
 import { initializeRunAuth, loadRunAuth } from '../../e2e/run-auth';
-import { utcDatesCovered } from '../../src/lib/analytics/daily-aggregate';
-import { siteDayUtcBounds, siteLocalDate } from '../../src/lib/analytics/day-boundaries';
+import { classifyDayCompleteness, utcDatesCovered } from '../../src/lib/analytics/daily-aggregate';
+import { RAW_EVENT_RETENTION_MS, siteDayUtcBounds, siteLocalDate } from '../../src/lib/analytics/day-boundaries';
+import { dailyCoverageStart } from '../../src/lib/server/analytics/aggregate';
 
 const INTERVAL = 300_000;
 const base = 'http://localhost:3111';
@@ -103,12 +104,13 @@ async function readSettings(api: APIRequestContext): Promise<Settings> {
   return await res.json() as Settings;
 }
 
-async function patchSettings(api: APIRequestContext, db: PrismaClient, initial: Settings, timezone: string) {
+async function patchSettings(api: APIRequestContext, db: PrismaClient, initial: Settings, timezone: string, j5 = false) {
   const res = await api.patch(settingsPath, {
     headers: { Origin: base }, data: { timezone, expectedVersion: initial.version }, timeout: 8_000, maxRedirects: 0,
   });
   assert.equal(res.status(), 200);
   const next = await res.json() as Settings;
+  if (j5) j5Dto(next, true);
   assert.equal(next.timezone, timezone);
   assert.equal(next.version, initial.version + 1);
   assert.equal(next.timezoneRevision, initial.timezoneRevision + 1);
@@ -253,8 +255,127 @@ async function atGuardBarrier<T>(db: PrismaClient, boundary: number, before: Rou
   return { ...wait, releasedAt: Date.now(), relation: 'AnalyticsDailyRollup', lockMode: 'ShareLock' };
 }
 
+function j5Dto(value: Settings, expectedPatch: boolean) {
+  const fields = ['recomputableFrom', 'timezone', 'timezoneRevision', 'version'];
+  if (expectedPatch) fields.push('rebuildScheduled');
+  assert.deepEqual(Object.keys(value).sort(), fields.sort(), 'J5_SETTINGS_DTO');
+  assert.ok(Number.isSafeInteger(value.version) && value.version >= 0);
+  assert.ok(Number.isSafeInteger(value.timezoneRevision) && value.timezoneRevision > 0);
+  assert.ok(['UTC', 'Asia/Tokyo', 'America/New_York'].includes(value.timezone));
+  if (value.recomputableFrom !== null) assert.equal(new Date(value.recomputableFrom).toISOString(), value.recomputableFrom);
+  if (expectedPatch) assert.equal(value.rebuildScheduled, true);
+  return { version: value.version, timezone: value.timezone, timezoneRevision: value.timezoneRevision, recomputableFrom: value.recomputableFrom };
+}
+
+async function j5Storage(db: PrismaClient) {
+  return await db.siteSetting.findMany({ where: { key: { in: ['analytics.settings', 'analytics.recompute'] } }, orderBy: { key: 'asc' } });
+}
+
+async function j5Raw(db: PrismaClient) {
+  return await db.analyticsEvent.findMany({ orderBy: { eventId: 'asc' } });
+}
+
+async function j5StaleSave(db: PrismaClient, live: APIRequestContext, stale: APIRequestContext, original: Settings, changed: Settings) {
+  const from = j5Dto(changed, true);
+  assert.ok(from.recomputableFrom);
+  assert.deepEqual(j5Dto(await readSettings(live), false), from);
+  const before = await j5Storage(db);
+  const pending = before.find((row) => row.key === 'analytics.recompute')?.value as ({ status: string; requestedAt: string } & Settings) | undefined;
+  assert.ok(pending && Number.isFinite(Date.parse(pending.requestedAt)));
+  assert.deepEqual([pending.timezone, pending.timezoneRevision, pending.recomputableFrom, pending.status],
+    [from.timezone, from.timezoneRevision, from.recomputableFrom, 'pending']);
+  const rejected = await stale.patch(settingsPath, {
+    headers: { Origin: base }, data: { timezone: 'UTC', expectedVersion: original.version }, timeout: 8_000, maxRedirects: 0, maxRetries: 0,
+  });
+  assert.equal(rejected.status(), 409);
+  const body = await rejected.json() as { error?: string; requestId?: string; fieldErrors?: Record<string, unknown> };
+  assert.equal(body.error, 'version_conflict');
+  assert.match(body.requestId ?? '', /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i);
+  assert.deepEqual(Object.keys(body.fieldErrors ?? {}), ['expectedVersion']);
+  assert.equal(typeof body.fieldErrors?.expectedVersion, 'string');
+  assert.deepEqual(await j5Storage(db), before, 'J5_STALE_WRITE_CHANGED_STORAGE');
+  assert.deepEqual(j5Dto(await readSettings(stale), false), from);
+  return { before: original, saved: { ...from, rebuildScheduled: true }, stale: { http: 409, code: 'version_conflict', unchanged: true },
+    pending: { timezone: pending.timezone, revision: pending.timezoneRevision, from: pending.recomputableFrom, status: 'pending' } };
+}
+
+async function j5Day(tx: Prisma.TransactionClient, date: string, revision: number) {
+  const site = await tx.analyticsDaily.findUnique({ where: { localDate_timezoneRevision_dimension: { localDate: date, timezoneRevision: revision, dimension: 'site' } } });
+  const state = await tx.analyticsAggregateDayState.findUnique({ where: { localDate_timezoneRevision: { localDate: date, timezoneRevision: revision } } });
+  const bounds = site === null ? null : siteDayUtcBounds(date, site.timezone);
+  const dates = bounds ? utcDatesCovered(bounds) : [];
+  const rows = await tx.analyticsDayChange.findMany({ where: { utcDate: { in: dates } } });
+  const liveVersions = new Map(rows.map((entry) => [entry.utcDate, String(entry.version)]));
+  const markerVersions = state?.markerVersions as Record<string, string> | undefined;
+  const classification = classifyDayCompleteness({ siteRow: site, bounds, liveVersions,
+    state: state ? { markerVersions: markerVersions!, gapKind: state.gapKind, deferUntil: state.deferUntil } : null });
+  return { site, state, bounds, classification, live: Object.fromEntries(dates.map((key) => [key, liveVersions.get(key) ?? '0'])) };
+}
+
+type J5Day = Awaited<ReturnType<typeof j5Day>>;
+
+function j5Metrics(site: NonNullable<J5Day['site']>) {
+  return { visitors: site.visitors, pageViews: site.pageViews, productViews: site.productViews, modelStarts: site.modelStarts,
+    modelSuccesses: site.modelSuccesses, modelFailures: site.modelFailures, chatStarts: site.chatStarts,
+    durationMsSum: String(site.durationMsSum), loadDurationSamples: site.loadDurationSamples };
+}
+
+function j5History(before: J5Day, after: J5Day, newView: J5Day, date: string, timezone: string, revision: number, floor: string) {
+  assert.ok(before.site && after.site && before.bounds && after.bounds);
+  assert.deepEqual(after, before, 'J5_HISTORICAL_ROW_OR_CLASS_CHANGED');
+  assert.deepEqual([after.site.localDate, after.site.timezone, after.site.timezoneRevision, after.site.dimension], [date, 'UTC', 1, 'site']);
+  assert.ok(Date.parse(after.bounds.endUtc) <= Date.parse(floor));
+  assert.ok(Date.parse(siteDayUtcBounds(date, timezone).endUtc) <= Date.parse(floor));
+  assert.deepEqual([after.classification.status, after.classification.reason], ['partial', 'state_missing']);
+  assert.deepEqual([newView.site, newView.classification.status, newView.classification.reason], [null, 'no_data', 'no_site_row']);
+  return { date, timezone: 'UTC', revision: 1, retained: true, unchanged: true, classification: 'partial', reason: 'state_missing',
+    metrics: j5Metrics(after.site), requestedRevision: revision, requestedClassification: 'no_data', requestedReason: 'no_site_row' };
+}
+
+async function j5AfterTick(db: PrismaClient, historyDate: string, beforeHistory: J5Day, changed: Settings, round: Round) {
+  const savedFloor = changed.recomputableFrom;
+  assert.ok(savedFloor);
+  // JobState records the snapshot clock, which the job also uses to derive its default raw cutoff.
+  const snapshotAt = new Date(round.aggregatedAt);
+  const rawCutoff = new Date(snapshotAt.getTime() - RAW_EVENT_RETENTION_MS);
+  const liveFloor = dailyCoverageStart(snapshotAt, changed.timezone, rawCutoff);
+  const floor = Date.parse(liveFloor) >= Date.parse(savedFloor) ? liveFloor : savedFloor;
+  return await db.$transaction(async (tx) => {
+    const job = await tx.jobState.findUniqueOrThrow({ where: { key } });
+    const pending = await tx.siteSetting.findUnique({ where: { key: 'analytics.recompute' } });
+    const current = await j5Day(tx, round.date, changed.timezoneRevision);
+    const oldHistory = await j5Day(tx, historyDate, beforeHistory.site!.timezoneRevision);
+    const newHistory = await j5Day(tx, historyDate, changed.timezoneRevision);
+    const allNew = await tx.analyticsDaily.findMany({ where: { timezoneRevision: changed.timezoneRevision }, select: { localDate: true, timezone: true } });
+    assert.ok(allNew.length > 0);
+    for (const row of allNew) {
+      assert.equal(row.timezone, changed.timezone);
+      assert.ok(Date.parse(siteDayUtcBounds(row.localDate, row.timezone).startUtc) >= Date.parse(floor), 'J5_OUTPUT_BEFORE_COVERAGE');
+    }
+    assert.equal(pending, null, 'J5_BACKLOG_NOT_CONSUMED');
+    assert.equal(job.generation, round.generation);
+    assert.equal(job.lastSucceededAt?.getTime(), round.succeeded);
+    const summary = job.summary as unknown as { versions?: { timezoneRevision?: number }; times?: { sourceThrough?: string } };
+    assert.equal(summary.versions?.timezoneRevision, changed.timezoneRevision);
+    assert.equal(summary.times?.sourceThrough, round.sourceThrough);
+    assert.ok(current.site && current.state && current.bounds);
+    assert.equal(current.site.timezone, changed.timezone);
+    assert.equal(current.site.sourceThrough?.toISOString(), round.sourceThrough);
+    assert.equal(current.site.aggregatedAt.toISOString(), round.dailyAggregatedAt);
+    assert.deepEqual([current.state.timezone, current.state.gapKind, current.state.deferUntil], [changed.timezone, null, null]);
+    assert.deepEqual(current.state.markerVersions, current.live);
+    assert.deepEqual(current.live, round.markerVersions);
+    assert.deepEqual([current.classification.status, current.classification.reason], ['complete', 'site_row_no_gap_no_defer_marker_equal']);
+    assert.ok(Date.parse(current.bounds.endUtc) <= round.aggregatedAt, 'J5_COMPLETE_DAY_WINDOW');
+    const history = j5History(beforeHistory, oldHistory, newHistory, historyDate, changed.timezone, changed.timezoneRevision, floor);
+    return { backlogConsumed: true, allWrittenInsideCoverage: true, coverageFloor: floor, metricRows: allNew.length,
+      current: { localDate: round.date, revision: round.revision, timezone: round.timezone, bounds: current.bounds,
+        classification: 'complete', reason: 'site_row_no_gap_no_defer_marker_equal', metrics: j5Metrics(current.site), markers: current.live }, history };
+  }, { isolationLevel: 'RepeatableRead' });
+}
+
 async function guardConflict(args: {
-  db: PrismaClient; api: APIRequestContext; crond: ChildProcess; before: Round; settings: Settings; boundary: number; receivedAt: Date;
+  db: PrismaClient; api: APIRequestContext; crond: ChildProcess; before: Round; settings: Settings; boundary: number; receivedAt: Date; j5: boolean;
 }) {
   const { db, api, crond, before, settings, boundary, receivedAt } = args;
   const prior = await readDay(db, before.date, before.revision);
@@ -264,7 +385,7 @@ async function guardConflict(args: {
   assert.equal(log, logging.path);
   assert.match(log.slice(path('pg-log').length + 1), /^[A-Za-z0-9_.-]+\.json$/);
   const { result, ...barrier } = await atGuardBarrier(db, boundary, before, async () => {
-    const patch = await patchSettings(api, db, settings, 'America/New_York');
+    const patch = await patchSettings(api, db, settings, 'America/New_York', args.j5);
     return { patch, patchedAt: Date.now() };
   });
   const { patch, patchedAt } = result;
@@ -308,6 +429,8 @@ test('B4 PG17 real schedule and ADMIN revision', async ({ playwright }) => {
   const { B4_TOOL_ID: toolId, B4_PG_SHA256: postgres, B4_CROND_SHA256: crondSha, B4_NODE_SHA256: node } = process.env;
   assert.ok((mode === 'schedule' || mode === 'with-guard' || mode === 'guard-control') && sourceCommit && sourceTree && buildId && buildSha256 && busybox && setpriv);
   assert.ok(secret && /^[a-f0-9]{64}$/.test(secret) && [approvedSha256, toolId, postgres, crondSha, node].every((hash) => hash && /^[a-f0-9]{64}$/.test(hash)));
+  const j5Enabled = process.env.B4_J5 === '1';
+  assert.ok(!j5Enabled || mode === 'with-guard');
   const tools = { toolId, postgres, crond: crondSha, node };
   assert.equal(process.getuid?.(), 0);
   const launcher = (await readFile('/proc/1/cmdline', 'utf8')).split('\0');
@@ -319,6 +442,7 @@ test('B4 PG17 real schedule and ADMIN revision', async ({ playwright }) => {
   let crond: ChildProcess | undefined;
   let closeAuth: (() => void) | undefined;
   let api: APIRequestContext | undefined;
+  let staleApi: APIRequestContext | undefined;
   let stage = 'owned_database';
   try {
     const pg = await db.$queryRaw<{ server: number; db: string; port: number; data: string; shm: string }[]>`
@@ -374,6 +498,7 @@ test('B4 PG17 real schedule and ADMIN revision', async ({ playwright }) => {
     await healthy(app);
     assert.notEqual(app.pid, appPid);
     const restartAt = Date.now();
+    const restartedPid = app.pid;
     const reread = await readSettings(api);
     assert.deepEqual([reread.version, reread.timezone, reread.timezoneRevision], [patch.version, patch.timezone, patch.timezoneRevision]);
     const secondReceived = await seedFact(db, 'b4-after-restart', occurredAt);
@@ -402,6 +527,7 @@ test('B4 PG17 real schedule and ADMIN revision', async ({ playwright }) => {
     const resumed = await recordRound({ name: 'resumed', db, index: 3, boundary: stopped.boundary + INTERVAL, crond, after: stopped.boundary + 75_000, previous: restarted, timezone: target, revision: patch.timezoneRevision, occurredAt, receivedAt: secondReceived, count: 2 });
     rounds.push(resumed);
     assert.ok(resumed.dailyAggregatedAt >= restarted.dailyAggregatedAt);
+    let j5: Record<string, unknown> | undefined;
     let guard: Awaited<ReturnType<typeof guardConflict>> | { status: 'not_requested' } | {
       status: 'same_barrier_succeeded'; tick: Tick; round: Round; barrier: Omit<Awaited<ReturnType<typeof atGuardBarrier>>, 'result'>;
     } = { status: 'not_requested' };
@@ -410,7 +536,44 @@ test('B4 PG17 real schedule and ADMIN revision', async ({ playwright }) => {
       const boundary = stopped.boundary + 2 * INTERVAL;
       const receivedAt = await seedFact(db, 'b4-guard-probe', occurredAt);
       if (mode === 'with-guard') {
-        guard = await guardConflict({ db, api, crond, before: resumed, settings: patch, boundary, receivedAt });
+        if (j5Enabled) staleApi = await playwright.request.newContext({ baseURL: base, storageState: state });
+        const oldDto = staleApi ? j5Dto(await readSettings(staleApi), false) : null;
+        if (oldDto) assert.deepEqual(oldDto, { version: patch.version, timezone: patch.timezone, timezoneRevision: patch.timezoneRevision, recomputableFrom: null });
+        const oldHistory = j5Enabled ? await db.$transaction((tx) => j5Day(tx, historyDate, 1), { isolationLevel: 'RepeatableRead' }) : null;
+        const rawBefore = j5Enabled ? await j5Raw(db) : null;
+        const conflict = await guardConflict({ db, api, crond, before: resumed, settings: patch, boundary, receivedAt, j5: j5Enabled });
+        guard = conflict;
+        if (staleApi && oldDto && oldHistory && rawBefore) {
+          stage = 'j5_revision_history';
+          assert.equal(rawBefore.length, 3);
+          assert.deepEqual(await j5Raw(db), rawBefore, 'J5_RAW_CHANGED_BY_PATCH_OR_RR');
+          const { httpStatus, ...changed } = conflict.patch;
+          assert.equal(httpStatus, 200);
+          const settings = await j5StaleSave(db, api, staleApi, oldDto, changed);
+          assert.equal(await db.analyticsDaily.count({ where: { timezoneRevision: changed.timezoneRevision } }), 0, 'J5_REVISION_WRITTEN_BEFORE_VALID_TICK');
+          const beforeNewTick = await readJob(db);
+          assert.equal(beforeNewTick?.generation, conflict.generation);
+          const next = boundary + INTERVAL;
+          assert.ok(beforeNewTick?.lockedUntil && beforeNewTick.lockedUntil.getTime() <= next);
+          const preRestartPid = app.pid;
+          await stop(app);
+          assert.ok(exited(app));
+          app = startApp(setpriv);
+          await healthy(app);
+          assert.ok(app.pid && preRestartPid && app.pid !== preRestartPid);
+          const restartedAt = Date.now();
+          assert.deepEqual(j5Dto(await readSettings(api), false), j5Dto(changed, true));
+          assert.ok(Date.now() < next - 5_000, 'J5_NEW_TICK_ARM_WINDOW');
+          const round = await recordRound({ name: 'j5_after_guard_restart', db, index: 5, boundary: next, crond: crond!, after: restartedAt,
+            previous: { generation: conflict.generation, succeeded: conflict.lastSucceeded }, timezone: changed.timezone,
+            revision: changed.timezoneRevision, occurredAt, receivedAt, count: 3 });
+          assert.ok(round.sourceThrough > conflict.sourceThrough);
+          const classified = await j5AfterTick(db, historyDate, oldHistory, changed, round);
+          assert.deepEqual(await j5Raw(db), rawBefore, 'J5_RAW_CHANGED_BY_RECOMPUTE');
+          assert.deepEqual(j5Dto(await readSettings(api), false), { ...j5Dto(changed, true), recomputableFrom: null });
+          j5 = { settings, restart: { beforePid: preRestartPid, afterPid: app.pid, at: restartedAt }, round, ...classified, rawUnchanged: true };
+        }
+        assert.equal(Boolean(j5), j5Enabled);
       } else {
         const { result: unchanged, ...barrier } = await atGuardBarrier(db, boundary, resumed, () => readSettings(api!));
         assert.deepEqual([unchanged.version, unchanged.timezoneRevision, unchanged.timezone], [patch.version, patch.timezoneRevision, patch.timezone]);
@@ -423,8 +586,8 @@ test('B4 PG17 real schedule and ADMIN revision', async ({ playwright }) => {
     stage = 'report';
     await writeFile(path('result.json'), JSON.stringify({
       pass: true, mode, sourceCommit, sourceTree, buildId, buildSha256, buildMode: 'test', approvedSha256, tools, pgVersionNum: pg[0].server, sharedMemory: pg[0].shm,
-      appPids: [appPid, app.pid], patch, retained: { date: historyDate, timezone: retained.timezone, revision: retained.timezoneRevision },
-      rounds, stopped, guard,
+      appPids: [appPid, restartedPid], patch, retained: { date: historyDate, timezone: retained.timezone, revision: retained.timezoneRevision },
+      rounds, stopped, guard, ...(j5 ? { j5 } : {}),
     }, null, 2) + '\n', { flag: 'wx', mode: 0o600 });
   } catch (error) {
     await writeFile(path('failed-stage.txt'), `${stage}\n`, { mode: 0o600 });
@@ -434,7 +597,7 @@ test('B4 PG17 real schedule and ADMIN revision', async ({ playwright }) => {
     throw new Error(`B4_FAILED_${stage}`);
   } finally {
     const cleaned = await Promise.allSettled([
-      stop(crond), stop(app), api?.dispose(), db.$disconnect(), Promise.resolve().then(() => closeAuth?.()),
+      stop(crond), stop(app), api?.dispose(), staleApi?.dispose(), db.$disconnect(), Promise.resolve().then(() => closeAuth?.()),
     ]);
     assert.ok(cleaned.every((result) => result.status === 'fulfilled'), 'B4_CLEANUP_FAILED');
   }

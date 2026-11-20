@@ -279,9 +279,9 @@ jobs:
 
   e2e:
     runs-on: ubuntu-24.04
-    # 浏览器依赖安装、构建和完整测试共享此作业总预算；各用例超时与验收门禁保持不变。
-    # 五段串行共用 60 分钟；各用例限时、重试、分区与验收门禁保持不变。
-    timeout-minutes: 60
+    # 浏览器依赖安装、构建、A3 五段（实测约 36m）与后置专项补证（T10 15m 上限及预留 J6/J7/上传清理有界窗口）共享此作业外层预算；
+    # 各用例超时、零重试、分区与验收门禁保持不变。
+    timeout-minutes: 90
     services:
       postgres:
         image: postgres:17
@@ -310,6 +310,8 @@ jobs:
       CRON_SECRET: e2e-only
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: pnpm/action-setup@v4
         with: { version: 10 }
       - uses: actions/setup-node@v4
@@ -983,6 +985,7 @@ jobs:
         shell: bash
         run: bash "$A3_DRIVER_DIR/run.sh" flow
       - name: 汇总 A3 五段结果（失败或未执行均不通过）
+        id: e2e_a3_summary
         if: ${{ !cancelled() && steps.e2e_partition.outcome == 'success' }}
         shell: bash
         env:
@@ -1002,6 +1005,135 @@ jobs:
             released="${segment}_RELEASED"
             [[ ${!outcome} == success && ${!released} == true ]] || { echo "A3_SEGMENT_FAILED_OR_MISSING:$segment" >&2; exit 1; }
           done
+      # Formal supplement (integrated R3): T10 state capture, wired per the PM re-review hand-off (CI-HANDOFF.md, CI-STEP.sh).
+      # Starts only after the A3 summary step has itself succeeded (id e2e_a3_summary added to that step, nothing else in it
+      # changed). Strictly private console/Playwright/server/check output under $RUNNER_TEMP/t10-private.*, tracing off,
+      # no tee, no GitHub reporter; raw run under e2e-evidence/t10-acceptance (excluded from playwright-report); status
+      # receipt (t10-receipt) and admitted 16-file set (t10-admitted-evidence, on success only) upload separately.
+      # Final wiring: the 14-line source manifest (13 baseline blobs + the final R3 spec) and the three tools (select / check /
+      # admission) are pinned by two separate digests that live only in this workflow, never read back from the files they
+      # check. Both manifests are verified before capture and again before any of the three tools runs. The 16 admitted files
+      # (15 PNG + the RUN json) go to their own artifact only after the step itself succeeded; the status receipt stays separate.
+      # T10_STATE_CAPTURE=1 is set only on the Playwright child process below; by default the spec registers 0 cases (A3 stays 244/213).
+      - name: T10 state capture (dedicated empty PostgreSQL database)
+        id: t10_capture
+        if: ${{ success() && steps.e2e_partition.outcome == 'success' && steps.e2e_a3_summary.outcome == 'success' }}
+        shell: bash
+        timeout-minutes: 15
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/b10_t10_capture
+          PG_CONTAINER_ID: ${{ job.services.postgres.id }}
+          T10_SELECT_RUN: ${{ github.workspace }}/tests/evidence/t10-select-run.py
+          T10_CHECKER: ${{ github.workspace }}/tests/evidence/t10-check-run.py
+          T10_EVIDENCE_ADMISSION: ${{ github.workspace }}/tests/evidence/t10-evidence-admission.py
+          T10_APPROVED_MANIFEST: ${{ github.workspace }}/tests/evidence/t10-approved.sha256
+          T10_APPROVED_MANIFEST_SHA: 3e7a9effabe4c21561ce633d23d20026a7dc1e2ec89353699f0eef11c8e9b270
+          T10_TOOLS_MANIFEST: ${{ github.workspace }}/tests/evidence/t10-tools.sha256
+          T10_TOOLS_MANIFEST_SHA: c671e4379600d618ec1bc59de0c6169fdceab71f7b18806a96a133ab5d6c929c
+        run: |
+          # Candidate run body for the CI writer. See CI-HANDOFF.md for required wiring.
+          set -Eeuo pipefail
+          umask 077
+          cd "$GITHUB_WORKSPACE"
+          receipt="$RUNNER_TEMP/t10-receipt-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          mkdir "$receipt"
+          phase=preflight
+          trap 'rc=$?; printf "stage=%s\nexit=%s\n" "$phase" "$rc" > "$receipt/result.txt"; if ((rc != 0)); then printf "T10_STAGE_FAILED:%s\n" "$phase" >&4; fi; exit "$rc"' EXIT
+          exec 4>&2
+          private=$(mktemp -d "$RUNNER_TEMP/t10-private.XXXXXXXX")
+          exec >"$private/driver.log" 2>&1
+
+          baseline=ed9685a23b724baef64f43476b4f1e0c9ef06d63
+          head=$(git rev-parse --verify HEAD)
+          tree=$(git rev-parse --verify 'HEAD^{tree}')
+          [[ "$head" == "$GITHUB_SHA" && -z "${E2E_RUN_AUTH_DIRECTORY:-}" && -z "${T10_STATE_CAPTURE:-}" ]]
+          git merge-base --is-ancestor "$baseline" "$head"
+          git diff --quiet HEAD --
+          printf '%s  %s\n' "$T10_APPROVED_MANIFEST_SHA" "$T10_APPROVED_MANIFEST" | sha256sum --strict -c -
+          sha256sum --strict -c "$T10_APPROVED_MANIFEST"
+          printf '%s  %s\n' "$T10_TOOLS_MANIFEST_SHA" "$T10_TOOLS_MANIFEST" | sha256sum --strict -c -
+          sha256sum --strict -c "$T10_TOOLS_MANIFEST"
+
+          build_file=.next/standalone/.next/BUILD_ID
+          server=.next/standalone/server.js
+          [[ -s "$server" && -s "$build_file" && ! -e .next/standalone-server.log ]]
+          build_id=$(<"$build_file")
+          [[ "$build_id" =~ ^[A-Za-z0-9_-]+$ ]]
+          sha256sum "$server" "$build_file" > "$private/carrier.sha256"
+          # Keep the captured root outside all upload selectors except the explicit denylisted parent.
+          raw="$GITHUB_WORKSPACE/e2e-evidence/t10-acceptance"
+          mkdir "$raw"
+          node "$A3_DRIVER_DIR/ports.cjs"
+
+          phase=database
+          [[ "$DATABASE_URL" == */b10_t10_capture ]]
+          docker exec "$PG_CONTAINER_ID" psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
+            -c 'CREATE DATABASE "b10_t10_capture"'
+          pnpm prisma db push --skip-generate
+
+          phase=playwright
+          set +e
+          env -u M5T10_DENSITY_EVIDENCE_ROOT -u T10_BUILD_ID_PATH \
+            T10_STATE_CAPTURE=1 T10_STATE_EVIDENCE_ROOT="$raw" E2E_PORT=3100 FORCE_COLOR=0 \
+            PLAYWRIGHT_HTML_OUTPUT_DIR="$private/html" \
+            pnpm test:e2e e2e/t10-state-capture.spec.ts --workers=1 --retries=0 --trace off \
+            --reporter=list --output="$private/test-results" > "$private/playwright.log" 2>&1
+          test_rc=$?
+          set -e
+          log_rc=0
+          mv -- .next/standalone-server.log "$private/standalone-server.log" || log_rc=$?
+          port_rc=0
+          node "$A3_DRIVER_DIR/ports.cjs" || port_rc=$?
+          (( test_rc == 0 && log_rc == 0 && port_rc == 0 ))
+
+          phase=check-run
+          sha256sum --strict -c "$private/carrier.sha256"
+          printf '%s  %s\n' "$T10_APPROVED_MANIFEST_SHA" "$T10_APPROVED_MANIFEST" | sha256sum --strict -c -
+          sha256sum --strict -c "$T10_APPROVED_MANIFEST"
+          printf '%s  %s\n' "$T10_TOOLS_MANIFEST_SHA" "$T10_TOOLS_MANIFEST" | sha256sum --strict -c -
+          sha256sum --strict -c "$T10_TOOLS_MANIFEST"
+          git diff --quiet HEAD --
+          run=$(python3 -B "$T10_SELECT_RUN" "$private/playwright.log" "$raw")
+          python3 -B "$T10_CHECKER" --run "$run" --expect-sha "$head" --expect-tree "$tree" \
+            --expect-build-id "$build_id" --repo "$GITHUB_WORKSPACE" --out "$private/check-run.json" \
+            > "$private/check-run.log" 2>&1
+
+          phase=publish-gate
+          # The independently re-reviewed admission command must validate exact names, fields, image integrity and privacy before writing this directory.
+          publish="$RUNNER_TEMP/t10-publish-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          python3 -B "$T10_EVIDENCE_ADMISSION" --run "$run" --check "$private/check-run.json" --out "$publish"
+          [[ -d "$publish" && ! -L "$publish" ]]
+          [[ -f "$publish/m5t10-STATE-RUN.json" && ! -L "$publish/m5t10-STATE-RUN.json" ]]
+          for state in empty loading load-failed retry-recovered saved; do
+            for viewport in 1920x1080 1440x900 390x844; do
+              png="$publish/state-$state-$viewport.png"
+              [[ -s "$png" && ! -L "$png" ]]
+            done
+          done
+          [[ $(find "$publish" -mindepth 1 -printf x | wc -c) -eq 16 ]]
+          printf 'cases_total=4\ncases_passed=4\ncases_skipped=0\nscreenshots=15\n' > "$receipt/counts.txt"
+          phase=complete
+      # Fixed status receipt (stage name, exit code, and on success the 4/4, 0 skip, 15 image counts). No log text, no check
+      # detail, no image. Uploaded for success and for failure; a missing receipt is an error, not a warning.
+      - name: Upload T10 receipt (fixed status only)
+        if: ${{ !cancelled() && (steps.t10_capture.outcome == 'success' || steps.t10_capture.outcome == 'failure') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: t10-receipt
+          path: ${{ runner.temp }}/t10-receipt-${{ github.run_id }}-${{ github.run_attempt }}/
+          retention-days: 7
+          if-no-files-found: error
+      # Admitted evidence: exactly the 16 files the step above verified in its own empty exclusive directory (15 named PNG +
+      # m5t10-STATE-RUN.json). Only after t10_capture itself succeeded; a missing directory or file is an error, never a warning.
+      # Raw e2e-evidence/t10-acceptance, private check/Playwright output, traces, server log and auth fixtures are not reachable from this path.
+      - name: Upload T10 admitted evidence
+        if: ${{ !cancelled() && steps.t10_capture.outcome == 'success' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: t10-admitted-evidence
+          path: ${{ runner.temp }}/t10-publish-${{ github.run_id }}-${{ github.run_attempt }}/
+          retention-days: 7
+          if-no-files-found: error
       - if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -1042,7 +1174,8 @@ jobs:
           path: |
             playwright-report/
             e2e-evidence/
-            .next/standalone-server.log
+            !e2e-evidence/t10-acceptance/**
+            ${{ (steps.t10_capture.outcome == 'skipped' || steps.t10_capture.outcome == '') && '.next/standalone-server.log' || '' }}
           retention-days: 7
           if-no-files-found: warn
       - if: failure()
@@ -1182,7 +1315,9 @@ jobs:
 
   mail-evidence:
     runs-on: ubuntu-24.04
-    timeout-minutes: 42
+    # 81 minutes for capped preparation, PG17 tooling and integration. Reserve time for checkout,
+    # frozen install, cleanup and uploads without changing the private namespace deadline.
+    timeout-minutes: 90
     permissions:
       contents: read
     env:
@@ -1605,6 +1740,59 @@ jobs:
           fs.writeFileSync(path.join(root, 'provenance.json'), JSON.stringify({ version: 1, owner: owner.nonce, ...source, modes }), { mode: 0o600, flag: 'wx' });
           console.log(JSON.stringify({ preparedRealModes: ['http', 'off'], source, modeManifests: modes, businessCredentialsUsed: false }));
           PREPARE
+      - name: Supply audited PostgreSQL 17 tool layer (PGDG noble, pinned)
+        timeout-minutes: 10
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          # ubuntu-24.04 carries PostgreSQL 16 only. The mail namespace needs a real 17, so install the exact PGDG
+          # noble build from the signed repository and start no service on this host.
+          pg_repo_key=https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          pg_repo_key_sha256=0144068502a1eddd2a0280ede10ef607d1ec592ce819940991203941564e8e76
+          pg_repo_line='deb [arch=amd64 signed-by=/usr/share/keyrings/pgdg-noble.gpg] https://apt.postgresql.org/pub/repos/apt noble-pgdg main'
+          pg_server_deb=17.12-1.pgdg24.04+1
+          pg_client_deb=17.12-1.pgdg24.04+1
+          key=$(mktemp)
+          curl --fail --silent --show-error --location --retry 3 --retry-delay 3 --connect-timeout 15 --max-time 60 --output "$key" "$pg_repo_key"
+          [[ $(sha256sum "$key" | cut -d' ' -f1) == "$pg_repo_key_sha256" ]] || { echo 'PGDG_KEY_DIGEST_MISMATCH' >&2; exit 1; }
+          sudo -n install -m 0644 "$key" /usr/share/keyrings/pgdg-noble.asc
+          sudo -n rm -f -- "$key"
+          sudo -n gpg --batch --yes --dearmor --output /usr/share/keyrings/pgdg-noble.gpg /usr/share/keyrings/pgdg-noble.asc
+          printf '%s\n' "$pg_repo_line" | sudo -n tee /etc/apt/sources.list.d/pgdg-noble.list >/dev/null
+          # The only server is the one the driver starts inside the private namespace; the host cluster stays uncreated.
+          sudo -n sh -c 'printf "create_main_cluster = false\n" > /etc/postgresql-common/createcluster.conf'
+          sudo -n sh -c 'printf "#!/bin/sh\nexit 101\n" > /usr/sbin/policy-rc.d; chmod 0755 /usr/sbin/policy-rc.d'
+          sudo -n apt-get update -qq
+          sudo -n env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends \
+            "postgresql-17=$pg_server_deb" "postgresql-client-17=$pg_client_deb"
+          pg_bin=/usr/lib/postgresql/17/bin
+          for tool in postgres initdb pg_ctl pg_isready createdb psql; do
+            [[ -x $pg_bin/$tool ]] || { echo "PG17_TOOL_MISSING:$tool" >&2; exit 1; }
+          done
+          version=$("$pg_bin/postgres" --version)
+          [[ $version =~ ^postgres\ \(PostgreSQL\)\ 17\. ]] || { echo 'PG17_MAJOR_MISMATCH' >&2; exit 1; }
+          [[ $(dpkg-query -W -f='${Version}' postgresql-17) == "$pg_server_deb" ]] || { echo 'PG17_SERVER_DEB_MISMATCH' >&2; exit 1; }
+          [[ $(dpkg-query -W -f='${Version}' postgresql-client-17) == "$pg_client_deb" ]] || { echo 'PG17_CLIENT_DEB_MISMATCH' >&2; exit 1; }
+          [[ ! -e /etc/postgresql/17/main && ! -e /var/lib/postgresql/17/main ]] || { echo 'PG17_HOST_CLUSTER_CREATED' >&2; exit 1; }
+          if ! host_pg_listeners=$(ss -Hln 'sport = :5432 or sport = :5433' 2>/dev/null); then
+            echo 'PG17_HOST_LISTENER_CHECK_FAILED' >&2
+            exit 1
+          fi
+          [[ -z $host_pg_listeners ]] || { echo 'PG17_HOST_LISTENER_PRESENT' >&2; exit 1; }
+          mkdir -p test-results/mail-evidence-pg17
+          {
+            printf 'pg17_bin=%s\n' "$pg_bin"
+            printf 'postgres_version=%s\n' "$version"
+            printf 'server_deb=%s\n' "$(dpkg-query -W -f='${Version}' postgresql-17)"
+            printf 'client_deb=%s\n' "$(dpkg-query -W -f='${Version}' postgresql-client-17)"
+            printf 'libpq5_deb=%s\n' "$(dpkg-query -W -f='${Version}' libpq5)"
+            printf 'host_17_main_absent=true\nhost_5432_listener_absent=true\nhost_5433_listener_absent=true\n'
+            for tool in postgres initdb pg_ctl pg_isready createdb psql; do
+              printf '%s_sha256=%s\n' "$tool" "$(sha256sum "$pg_bin/$tool" | cut -d' ' -f1)"
+            done
+          } > "$RUNNER_TEMP/pg17-tool-provenance.txt"
+          install -m 0644 "$RUNNER_TEMP/pg17-tool-provenance.txt" test-results/mail-evidence-pg17/pg17-tool-provenance.txt
+          printf 'PG17_BIN=%s\n' "$pg_bin" >> "$GITHUB_ENV"
       - name: Isolated TLS SMTP integration
         timeout-minutes: 34
         shell: bash
@@ -1656,12 +1844,14 @@ jobs:
           cd "$project"
           node "$smtp_script" preflight --root "$root" --project "$project" --report "$report_dir/admin-legacy-inquiries-smtp-preflight.json"
           if [[ "$mode" == preflight-only ]]; then exit 0; fi
-          # Existing hosted-runner PostgreSQL only. Do not apt-install or fall back to a non-isolated database.
-          pg_bin=''
-          for candidate in /usr/lib/postgresql/*/bin; do
-            if [[ -x "$candidate/initdb" && -x "$candidate/pg_ctl" && -x "$candidate/pg_isready" && -x "$candidate/createdb" ]]; then pg_bin=$candidate; fi
+          # Explicit audited PostgreSQL 17 layer installed by the preceding step. Never a lexical glob and never the
+          # host's own cluster: the only server is the one started below inside this private namespace.
+          pg_bin=${PG17_BIN:-/usr/lib/postgresql/17/bin}
+          [[ $(realpath -e -- "$pg_bin") == /usr/lib/postgresql/17/bin ]] || { echo 'PG17_PATH_REJECTED' >&2; exit 1; }
+          for tool in postgres initdb pg_ctl pg_isready createdb psql; do
+            [[ -x "$pg_bin/$tool" ]] || { echo "PG17_TOOL_MISSING:$tool" >&2; exit 1; }
           done
-          [[ -n "$pg_bin" ]] || { echo 'POSTGRES_BINARIES_MISSING' >&2; exit 1; }
+          [[ $("$pg_bin/postgres" --version) =~ ^postgres\ \(PostgreSQL\)\ 17\. ]] || { echo 'PG17_MAJOR_MISMATCH' >&2; exit 1; }
           [[ -f tests/evidence/admin-legacy-inquiries-mail.spec.ts && -f tests/evidence/mail-evidence.config.ts ]] || { echo 'SUPPORT_FILES_NOT_REGISTERED_AND_IMPLEMENTED' >&2; exit 1; }
           pg_started=0
           sink_pid=''
@@ -1757,6 +1947,18 @@ jobs:
           pg_started=1
           "$pg_bin/pg_ctl" -D /tmp/mail-evidence-pg -l /tmp/mail-evidence-pg.log -o '-h 127.0.0.1 -p 5432 -k /tmp' -w start >/dev/null
           node "$smtp_script" exec --root "$root" --mode postgres -- "$pg_bin/createdb" -h 127.0.0.1 -p 5432 -U postgres mail_evidence
+          # Identity of the private cluster before any schema write: real database, real major, loopback endpoint and
+          # the per-cluster system identifier. The raw identifier never leaves this process; only its SHA-256 is kept.
+          pg_identity=$(node "$smtp_script" exec --root "$root" --mode postgres -- "$pg_bin/psql" -XAtw -v ON_ERROR_STOP=1 \
+            -h 127.0.0.1 -p 5432 -U postgres -d mail_evidence \
+            -c "SELECT current_database(), current_setting('server_version_num'), host(inet_server_addr()), inet_server_port(), (pg_control_system()).system_identifier::text" \
+            2> "$report_dir/pg17-identity.private.log") || { echo 'PG17_SQL_READ_FAILED' >&2; exit 1; }
+          [[ "$pg_identity" =~ ^mail_evidence\|17[0-9]{4}\|127\.0\.0\.1\|5432\|[0-9]+$ ]] || { echo 'PG17_IDENTITY_INVALID' >&2; exit 1; }
+          IFS='|' read -r pg_db pg_num pg_host pg_port pg_cluster <<< "$pg_identity"
+          pg_cluster_sha256=$(printf '%s' "$pg_cluster" | sha256sum | cut -d' ' -f1)
+          pg_pid_before=$(head -n 1 /tmp/mail-evidence-pg/postmaster.pid | tr -d ' \r\n')
+          [[ "$pg_pid_before" =~ ^[0-9]+$ && -d "/proc/$pg_pid_before" ]] || { echo 'PG17_POSTMASTER_PID_INVALID' >&2; exit 1; }
+          printf 'pg17_identity=%s|%s|%s|%s|cluster_sha256=%s\n' "$pg_db" "$pg_num" "$pg_host" "$pg_port" "$pg_cluster_sha256" > "$report_dir/pg17-identity.txt"
           node "$smtp_script" exec --root "$root" --mode postgres -- pnpm prisma db push --skip-generate
           node "$smtp_script" serve --root "$root" --chat --report "$report_dir/admin-legacy-inquiries-smtp-final.json" &
           sink_pid=$!
@@ -1954,7 +2156,16 @@ jobs:
           for port in 465 587; do
             grep -qx "# M4T4_TLS_REJECT port=$port code=CHAT_SMTP_TLS auth=0 mail=0" "$report_dir/chat-notification-smtp.tap"
           done
-          node "$smtp_script" exec --root "$root" --mode http-real -- node tests/evidence/chat-notifications-phase.mjs --report "$report_dir/chat-notifications-phase.json"
+          node "$smtp_script" exec --root "$root" --mode http-real -- node tests/evidence/chat-notifications-phase.mjs --report "$report_dir/chat-notifications-phase.json" --seam-report "$report_dir/chat-seam-j2.json"
+          # Both reports must come from the database and live postmaster validated above; a swapped or restarted cluster fails closed.
+          pg_identity_after=$(node "$smtp_script" exec --root "$root" --mode postgres -- "$pg_bin/psql" -XAtw -v ON_ERROR_STOP=1 \
+            -h 127.0.0.1 -p 5432 -U postgres -d mail_evidence \
+            -c "SELECT current_setting('server_version_num'), (pg_control_system()).system_identifier::text" \
+            2> /dev/null) || { echo 'PG17_POST_SQL_READ_FAILED' >&2; exit 1; }
+          [[ "$pg_identity_after" == "$pg_num|$pg_cluster" ]] || { echo 'PG17_CLUSTER_CHANGED' >&2; exit 1; }
+          pg_pid_after=$(head -n 1 /tmp/mail-evidence-pg/postmaster.pid | tr -d ' \r\n')
+          [[ "$pg_pid_after" == "$pg_pid_before" && -d "/proc/$pg_pid_after" ]] || { echo 'PG17_PROCESS_CHANGED' >&2; exit 1; }
+          printf 'postmaster_pid_same=true\n' >> "$report_dir/pg17-identity.txt"
           DRIVER
           chmod 600 "$root/driver.sh"
           # PID 1 owns the lifetime. Parent stdin EOF, a deadline, signal or driver failure ends that PID namespace.
@@ -2034,6 +2245,9 @@ jobs:
           path: |
             test-results/**/admin-legacy-inquiries*.json
             test-results/**/chat-notifications-phase.json
+            test-results/**/chat-seam-j2.json
+            test-results/**/pg17-identity.txt
+            test-results/mail-evidence-pg17/pg17-tool-provenance.txt
             test-results/**/chat-notification-smtp.tap
             test-results/**/inquiry-visual-*.png
             test-results/**/*.webm

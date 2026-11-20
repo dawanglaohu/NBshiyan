@@ -206,7 +206,7 @@ JS
         local stage
         stage=$(<"$root/failed-stage.txt")
         case $stage in
-          owned_database|standalone_and_auth|initial_true_tick|admin_patch_and_tick|restart_and_new_watermark|stopped_window|resumed_true_tick|rr_write_guard|rr_barrier_control|report)
+          owned_database|standalone_and_auth|initial_true_tick|admin_patch_and_tick|restart_and_new_watermark|stopped_window|resumed_true_tick|rr_write_guard|rr_barrier_control|j5_revision_history|report)
             printf '%s\n' "$stage" >/evidence/failed-stage.txt ;;
         esac
       fi
@@ -240,16 +240,18 @@ JS
     phase=schema
     env -i PATH="$PATH" HOME="$root/tmp" DATABASE_URL="$app_db_url" ./node_modules/.bin/prisma db push --skip-generate >"$root/schema.private.log" 2>&1
     phase=playwright
+    j5=${B4_J5:-0}
+    [[ $j5 == 0 || ( $j5 == 1 && $mode == with-guard ) ]]
     ci_env=()
     if [[ -v CI ]]; then ci_env=("CI=$CI"); fi
     # Generate values inside the child so credentials never appear in a shell command's argv.
-    env -i PATH="$PATH" HOME="$root/tmp" TMPDIR="$root/tmp" TZ=UTC LANG=C.UTF-8 "${ci_env[@]}" \
+    env -i PATH="$PATH" HOME="$root/tmp" TMPDIR="$root/tmp" TZ=UTC LANG=C.UTF-8 B4_J5="$j5" "${ci_env[@]}" \
       "$node_bin" --input-type=module - "$root" "$db_url" "$app_db_url" "${provenance[0]}" "${provenance[1]}" "${provenance[2]}" "${provenance[3]}" "$mode" "$bb" "$setpriv_bin" "$(id -g nobody)" "$B4_TOOL_ID" "$pg_sha" "$bb_sha" "$node_sha" "$3" <<'JS' >"$root/playwright.private.log" 2>&1
 import { spawnSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 const [B4_ROOT, DATABASE_URL, B4_APP_DB, B4_SOURCE_COMMIT, B4_SOURCE_TREE, B4_BUILD_ID, B4_BUILD_SHA256, B4_MODE, B4_BUSYBOX, B4_SETPRIV, B4_APP_GID, B4_TOOL_ID, B4_PG_SHA256, B4_CROND_SHA256, B4_NODE_SHA256, B4_APPROVED_SHA256] = process.argv.slice(2);
 const { status } = spawnSync(process.execPath, ['node_modules/@playwright/test/cli.js', 'test', '--config', 'tests/evidence/b4-pg17.config.ts'], {
-  stdio: 'inherit', timeout: 37 * 60_000, killSignal: 'SIGTERM', env: {
+  stdio: 'inherit', timeout: (process.env.B4_J5 === '1' ? 41 : 37) * 60_000, killSignal: 'SIGTERM', env: {
     ...process.env, B4_ROOT, DATABASE_URL, B4_APP_DB, B4_SOURCE_COMMIT, B4_SOURCE_TREE, B4_BUILD_ID, B4_BUILD_SHA256, B4_MODE, B4_BUSYBOX, B4_SETPRIV, B4_APP_GID,
     B4_TOOL_ID, B4_PG_SHA256, B4_CROND_SHA256, B4_NODE_SHA256, B4_APPROVED_SHA256,
     CRON_SECRET: randomBytes(32).toString('hex'), AUTH_SECRET: randomBytes(32).toString('hex'),
@@ -259,10 +261,50 @@ const { status } = spawnSync(process.execPath, ['node_modules/@playwright/test/c
 process.exitCode = status ?? 1;
 JS
     phase=output_gate
-    "$node_bin" --input-type=module - "$root" "$mode" "${provenance[0]}" "${provenance[1]}" "${provenance[2]}" "${provenance[3]}" "$3" "$B4_TOOL_ID" "$pg_sha" "$bb_sha" "$node_sha" <<'JS'
+    B4_J5="$j5" "$node_bin" --input-type=module - "$root" "$mode" "${provenance[0]}" "${provenance[1]}" "${provenance[2]}" "${provenance[3]}" "$3" "$B4_TOOL_ID" "$pg_sha" "$bb_sha" "$node_sha" <<'JS'
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 const [root, mode, sourceCommit, sourceTree, buildId, buildSha256, approvedSha256, toolId, postgres, crond, node] = process.argv.slice(2);
+function checkJ5(result, ticks) {
+  const { j5, guard } = result;
+  const { settings, restart, round, current, history } = j5;
+  assert.equal(result.mode, 'with-guard');
+  assert.equal(guard.status, 'rr_write_guard_40001');
+  assert.deepEqual([guard.evidence.sqlstate, guard.evidence.phase, guard.evidence.pid],
+    ['40001', 'daily_write_guard_site_setting_for_update', guard.barrier.blockedPid]);
+  const { httpStatus, ...saved } = guard.patch;
+  assert.equal(httpStatus, 200);
+  assert.deepEqual(settings.saved, saved);
+  assert.deepEqual(settings.before, { version: saved.version - 1, timezone: 'Asia/Tokyo', timezoneRevision: saved.timezoneRevision - 1, recomputableFrom: null });
+  assert.equal(saved.timezone, 'America/New_York');
+  assert.equal(saved.rebuildScheduled, true);
+  assert.deepEqual(settings.pending, { timezone: saved.timezone, revision: saved.timezoneRevision, from: saved.recomputableFrom, status: 'pending' });
+  assert.deepEqual(settings.stale, { http: 409, code: 'version_conflict', unchanged: true });
+  assert.ok(ticks[4].end <= restart.at && restart.at <= ticks[5].at);
+  assert.ok(Number.isSafeInteger(restart.beforePid) && restart.beforePid > 1 && restart.beforePid !== restart.afterPid);
+  assert.equal(restart.beforePid, result.appPids[1]);
+  assert.ok(Number.isSafeInteger(restart.afterPid) && restart.afterPid > 1);
+  assert.deepEqual(round.tick, ticks[5]);
+  assert.deepEqual([round.name, round.tick.http, round.tick.result, round.generation, round.revision, round.timezone, round.count],
+    ['j5_after_guard_restart', 200, 'SUCCEEDED', guard.generation + 1, saved.timezoneRevision, saved.timezone, 3]);
+  assert.equal(round.tick.crondPid, guard.tick.crondPid);
+  assert.equal(Math.floor(ticks[5].at / 300_000) - Math.floor(ticks[4].at / 300_000), 1);
+  assert.ok(round.started >= restart.at && round.succeeded >= round.started && round.succeeded > guard.lastSucceeded);
+  assert.ok(round.sourceThrough > guard.sourceThrough && round.sourceThrough === guard.seededThrough);
+  assert.deepEqual([current.localDate, current.revision, current.timezone, current.classification, current.reason],
+    [round.date, round.revision, round.timezone, 'complete', 'site_row_no_gap_no_defer_marker_equal']);
+  assert.ok(Date.parse(j5.coverageFloor) >= Date.parse(saved.recomputableFrom));
+  assert.ok(Date.parse(current.bounds.startUtc) >= Date.parse(j5.coverageFloor));
+  assert.ok(Date.parse(current.bounds.endUtc) <= round.aggregatedAt && Date.parse(current.bounds.endUtc) > Date.parse(current.bounds.startUtc));
+  assert.deepEqual(current.markers, round.markerVersions);
+  assert.deepEqual([current.metrics.pageViews, current.metrics.visitors], [3, 1]);
+  assert.deepEqual([history.date, history.timezone, history.revision, history.retained, history.unchanged, history.classification, history.reason],
+    [result.retained.date, 'UTC', 1, true, true, 'partial', 'state_missing']);
+  assert.deepEqual([history.requestedRevision, history.requestedClassification, history.requestedReason], [saved.timezoneRevision, 'no_data', 'no_site_row']);
+  assert.deepEqual([history.metrics.pageViews, history.metrics.visitors], [11, 7]);
+  assert.ok(Number.isSafeInteger(j5.metricRows) && j5.metricRows > 0);
+  assert.deepEqual([j5.backlogConsumed, j5.allWrittenInsideCoverage, j5.rawUnchanged], [true, true, true]);
+}
 try {
   const read = name => JSON.parse(fs.readFileSync(`${root}/${name}`, 'utf8'));
   const result = read('result.json');
@@ -280,7 +322,10 @@ try {
   const expected = { schedule: 'not_requested', 'with-guard': 'rr_write_guard_40001', 'guard-control': 'same_barrier_succeeded' };
   assert.equal(result.guard.status, expected[mode]);
   const ticks = fs.readFileSync(`${root}/cron.jsonl`, 'utf8').trimEnd().split('\n').map(line => JSON.parse(line));
-  assert.equal(ticks.length, mode === 'schedule' ? 4 : 5);
+  const j5 = process.env.B4_J5 === '1';
+  assert.equal(Boolean(result.j5), j5);
+  assert.equal(ticks.length, mode === 'schedule' ? 4 : j5 ? 6 : 5);
+  if (j5) checkJ5(result, ticks);
   for (const [i, round] of result.rounds.entries()) assert.deepEqual(ticks[i], round.tick);
   if (mode !== 'schedule') {
     const { guard, rounds } = result;
@@ -313,25 +358,71 @@ JS
   pair)
     [[ $# == 4 && $($node_bin --version) == v22.* ]]
     phase=pair_gate
+    [[ ${B4_J5:-0} == 0 || ${B4_J5:-0} == 1 ]]
     "$node_bin" --input-type=module - "$2" "$3" "$4" <<'JS'
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 const [conflictDir, controlDir, out] = process.argv.slice(2);
+function checkJ5(result, ticks) {
+  const { j5, guard } = result;
+  const { settings, restart, round, current, history } = j5;
+  assert.equal(result.mode, 'with-guard');
+  assert.equal(guard.status, 'rr_write_guard_40001');
+  assert.deepEqual([guard.evidence.sqlstate, guard.evidence.phase, guard.evidence.pid],
+    ['40001', 'daily_write_guard_site_setting_for_update', guard.barrier.blockedPid]);
+  const { httpStatus, ...saved } = guard.patch;
+  assert.equal(httpStatus, 200);
+  assert.deepEqual(settings.saved, saved);
+  assert.deepEqual(settings.before, { version: saved.version - 1, timezone: 'Asia/Tokyo', timezoneRevision: saved.timezoneRevision - 1, recomputableFrom: null });
+  assert.equal(saved.timezone, 'America/New_York');
+  assert.equal(saved.rebuildScheduled, true);
+  assert.deepEqual(settings.pending, { timezone: saved.timezone, revision: saved.timezoneRevision, from: saved.recomputableFrom, status: 'pending' });
+  assert.deepEqual(settings.stale, { http: 409, code: 'version_conflict', unchanged: true });
+  assert.ok(ticks[4].end <= restart.at && restart.at <= ticks[5].at);
+  assert.ok(Number.isSafeInteger(restart.beforePid) && restart.beforePid > 1 && restart.beforePid !== restart.afterPid);
+  assert.equal(restart.beforePid, result.appPids[1]);
+  assert.ok(Number.isSafeInteger(restart.afterPid) && restart.afterPid > 1);
+  assert.deepEqual(round.tick, ticks[5]);
+  assert.deepEqual([round.name, round.tick.http, round.tick.result, round.generation, round.revision, round.timezone, round.count],
+    ['j5_after_guard_restart', 200, 'SUCCEEDED', guard.generation + 1, saved.timezoneRevision, saved.timezone, 3]);
+  assert.equal(round.tick.crondPid, guard.tick.crondPid);
+  assert.equal(Math.floor(ticks[5].at / 300_000) - Math.floor(ticks[4].at / 300_000), 1);
+  assert.ok(round.started >= restart.at && round.succeeded >= round.started && round.succeeded > guard.lastSucceeded);
+  assert.ok(round.sourceThrough > guard.sourceThrough && round.sourceThrough === guard.seededThrough);
+  assert.deepEqual([current.localDate, current.revision, current.timezone, current.classification, current.reason],
+    [round.date, round.revision, round.timezone, 'complete', 'site_row_no_gap_no_defer_marker_equal']);
+  assert.ok(Date.parse(j5.coverageFloor) >= Date.parse(saved.recomputableFrom));
+  assert.ok(Date.parse(current.bounds.startUtc) >= Date.parse(j5.coverageFloor));
+  assert.ok(Date.parse(current.bounds.endUtc) <= round.aggregatedAt && Date.parse(current.bounds.endUtc) > Date.parse(current.bounds.startUtc));
+  assert.deepEqual(current.markers, round.markerVersions);
+  assert.deepEqual([current.metrics.pageViews, current.metrics.visitors], [3, 1]);
+  assert.deepEqual([history.date, history.timezone, history.revision, history.retained, history.unchanged, history.classification, history.reason],
+    [result.retained.date, 'UTC', 1, true, true, 'partial', 'state_missing']);
+  assert.deepEqual([history.requestedRevision, history.requestedClassification, history.requestedReason], [saved.timezoneRevision, 'no_data', 'no_site_row']);
+  assert.deepEqual([history.metrics.pageViews, history.metrics.visitors], [11, 7]);
+  assert.ok(Number.isSafeInteger(j5.metricRows) && j5.metricRows > 0);
+  assert.deepEqual([j5.backlogConsumed, j5.allWrittenInsideCoverage, j5.rawUnchanged], [true, true, true]);
+}
 function run(dir, mode, status) {
   const file = name => fs.readFileSync(join(dir, name));
   const result = file('result.json');
   const evidence = JSON.parse(result);
   const gate = JSON.parse(file('result-gate.json'));
   assert.equal(String(file('cleanup.txt')), 'ports_closed=true pg_stopped=true\n');
-  assert.deepEqual([gate.passed, gate.failed, gate.skipped, gate.tickCount, gate.guard], [1, 0, 0, 5, status]);
+  const j5 = process.env.B4_J5 === '1' && mode === 'with-guard';
+  assert.equal(Boolean(evidence.j5), j5);
+  assert.deepEqual([gate.passed, gate.failed, gate.skipped, gate.tickCount, gate.guard], [1, 0, 0, j5 ? 6 : 5, status]);
   assert.equal(evidence.pass, true);
   assert.equal(evidence.mode, mode);
   assert.equal(evidence.guard.status, status);
   assert.deepEqual(evidence.rounds.map(r => r.name), ['initial', 'patched', 'restarted', 'resumed']);
   const ticks = String(file('cron.jsonl')).trimEnd().split('\n').map(line => JSON.parse(line));
-  assert.equal(ticks.length, 5);
+  assert.equal(ticks.length, j5 ? 6 : 5);
+  if (j5) {
+    checkJ5(evidence, ticks);
+  }
   for (const [i, round] of evidence.rounds.entries()) assert.deepEqual(ticks[i], round.tick);
   assert.deepEqual(ticks[4], evidence.guard.tick);
   const source = String(file('source.receipt'));

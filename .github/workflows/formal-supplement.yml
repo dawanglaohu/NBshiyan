@@ -17,6 +17,8 @@ on:
   pull_request:
     paths:
       - 'tests/evidence/b4-pg17.*'
+      - 'tests/evidence/j4-operations-seam.mjs'
+      - 'tests/admin-self-rebind.db.test.ts'
       - '.github/workflows/formal-supplement.yml'
 
 permissions:
@@ -30,7 +32,7 @@ jobs:
   b4-pg17:
     name: b4-pg17 (with-guard + guard-control, one build)
     runs-on: ubuntu-24.04
-    timeout-minutes: 100
+    timeout-minutes: 210
     env:
       CI: 'true'
       NEXT_TELEMETRY_DISABLED: '1'
@@ -46,14 +48,17 @@ jobs:
       B4_BUSYBOX_BIN_SHA256: dbac288c29ba568459550a2da9e7ae0ded6b1fc728ee9fad3044c44e62d6ac14
       # The runtime-image recipe is not part of the 16-file manifest, so it is pinned here (visible in this workflow's diff).
       B4_DOCKERFILE_SHA256: 06675c5dcd050b47aa93e4f2137a705ec1312700b5b647fd221b61ba651c1e1f
+      # Independently reviewed J4 and J1 single-file pins (reusing this job's APP_ENV=test build and PG17 runtime image).
+      J4_SCRIPT_SHA256: 12b40acb1e22c6597251da5d6e0294a5d53b1a62b6f1dd74e70c0fbacd2fcfbc
+      B10_J1_APPROVED_FILE_SHA256: c8a1744cc09c7037ceb94887f49d1194643f04330f0826ce4d49b3664696822e
       # Approved by the independent database review R2 (seal 22/22 3948517c6e2ce8b99068c22f44de095cad34113ff6f24366183ed3b019229ba7,
       # MANIFEST-APPROVED.sha256): generated from the ed9685a2 git blobs plus the three added B4 files and byte-identical to the
       # backend candidate manifest (1460 B, 16 lines). The text is the 16-line `sha256sum` manifest in LC_ALL=C path order; the
       # digest is the SHA-256 of exactly that text. The stage step checks the text against the pin outside the checkout, then the
       # checkout against the text; b4-pg17.sh stage and run repeat the check.
       # Repair (localhost/AI_ADDRCONFIG): tests/evidence/b4-pg17.sh line 126 is `getent -A ahostsv4 localhost` (glibc getent --no-addrconfig),
-      # still required to resolve to exactly 127.0.0.1; the approved digest below moved with the manifest lines of b4-pg17.sh, package.json and pnpm-lock.yaml (effect >=3.22.1 <4 scoped to @prisma/config, reviewed).
-      B4_APPROVAL_SHA256: 0c5453147211f3858925900320f61900c73877dcc1ab6db4f0952c7d141f48c8
+      # Still required to resolve to exactly 127.0.0.1. The J5 approval updates the three B4 runner files; all other pins stay fixed.
+      B4_APPROVAL_SHA256: ad3f0e8863f998dcbbb7e1c9ff159d4899bda10ee72eceb5ec90dea7d3da519b
       B4_APPROVED_MANIFEST_TEXT: |
         c0d3456a93ab010d0bbc5ee836dc1b211042e9a2397299cbe650e07afb832683  deploy/cron.nbshiyan
         fcd9810487f9b5a780a070cb37b9cad758169c12362223a995db40214353e5ad  e2e/analytics-job-runtime.spec.ts
@@ -68,9 +73,9 @@ jobs:
         816a21727b8ab13c9d8f79d482d8de3cea2b50f516433dfc6d76d00bb8949c04  src/lib/analytics/daily-aggregate.ts
         8f14da7176c59d5700c73fe47d610f51c076dc2bcc27760f114c41bc39cdc0d1  src/lib/analytics/day-boundaries.ts
         6ceaab8a080e76bba1d64d1c9da4469d93e537e502838dacd0106d8927f994e5  src/lib/contracts/account.ts
-        6752c2e02e542e19095cd6171390cef573da98f80138a6cf58698afd86e67948  tests/evidence/b4-pg17.config.ts
-        c84077a74dfead0a8df2f67d5685a9303520906ef59fc429c1a5dd59a61b19a4  tests/evidence/b4-pg17.sh
-        0fafbf5500baf73e75f34a68d9bc74e8f714af2e8ce0e423c8330eaf6d4a86c0  tests/evidence/b4-pg17.spec.ts
+        420aea6bddbb5b449f5f1c789146d503e9f59045d6b6e933729d5991daf4881f  tests/evidence/b4-pg17.config.ts
+        e434cdc785c6d93350bcaecbf288f3bb7a8b378f0f84ff3ec0c4bb67289a7f87  tests/evidence/b4-pg17.sh
+        56781a943715c62743befc1022a707c205f8761d49346ab6e624eb2ecf1d06c6  tests/evidence/b4-pg17.spec.ts
     steps:
       # Full history: b4-pg17.sh stage needs the baseline commit object (merge-base --is-ancestor, tree of the baseline).
       - uses: actions/checkout@v4
@@ -301,8 +306,532 @@ jobs:
           sed -n 's/^PRETTY_NAME=/os=/p' /etc/os-release
           printf 'PREFLIGHT_OK\n'
           PREFLIGHT
+          cat > "$RUNNER_TEMP/j4-container.sh" <<'J4_CONTAINER'
+          #!/bin/bash
+          # Third isolated container wrapper for J4 operations seam (tests/evidence/j4-operations-seam.mjs).
+          # Reuses B4's verified test-mode standalone build, source.receipt attestation and b4-pg17-runtime:ci image
+          # in its own --network none, --read-only, private-PID/tmpfs container and its own PostgreSQL 17 instance.
+          set -Eeuo pipefail
+          umask 077
+
+          phase=isolation
+          j4_exit=1
+          pg_started=0
+          pg_stop_ok=false
+          ports_ok=false
+          cluster_unchanged=false
+          pg_sys_before=''
+          j4_db=''
+          pg_identity_safe=''
+          root=''
+
+          node_bin=$(realpath -e -- "$(command -v node)")
+          standalone_hash() {
+            tar -C "$1" --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner -cf - . |
+              sha256sum | cut -d' ' -f1
+          }
+
+          trap 'printf "J4_WRAPPER_FAILED phase=%s\n" "$phase" >&2' ERR
+
+          [[ $# == 3 && $(uname -s) == Linux && $EUID == 0 && $$ == 1 && $($node_bin --version) == v22.* ]]
+          [[ ${J4_HOST_NET_NS:-} =~ ^net:\[[0-9]+\]$ && ${J4_HOST_PID_NS:-} =~ ^pid:\[[0-9]+\]$ ]]
+          [[ $(readlink /proc/self/ns/net) == "$(readlink /proc/1/ns/net)" && $(readlink /proc/self/ns/net) != "$J4_HOST_NET_NS" ]]
+          [[ $(readlink /proc/self/ns/pid) == "$(readlink /proc/1/ns/pid)" && $(readlink /proc/self/ns/pid) != "$J4_HOST_PID_NS" ]]
+          [[ $(ip -o link show | awk -F': ' '{print $2}') == lo ]]
+          [[ -n $(ip -4 -o addr show dev lo to 127.0.0.1/32) && -z $(ip -4 route show) && -z $(ip -6 route show default) ]]
+          [[ $(getent -A ahostsv4 localhost | awk '{print $1}' | sort -u) == 127.0.0.1 ]]
+          [[ $(findmnt -n -o FSTYPE --mountpoint /tmp) == tmpfs ]]
+          [[ $1 =~ ^[a-f0-9]{64}$ && $2 =~ ^[a-f0-9]{64}$ && $3 =~ ^[a-f0-9]{64}$ ]]
+          stage_sha=$1
+          approval_sha=$2
+          script_sha=$3
+
+          phase=build_provenance
+          for mount in /build/source /build/attestation /opt/node; do
+            mount_opts=$(findmnt -n -o OPTIONS --mountpoint "$mount")
+            [[ ,$mount_opts, == *,ro,* ]]
+          done
+          [[ $(findmnt -n -o TARGET --mountpoint /evidence) == /evidence ]]
+          [[ -z $(find /evidence -mindepth 1 -print -quit) ]]
+          attestation=/build/attestation
+          [[ $(sha256sum "$attestation/source.receipt" | cut -d' ' -f1) == "$stage_sha" ]]
+          cd /build/source
+          mapfile -t provenance <"$attestation/source.receipt"
+          [[ ${#provenance[@]} == 6 && ${provenance[0]} =~ ^[a-f0-9]{40}$ && ${provenance[1]} =~ ^[a-f0-9]{40}$ ]]
+          [[ ${provenance[2]} =~ ^[A-Za-z0-9_-]{1,128}$ && ${provenance[3]} =~ ^[a-f0-9]{64}$ && ${provenance[4]} == test && ${provenance[5]} == "$approval_sha" ]]
+          printf '%s  %s\n' "$script_sha" /build/source/tests/evidence/j4-operations-seam.mjs | sha256sum --strict -c - >/dev/null
+          [[ -s .next/standalone/server.js && $(<.next/standalone/.next/BUILD_ID) == "${provenance[2]}" ]]
+          [[ $(standalone_hash .next/standalone) == "${provenance[3]}" ]]
+          [[ $($node_bin -p 'require("./.next/standalone/.next/required-server-files.json").config.env.APP_ENV_AT_BUILD') == test ]]
+
+          phase=tools_and_ports
+          [[ ${B4_TOOL_ID:-} =~ ^[a-f0-9]{64}$ && ${B4_PG_BIN:-} == /* ]]
+          pg=$(realpath -e -- "$B4_PG_BIN")
+          for tool in postgres initdb pg_ctl psql createdb createuser; do [[ -x $pg/$tool ]]; done
+          [[ $($pg/postgres --version) =~ ^postgres\ \(PostgreSQL\)\ 17\. && $(id -u postgres) -gt 0 && $(id -u nobody) -gt 0 && $(id -u nobody) != "$(id -u postgres)" ]]
+          export TZ=UTC
+          pg_sha=$(sha256sum "$pg/postgres" | cut -d' ' -f1)
+          node_sha=$(sha256sum "$node_bin" | cut -d' ' -f1)
+          setpriv_bin=$(command -v setpriv)
+          as_pg() { "$setpriv_bin" --reuid postgres --regid "$(id -g postgres)" --init-groups -- "$@"; }
+          as_app() { "$setpriv_bin" --reuid nobody --regid "$(id -g nobody)" --clear-groups -- "$@"; }
+
+          as_app test -r /build/source/deploy/cron.nbshiyan
+          as_app test -r /build/source/tests/evidence/j4-operations-seam.mjs
+          as_app test -r /build/source/node_modules/@prisma/client/index.js
+
+          ports_closed() {
+            local port listeners
+            for port in 3114 55418; do
+              listeners=$(ss -Hln "sport = :$port") || return 1
+              [[ -z $listeners ]] || return 1
+            done
+          }
+          ports_closed
+
+          root=$(mktemp -d /tmp/packjoyu-j4.XXXXXXXX)
+          chmod 0711 "$root"
+
+          cleanup() {
+            local status=$?
+            trap - EXIT
+            if (( pg_started )); then
+              local pg_sys_after=''
+              pg_sys_after=$("$pg/psql" -XAtw -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 55418 -U j4_pg -d "$j4_db" \
+                -c "SELECT current_setting('server_version_num'), (pg_control_system()).system_identifier::text" 2>/dev/null) || pg_sys_after=''
+              if [[ -n $pg_sys_before && $pg_sys_after == "$pg_sys_before" ]]; then
+                cluster_unchanged=true
+              fi
+              if as_pg "$pg/pg_ctl" -D "$root/pg" -m fast -w stop >/dev/null 2>&1; then
+                pg_stop_ok=true
+              fi
+            fi
+            if ports_closed; then
+              ports_ok=true
+            fi
+            if [[ -f $root/out/j4-operations.json && ! -L $root/out/j4-operations.json && $(stat -c %s "$root/out/j4-operations.json") -le 1048576 ]]; then
+              install -m 0600 "$root/out/j4-operations.json" /evidence/j4-operations.json
+            fi
+            install -m 0600 "$attestation/source.receipt" /evidence/source.receipt
+            {
+              printf 'source_commit=%s\nsource_tree=%s\nbuild_id=%s\nbuild_sha256=%s\n' "${provenance[0]}" "${provenance[1]}" "${provenance[2]}" "${provenance[3]}"
+              printf 'approval_sha256=%s\nscript_sha256=%s\n' "$approval_sha" "$script_sha"
+              printf 'tool_id=%s\npg_sha256=%s\nnode_sha256=%s\n' "$B4_TOOL_ID" "$pg_sha" "$node_sha"
+              printf 'db_name=%s\npg_identity=%s\n' "${j4_db:-absent}" "${pg_identity_safe:-absent}"
+            } >/evidence/binding.txt
+            chmod 0600 /evidence/binding.txt
+            printf 'ports_closed=%s pg_stopped=%s cluster_unchanged=%s j4_exit=%s phase=%s\n' \
+              "$ports_ok" "$pg_stop_ok" "$cluster_unchanged" "$j4_exit" "$phase" >/evidence/cleanup.txt
+            chmod 0600 /evidence/cleanup.txt
+            if [[ $ports_ok != true || $pg_stop_ok != true || $cluster_unchanged != true || $j4_exit != 0 ]]; then
+              status=1
+            fi
+            exit "$status"
+          }
+          trap cleanup EXIT
+          trap 'exit 130' INT
+          trap 'exit 143' TERM
+
+          phase=pg17
+          mkdir -m 0700 "$root/pg" "$root/pg-log" "$root/socket" "$root/app" "$root/out" "$root/tmp" "$root/priv"
+          chown postgres: "$root/pg" "$root/pg-log" "$root/socket"
+          cp -a -- .next/standalone/. "$root/app/"
+          [[ $(<"$root/app/.next/BUILD_ID") == "${provenance[2]}" ]]
+          [[ $(standalone_hash "$root/app") == "${provenance[3]}" ]]
+          find "$root/app" -type l -print0 >"$root/priv/artifact-links"
+          while IFS= read -r -d '' link; do
+            target=$(realpath -e -- "$link")
+            [[ $target == "$root/app/"* ]]
+          done <"$root/priv/artifact-links"
+          chown -Rh nobody: "$root/app" "$root/out" "$root/tmp"
+          [[ $(standalone_hash "$root/app") == "${provenance[3]}" ]]
+
+          as_pg "$pg/initdb" -D "$root/pg" -U j4_pg -A trust --no-locale -E UTF8 >"$root/priv/init.log" 2>&1
+          as_pg "$pg/pg_ctl" -D "$root/pg" -l "$root/pg-log/start.log" -w start \
+            -o "-p 55418 -h 127.0.0.1 -k $root/socket -c dynamic_shared_memory_type=mmap" >"$root/priv/pgctl.log" 2>&1
+          pg_started=1
+          j4_hex=$(od -An -tx1 -N6 /dev/urandom | tr -d ' \n')
+          [[ $j4_hex =~ ^[a-f0-9]{12}$ ]]
+          j4_db="e2e_j4_${j4_hex}"
+          as_pg "$pg/createuser" -h 127.0.0.1 -p 55418 -U j4_pg --no-superuser --no-createdb --no-createrole j4_app >/dev/null 2>&1
+          as_pg "$pg/createdb" -h 127.0.0.1 -p 55418 -U j4_pg -O j4_app "$j4_db" >/dev/null 2>&1
+
+          pg_sys_raw=$("$pg/psql" -XAtw -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 55418 -U j4_pg -d "$j4_db" \
+            -c "SELECT current_database(), current_setting('server_version_num'), host(inet_server_addr()), inet_server_port(), (pg_control_system()).system_identifier::text")
+          [[ $pg_sys_raw =~ ^${j4_db}\|17[0-9]{4}\|127\.0\.0\.1\|55418\|[0-9]+$ ]]
+          IFS='|' read -r _db pg_ver _host _port pg_sys_id <<<"$pg_sys_raw"
+          pg_sys_before="${pg_ver}|${pg_sys_id}"
+          pg_cluster_sha=$(printf '%s' "$pg_sys_id" | sha256sum | cut -d' ' -f1)
+          pg_identity_safe="${j4_db}|${pg_ver}|127.0.0.1|55418|cluster_sha256=${pg_cluster_sha}"
+
+          app_db_url="postgresql://j4_app@127.0.0.1:55418/${j4_db}"
+          [[ $("$pg/psql" -XAtq "$app_db_url" -c "SELECT current_database(), current_setting('server_version_num'), host(inet_server_addr()), inet_server_port(), current_user") =~ ^${j4_db}\|17[0-9]{4}\|127\.0\.0\.1\|55418\|j4_app$ ]]
+
+          phase=schema
+          as_app env -i PATH="$PATH" HOME="$root/tmp" TMPDIR="$root/tmp" DATABASE_URL="$app_db_url" \
+            ./node_modules/.bin/prisma db push --skip-generate >"$root/priv/schema.log" 2>&1
+
+          phase=j4_seam
+          j4_app_dir=$(realpath -e -- "$root/app")
+          j4_report="$root/out/j4-operations.json"
+          [[ ! -e $j4_report ]]
+          set +e
+          as_app env -i PATH="$PATH" HOME="$root/tmp" TMPDIR="$root/tmp" TZ=UTC LANG=C.UTF-8 \
+            J4_DB_URL="$app_db_url" \
+            J4_SOURCE_COMMIT="${provenance[0]}" \
+            J4_SOURCE_TREE="${provenance[1]}" \
+            J4_BUILD_ID="${provenance[2]}" \
+            J4_BUILD_SHA256="${provenance[3]}" \
+            J4_SCRIPT_SHA256="$script_sha" \
+            J4_HOST_NET_NS="$J4_HOST_NET_NS" \
+            J4_HOST_PID_NS="$J4_HOST_PID_NS" \
+            timeout --kill-after=15s 420s "$node_bin" /build/source/tests/evidence/j4-operations-seam.mjs "$j4_app_dir" "$j4_report" \
+            >"$root/priv/j4.log" 2>&1
+          j4_exit=$?
+          set -e
+
+          phase=output_gate
+          (( j4_exit == 0 ))
+          [[ -s $j4_report && ! -L $j4_report ]]
+          "$node_bin" - "$j4_report" "${provenance[0]}" "${provenance[1]}" "${provenance[2]}" "${provenance[3]}" "$script_sha" "$j4_hex" <<'JS'
+          const fs = require('node:fs');
+          const assert = require('node:assert/strict');
+          const [file, commit, tree, buildId, buildSha, scriptSha, instance] = process.argv.slice(2);
+          const r = JSON.parse(fs.readFileSync(file, 'utf8'));
+          assert.equal(r.version, 1);
+          assert.equal(r.pass, true);
+          assert.equal(r.stage, 'complete');
+          assert.equal(r.failure, undefined);
+          assert.equal(r.dailyScheduleObserved, false);
+          assert.equal(r.identity?.sourceCommit, commit);
+          assert.equal(r.identity?.sourceTree, tree);
+          assert.equal(r.identity?.buildId, buildId);
+          assert.equal(r.identity?.buildSha256, buildSha);
+          assert.equal(r.identity?.scriptSha256, scriptSha);
+          assert.equal(r.identity?.appEnv, 'test');
+          assert.equal(r.identity?.instance, instance);
+          assert.ok(r.identity?.pgVersionNum >= 170000 && r.identity?.pgVersionNum < 180000);
+          assert.equal(r.listener?.port, 3114);
+          assert.ok(Number.isInteger(r.listener?.pid) && r.listener.pid > 1);
+          assert.deepEqual(r.cleanup, { fixtureLeaseReleased: true, appStopped: true, dbDisconnected: true });
+          JS
+          phase=complete
+          J4_CONTAINER
+          chmod 0644 "$RUNNER_TEMP/j4-container.sh"
+          cat > "$RUNNER_TEMP/j1-pg-container.sh" <<'J1_PG_CONTAINER'
+          #!/bin/bash
+          # Disposable loopback-only PostgreSQL 17 container for J1 auth/settings seam.
+          # Runs in --network none --read-only (b4-pg17-runtime:ci), listens only on 127.0.0.1:55421,
+          # creates fresh database `e2e` for role `postgres`, records sanitized cluster identity, and stops cleanly on TERM.
+          set -Eeuo pipefail
+          umask 077
+
+          [[ $(uname -s) == Linux && $EUID == 0 && $$ == 1 ]]
+          [[ $(ip -o link show | awk -F': ' '{print $2}') == lo ]]
+          [[ -n $(ip -4 -o addr show dev lo to 127.0.0.1/32) && -z $(ip -4 route show) && -z $(ip -6 route show default) ]]
+          [[ $(getent -A ahostsv4 localhost | awk '{print $1}' | sort -u) == 127.0.0.1 ]]
+          [[ $(findmnt -n -o FSTYPE --mountpoint /tmp) == tmpfs ]]
+          [[ $(findmnt -n -o TARGET --mountpoint /evidence) == /evidence ]]
+          [[ -z $(find /evidence -mindepth 1 -print -quit) ]]
+
+          pg=$(realpath -e -- "$B4_PG_BIN")
+          for tool in postgres initdb pg_ctl psql createdb; do [[ -x $pg/$tool ]]; done
+          [[ $($pg/postgres --version) =~ ^postgres\ \(PostgreSQL\)\ 17\. ]]
+          setpriv_bin=$(command -v setpriv)
+          as_pg() { "$setpriv_bin" --reuid postgres --regid "$(id -g postgres)" --init-groups -- "$@"; }
+
+          port_closed() {
+            local listeners
+            listeners=$(ss -Hln 'sport = :55421') || return 1
+            [[ -z $listeners ]]
+          }
+          port_closed
+
+          root=$(mktemp -d /tmp/packjoyu-j1-pg.XXXXXXXX)
+          chmod 0711 "$root"
+          mkdir -m 0700 "$root/pg" "$root/pg-log" "$root/socket"
+          chown postgres: "$root/pg" "$root/pg-log" "$root/socket"
+
+          pg_started=0
+          wait_pid=''
+          cleanup() {
+            trap - EXIT
+            if [[ -n $wait_pid ]]; then kill "$wait_pid" 2>/dev/null || true; fi
+            local pg_stop_ok=false p_closed=false
+            if (( pg_started )); then
+              if as_pg "$pg/pg_ctl" -D "$root/pg" -m fast -w stop >/dev/null 2>&1; then
+                pg_stop_ok=true
+              fi
+            fi
+            if port_closed; then
+              p_closed=true
+            fi
+            printf 'pg_stopped=%s port_55421_closed=%s\n' "$pg_stop_ok" "$p_closed" >/evidence/pg-cleanup.txt
+            chmod 0600 /evidence/pg-cleanup.txt
+            [[ $pg_stop_ok == true && $p_closed == true ]]
+          }
+          trap cleanup EXIT
+          trap 'exit 0' INT TERM
+
+          as_pg "$pg/initdb" -D "$root/pg" -U postgres -A trust --no-locale -E UTF8 >"$root/pg-log/init.log" 2>&1
+          as_pg "$pg/pg_ctl" -D "$root/pg" -l "$root/pg-log/start.log" -w start \
+            -o "-p 55421 -h 127.0.0.1 -k $root/socket -c dynamic_shared_memory_type=mmap" >"$root/pg-log/pgctl.log" 2>&1
+          pg_started=1
+          as_pg "$pg/createdb" -h 127.0.0.1 -p 55421 -U postgres e2e >/dev/null 2>&1
+
+          raw=$("$pg/psql" -XAtw -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 55421 -U postgres -d e2e \
+            -c "SELECT current_database(), current_setting('server_version_num'), host(inet_server_addr()), inet_server_port(), current_user, (pg_control_system()).system_identifier::text")
+          [[ $raw =~ ^e2e\|17[0-9]{4}\|127\.0\.0\.1\|55421\|postgres\|[0-9]+$ ]]
+          IFS='|' read -r db_name ver_num host_ip port_num db_user sys_id <<<"$raw"
+          cluster_sha=$(printf '%s' "$sys_id" | sha256sum | cut -d' ' -f1)
+          pm_pid=$(head -n 1 "$root/pg/postmaster.pid" | tr -d ' \r\n')
+          [[ $pm_pid =~ ^[0-9]+$ ]]
+          {
+            printf 'pg17_identity=%s|%s|%s|%s|%s|cluster_sha256=%s\n' "$db_name" "$ver_num" "$host_ip" "$port_num" "$db_user" "$cluster_sha"
+            printf 'postmaster_pid=%s\n' "$pm_pid"
+          } >/evidence/pg-ready.txt
+          chmod 0600 /evidence/pg-ready.txt
+
+          sleep 900 &
+          wait_pid=$!
+          wait "$wait_pid" || true
+          J1_PG_CONTAINER
+          chmod 0644 "$RUNNER_TEMP/j1-pg-container.sh"
+          cat > "$RUNNER_TEMP/j1-host-runner.sh" <<'J1_HOST_RUNNER'
+          #!/bin/bash
+          # Host-side isolated runner for J1 auth/settings seam (tests/admin-self-rebind.db.test.ts).
+          # Reuses B4's verified APP_ENV=test standalone build ($B4_ATTEST/source.receipt) and b4-pg17-runtime:ci PG 17.12 image,
+          # enters the PG17 container's --network none loopback namespace via nsenter --net as the unprivileged runner user,
+          # runs the exact J1 ACCEPTANCE single named case, verifies schema/port/process/cluster cleanup, and writes only safe receipts.
+          set -Eeuo pipefail
+          umask 077
+
+          source "$RUNNER_TEMP/b4-launch.sh"
+          j1_work=$(mktemp -d "$RUNNER_TEMP/b10-j1-work.XXXXXXXX")
+          j1_pg_ev="$j1_work/pg-ev"
+          j1_priv="$j1_work/private"
+          j1_app="$j1_work/app"
+          j1_home="$j1_work/home"
+          j1_tmp="$j1_work/tmp"
+          j1_out="$RUNNER_TEMP/j1-evidence"
+          mkdir -m 0700 "$j1_pg_ev" "$j1_priv" "$j1_app" "$j1_home" "$j1_tmp" "$j1_out"
+
+          j1_pg_name="b4-j1-pg-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          j1_exit=1
+          j1_stage=preflight
+          http_port_closed=false
+          schemas_cleaned=false
+          public_empty=false
+          cluster_unchanged=false
+          pg_stopped_clean=false
+          app_hash_unchanged=false
+          pg_ready_line='pg17_identity=absent'
+          B10_J1_SOURCE_COMMIT=${B4_SUBJECT_COMMIT:-unknown}
+          B10_J1_SOURCE_TREE=${B4_SUBJECT_TREE:-unknown}
+          B10_J1_BUILD_ID=unknown
+          B10_J1_BUILD_SHA256=unknown
+
+          cleanup() {
+            local status=$?
+            trap - EXIT
+            docker stop -t 15 "$j1_pg_name" >/dev/null 2>&1 || true
+            sudo chown -R "$(id -u):$(id -g)" "$j1_pg_ev" >/dev/null 2>&1 || true
+            if [[ -f $j1_pg_ev/pg-cleanup.txt ]] && grep -Fxq 'pg_stopped=true port_55421_closed=true' "$j1_pg_ev/pg-cleanup.txt"; then
+              pg_stopped_clean=true
+            fi
+            docker rm -fv "$j1_pg_name" >/dev/null 2>&1 || true
+            if [[ -f $B4_ATTEST/source.receipt ]]; then
+              install -m 0600 "$B4_ATTEST/source.receipt" "$j1_out/source.receipt"
+            fi
+            {
+              printf 'run_id=%s\nrun_attempt=%s\n' "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT"
+              printf 'source_commit=%s\nsource_tree=%s\nbuild_id=%s\nbuild_sha256=%s\n' "$B10_J1_SOURCE_COMMIT" "$B10_J1_SOURCE_TREE" "$B10_J1_BUILD_ID" "$B10_J1_BUILD_SHA256"
+              printf 'approved_file_sha256=%s\ntool_id=%s\n' "$B10_J1_APPROVED_FILE_SHA256" "${B4_TOOL_ID:-unknown}"
+              printf '%s\npostmaster_pid_same=%s\n' "$pg_ready_line" "$cluster_unchanged"
+            } >"$j1_out/binding.txt"
+            chmod 0600 "$j1_out/binding.txt"
+            printf 'j1_exit=%s http_port_closed=%s m3t20_schemas_zero=%s public_tables_zero=%s cluster_unchanged=%s pg_stopped_clean=%s app_hash_unchanged=%s\n' \
+              "$j1_exit" "$http_port_closed" "$schemas_cleaned" "$public_empty" "$cluster_unchanged" "$pg_stopped_clean" "$app_hash_unchanged" >"$j1_out/cleanup.txt"
+            chmod 0600 "$j1_out/cleanup.txt"
+            if [[ $j1_exit != 0 || $http_port_closed != true || $schemas_cleaned != true || $public_empty != true || $cluster_unchanged != true || $pg_stopped_clean != true || $app_hash_unchanged != true ]]; then
+              if [[ ! -f $j1_out/failed.txt ]]; then
+                printf 'B10_J1_FAILED stage=%s status=%s\n' "$j1_stage" "$j1_exit" >"$j1_out/failed.txt"
+                chmod 0600 "$j1_out/failed.txt"
+              fi
+              rm -f -- "$j1_out/j1-auth-seam.json"
+              status=1
+            fi
+            rm -rf -- "$j1_work"
+            exit "$status"
+          }
+          trap cleanup EXIT
+
+          [[ $(sha256sum "$B4_ATTEST/source.receipt" | cut -d' ' -f1) == "$B4_STAGE_SHA" ]]
+          mapfile -t provenance <"$B4_ATTEST/source.receipt"
+          [[ ${#provenance[@]} == 6 && ${provenance[0]} == "$B4_SUBJECT_COMMIT" && ${provenance[1]} == "$B4_SUBJECT_TREE" && ${provenance[4]} == test ]]
+          B10_J1_SOURCE_COMMIT=${provenance[0]}
+          B10_J1_SOURCE_TREE=${provenance[1]}
+          B10_J1_BUILD_ID=${provenance[2]}
+          B10_J1_BUILD_SHA256=${provenance[3]}
+
+          standalone_hash() {
+            tar -C "$1" --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner -cf - . |
+              sha256sum | cut -d' ' -f1
+          }
+          cp -a -- "$GITHUB_WORKSPACE/.next/standalone/." "$j1_app/"
+          [[ $(<"$j1_app/.next/BUILD_ID") == "$B10_J1_BUILD_ID" ]]
+          [[ $(standalone_hash "$j1_app") == "$B10_J1_BUILD_SHA256" ]]
+
+          install -m 0644 "$RUNNER_TEMP/j1-pg-container.sh" "$j1_work/j1-pg.sh"
+          b4_args "$j1_pg_ev"
+          j1_stage=pg17_start
+          docker run -d --name "$j1_pg_name" "${B4_ARGS[@]}" \
+            --mount "type=bind,src=$j1_work/j1-pg.sh,dst=/j1-pg.sh,readonly" \
+            --entrypoint /bin/bash b4-pg17-runtime:ci /j1-pg.sh >/dev/null
+
+          ready=0
+          for _ in $(seq 1 60); do
+            if sudo -n test -s "$j1_pg_ev/pg-ready.txt"; then ready=1; break; fi
+            sleep 0.5
+          done
+          [[ $ready == 1 ]]
+          sudo chown "$(id -u):$(id -g)" "$j1_pg_ev/pg-ready.txt"
+          pg_ready_line=$(grep '^pg17_identity=' "$j1_pg_ev/pg-ready.txt")
+          pm_before=$(sed -n 's/^postmaster_pid=//p' "$j1_pg_ev/pg-ready.txt")
+          [[ $pg_ready_line =~ ^pg17_identity=e2e\|17[0-9]{4}\|127\.0\.0\.1\|55421\|postgres\|cluster_sha256=[a-f0-9]{64}$ && $pm_before =~ ^[0-9]+$ ]]
+          cluster_sha_before=${pg_ready_line##*cluster_sha256=}
+
+          c_pid=$(docker inspect --format '{{.State.Pid}}' "$j1_pg_name")
+          [[ $c_pid =~ ^[0-9]+$ && $c_pid -gt 1 ]]
+          host_net=$(readlink /proc/self/ns/net)
+          j1_net=$(sudo -n readlink "/proc/$c_pid/ns/net")
+          [[ $j1_net =~ ^net:\[[0-9]+\]$ && $j1_net != "$host_net" ]]
+
+          cat >"$j1_work/run-j1-inner.sh" <<'J1_INNER'
+          #!/bin/bash
+          set -Eeuo pipefail
+          umask 077
+          cd "$GITHUB_WORKSPACE"
+          [[ $(ip -o link show | awk -F': ' '{print $2}') == lo ]]
+          [[ -n $(ip -4 -o addr show dev lo to 127.0.0.1/32) && -z $(ip -4 route show) && -z $(ip -6 route show default) ]]
+          [[ $(git rev-parse HEAD) == "$B10_J1_SOURCE_COMMIT" ]]
+          [[ $(git rev-parse 'HEAD^{tree}') == "$B10_J1_SOURCE_TREE" ]]
+          [[ $(git rev-parse 'ed9685a2^{tree}') == 282e2d9224b7bb51371164d22a25bfd28427e22d ]]
+          git merge-base --is-ancestor ed9685a23b724baef64f43476b4f1e0c9ef06d63 HEAD
+          git diff --quiet HEAD --
+          printf '%s  %s\n' "$B10_J1_APPROVED_FILE_SHA256" tests/admin-self-rebind.db.test.ts | sha256sum --strict -c - >/dev/null
+          [[ $(tar -C "$B10_M3T20_STANDALONE_DIR" --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner -cf - . | sha256sum | cut -d' ' -f1) == "$B10_J1_BUILD_SHA256" ]]
+          export CI=true B10_M3T20_REQUIRE_DATABASE=true B10_M3T20_CI_MODE=true B10_J1_AUTH_SEAM=true
+          export B10_M3T20_TEST_DATABASE_URL B10_M3T20_STANDALONE_DIR B10_J1_SOURCE_COMMIT B10_J1_SOURCE_TREE B10_J1_BUILD_ID B10_J1_BUILD_SHA256
+          if timeout --kill-after=15s 420s node --import tsx --test --test-concurrency=1 \
+            --test-name-pattern='^B10 J1 same standalone settings and auth states$' --test-reporter=tap \
+            tests/admin-self-rebind.db.test.ts > "$J1_PRIVATE/j1.tap" 2>&1; then
+            :
+          else
+            status=$?
+            stage=runner
+            for candidate in identity ordinary revoked restricted; do
+              if grep -Fq "B10_J1_FAILED_$candidate" "$J1_PRIVATE/j1.tap"; then stage=$candidate; break; fi
+            done
+            printf 'B10_J1_FAILED stage=%s status=%s\n' "$stage" "$status" > "$J1_FAILED_FILE"
+            chmod 0600 "$J1_FAILED_FILE"
+            exit "$status"
+          fi
+          [[ $(grep -c '^ok [0-9][0-9]* - B10 J1 same standalone settings and auth states$' "$J1_PRIVATE/j1.tap") == 1 ]]
+          grep -qx '# pass 1' "$J1_PRIVATE/j1.tap"
+          grep -qx '# fail 0' "$J1_PRIVATE/j1.tap"
+          grep -qx '# cancelled 0' "$J1_PRIVATE/j1.tap"
+          [[ $(grep -c '^# B10_J1_EVIDENCE ' "$J1_PRIVATE/j1.tap") == 1 ]]
+          set -o noclobber
+          sed -n 's/^# B10_J1_EVIDENCE //p' "$J1_PRIVATE/j1.tap" > "$J1_REPORT"
+          chmod 0600 "$J1_REPORT"
+          J1_INNER
+          chmod 0700 "$j1_work/run-j1-inner.sh"
+
+          j1_stage=runner
+          j1_path="$B4_NODE_ROOT/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+          set +e
+          sudo -n nsenter --net="/proc/$c_pid/ns/net" -- \
+            setpriv --reuid "$(id -u)" --regid "$(id -g)" --init-groups -- \
+            env -i \
+              PATH="$j1_path" \
+              HOME="$j1_home" \
+              TMPDIR="$j1_tmp" \
+              TZ=UTC \
+              LANG=C.UTF-8 \
+              GITHUB_WORKSPACE="$GITHUB_WORKSPACE" \
+              B10_M3T20_TEST_DATABASE_URL="postgresql://postgres@127.0.0.1:55421/e2e" \
+              B10_M3T20_STANDALONE_DIR="$j1_app" \
+              B10_J1_SOURCE_COMMIT="$B10_J1_SOURCE_COMMIT" \
+              B10_J1_SOURCE_TREE="$B10_J1_SOURCE_TREE" \
+              B10_J1_BUILD_ID="$B10_J1_BUILD_ID" \
+              B10_J1_BUILD_SHA256="$B10_J1_BUILD_SHA256" \
+              B10_J1_APPROVED_FILE_SHA256="$B10_J1_APPROVED_FILE_SHA256" \
+              J1_PRIVATE="$j1_priv" \
+              J1_REPORT="$j1_out/j1-auth-seam.json" \
+              J1_FAILED_FILE="$j1_out/failed.txt" \
+            /bin/bash "$j1_work/run-j1-inner.sh"
+          j1_exit=$?
+          set -e
+
+          # The PG17 TCP listener may remain until cleanup. Query TCP ports without parsing mixed-protocol output.
+          if other_listeners=$(sudo -n nsenter --net="/proc/$c_pid/ns/net" -- ss -Hltn 'sport != :55421' 2>/dev/null) && [[ -z $other_listeners ]]; then
+            http_port_closed=true
+          fi
+
+          post_sql=$(docker exec --user postgres "$j1_pg_name" "$B4_PG_BIN/psql" -XAtw -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 55421 -U postgres -d e2e \
+            -c "SELECT (SELECT count(*) FROM information_schema.schemata WHERE schema_name LIKE 'm3t20_%'), (SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public'), current_setting('server_version_num'), (pg_control_system()).system_identifier::text" 2>/dev/null || true)
+          if [[ $post_sql =~ ^0\|0\|17[0-9]{4}\|[0-9]+$ ]]; then
+            schemas_cleaned=true
+            public_empty=true
+            post_sys=${post_sql##*|}
+            post_sha=$(printf '%s' "$post_sys" | sha256sum | cut -d' ' -f1)
+            pm_after=$(docker exec "$j1_pg_name" sh -c 'head -n 1 /tmp/packjoyu-j1-pg.*/pg/postmaster.pid' 2>/dev/null | tr -d ' \r\n' || true)
+            if [[ $post_sha == "$cluster_sha_before" && $pm_after == "$pm_before" ]]; then
+              cluster_unchanged=true
+            fi
+          fi
+
+          if [[ $(standalone_hash "$j1_app") == "$B10_J1_BUILD_SHA256" ]] && git -C "$GITHUB_WORKSPACE" diff --quiet HEAD --; then
+            app_hash_unchanged=true
+          fi
+
+          j1_stage=output_gate
+          (( j1_exit == 0 ))
+          [[ -s $j1_out/j1-auth-seam.json && ! -L $j1_out/j1-auth-seam.json ]]
+          "$B4_NODE_ROOT/bin/node" - "$j1_out/j1-auth-seam.json" "$B10_J1_SOURCE_COMMIT" "$B10_J1_SOURCE_TREE" "$B10_J1_BUILD_ID" "$B10_J1_BUILD_SHA256" <<'JS'
+          const fs = require('node:fs');
+          const assert = require('node:assert/strict');
+          const [file, commit, tree, buildId, buildSha] = process.argv.slice(2);
+          const r = JSON.parse(fs.readFileSync(file, 'utf8'));
+          assert.equal(r.version, 1);
+          assert.equal(r.commit, commit);
+          assert.equal(r.tree, tree);
+          assert.equal(r.buildId, buildId);
+          assert.equal(r.buildSha256, buildSha);
+          assert.ok(r.pgVersionNum >= 170000 && r.pgVersionNum < 180000);
+          assert.ok(Number.isInteger(r.pid) && r.pid > 1);
+          assert.ok(Number.isInteger(r.port) && r.port > 0 && r.port !== 55421);
+          assert.deepEqual(r.checks, [
+            'ordinary-settings-200',
+            'ordinary-reauth-200',
+            'same-version-device-revoked',
+            'revoked-route-matrix-401',
+            'product-issued-self-reauth',
+            'restricted-route-matrix-401',
+          ]);
+          assert.deepEqual(r.routes, {
+            ordinary: { settingsGet: 200, reauthPost: 200 },
+            revoked: { settingsGet: 401, settingsPatch: 401, reauthPost: 401 },
+            restricted: { settingsGet: 401, settingsPatch: 401, reauthPost: 401 },
+          });
+          JS
+          j1_stage=complete
+          J1_HOST_RUNNER
+          chmod 0700 "$RUNNER_TEMP/j1-host-runner.sh"
 
       - name: Preflight (same flags, same mounts, no network, host Node)
+        id: preflight
         shell: bash
         timeout-minutes: 5
         run: |
@@ -330,6 +859,7 @@ jobs:
           for m in "${modes[@]}"; do mkdir -m 700 "$B4_EVIDENCE_ROOT/$m"; done
           for m in "${modes[@]}"; do
             b4_args "$B4_EVIDENCE_ROOT/$m"
+            if [[ $m == with-guard ]]; then B4_ARGS+=(-e B4_J5=1); fi
             docker run -d --name "b4-$m-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" "${B4_ARGS[@]}" \
               --entrypoint /bin/bash b4-pg17-runtime:ci \
               /build/source/tests/evidence/b4-pg17.sh run "$B4_STAGE_SHA" "$B4_APPROVAL_SHA256" "$m" > /dev/null
@@ -461,9 +991,52 @@ jobs:
         run: |
           set -Eeuo pipefail
           mkdir -m 700 "$B4_PAIR_DIR"
-          /bin/bash "$GITHUB_WORKSPACE/tests/evidence/b4-pg17.sh" pair \
+          B4_J5=1 /bin/bash "$GITHUB_WORKSPACE/tests/evidence/b4-pg17.sh" pair \
             "$B4_EVIDENCE_ROOT/with-guard" "$B4_EVIDENCE_ROOT/guard-control" "$B4_PAIR_DIR/pair-report.json"
           grep -Fq '"pass":true' "$B4_PAIR_DIR/pair-report.json"
+
+      - name: Run J4 operations seam in third isolated container (post-pair, same build and image)
+        id: j4_run
+        if: ${{ !cancelled() && steps.preflight.outcome == 'success' }}
+        shell: bash
+        timeout-minutes: 10
+        run: |
+          set -Eeuo pipefail
+          source "$RUNNER_TEMP/b4-launch.sh"
+          j4_name="b4-j4-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          j4_ev="$RUNNER_TEMP/j4-evidence"
+          mkdir -m 700 "$j4_ev"
+          cleanup_j4() { docker rm -fv "$j4_name" >/dev/null 2>&1 || true; }
+          trap cleanup_j4 EXIT
+          host_net_ns=$(readlink /proc/self/ns/net)
+          host_pid_ns=$(readlink /proc/self/ns/pid)
+          [[ $host_net_ns =~ ^net:\[[0-9]+\]$ && $host_pid_ns =~ ^pid:\[[0-9]+\]$ ]]
+          b4_args "$j4_ev"
+          docker run -d --name "$j4_name" "${B4_ARGS[@]}" \
+            --mount "type=bind,src=$RUNNER_TEMP/j4-container.sh,dst=/j4-container.sh,readonly" \
+            -e "J4_HOST_NET_NS=$host_net_ns" \
+            -e "J4_HOST_PID_NS=$host_pid_ns" \
+            --entrypoint /bin/bash b4-pg17-runtime:ci \
+            /j4-container.sh "$B4_STAGE_SHA" "$B4_APPROVAL_SHA256" "$J4_SCRIPT_SHA256" > /dev/null
+          code=$(timeout 480 docker wait "$j4_name" 2>/dev/null) || code=wait_timeout
+          sudo chown -R "$(id -u):$(id -g)" "$j4_ev" >/dev/null 2>&1 || true
+          chmod -R u+rwX "$j4_ev" >/dev/null 2>&1 || true
+          printf 'j4=%s\n' "$code" > "$j4_ev/exit-code.txt"
+          docker logs "$j4_name" 2>&1 | grep -E '^J4_WRAPPER_FAILED phase=[a-z_0-9]+$' > "$j4_ev/wrapper-phase.txt" || true
+          docker rm -fv "$j4_name" >/dev/null 2>&1 || true
+          [[ $code == 0 ]]
+          [[ -s $j4_ev/j4-operations.json && -s $j4_ev/cleanup.txt && -s $j4_ev/binding.txt ]]
+          grep -Fq '"pass": true' "$j4_ev/j4-operations.json"
+          grep -Fq '"stage": "complete"' "$j4_ev/j4-operations.json"
+          grep -Fxq 'ports_closed=true pg_stopped=true cluster_unchanged=true j4_exit=0 phase=complete' "$j4_ev/cleanup.txt"
+
+      - name: Run J1 auth and settings seam (same build, isolated PG17 loopback namespace)
+        id: j1_run
+        if: ${{ !cancelled() && steps.preflight.outcome == 'success' }}
+        shell: bash
+        timeout-minutes: 10
+        run: |
+          /bin/bash "$RUNNER_TEMP/j1-host-runner.sh"
 
       - name: Collect the fixed upload set
         id: collect
@@ -524,10 +1097,79 @@ jobs:
       - name: Upload B4 evidence
         id: upload
         if: ${{ always() }}
+        timeout-minutes: 5
         uses: actions/upload-artifact@v4
         with:
           name: b4-pg17-evidence
           path: ${{ runner.temp }}/b4-upload
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Collect J4 and J1 fixed upload sets
+        id: collect_seams
+        if: ${{ always() }}
+        shell: bash
+        timeout-minutes: 5
+        run: |
+          set -Eeuo pipefail
+          for cname in "b4-j4-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" "b4-j1-pg-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"; do
+            docker rm -fv "$cname" >/dev/null 2>&1 || true
+          done
+          max=1048576
+          secret_re='Bearer [A-Za-z0-9]|postgres(ql)?://[^[:space:]]*:[^[:space:]@]*@|CRON_SECRET|AUTH_SECRET|PRIVACY_HASH_SECRET|ADMIN_TOTP_KEY|-----BEGIN'
+          collect_closed() { # src_dir up_dir allowed_name...
+            local src=$1 dst=$2; shift 2
+            local allowed=("$@")
+            mkdir -m 700 "$dst"
+            : > "$dst/unexpected-and-withheld.txt"
+            for n in "${allowed[@]}"; do
+              if [[ -f $src/$n && ! -L $src/$n && $(stat -c %s "$src/$n") -le $max ]]; then
+                cp -- "$src/$n" "$dst/$n"
+              elif [[ -e $src/$n ]]; then
+                printf 'withheld_not_regular_or_too_large %s\n' "$n" >> "$dst/unexpected-and-withheld.txt"
+              fi
+            done
+            if [[ -d $src ]]; then
+              while IFS= read -r f; do
+                local b keep=0
+                b=$(basename "$f")
+                for n in "${allowed[@]}"; do [[ $b == "$n" ]] && keep=1 && break; done
+                if (( ! keep )); then
+                  printf 'unexpected %s\n' "$(printf '%s' "$b" | tr -c 'A-Za-z0-9._-' '_')" >> "$dst/unexpected-and-withheld.txt"
+                fi
+              done < <(find "$src" -mindepth 1 -maxdepth 1 \( -type f -o -type l -o -type d \) || true)
+            fi
+            while IFS= read -r f; do
+              if grep -Eq "$secret_re" "$f"; then
+                printf 'withheld_secret_pattern %s\n' "${f#"$dst"/}" >> "$dst/unexpected-and-withheld.txt"
+                rm -f -- "$f"
+              fi
+            done < <(find "$dst" -type f ! -name unexpected-and-withheld.txt)
+          }
+          collect_closed "${RUNNER_TEMP}/j4-evidence" "${RUNNER_TEMP}/j4-upload" \
+            j4-operations.json binding.txt cleanup.txt source.receipt exit-code.txt wrapper-phase.txt
+          collect_closed "${RUNNER_TEMP}/j1-evidence" "${RUNNER_TEMP}/j1-upload" \
+            j1-auth-seam.json binding.txt cleanup.txt source.receipt failed.txt
+
+      - name: Upload J4 operations seam evidence
+        id: upload_j4
+        if: ${{ always() }}
+        timeout-minutes: 5
+        uses: actions/upload-artifact@v4
+        with:
+          name: j4-operations-seam-evidence
+          path: ${{ runner.temp }}/j4-upload
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Upload J1 auth seam evidence
+        id: upload_j1
+        if: ${{ always() }}
+        timeout-minutes: 5
+        uses: actions/upload-artifact@v4
+        with:
+          name: j1-auth-seam-evidence
+          path: ${{ runner.temp }}/j1-upload
           retention-days: 14
           if-no-files-found: error
 
@@ -544,6 +1186,11 @@ jobs:
           PAIR_OUTCOME: ${{ steps.pair.outcome }}
           COLLECT_OUTCOME: ${{ steps.collect.outcome }}
           UPLOAD_OUTCOME: ${{ steps.upload.outcome }}
+          J4_RUN_OUTCOME: ${{ steps.j4_run.outcome }}
+          J1_RUN_OUTCOME: ${{ steps.j1_run.outcome }}
+          COLLECT_SEAMS_OUTCOME: ${{ steps.collect_seams.outcome }}
+          UPLOAD_J4_OUTCOME: ${{ steps.upload_j4.outcome }}
+          UPLOAD_J1_OUTCOME: ${{ steps.upload_j1.outcome }}
         run: |
           set -Eeuo pipefail
           up="$RUNNER_TEMP/b4-upload"
@@ -562,8 +1209,51 @@ jobs:
           [[ -s $up/meta/pair-report.json ]] && grep -Fq '"pass":true' "$up/meta/pair-report.json" || problems+=(pair_report)
           [[ -f $up/meta/unexpected-and-withheld.txt ]] || problems+=(note_missing)
           if [[ -f $up/meta/unexpected-and-withheld.txt ]] && grep -q '^withheld_' "$up/meta/unexpected-and-withheld.txt"; then problems+=(evidence_withheld); fi
+          gate_failed=0
           if (( ${#problems[@]} )); then
             printf 'B4_GATE_RED %s\n' "${problems[*]}" >&2
-            exit 1
+            gate_failed=1
+          else
+            echo 'B4_GATE_GREEN'
           fi
-          echo 'B4_GATE_GREEN'
+
+          j4_up="$RUNNER_TEMP/j4-upload"
+          j4_problems=()
+          [[ $J4_RUN_OUTCOME == success ]] || j4_problems+=(j4_run_not_success)
+          [[ $COLLECT_SEAMS_OUTCOME == success ]] || j4_problems+=(collect_seams_not_success)
+          [[ $UPLOAD_J4_OUTCOME == success ]] || j4_problems+=(upload_j4_not_success)
+          [[ -f $j4_up/exit-code.txt ]] && grep -Fxq 'j4=0' "$j4_up/exit-code.txt" || j4_problems+=(exit_j4)
+          for n in j4-operations.json binding.txt cleanup.txt source.receipt; do
+            [[ -s $j4_up/$n ]] || j4_problems+=("missing_j4_${n//./_}")
+          done
+          [[ -s $j4_up/j4-operations.json ]] && grep -Fq '"pass": true' "$j4_up/j4-operations.json" && grep -Fq '"stage": "complete"' "$j4_up/j4-operations.json" || j4_problems+=(j4_report_not_pass)
+          [[ -s $j4_up/cleanup.txt ]] && grep -Fxq 'ports_closed=true pg_stopped=true cluster_unchanged=true j4_exit=0 phase=complete' "$j4_up/cleanup.txt" || j4_problems+=(j4_cleanup_incomplete)
+          [[ -f $j4_up/unexpected-and-withheld.txt ]] || j4_problems+=(j4_note_missing)
+          if [[ -f $j4_up/unexpected-and-withheld.txt ]] && grep -q '^withheld_' "$j4_up/unexpected-and-withheld.txt"; then j4_problems+=(j4_evidence_withheld); fi
+          if (( ${#j4_problems[@]} )); then
+            printf 'J4_GATE_RED %s\n' "${j4_problems[*]}" >&2
+            gate_failed=1
+          else
+            echo 'J4_GATE_GREEN'
+          fi
+
+          j1_up="$RUNNER_TEMP/j1-upload"
+          j1_problems=()
+          [[ $J1_RUN_OUTCOME == success ]] || j1_problems+=(j1_run_not_success)
+          [[ $COLLECT_SEAMS_OUTCOME == success ]] || j1_problems+=(collect_seams_not_success)
+          [[ $UPLOAD_J1_OUTCOME == success ]] || j1_problems+=(upload_j1_not_success)
+          for n in j1-auth-seam.json binding.txt cleanup.txt source.receipt; do
+            [[ -s $j1_up/$n ]] || j1_problems+=("missing_j1_${n//./_}")
+          done
+          [[ ! -e $j1_up/failed.txt ]] || j1_problems+=(j1_failed_marker_present)
+          [[ -s $j1_up/cleanup.txt ]] && grep -Fxq 'j1_exit=0 http_port_closed=true m3t20_schemas_zero=true public_tables_zero=true cluster_unchanged=true pg_stopped_clean=true app_hash_unchanged=true' "$j1_up/cleanup.txt" || j1_problems+=(j1_cleanup_incomplete)
+          [[ -f $j1_up/unexpected-and-withheld.txt ]] || j1_problems+=(j1_note_missing)
+          if [[ -f $j1_up/unexpected-and-withheld.txt ]] && grep -q '^withheld_' "$j1_up/unexpected-and-withheld.txt"; then j1_problems+=(j1_evidence_withheld); fi
+          if (( ${#j1_problems[@]} )); then
+            printf 'J1_GATE_RED %s\n' "${j1_problems[*]}" >&2
+            gate_failed=1
+          else
+            echo 'J1_GATE_GREEN'
+          fi
+
+          exit "$gate_failed"
