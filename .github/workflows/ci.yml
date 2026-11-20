@@ -1076,15 +1076,30 @@ jobs:
           env -u M5T10_DENSITY_EVIDENCE_ROOT -u T10_BUILD_ID_PATH \
             T10_STATE_CAPTURE=1 T10_STATE_EVIDENCE_ROOT="$raw" E2E_PORT=3100 FORCE_COLOR=0 \
             PLAYWRIGHT_HTML_OUTPUT_DIR="$private/html" \
+            PLAYWRIGHT_JSON_OUTPUT_FILE="$private/playwright.json" \
             pnpm test:e2e e2e/t10-state-capture.spec.ts --workers=1 --retries=0 --trace off \
-            --reporter=list --output="$private/test-results" > "$private/playwright.log" 2>&1
+            --reporter=list,json --output="$private/test-results" > "$private/playwright.log" 2>&1
           test_rc=$?
           set -e
           log_rc=0
           mv -- .next/standalone-server.log "$private/standalone-server.log" || log_rc=$?
           port_rc=0
           node "$A3_DRIVER_DIR/ports.cjs" || port_rc=$?
-          (( test_rc == 0 && log_rc == 0 && port_rc == 0 ))
+          if (( test_rc != 0 || log_rc != 0 || port_rc != 0 )); then
+            kind=ok
+            if (( test_rc != 0 )); then
+              kind=$(python3 -B tests/evidence/t10-playwright-diagnostic.py "$private/playwright.json") || kind=report_unavailable
+              case "$kind" in
+                loader|launch|case|setup_or_runner|mixed|unclassified|report_unavailable) ;;
+                *) kind=report_unavailable ;;
+              esac
+            fi
+            printf 'playwright_kind=%s\nplaywright_rc=%d\nlog_archive_rc=%d\nports_rc=%d\n' \
+              "$kind" "$test_rc" "$log_rc" "$port_rc" > "$receipt/playwright.txt"
+            printf 'T10_PLAYWRIGHT_DIAGNOSTIC kind=%s playwright_rc=%d log_archive_rc=%d ports_rc=%d\n' \
+              "$kind" "$test_rc" "$log_rc" "$port_rc" >&4
+            exit 1
+          fi
 
           phase=check-run
           sha256sum --strict -c "$private/carrier.sha256"
@@ -1113,8 +1128,8 @@ jobs:
           [[ $(find "$publish" -mindepth 1 -printf x | wc -c) -eq 16 ]]
           printf 'cases_total=4\ncases_passed=4\ncases_skipped=0\nscreenshots=15\n' > "$receipt/counts.txt"
           phase=complete
-      # Fixed status receipt (stage name, exit code, and on success the 4/4, 0 skip, 15 image counts). No log text, no check
-      # detail, no image. Uploaded for success and for failure; a missing receipt is an error, not a warning.
+      # Fixed status receipt includes bounded Playwright diagnostics on aggregate capture failure.
+      # The three evidence gates and the success-only evidence upload are independent of this diagnostic.
       - name: Upload T10 receipt (fixed status only)
         if: ${{ !cancelled() && (steps.t10_capture.outcome == 'success' || steps.t10_capture.outcome == 'failure') }}
         uses: actions/upload-artifact@v4
