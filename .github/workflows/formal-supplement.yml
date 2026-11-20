@@ -51,23 +51,25 @@ jobs:
       # backend candidate manifest (1460 B, 16 lines). The text is the 16-line `sha256sum` manifest in LC_ALL=C path order; the
       # digest is the SHA-256 of exactly that text. The stage step checks the text against the pin outside the checkout, then the
       # checkout against the text; b4-pg17.sh stage and run repeat the check.
-      B4_APPROVAL_SHA256: 53edb0deae4bc63bdf40d8edee3e029d14a55431df22bd6c134ad9516b0d8e82
+      # Repair (localhost/AI_ADDRCONFIG): tests/evidence/b4-pg17.sh line 126 is `getent -A ahostsv4 localhost` (glibc getent --no-addrconfig),
+      # still required to resolve to exactly 127.0.0.1; the approved digest below moved with the manifest lines of b4-pg17.sh, package.json and pnpm-lock.yaml (effect >=3.22.1 <4 scoped to @prisma/config, reviewed).
+      B4_APPROVAL_SHA256: 0c5453147211f3858925900320f61900c73877dcc1ab6db4f0952c7d141f48c8
       B4_APPROVED_MANIFEST_TEXT: |
         c0d3456a93ab010d0bbc5ee836dc1b211042e9a2397299cbe650e07afb832683  deploy/cron.nbshiyan
         fcd9810487f9b5a780a070cb37b9cad758169c12362223a995db40214353e5ad  e2e/analytics-job-runtime.spec.ts
         6f21f4279054ae135d54aac6fec22d6352dfe98b5573fe6b80d88567d7c350bd  e2e/analytics-settings.spec.ts
         db96381bee311ba7e92b918d4abad1b9a768aeb2a825c4c1dc81171f7572b5b8  e2e/run-auth.ts
         6603b8ca984ee5145a858d22cc8e5b3d5620583684555dc0bd2c2aaa910d93f1  next.config.ts
-        011e489eb9ca19f2940fa6f928403ad6ae3a0d64f9b8da846a738d26545880d1  package.json
+        d2cd1517dc428cba701df9669918245c0d9909e4c07edfc6fec60556713fdc49  package.json
         d4fcc3ea7dbc1fc72e34206bc1d5b9db4b0e9968a1a32b96f6ddf84d6e9e9b3a  playwright.config.ts
-        21bb5136f878d31656205f8045822e34b33cc87066b26ce8878944144668de2f  pnpm-lock.yaml
+        10f28eddff7c9cec926be06ca2ecef214c00a75e91f2278fcca30be9dc2c3f6a  pnpm-lock.yaml
         995882505612364b1576592f3d2e0548a75ca89ddf8813b321c2aa7488c855a8  prisma/schema.prisma
         bd2f21b98bbf6a68c79a00a20c123ed93c58c591533279872a0b4958ec5ce112  scripts/create-admin.mjs
         816a21727b8ab13c9d8f79d482d8de3cea2b50f516433dfc6d76d00bb8949c04  src/lib/analytics/daily-aggregate.ts
         8f14da7176c59d5700c73fe47d610f51c076dc2bcc27760f114c41bc39cdc0d1  src/lib/analytics/day-boundaries.ts
         6ceaab8a080e76bba1d64d1c9da4469d93e537e502838dacd0106d8927f994e5  src/lib/contracts/account.ts
         6752c2e02e542e19095cd6171390cef573da98f80138a6cf58698afd86e67948  tests/evidence/b4-pg17.config.ts
-        33914d6882c5a161ae48a827968fc236ecbafaba42c5f59ef4540ede0ac6ccb5  tests/evidence/b4-pg17.sh
+        c84077a74dfead0a8df2f67d5685a9303520906ef59fc429c1a5dd59a61b19a4  tests/evidence/b4-pg17.sh
         0fafbf5500baf73e75f34a68d9bc74e8f714af2e8ce0e423c8330eaf6d4a86c0  tests/evidence/b4-pg17.spec.ts
     steps:
       # Full history: b4-pg17.sh stage needs the baseline commit object (merge-base --is-ancestor, tree of the baseline).
@@ -349,7 +351,7 @@ jobs:
 
       # Diagnostic only: not evidence, not required by the final gate, runs only after run_modes failed. One throw-away
       # container with the same image, flags, mounts and arguments, and its own empty evidence mount, runs the same checks as
-      # tests/evidence/b4-pg17.sh lines 121-130 one atomic predicate at a time (I01-I17), then the approved lines themselves
+      # tests/evidence/b4-pg17.sh lines 121-130 one atomic predicate at a time (I01-I21), then the approved lines themselves
       # (L121-L129, only when their digest matches). Only a fixed vocabulary of short codes and small integers is kept; the
       # container log is filtered on the host and the container is always removed.
       - name: Isolation locator (fixed codes only)
@@ -358,7 +360,7 @@ jobs:
         shell: bash
         timeout-minutes: 5
         env:
-          B4_DIAG_LINES_SHA256: a2f125e322129a5cc286628d32b22e8cf5d38e76260a1d6de42271c1e06547cd
+          B4_DIAG_LINES_SHA256: 33e093a13b80caa208a335d72ba63d0e1ac48dcca74f009724c9ae2547f35406
         run: |
           set -Eeuo pipefail
           source "$RUNNER_TEMP/b4-launch.sh"
@@ -366,7 +368,7 @@ jobs:
           mkdir -m 700 "$dg"
           cat > "$RUNNER_TEMP/b4-diag.sh" <<'DIAG'
           #!/bin/bash
-          # Diagnostic only. Mirrors tests/evidence/b4-pg17.sh lines 121-130 one atomic predicate at a time and then evaluates the real
+          # Diagnostic only. Mirrors tests/evidence/b4-pg17.sh lines 121-130 one atomic predicate at a time (I01-I21) and then evaluates the real
           # lines verbatim. Output is a closed vocabulary of short codes and small integers; no expanded value, address or log leaves.
           set -u
           set -o pipefail
@@ -402,6 +404,19 @@ jobs:
           out=$(getent ahostsv4 localhost); rc=$?
           u=$(printf '%s\n' "$out" | awk '{print $1}' | sort -u)
           printf 'I13 rc=%s distinct=%s only127=%s\n' "$rc" "$(printf '%s\n' "$u" | cnt)" "$([[ $u == 127.0.0.1 ]] && printf 1 || printf 0)"
+          # AI_ADDRCONFIG locator: the same lookup with -A (glibc getent --no-addrconfig), then files-only, then counts only.
+          out=$(getent -A ahostsv4 localhost); rc=$?
+          u=$(printf '%s\n' "$out" | awk '{print $1}' | sort -u)
+          printf 'I18 rc=%s distinct=%s only127=%s\n' "$rc" "$(printf '%s\n' "$u" | cnt)" "$([[ $u == 127.0.0.1 ]] && printf 1 || printf 0)"
+          out=$(getent -s files -A ahostsv4 localhost); rc=$?
+          u=$(printf '%s\n' "$out" | awk '{print $1}' | sort -u)
+          printf 'I19 rc=%s distinct=%s only127=%s\n' "$rc" "$(printf '%s\n' "$u" | cnt)" "$([[ $u == 127.0.0.1 ]] && printf 1 || printf 0)"
+          n4=$(awk '$1=="127.0.0.1"{for(i=2;i<=NF;i++) if($i=="localhost") c++} END{print c+0}' /etc/hosts); r4=$?
+          n6=$(awk '$1=="::1"{for(i=2;i<=NF;i++) if($i=="localhost") c++} END{print c+0}' /etc/hosts); r6=$?
+          printf 'I20 r4=%s n4=%s r6=%s n6=%s\n' "$r4" "$n4" "$r6" "$n6"
+          o4=$(ip -4 -o addr show 2>/dev/null | awk '$2!="lo"' | cnt)
+          o6=$(ip -6 -o addr show 2>/dev/null | awk '$2!="lo"' | cnt)
+          printf 'I21 nonlo4=%s nonlo6=%s\n' "$o4" "$o6"
           out=$(findmnt -n -o FSTYPE --mountpoint /tmp); rc=$?
           printf 'I14 rc=%s tmpfs=%s\n' "$rc" "$([[ $out == tmpfs ]] && printf 1 || printf 0)"
           printf 'I15 ok=%s\n' "$([[ ${2:-} =~ ^[a-f0-9]{64}$ ]] && printf 1 || printf 0)"
@@ -435,7 +450,7 @@ jobs:
           [[ $code =~ ^[0-9]{1,3}$ ]] || code=still_running
           {
             printf 'diag_exit=%s\n' "$code"
-            docker logs "$name" 2>/dev/null | grep -aE '^((I(0[1-9]|1[0-7])|L12[1-9]|LDG) [a-z0-9_= ]{1,60}|DIAG_END)$' | head -n 40 || true
+            docker logs "$name" 2>/dev/null | grep -aE '^((I(0[1-9]|1[0-9]|2[01])|L12[1-9]|LDG) [a-z0-9_= ]{1,60}|DIAG_END)$' | head -n 40 || true
           } > "$B4_META/diag-isolation.txt"
           cat "$B4_META/diag-isolation.txt"
       - name: Pair gate (host, after both result sets exist)

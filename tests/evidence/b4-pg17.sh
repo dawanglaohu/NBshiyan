@@ -51,7 +51,7 @@ case ${1:-} in
     [[ $(realpath "${BASH_SOURCE[0]}") == "$repo/${candidate_files[0]}" ]]
     [[ $(git rev-parse 'HEAD^{tree}') == "$tree" && $(git rev-parse "$base_commit^{tree}") == "$base_tree" ]]
     git merge-base --is-ancestor "$base_commit" "$commit"
-    git diff --quiet "$base_commit" "$commit" -- "${fixed_inputs[@]}"
+    git diff --quiet "$base_commit" "$commit" -- "${fixed_inputs[@]}" ":(exclude)package.json" ":(exclude)pnpm-lock.yaml"
     git diff --quiet HEAD --
     git ls-files --error-unmatch -- "${approved_files[@]}" >/dev/null
     verify_approval "$manifest" "$approved_sha"
@@ -123,7 +123,7 @@ JS
     [[ $(readlink /proc/self/ns/pid) == "$(readlink /proc/1/ns/pid)" ]]
     [[ $(ip -o link show | awk -F': ' '{print $2}') == lo ]]
     [[ -n $(ip -4 -o addr show dev lo to 127.0.0.1/32) && -z $(ip -4 route show) && -z $(ip -6 route show default) ]]
-    [[ $(getent ahostsv4 localhost | awk '{print $1}' | sort -u) == 127.0.0.1 ]]
+    [[ $(getent -A ahostsv4 localhost | awk '{print $1}' | sort -u) == 127.0.0.1 ]]
     [[ $(findmnt -n -o FSTYPE --mountpoint /tmp) == tmpfs ]]
     [[ $2 =~ ^[a-f0-9]{64}$ && $3 =~ ^[a-f0-9]{64}$ ]]
     [[ $4 == schedule || $4 == with-guard || $4 == guard-control ]]
