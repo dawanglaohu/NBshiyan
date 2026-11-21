@@ -14,7 +14,7 @@ const legacy = '/api/admin/cron/retention-cleanup';
 const base = 'http://127.0.0.1:3114';
 const cronSecret = randomBytes(32).toString('hex');
 const owner = 'j4-fixture-owner';
-const report = { version: 1, pass: false, stage: 'preflight', requests: [], cleanup: {} };
+const report = { version: 2, pass: false, stage: 'preflight', requests: [], cleanup: {} };
 const [, , appDir, reportFile, extra] = process.argv;
 let db;
 let child;
@@ -357,6 +357,21 @@ try {
   settled(conflicting, afterFailure, aggregate, failed, 'FAILED', failed.counts, 'version_conflict');
   jobsUnchanged(conflicting, afterFailure, aggregate);
   same(afterFailure.analytics, conflicting.analytics, 'FAILED_CHANGED_WATERMARK');
+  report.otherKeys = [retention, chat, mail].map((key) => {
+    const previous = conflicting.jobs[key];
+    const current = afterFailure.jobs[key];
+    check(previous && current, 'FAILURE_OTHER_JOB_MISSING');
+    check(previous.lastSucceededAt && current.lastSucceededAt, 'FAILURE_OTHER_JOB_SUCCESS_MISSING');
+    return {
+      key,
+      generationBefore: previous.generation,
+      generationAfter: current.generation,
+      statusBefore: previous.lastStatus,
+      statusAfter: current.lastStatus,
+      lastSucceededAtBefore: previous.lastSucceededAt.toISOString(),
+      lastSucceededAtAfter: current.lastSucceededAt.toISOString(),
+    };
+  });
   failed.watermarkUnchanged = true;
   report.stage = 'complete';
 } catch {

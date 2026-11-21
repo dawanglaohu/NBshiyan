@@ -588,6 +588,14 @@ async function measureAccount(page: Page, vp: Viewport): Promise<MaskPlan> {
 async function captureScreenshot(state: StateName, vp: Viewport, page: Page): Promise<ScreenshotFact> {
   const viewport = label(vp);
   const file = `state-${state}-${viewport}.png`;
+  // 进入移动断点会触发抽屉过渡。截图会快进这些过渡，首次测量须等它们自然结束。
+  await expect.poll(() => page.evaluate(() => {
+    const sidebar = document.querySelector('.adm-side');
+    if (!sidebar || getComputedStyle(sidebar).position !== 'fixed') return true;
+    return sidebar.getAnimations().every((animation) =>
+      !animation.pending && (animation.playState === 'finished' || animation.playState === 'idle'),
+    );
+  }), { message: `T10_STATE_CAPTURE_MASK_DRIFT ${file}：移动侧栏过渡未稳定` }).toBe(true);
   const plan = await measureAccount(page, vp);
   if (plan.scroll.x !== 0 || plan.scroll.y !== 0) {
     throw new Error(`T10_STATE_CAPTURE_SCROLL ${file} ${plan.scroll.x},${plan.scroll.y}：全页 mask 坐标要求滚动归零`);

@@ -49,23 +49,23 @@ ALLOWED_CODES = frozenset({  # 70 entries
 # The pinned spec's four declarations, in declaration order. A report is the target only when it
 # carries each (line, title) pair exactly once; the case ordinal never comes from report order.
 DECLARATIONS = (
-    (989, '空/无重算：契约初始态与同次 GET 四字段绑定（三视口）'),
-    (1046, '加载中：放行前同一 UI 状态与截图，再放行原请求（三视口）'),
-    (1168, '加载失败与重试：真实传输失败（net::ERR_*）后恢复真实请求（三视口）'),
-    (1329, '保存结果：同笔 PATCH 200 与 UI 绑定，计数持续到最后一张截图'),
+    (997, '空/无重算：契约初始态与同次 GET 四字段绑定（三视口）'),
+    (1054, '加载中：放行前同一 UI 状态与截图，再放行原请求（三视口）'),
+    (1176, '加载失败与重试：真实传输失败（net::ERR_*）后恢复真实请求（三视口）'),
+    (1337, '保存结果：同笔 PATCH 200 与 UI 绑定，计数持续到最后一张截图'),
 )
 DECLARATION_INDEX = {(line, title): index for index, (line, title) in enumerate(DECLARATIONS)}
 TEST_STATES = frozenset({'expected', 'unexpected', 'skipped', 'flaky'})
 RESULT_STATES = frozenset({'passed', 'failed', 'timedOut', 'skipped', 'interrupted'})
 # Pinned-spec lines that assert a response `.status()`; the hint is bound to the complete
 # normalized source line, the exact caret line, and the report's own canonical spec path.
-STATUS_SOURCE_LINES = frozenset({997, 1085, 1208, 1351, 1414})
+STATUS_SOURCE_LINES = frozenset({1005, 1093, 1216, 1359, 1422})
 STATUS_SOURCE_BY_LINE = {
-    997: 'expect(navigation?.status(), `${viewport} 分区页状态`).toBe(200);',
-    1085: 'expect(navigation?.status(), `${viewport} 分区页状态`).toBe(200);',
-    1208: 'expect(navigation?.status(), `${viewport} 分区页状态`).toBe(200);',
-    1351: "expect(navigation?.status(), '1440x900 分区页状态').toBe(200);",
-    1414: "expect(response.status(), '保存 PATCH 状态码').toBe(200);",
+    1005: 'expect(navigation?.status(), `${viewport} 分区页状态`).toBe(200);',
+    1093: 'expect(navigation?.status(), `${viewport} 分区页状态`).toBe(200);',
+    1216: 'expect(navigation?.status(), `${viewport} 分区页状态`).toBe(200);',
+    1359: "expect(navigation?.status(), '1440x900 分区页状态').toBe(200);",
+    1422: "expect(response.status(), '保存 PATCH 状态码').toBe(200);",
 }
 ANSI = re.compile(r'\x1b\[[0-9;]*m')
 # Playwright serialises a named error as `<Name>: <message>`, e.g. `RunAuthError: E2E_RUN_AUTH_...`.

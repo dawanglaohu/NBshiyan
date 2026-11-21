@@ -7,7 +7,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:net';
-import { existsSync, mkdtempSync, rmSync, chmodSync } from 'node:fs';
+import { existsSync, mkdtempSync, rmSync, chmodSync, readFileSync, writeFileSync, renameSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -25,6 +26,34 @@ const FAKE = {
   MAIL_WEBHOOK_SECRET: 'fake-webhook-secret-ZZQ9-0123456789abcdef', EDGE_AUTH_SECRET: 'fake-edge-auth-ZZQ0-0123456789abcdef0123',
 };
 const SECRET_VALUES = Object.entries(FAKE).filter(([k]) => /SECRET|PASS|TOKEN|DATABASE_URL|TOTP/.test(k)).map(([, v]) => v);
+/** 仅在 J7 旁证步骤里 opt-in：把坏配置三例投影成机读件，不改测试语义、不落任何值。 */
+const EVIDENCE = process.env.J7_BAD_CONFIG_EVIDENCE;
+const EVIDENCE_CODES = ['EDGE_AUTH_SECRET', 'DATABASE_URL', 'SMTP_PASS'];
+/** 只认本仓库真实 CI 的 `CI` 工作流 `build-and-audit` 作业；缺字段或写成别的 job 就不落件。 */
+const CI_WORKFLOW = 'CI';
+const CI_JOB = 'build-and-audit';
+const HEX40 = /^[0-9a-f]{40}$/;
+type CiIdentity = { workflow: string; id: number; attempt: number; job: string; commit: string; tree: string; head: string | null };
+type BadConfigCase = { code: string; exit: number | null; problemLines: number; valuesLeaked: boolean; ready: boolean };
+/** 读真实 run 身份；缺一项就返回字段名列表，调用方据此失败且不写任何件。 */
+function readCiIdentity(): CiIdentity | { missing: string[] } {
+  const workflow = process.env.GITHUB_WORKFLOW ?? '';
+  const job = process.env.GITHUB_JOB ?? '';
+  const id = Number(process.env.GITHUB_RUN_ID ?? '');
+  const attempt = Number(process.env.GITHUB_RUN_ATTEMPT ?? '');
+  const commit = (process.env.GITHUB_SHA ?? '').toLowerCase();
+  const tree = (process.env.J7_SOURCE_TREE ?? '').toLowerCase();
+  const head = (process.env.J7_HEAD_SHA ?? '').toLowerCase() || null;
+  const missing: string[] = [];
+  if (workflow !== CI_WORKFLOW) missing.push('GITHUB_WORKFLOW');
+  if (job !== CI_JOB) missing.push('GITHUB_JOB');
+  if (!Number.isSafeInteger(id) || id <= 0) missing.push('GITHUB_RUN_ID');
+  if (!Number.isSafeInteger(attempt) || attempt < 1) missing.push('GITHUB_RUN_ATTEMPT');
+  if (!HEX40.test(commit)) missing.push('GITHUB_SHA');
+  if (!HEX40.test(tree)) missing.push('J7_SOURCE_TREE');
+  if (head !== null && !HEX40.test(head)) missing.push('J7_HEAD_SHA');
+  return missing.length > 0 ? { missing } : { workflow, id, attempt, job, commit, tree, head };
+}
 
 type Run = { code: number | null; out: string; ready: boolean; port: number };
 /** 向系统要一个空闲端口（listen 0 再关掉），不再随机挑 3400–3899，避免和别的进程撞端口 */
@@ -75,6 +104,11 @@ async function start(env: Record<string, string | undefined>, onReady?: (port: n
 
 test('standalone：缺 EDGE_AUTH_SECRET / DATABASE_URL / SMTP_PASS、MAIL_SEND_ADAPTER=mock、SMTP_PORT=25 各自 exit 1，只打印变量名，不打印任何值', { skip }, async () => {
   assert.ok(existsSync(SERVER), `missing ${SERVER}`);
+  const evidencePath = EVIDENCE;
+  const identity = evidencePath ? readCiIdentity() : null;
+  if (identity && 'missing' in identity) throw new Error(`j7-bad-config: missing CI identity: ${identity.missing.join(',')}`);
+  if (evidencePath) rmSync(evidencePath, { force: true }); // 旧件不得冒充本次运行
+  const observed: BadConfigCase[] = [];
   const dir = mkdtempSync(path.join(tmpdir(), 'sa-upl-'));
   const cases: [string, Record<string, string | undefined>, RegExp][] = [
     ['EDGE_AUTH_SECRET missing', { EDGE_AUTH_SECRET: undefined }, /- EDGE_AUTH_SECRET/],
@@ -91,8 +125,28 @@ test('standalone：缺 EDGE_AUTH_SECRET / DATABASE_URL / SMTP_PASS、MAIL_SEND_A
       assert.match(r.out, re, label);
       assert.equal((r.out.match(/^- /gm) ?? []).length, 1, `${label}: exactly one problem`);
       for (const v of SECRET_VALUES) assert.ok(!r.out.includes(v), `value leaked (${label})`);
+      const evidenceCode = EVIDENCE_CODES.find((code) => label.startsWith(code + ' '));
+      if (evidencePath && evidenceCode) observed.push({ code: evidenceCode, exit: r.code, problemLines: (r.out.match(/^- /gm) ?? []).length, valuesLeaked: SECRET_VALUES.some((v) => r.out.includes(v)), ready: r.ready });
     }
   } finally { rmSync(dir, { recursive: true, force: true }); }
+
+  if (evidencePath && identity) {
+    if (observed.length !== EVIDENCE_CODES.length) throw new Error(`j7-bad-config: expected ${EVIDENCE_CODES.length} codes, observed ${observed.length}`);
+    const buildIdPath = path.join(path.dirname(SERVER), '.next', 'BUILD_ID');
+    assert.ok(existsSync(buildIdPath), `missing ${buildIdPath}`);
+    const evidence = {
+      schema: 'j7-bad-config/1',
+      exit: 1,
+      codes: observed.map((row) => row.code).sort(),
+      cases: observed,
+      run: { workflow: identity.workflow, id: identity.id, attempt: identity.attempt, job: identity.job },
+      source: { commit: identity.commit, tree: identity.tree, head: identity.head },
+      build: { buildId: readFileSync(buildIdPath, 'utf8').trim(), serverJsSha256: createHash('sha256').update(readFileSync(SERVER)).digest('hex').toUpperCase(), sameBuildAsE2E: false },
+    };
+    const partial = `${evidencePath}.tmp-${process.pid}`;
+    writeFileSync(partial, JSON.stringify(evidence, null, 2) + '\n', 'utf8');
+    renameSync(partial, evidencePath);
+  }
 });
 
 test('standalone：UPLOAD_DIR 不存在 / 不可写 → exit 1', { skip }, async () => {

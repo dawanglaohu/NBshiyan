@@ -49,7 +49,7 @@ jobs:
       # The runtime-image recipe is not part of the 16-file manifest, so it is pinned here (visible in this workflow's diff).
       B4_DOCKERFILE_SHA256: 06675c5dcd050b47aa93e4f2137a705ec1312700b5b647fd221b61ba651c1e1f
       # Independently reviewed J4 and J1 single-file pins (reusing this job's APP_ENV=test build and PG17 runtime image).
-      J4_SCRIPT_SHA256: 12b40acb1e22c6597251da5d6e0294a5d53b1a62b6f1dd74e70c0fbacd2fcfbc
+      J4_SCRIPT_SHA256: fdea52db37dd2948150731be4d6a0a4ef6b2b12220a2a58d7d73505bceae904c
       B10_J1_APPROVED_FILE_SHA256: c8a1744cc09c7037ceb94887f49d1194643f04330f0826ce4d49b3664696822e
       # Approved by the independent database review R2 (seal 22/22 3948517c6e2ce8b99068c22f44de095cad34113ff6f24366183ed3b019229ba7,
       # MANIFEST-APPROVED.sha256): generated from the ed9685a2 git blobs plus the three added B4 files and byte-identical to the
@@ -498,7 +498,8 @@ jobs:
           const assert = require('node:assert/strict');
           const [file, commit, tree, buildId, buildSha, scriptSha, instance] = process.argv.slice(2);
           const r = JSON.parse(fs.readFileSync(file, 'utf8'));
-          assert.equal(r.version, 1);
+          assert.equal(r.version, 2);
+          assert.deepEqual(r.otherKeys?.map(({ key }) => key), ['analytics-retention', 'chat-notifications', 'mail-queue']);
           assert.equal(r.pass, true);
           assert.equal(r.stage, 'complete');
           assert.equal(r.failure, undefined);

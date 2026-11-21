@@ -33,12 +33,35 @@ jobs:
       - name: standalone 启动检查（STANDALONE_TEST=1，缺产物或环境 skip 都算失败；只用假值）
         run: |
           set -o pipefail
-          STANDALONE_TEST=1 node --import tsx --test --test-reporter=tap tests/standalone-start.test.ts | tee /tmp/standalone-start.tap
+          J7_BAD_CONFIG_EVIDENCE="$RUNNER_TEMP/j7-bad-config.json" \
+            J7_SOURCE_TREE="$(git rev-parse HEAD^{tree})" \
+            J7_HEAD_SHA="${{ github.event.pull_request.head.sha }}" \
+            STANDALONE_TEST=1 node --import tsx --test --test-reporter=tap tests/standalone-start.test.ts | tee /tmp/standalone-start.tap
           grep -qx '# skipped 0' /tmp/standalone-start.tap
           grep -qx '# fail 0' /tmp/standalone-start.tap
           grep -qx '# todo 0' /tmp/standalone-start.tap
           grep -qx '# cancelled 0' /tmp/standalone-start.tap
           grep -Eq '^# pass [1-9][0-9]*$' /tmp/standalone-start.tap
+      # J7 坏配置旁证：只有上面五项 TAP 门全过后才可能走到这里；单文件、非链接、非空。
+      - name: 核准坏配置旁证实物
+        run: |
+          set -euo pipefail
+          f="$RUNNER_TEMP/j7-bad-config.json"
+          [[ -f "$f" && ! -L "$f" && -s "$f" ]]
+          [ "$(find "$RUNNER_TEMP" -maxdepth 1 -name 'j7-bad-config.json' -printf x | wc -c)" -eq 1 ]
+          [[ "$GITHUB_RUN_ID" =~ ^[1-9][0-9]{0,19}$ && "$GITHUB_RUN_ATTEMPT" =~ ^[1-9][0-9]{0,5}$ ]]
+          sha=$(sha256sum < "$f")
+          sha=${sha%% *}
+          [[ "$sha" =~ ^[0-9a-f]{64}$ ]]
+          printf 'J7_BAD_CONFIG_FILE run=%s attempt=%s sha256=%s\n' "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" "$sha"
+      # 跨 job 只走 artifact：attempt 进名字，重跑不会混入上一次的件。
+      - name: 上传坏配置旁证（单文件）
+        uses: actions/upload-artifact@v4
+        with:
+          name: j7-bad-config-a${{ github.run_attempt }}
+          path: ${{ runner.temp }}/j7-bad-config.json
+          if-no-files-found: error
+          retention-days: 7
       # 固定 Chrome 版本，避免 runner 自带 Chrome 升级后与 Lighthouse 的 trace 格式不兼容（frame_sequence 报错）
       - uses: browser-actions/setup-chrome@v1
         id: chrome
@@ -205,6 +228,7 @@ jobs:
           console.log('APP_ENV_AT_BUILD=production count=' + m.length);
           console.log('build id: original=' + oldId.buildId + ' production=' + newId);
           EOF
+          python3 -B tests/evidence/j7-build-provenance.py snapshot-production --out "$RUNNER_TEMP/j7-production-build.json"
 
       # 原产物断言：必须真跑并 0 skip；缺产物、标记不符、任何 fail/skip/todo/cancelled 都失败。
       - name: production 产物 mock 断言（0 skip，缺产物即失败）
@@ -276,6 +300,42 @@ jobs:
             /tmp/ci-prod-mocks.tap
           if-no-files-found: ignore
           retention-days: 7
+
+      - name: Record J7 independent build provenance
+        id: j7_provenance
+        shell: bash
+        timeout-minutes: 2
+        env:
+          J7_PROVENANCE_PR_HEAD: ${{ github.event.pull_request.head.sha || '' }}
+        run: |
+          set -Eeuo pipefail
+          umask 077
+          mkdir "$RUNNER_TEMP/j7-build-provenance"
+          python3 -B tests/evidence/j7-build-provenance.py produce \
+            --original /tmp/ci-original-build.json \
+            --production "$RUNNER_TEMP/j7-production-build.json" \
+            --out "$RUNNER_TEMP/j7-build-provenance/J7-BUILD-PROVENANCE.json"
+
+      - name: Upload J7 independent build provenance
+        id: j7_provenance_upload
+        timeout-minutes: 4
+        uses: actions/upload-artifact@v4
+        with:
+          name: j7-build-provenance-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/j7-build-provenance/J7-BUILD-PROVENANCE.json
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Record J7 provenance upload identity
+        id: j7_provenance_link
+        shell: bash
+        timeout-minutes: 1
+        env:
+          J7_ARTIFACT_ID: ${{ steps.j7_provenance_upload.outputs.artifact-id }}
+          J7_ARTIFACT_DIGEST: ${{ steps.j7_provenance_upload.outputs.artifact-digest }}
+        run: |
+          python3 -B tests/evidence/j7-build-provenance.py link-upload \
+            --artifact "$J7_ARTIFACT_ID" --digest "$J7_ARTIFACT_DIGEST"
 
   e2e:
     runs-on: ubuntu-24.04
@@ -777,7 +837,73 @@ jobs:
           done
           echo 'PLAYWRIGHT_PROVISION_EXHAUSTED' >&2
           exit 1
-      - run: pnpm build
+      - name: Build e2e standalone and verify test identity
+        shell: bash
+        env:
+          APP_ENV: test
+          NEXT_PUBLIC_ADMIN_MAIL: http
+        run: |
+          pnpm build
+          node --input-type=module <<'EOF'
+          import { createHash } from 'node:crypto';
+          import { appendFileSync, lstatSync, readFileSync } from 'node:fs';
+          import { isDeepStrictEqual } from 'node:util';
+
+          const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
+          const utf8 = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true });
+
+          function readBuildFile(file) {
+            const stat = lstatSync(file);
+            if (!stat.isFile() || stat.size === 0) throw new Error();
+            return readFileSync(file);
+          }
+
+          function readStandaloneConfig(server) {
+            const source = utf8.decode(server);
+            const definitions = [...source.matchAll(/^const nextConfig = ([^\r\n]+)$/gm)];
+            if (definitions.length !== 1) throw new Error();
+            const [[declaration, json]] = definitions;
+            // Next 15.5.28 emits this CommonJS bootstrap, including both uses of nextConfig.
+            const bootstrap = source.replace(declaration, 'const nextConfig = <JSON>');
+            if (sha256(bootstrap) !== '725d2150a28b8355d7b1e2cbaa32e9b80ea162fd027d247c9aa57e87b5aea2ea') throw new Error();
+            const config = JSON.parse(json);
+            // A JSON round trip rejects duplicate keys. Object literals give __proto__ special meaning.
+            if (JSON.stringify(config) !== json || /"__proto__":/.test(json)) throw new Error();
+            return config;
+          }
+
+          let buildId, rootBuildId, serverBytes, serverSha;
+          try {
+            const root = '.next/standalone';
+            buildId = readBuildFile(`${root}/.next/BUILD_ID`).toString().trim();
+            rootBuildId = readBuildFile('.next/BUILD_ID').toString().trim();
+            const manifestText = utf8.decode(readBuildFile(`${root}/.next/required-server-files.json`));
+            const manifest = JSON.parse(manifestText);
+            const server = readBuildFile(`${root}/server.js`);
+            const config = readStandaloneConfig(server);
+            // The standalone emitter prefixes the manifest's default distDir with ./.
+            if (!/^[A-Za-z0-9_-]{1,64}$/.test(buildId) || buildId !== rootBuildId ||
+                JSON.stringify(manifest, null, 2) !== manifestText || manifest.config?.distDir !== '.next' ||
+                !isDeepStrictEqual(config, { ...manifest.config, distDir: './.next' }) ||
+                config.env?.APP_ENV_AT_BUILD !== 'test' || config.env?.NEXT_PUBLIC_ADMIN_MAIL !== 'http') {
+              throw new Error();
+            }
+            serverBytes = server.length;
+            serverSha = sha256(server);
+          } catch {
+            console.error('E2E_TEST_BUILD_IDENTITY_INVALID');
+            process.exit(1);
+          }
+
+          try {
+            appendFileSync(process.env.GITHUB_ENV, 'APP_ENV=test\nNEXT_PUBLIC_ADMIN_MAIL=http\n');
+          } catch {
+            console.error('E2E_TEST_BUILD_ENV_WRITE_FAILED');
+            process.exit(1);
+          }
+          console.log(`E2E_TEST_BUILD_SOURCE root_build_id=${rootBuildId} standalone_build_id=${buildId} server_js_bytes=${serverBytes} server_js_sha256=${serverSha}`);
+          console.log(`E2E_TEST_BUILD_OK build_id=${buildId} server_js_sha256=${serverSha}`);
+          EOF
       # next build 的 standalone 产物缺 .next/static 与 public，浏览器跑起来才会 404 样式和媒体。
       # playwright.config.ts 加载时也做同样的复制（本地跑 e2e 不必手动执行本步），这里显式列出来，CI 日志里能核到运行目录就位。
       - name: 准备 standalone 运行目录（复制 .next/static 与 public）
@@ -1027,7 +1153,7 @@ jobs:
           T10_CHECKER: ${{ github.workspace }}/tests/evidence/t10-check-run.py
           T10_EVIDENCE_ADMISSION: ${{ github.workspace }}/tests/evidence/t10-evidence-admission.py
           T10_APPROVED_MANIFEST: ${{ github.workspace }}/tests/evidence/t10-approved.sha256
-          T10_APPROVED_MANIFEST_SHA: 3e7a9effabe4c21561ce633d23d20026a7dc1e2ec89353699f0eef11c8e9b270
+          T10_APPROVED_MANIFEST_SHA: df89d7a0247cd03dfa8560996d7fb863bfc0ce58334e56ce1bbb78fe29a04bfc
           T10_TOOLS_MANIFEST: ${{ github.workspace }}/tests/evidence/t10-tools.sha256
           T10_TOOLS_MANIFEST_SHA: c671e4379600d618ec1bc59de0c6169fdceab71f7b18806a96a133ab5d6c929c
         run: |
@@ -1249,8 +1375,2102 @@ jobs:
           path: /tmp/m4t4-named.tsv
           retention-days: 7
           if-no-files-found: warn
+      - name: J6 front-end seam evidence (opt-in, post-A3-summary)
+        id: j6_capture
+        if: ${{ success() && steps.e2e_a3_summary.outcome == 'success' }}
+        timeout-minutes: 12
+        shell: bash
+        env:
+          CRON_SECRET: ${{ env.CRON_SECRET }}
+          E2E_PORT: '3100'
+          PG_CONTAINER_ID: ${{ job.services.postgres.id }}
+          J6_SEAM_DB_PREFIX: b10_j6_seam
+          J6_SPEC_PATH: e2e/j6-frontend-seam-evidence.spec.ts
+          J6_SPEC_SHA256: 68C212158889DED53D2EC183D262E64A734558EE2D917348E4582D505A3BE514
+          J6_CHECKER_PATH: tests/evidence/j6-check-evidence.cjs
+          J6_CHECKER_SHA256: 8298C8EA447C5CDAFE10AB270EE99749ADCE838F4361A76C3778D9C07DC907D9
+        run: |
+          # <<<J6-RUN-BLOCK
+          set -Eeuo pipefail
+          unset M5T8_TEST_DATABASE_URL M5T8_E2E_SCHEDULER T10_STATE_CAPTURE
+          [[ "$(git rev-parse HEAD)" == "$GITHUB_SHA" ]]
+          [[ -z "$(git status --porcelain --untracked-files=no)" ]]
+          export J6_SEAM_EVIDENCE_ROOT="${RUNNER_TEMP:?}/j6-${GITHUB_RUN_ID:?}-${GITHUB_RUN_ATTEMPT:?}"
+          mkdir "$J6_SEAM_EVIDENCE_ROOT"
+          export J6_SEAM_RUN_DIR="$J6_SEAM_EVIDENCE_ROOT/run"
+          export PLAYWRIGHT_HTML_OUTPUT_DIR="$J6_SEAM_EVIDENCE_ROOT/html"
+          archive_j6_server_log() {
+            if [[ -f .next/standalone-server.log && ! -e "$J6_SEAM_EVIDENCE_ROOT/standalone-server.log" ]]; then
+              mv .next/standalone-server.log "$J6_SEAM_EVIDENCE_ROOT/standalone-server.log"
+            fi
+          }
+          trap 'archive_j6_server_log || true' EXIT
+          node "$A3_DRIVER_DIR/ports.cjs" > "$J6_SEAM_EVIDENCE_ROOT/port-before.log" 2>&1
+          [[ ! -e .next/standalone-server.log ]]
+
+          # 两个跟踪落点：仓内 spec + 仓内 checker；摘要只在 env，失败关闭。
+          J6_DB_NAME="${J6_SEAM_DB_PREFIX:?}_${GITHUB_RUN_ID:?}_${GITHUB_RUN_ATTEMPT:?}"
+          [[ "$J6_DB_NAME" =~ ^b10_j6_seam_[1-9][0-9]{0,19}_[1-9][0-9]{0,5}$ ]]
+          git ls-files --error-unmatch -- "$J6_SPEC_PATH" > /dev/null
+          git ls-files --error-unmatch -- "$J6_CHECKER_PATH" > /dev/null
+          sha256sum --strict -c <<< "$J6_SPEC_SHA256  $J6_SPEC_PATH" > "$J6_SEAM_EVIDENCE_ROOT/spec-sha.log"
+          sha256sum --strict -c <<< "$J6_CHECKER_SHA256  $J6_CHECKER_PATH" > "$J6_SEAM_EVIDENCE_ROOT/checker-sha.log"
+
+          # 独占库：GitHub postgres service 的容器客户端；只 CREATE，不 DROP；Prisma DSN 只给 app/Prisma。
+          [[ "${PG_CONTAINER_ID:-}" =~ ^[0-9a-f]{64}$ ]] || { printf 'J6_PG_SERVICE_ID_INVALID\n' >&2; exit 1; }
+          docker exec "$PG_CONTAINER_ID" psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
+            -c "CREATE DATABASE \"$J6_DB_NAME\";" > "$J6_SEAM_EVIDENCE_ROOT/pg-create.log" 2>&1
+          export DATABASE_URL="postgresql://postgres:${PGPASSWORD:-postgres}@127.0.0.1:5432/${J6_DB_NAME}?schema=public"
+          # 两个容器侧查询的 stderr 只落独占私有目录（不在任何上传路径）；作业日志只出固定阶段码。
+          J6_DIAG_DIR="$J6_SEAM_EVIDENCE_ROOT/diag"
+          mkdir "$J6_DIAG_DIR"
+          pg_ident_status=0
+          pg_ident="$(docker exec "$PG_CONTAINER_ID" psql -U postgres -d "$J6_DB_NAME" -At -v ON_ERROR_STOP=1 \
+            -c "SELECT current_database() || ':' || current_setting('server_version_num');" \
+            2> "$J6_DIAG_DIR/pg-identity.err")" || pg_ident_status=$?
+          if (( pg_ident_status != 0 )); then printf 'J6_PG_IDENTITY_QUERY_FAILED\n' >&2; exit "$pg_ident_status"; fi
+          [[ "$pg_ident" =~ ^${J6_DB_NAME}:17[0-9]{4}$ ]]
+          pg_cluster_status=0
+          pg_cluster_raw="$(docker exec "$PG_CONTAINER_ID" psql -U postgres -d "$J6_DB_NAME" -At -v ON_ERROR_STOP=1 \
+            -c "SELECT system_identifier::text FROM pg_control_system();" \
+            2> "$J6_DIAG_DIR/pg-cluster.err")" || pg_cluster_status=$?
+          if (( pg_cluster_status != 0 )); then printf 'J6_PG_CLUSTER_QUERY_FAILED\n' >&2; exit "$pg_cluster_status"; fi
+          [[ "$pg_cluster_raw" =~ ^[0-9]{1,20}$ ]]
+          pg_cluster_sha="$(printf '%s' "$pg_cluster_raw" | sha256sum | cut -d' ' -f1 | tr 'a-f' 'A-F')"
+          printf 'database=%s\nserver_version_num=%s\ncluster_sha256=%s\n' "${pg_ident%%:*}" "${pg_ident##*:}" "$pg_cluster_sha" \
+            > "$J6_SEAM_EVIDENCE_ROOT/pg-identity.txt"
+          pnpm prisma db push --skip-generate > "$J6_SEAM_EVIDENCE_ROOT/prisma-push.log" 2>&1
+
+          set +e
+          CI=1 J6_SEAM_EVIDENCE=1 pnpm test:e2e "$J6_SPEC_PATH" \
+            --project=chromium --workers=1 --retries=0 \
+            --output "$J6_SEAM_EVIDENCE_ROOT/test-results" \
+            > "$J6_SEAM_EVIDENCE_ROOT/playwright.log" 2>&1
+          pw_status=$?
+          set -Eeuo pipefail
+          archive_j6_server_log
+          port_after_status=0
+          node "$A3_DRIVER_DIR/ports.cjs" > "$J6_SEAM_EVIDENCE_ROOT/port-after.log" 2>&1 || port_after_status=$?
+          printf 'pw_exit=%s\nport_after_exit=%s\n' "$pw_status" "$port_after_status" > "$J6_SEAM_EVIDENCE_ROOT/stage-exit.txt"
+          if (( pw_status != 0 )); then exit "$pw_status"; fi
+          if (( port_after_status != 0 )); then exit "$port_after_status"; fi
+          [[ -s "$J6_SEAM_EVIDENCE_ROOT/standalone-server.log" ]]
+
+          # 应用侧（spec 的 Prisma 连接）三元组必须与 service 侧独立读取逐字段相等；拒额外键与原始标识。
+          run_pg_status=0
+          run_pg="$(node -e '
+          const fs = require("node:fs");
+          const diag = process.argv[2];
+          const fail = (code, err) => {
+            try { fs.appendFileSync(diag, code + "\n" + (err && err.stack ? err.stack : String(err)) + "\n"); } catch {}
+            console.error(code);
+            process.exit(1);
+          };
+          let run;
+          try { run = JSON.parse(fs.readFileSync(process.argv[1], "utf8")); }
+          catch (e) { fail("J6_RUN_READ_INVALID", e); }
+          const pg = run?.evidence?.db?.pg;
+          if (!pg) { console.error("J6_RUN_PG_MISSING"); process.exit(3); }
+          if (JSON.stringify(Object.keys(pg).sort()) !== JSON.stringify(["clusterSha256", "database", "serverVersionNum"])) {
+            console.error("J6_RUN_PG_SHAPE"); process.exit(3);
+          }
+          process.stdout.write([pg.database, pg.serverVersionNum, pg.clusterSha256].join("\n"));
+          ' "$J6_SEAM_RUN_DIR/RUN.json" "$J6_DIAG_DIR/run-read.err")" || run_pg_status=$?
+          if (( run_pg_status != 0 )); then exit "$run_pg_status"; fi
+          expected_pg="$(printf '%s\n%s\n%s\n' "${pg_ident%%:*}" "${pg_ident##*:}" "$pg_cluster_sha")"
+          [[ "$run_pg" == "$expected_pg" ]] || { printf 'J6_PG_TRIPLE_MISMATCH\n' >&2; exit 1; }
+
+          node "$J6_CHECKER_PATH" \
+            --run "$J6_SEAM_RUN_DIR" \
+            --expect-sha "$GITHUB_SHA" \
+            --expect-tree "$(git rev-parse 'HEAD^{tree}')" \
+            --expect-build-id "$(<.next/standalone/.next/BUILD_ID)" \
+            --repo "$PWD" \
+            --spec "$J6_SPEC_PATH" \
+            --expect-run "$GITHUB_RUN_ID" \
+            --expect-attempt "$GITHUB_RUN_ATTEMPT" \
+            --expect-job "$GITHUB_JOB" \
+            --expect-workflow "$GITHUB_WORKFLOW" \
+            --expect-ref "$GITHUB_REF" \
+            --expect-pg-database "${pg_ident%%:*}" \
+            --expect-pg-version "${pg_ident##*:}" \
+            --expect-pg-cluster "$pg_cluster_sha" \
+            --out "$J6_SEAM_RUN_DIR/CHECK-EVIDENCE.json" \
+            --receipt "$J6_SEAM_RUN_DIR/RUNNER-RECEIPT.json" \
+            > "$J6_SEAM_EVIDENCE_ROOT/checker.log" 2>&1
+
+          for name in RUN.json CHECK-EVIDENCE.json RUNNER-RECEIPT.json; do
+            [[ -f "$J6_SEAM_RUN_DIR/$name" && -s "$J6_SEAM_RUN_DIR/$name" && ! -L "$J6_SEAM_RUN_DIR/$name" ]]
+          done
+          PUBLISH_DIR="${RUNNER_TEMP:?}/j6-publish-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          mkdir "$PUBLISH_DIR"
+          [[ -d "$PUBLISH_DIR" && ! -L "$PUBLISH_DIR" ]]
+          for name in RUN.json CHECK-EVIDENCE.json RUNNER-RECEIPT.json; do
+            cp "$J6_SEAM_RUN_DIR/$name" "$PUBLISH_DIR/$name"
+          done
+          [[ "$(find "$PUBLISH_DIR" -mindepth 1 -maxdepth 1 -type f | wc -l)" -eq 3 ]]
+          printf 'J6_PG_SERVICE container_id=%s database=%s server_version_num=%s cluster_sha256=%s\n' \
+            "$PG_CONTAINER_ID" "${pg_ident%%:*}" "${pg_ident##*:}" "$pg_cluster_sha"
+          # >>>J6-RUN-BLOCK
+      - name: Upload J6 admitted seam evidence
+        if: ${{ success() && steps.j6_capture.outcome == 'success' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: j6-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/j6-publish-${{ github.run_id }}-${{ github.run_attempt }}/
+          retention-days: 7
+          if-no-files-found: error
 
   # Ubuntu 上名单内的安全用例必须实跑并通过。缺符号链接、POSIX 路径或 0600 时测试记 skip，作业不能算通过。
+      # J7 同构建证据（runner/观测接口；probe 与 receipt 生产器由 QA 维护，本片段不动它们）。
+      # 位置：e2e job 末尾、旧广域上传（playwright-report / m4t4-named-pg-evidence）之后；
+      # 若 J6 已在该作业内，必须再排在 J6 之后（T10 → J6 → J7 串行，3100 同一时刻只有一个持有者）。
+      # 门保持 T10 已审的汇总成功：success() && steps.e2e_a3_summary.outcome == 'success'。
+      # 步骤自身 10 分钟上限；本体 540s 内部预算 + 60s finalize（停服/DROP/端口回收）。
+      # 正式门只收 j7-probe/3 + failureAttribution；/2 仅离线复跑，不进正式上传。
+      # 只写 e2e-evidence/j7 的三份固定安全文件；retryable 独立落 $RUNNER_TEMP 并单独命名上传。
+      - name: J7 同构建探针与清理观测（独占 PG17 空库 + 真实鉴权生产者）
+        id: j7_probe
+        if: ${{ success() && steps.e2e_partition.outcome == 'success' && steps.e2e_a3_summary.outcome == 'success' }}
+        shell: bash
+        timeout-minutes: 10
+        env:
+          J7_STEP_CAP_MINUTES: '10'
+          J7_STEP_BUDGET_S: '540'
+          J7_FINALIZE_RESERVE_S: '60'
+          PG_CONTAINER_ID: ${{ job.services.postgres.id }}
+        run: |
+          #!/usr/bin/env bash
+          # J7 同构建探针 runner（CI/e2e 步骤内联体；本文件就是 run: | 去 10 空格缩进后的原字节）。
+          #
+          # 位置（唯一允许）：e2e job 末尾，旧广域上传（playwright-report、m4t4-named-pg-evidence）之后；
+          # 若 J6 步骤已在该作业内，则必须排在 J6 之后（T10 → J6 → J7 串行，3100 同一时刻只有一个持有者）。
+          # 门（步骤级）：success() && steps.e2e_partition.outcome == 'success' && steps.e2e_a3_summary.outcome == 'success'
+          # 正式门只收 `j7-probe/3` + failureAttribution；`/2` 仅离线复跑（--mode offline --allow-legacy），不进正式上传。
+          # 步骤自身 timeout-minutes: 10；本体内预算 540s，另留 60s finalize（停服/DROP/端口回收）。
+          #
+          # 观测纪律：
+          #   - 3100/3999 只用 A3 已受审的真绑定探针 ports.cjs（E2E_PORT=3100，成功退出 0 才算空闲）；
+          #     3101 用同形内联探针。命令失败（rc!=0）一律不算空闲/释放，按固定码失败。
+          #   - during 不只证明"端口被占"，还要证明监听 socket 属于本步骤拉起的 PID（/proc 归属）；
+          #     3999 单独被占不成立。
+          #   - PG 身份（精确版本、cluster 摘要、full/fresh 库名）由容器内独立读取，再与两份报告对账。
+          #   - 只启停本步骤自己拉起的 PID；不 stop/伪造 PG 服务（hosted postgres 服务属 runner）。
+          #   - 只建、只删本步骤成功 CREATE 的唯一空库 e2e_j7_<12hex>；JobState/业务行只由真实 HTTP 产生。
+          #   - retryable 在主报告写妥、停 full 之前调用同一实例/同一库；产物独立命名上传，不进主三件。
+          #   - 只写 e2e-evidence/j7 的三份固定安全文件；所有服务/探针/DB/retryable 日志只落 $RUNNER_TEMP 私有目录。
+          set -Eeuo pipefail
+          umask 077
+
+          J7_STEP_CAP_MINUTES="${J7_STEP_CAP_MINUTES:-10}"
+          J7_STEP_BUDGET_S="${J7_STEP_BUDGET_S:-540}"
+          J7_FINALIZE_RESERVE_S="${J7_FINALIZE_RESERVE_S:-60}"
+          J7_FINALIZE_CLEANUP_S="${J7_FINALIZE_CLEANUP_S:-12}"
+          J7_RETRYABLE_TIMEOUT_S="${J7_RETRYABLE_TIMEOUT_S:-75}"
+          J7_OBSERVE_APP_TIMEOUT_S="${J7_OBSERVE_APP_TIMEOUT_S:-30}"
+          J7_RETRYABLE_INTERNAL_TIMEOUT_MS="${J7_RETRYABLE_INTERNAL_TIMEOUT_MS:-55000}"
+          J7_PSQL_TIMEOUT_S="${J7_PSQL_TIMEOUT_S:-20}"
+          J7_HEALTH_TIMEOUT_S="${J7_HEALTH_TIMEOUT_S:-90}"
+          J7_PROBE_TIMEOUT_S="${J7_PROBE_TIMEOUT_S:-75}"
+          J7_DB_PUSH_TIMEOUT_S="${J7_DB_PUSH_TIMEOUT_S:-60}"
+          J7_STOP_TIMEOUT_S="${J7_STOP_TIMEOUT_S:-20}"
+          J7_PORT_RELEASE_TIMEOUT_S="${J7_PORT_RELEASE_TIMEOUT_S:-20}"
+
+          ws="${GITHUB_WORKSPACE:-}"
+          if [[ -z "$ws" || ! -d "$ws" ]]; then
+            printf 'J7_RUNNER_FAIL phase=preflight code=%s\n' 'J7_WORKSPACE_MISSING' >&2
+            exit 2
+          fi
+          cd "$ws"
+
+          evidence_dir="e2e-evidence/j7"
+          report_full="$ws/$evidence_dir/j7-attribution.json"
+          report_nodata="$ws/$evidence_dir/j7-nodata.json"
+          cleanup_json="$ws/$evidence_dir/j7-cleanup.json"
+
+          phase=preflight
+          failures=()
+          finalized=0
+          in_finalize=0
+          deadline_hit=false
+          started=$SECONDS
+          finalize_deadline_us=0
+          finalize_action_deadline_us=0
+          started_us=0
+
+          full_port=3100
+          nodata_port=3101
+          full_pid=''
+          full_alt=''
+          nodata_pid=''
+          nodata_alt=''
+          full_health=''
+          full_health_checks=0
+          nodata_health=''
+          nodata_health_checks=0
+          full_probe_exit=''
+          nodata_probe_exit=''
+          full_stop_signal=''
+          full_stop_pidgone=false
+          full_stop_released=false
+          full_stop_waited=0
+          nodata_stop_signal=''
+          nodata_stop_pidgone=false
+          nodata_stop_released=false
+          nodata_stop_waited=0
+          db_created=0
+          db_dropped=0
+          db_gone=0
+          fresh_db=''
+          fresh_url=''
+          pg_version=''
+          pg_version_before=''
+          pg_cluster_before=''
+          retryable_json=''
+
+          fact() { printf '%s\t%s\n' "$1" "$2" >> "$facts"; }
+
+          fail() {
+            local code="$1"
+            failures+=("$code")
+            printf 'J7_RUNNER_FAIL phase=%s code=%s\n' "$phase" "$code" >&3
+            exit 1
+          }
+
+          budget_check() {
+            if (( in_finalize )); then return 0; fi
+            local used=$((SECONDS - started))
+            if (( used > J7_STEP_BUDGET_S )); then
+              deadline_hit=true
+              fail "J7_BUDGET_EXCEEDED:$phase"
+            fi
+          }
+
+          NOW_US=0
+          J7_CLOCK_SOURCE=unknown
+
+          j7_clock_probe() {
+            local up='' rest=''
+            # Production runner is Linux: /proc/uptime is CLOCK_BOOTTIME (monotonic).
+            # MSYS/Cygwin exposes a slow emulated /proc/uptime, so use bash EPOCHREALTIME
+            # there and record that the wall clock is not monotonic on that host.
+            if [[ "$OSTYPE" != msys* && "$OSTYPE" != cygwin* && -r /proc/uptime ]]; then
+              IFS=' ' read -r up rest < /proc/uptime 2>/dev/null || up=''
+              if [[ "$up" =~ ^[0-9]+(\.[0-9]{1,6})?$ ]]; then
+                J7_CLOCK_SOURCE=proc-uptime
+                return 0
+              fi
+            fi
+            if [[ -n "${EPOCHREALTIME:-}" ]]; then
+              J7_CLOCK_SOURCE=epochrealtime
+              return 0
+            fi
+            J7_CLOCK_SOURCE=seconds
+          }
+
+          now_us_set() {
+            local up='' rest='' sec='' frac='' raw=''
+            if [[ "$J7_CLOCK_SOURCE" == proc-uptime ]]; then
+              IFS=' ' read -r up rest < /proc/uptime 2>/dev/null || up=''
+              if [[ "$up" =~ ^([0-9]+)(\.([0-9]{1,6}))?$ ]]; then
+                sec="${BASH_REMATCH[1]}"
+                frac="${BASH_REMATCH[3]:-}"
+                while (( ${#frac} < 6 )); do frac+='0'; done
+                NOW_US=$((10#$sec * 1000000 + 10#${frac:0:6}))
+                return 0
+              fi
+              J7_CLOCK_SOURCE=epochrealtime
+            fi
+            if [[ "$J7_CLOCK_SOURCE" == epochrealtime ]]; then
+              raw="${EPOCHREALTIME:-}"
+              if [[ -n "$raw" ]]; then
+                raw="${raw//[!0-9]/}"
+                NOW_US=$((10#$raw))
+                return 0
+              fi
+              J7_CLOCK_SOURCE=seconds
+            fi
+            NOW_US=$((SECONDS * 1000000))
+          }
+
+          j7_clock_probe
+          now_us() { now_us_set; printf '%s' "$NOW_US"; }
+
+          sleep_us_capped() { # base_us absolute_deadline_us
+            local base_us="$1" deadline_us="$2" left_us sleep_us wake_deadline_us delay
+            now_us_set
+            left_us=$(( deadline_us - NOW_US ))
+            (( left_us <= 0 )) && return 0
+            sleep_us="$base_us"
+            (( sleep_us > left_us )) && sleep_us="$left_us"
+            wake_deadline_us=$(( NOW_US + sleep_us ))
+            if (( sleep_us < 500000 )); then
+              # Short interval: poll the clock instead of paying the host's process-spawn
+              # sleep latency, which would overshoot the absolute deadline.
+              while :; do
+                now_us_set
+                (( NOW_US >= wake_deadline_us )) && break
+              done
+              return 0
+            fi
+            printf -v delay '%d.%06d' "$(( sleep_us / 1000000 ))" "$(( sleep_us % 1000000 ))"
+            sleep "$delay"
+          }
+
+          run_bounded_until_us() { # absolute_deadline_us cmd...
+            local deadline_us="$1"
+            shift
+            local pid rc=0 term_sent=0 kill_sent=0 left_us
+            "$@" &
+            pid=$!
+            while :; do
+              now_us_set
+              left_us=$(( deadline_us - NOW_US ))
+              if (( left_us <= 0 )); then
+                kill -KILL "$pid" 2>/dev/null || true
+                return 124
+              fi
+              if ! kill -0 "$pid" 2>/dev/null; then
+                wait "$pid" 2>/dev/null || rc=$?
+                now_us_set
+                if (( term_sent )) || (( NOW_US >= deadline_us )); then return 124; fi
+                return "$rc"
+              fi
+              if (( ! term_sent )) && (( left_us <= 300000 )); then
+                kill -TERM "$pid" 2>/dev/null || true
+                term_sent=1
+              fi
+              if (( term_sent && ! kill_sent )) && (( left_us <= 100000 )); then
+                kill -KILL "$pid" 2>/dev/null || true
+                kill_sent=1
+              fi
+              sleep_us_capped 100000 "$deadline_us"
+            done
+          }
+
+          run_bounded_hard_ms() { # limit_ms cmd...
+            local limit_ms="$1"
+            shift
+            local start_us
+            now_us_set
+            start_us="$NOW_US"
+            run_bounded_until_us "$(( start_us + limit_ms * 1000 ))" "$@"
+          }
+
+          run_bounded_hard() { # seconds cmd...
+            local limit_s="$1"
+            shift
+            run_bounded_hard_ms "$(( limit_s * 1000 ))" "$@"
+          }
+
+          finalize_remaining_us() { now_us_set; printf '%s' "$(( finalize_action_deadline_us - NOW_US ))"; }
+
+          finalize_bounded() { # label seconds cmd...
+            local label="$1" limit="$2" rc=0 remaining_us limit_us action_deadline_us capped_us
+            shift 2
+            remaining_us="$(finalize_remaining_us)"
+            if (( remaining_us <= 0 || remaining_us < 200000 )); then
+              failures+=("J7_FINALIZE_TIMEOUT:$label")
+              printf 'J7_FINALIZE_TIMEOUT:%s\n' "$label" >&2
+              return 126
+            fi
+            limit_us=$(( limit * 1000000 ))
+            now_us_set
+            action_deadline_us="$finalize_action_deadline_us"
+            if (( limit_us > 0 )); then
+              capped_us=$(( NOW_US + limit_us ))
+              (( capped_us < action_deadline_us )) && action_deadline_us="$capped_us"
+            fi
+            run_bounded_until_us "$action_deadline_us" "$@" || rc=$?
+            if (( rc == 124 )); then
+              failures+=("J7_FINALIZE_TIMEOUT:$label")
+              printf 'J7_FINALIZE_TIMEOUT:%s\n' "$label" >&2
+            fi
+            return "$rc"
+          }
+
+          sha256_upper() { sha256sum -- "$1" | awk '{print toupper($1)}'; }
+
+          health_once() {
+            node -e '
+              const http = require("node:http");
+              const req = http.get(process.argv[1], { timeout: 5000 }, (res) => {
+                res.resume();
+                process.stdout.write(String(res.statusCode));
+              });
+              req.on("timeout", () => req.destroy(new Error("timeout")));
+              req.on("error", () => process.stdout.write("000"));
+            ' "$1" 2>/dev/null || true
+          }
+
+          wait_health() { # port pid -> HEALTH_STATUS / HEALTH_CHECKS
+            local port="$1" pid="$2" i=0 status=000
+            local url="http://localhost:$port/api/health"
+            while (( i < J7_HEALTH_TIMEOUT_S )); do
+              budget_check
+              kill -0 "$pid" 2>/dev/null || fail "J7_APP_EXITED:$port"
+              status="$(health_once "$url")"
+              i=$((i + 1))
+              if [[ "$status" == 200 ]]; then
+                HEALTH_STATUS=200
+                HEALTH_CHECKS=$i
+                return 0
+              fi
+              sleep 1
+            done
+            HEALTH_STATUS="$status"
+            HEALTH_CHECKS=$i
+            fail "J7_HEALTH_TIMEOUT:$port"
+          }
+
+          start_app() { # port log [KEY=VALUE ...]
+            local port="$1" log="$2"
+            shift 2
+            env PORT="$port" HOSTNAME=0.0.0.0 "$@" node .next/standalone/server.js >"$log" 2>&1 &
+            STARTED_PID=$!
+            sleep 1
+            kill -0 "$STARTED_PID" 2>/dev/null || fail "J7_APP_START_FAILED:$port"
+            STARTED_ALT=''
+            local i=0
+            while (( i < 10 )); do
+              if [[ -r "/proc/$STARTED_PID/winpid" ]]; then
+                STARTED_ALT="$(tr -d ' \r\n' < "/proc/$STARTED_PID/winpid")"
+                [[ -n "$STARTED_ALT" ]] && break
+              fi
+              i=$((i + 1))
+              sleep 0.2
+            done
+          }
+
+          run_bounded() { # seconds cmd...
+            local limit="$1"
+            shift
+            "$@" &
+            local pid=$!
+            local i=0 rc=0
+            while kill -0 "$pid" 2>/dev/null; do
+              if (( i >= limit )); then
+                kill -TERM "$pid" 2>/dev/null || true
+                sleep 2
+                kill -KILL "$pid" 2>/dev/null || true
+                wait "$pid" 2>/dev/null || true
+                return 124
+              fi
+              if (( ! in_finalize )) && (( SECONDS - started > J7_STEP_BUDGET_S )); then
+                deadline_hit=true
+                kill -TERM "$pid" 2>/dev/null || true
+                sleep 2
+                kill -KILL "$pid" 2>/dev/null || true
+                wait "$pid" 2>/dev/null || true
+                return 125
+              fi
+              sleep 1
+              i=$((i + 1))
+            done
+            wait "$pid" || rc=$?
+            return "$rc"
+          }
+
+          psql_bounded() { # db sql outfile [timeout]
+            local db="$1" sql="$2" out="$3" limit="${4:-$J7_PSQL_TIMEOUT_S}" rc=0
+            run_bounded "$limit" docker exec "$PG_CONTAINER_ID" psql -U postgres -d "$db" -tAc "$sql" \
+              >"$out" 2>"$out.err" || rc=$?
+            if (( rc == 124 )); then fail "J7_DB_QUERY_TIMEOUT:$phase"; fi
+            if (( rc == 125 )); then fail "J7_BUDGET_EXCEEDED:$phase"; fi
+            return "$rc"
+          }
+
+          pg_cluster_digest() { # system_identifier -> UPPER sha256("system_identifier:<value>")
+            node -e '
+              const crypto = require("node:crypto");
+              process.stdout.write(crypto.createHash("sha256").update("system_identifier:" + process.argv[1], "utf8").digest("hex").toUpperCase());
+            ' "$1"
+          }
+
+          read_pg_identity() { # independent container read: exact version + cluster digest
+            local v='' sid=''
+            psql_bounded postgres "SELECT current_setting('server_version_num')" "$private/pg-version.raw" \
+              || fail 'J7_DB_QUERY_FAILED'
+            v="$(tr -d ' \r\n' < "$private/pg-version.raw")"
+            [[ "$v" =~ ^[0-9]{5,6}$ ]] || fail 'J7_DB_VERSION_UNREADABLE'
+            psql_bounded postgres "SELECT system_identifier::text FROM pg_control_system()" "$private/pg-system.raw" \
+              || fail 'J7_DB_QUERY_FAILED'
+            sid="$(tr -d ' \r\n' < "$private/pg-system.raw")"
+            [[ "$sid" =~ ^[0-9]+$ ]] || fail 'J7_PG_SYSTEM_ID_UNREADABLE'
+            PG_VERSION_NUM="$v"
+            PG_SYSTEM_ID="$sid"
+            PG_CLUSTER_SHA="$(pg_cluster_digest "$sid")"
+            [[ "$PG_CLUSTER_SHA" =~ ^[0-9A-F]{64}$ ]] || fail 'J7_PG_CLUSTER_DIGEST_INVALID'
+            fact pgServiceVersionNum "$PG_VERSION_NUM"
+            fact pgServiceClusterSha256 "$PG_CLUSTER_SHA"
+            fact pgSystemIdRead true
+            (( 10#$PG_VERSION_NUM / 10000 == 17 )) || fail "J7_PG_MAJOR_MISMATCH:$PG_VERSION_NUM"
+          }
+
+          a3_ports_free() { E2E_PORT=3100 node "$A3_DRIVER_DIR/ports.cjs" >"$private/a3-ports.log" 2>&1; }
+          port3101_free() { node "$private/j7-port-free.cjs" 127.0.0.1 3101 >"$private/port-3101.log" 2>&1; }
+          port_probe() { # port
+            if [[ "$1" == 3101 ]]; then port3101_free; else a3_ports_free; fi
+          }
+          port_probe_exec() { # port; exec so the bounded child IS the node probe
+            if [[ "$1" == 3101 ]]; then
+              exec node "$private/j7-port-free.cjs" 127.0.0.1 3101 >"$private/port-3101.log" 2>&1
+            else
+              exec env E2E_PORT=3100 node "$A3_DRIVER_DIR/ports.cjs" >"$private/a3-ports.log" 2>&1
+            fi
+          }
+          db_push() { DATABASE_URL="$1" pnpm prisma db push --skip-generate; }
+
+          observe_ports_before() {
+            local rc=0 msg=''
+            a3_ports_free || rc=$?
+            if (( rc == 0 )); then
+              fact port3100Before free
+              fact port3999Before free
+            else
+              msg="$(tr -d '\r\n' < "$private/a3-ports.log")"
+              if [[ "$msg" == *A3_PORT_NOT_RELEASED:3100* ]]; then fail 'J7_PORT_BUSY:3100'; fi
+              if [[ "$msg" == *A3_PORT_NOT_RELEASED:3999* ]]; then fail 'J7_PORT_BUSY:3999'; fi
+              fail "J7_PORT_PROBE_FAILED:3100+3999:$rc"
+            fi
+            rc=0
+            port3101_free || rc=$?
+            if (( rc == 0 )); then
+              fact port3101Before free
+            elif (( rc == 1 )); then
+              fail 'J7_PORT_BUSY:3101'
+            else
+              fail "J7_PORT_PROBE_FAILED:3101:$rc"
+            fi
+          }
+
+          observe_port_in_use() { # port expected-pid [alt-pid]
+            local port="$1" pid="$2" alt="${3:-}" rc=0 erc=0 out="$private/port-$1-owner.out"
+            if [[ "$port" == 3101 ]]; then
+              port3101_free || rc=$?
+            else
+              a3_ports_free || rc=$?
+            fi
+            if (( rc == 0 )); then
+              fail "J7_APP_NOT_LISTENING:$port"
+            elif (( rc != 1 )); then
+              fail "J7_PORT_PROBE_FAILED:$port:$rc"
+            fi
+            node "$private/j7-port-owner.cjs" "$port" "$pid" "$alt" >"$out" 2>"$private/port-$1-owner.err" || erc=$?
+            if (( erc == 3 )); then fail "J7_PORT_OWNER_MISMATCH:$port"; fi
+            if (( erc == 4 )); then fail "J7_APP_NOT_LISTENING:$port"; fi
+            if (( erc != 0 )); then fail "J7_PORT_OWNER_PROBE_FAILED:$port:$erc"; fi
+            local owner_pid
+            owner_pid="$(sed -n 's/^pid=//p' "$out" | head -n 1)"
+            [[ "$owner_pid" == "$pid" ]] || fail "J7_PORT_OWNER_MISMATCH:$port"
+            fact "port${port}During" in-use
+            fact "port${port}DuringPid" "$owner_pid"
+            fact "port${port}DuringOwner" app
+          }
+
+          stop_instance() { # name port pid
+            local name="$1" port="$2" pid="$3"
+            local signal=TERM waited=0 rc=0 deadline_us=0 stop_deadline_us=0 exit_deadline_us=0 term_deadline_us=0
+            local pidgone=false probed=false released=false sleep_us=1000000 stop_started_us=0 waited_ms=0
+            STOP_CODE=''
+            now_us_set
+            stop_started_us="$NOW_US"
+            (( in_finalize )) && sleep_us=200000
+            if (( in_finalize )); then stop_deadline_us="$finalize_action_deadline_us"; fi
+            if kill -0 "$pid" 2>/dev/null; then
+              kill -TERM "$pid" 2>/dev/null || true
+              now_us_set
+              term_deadline_us=$(( NOW_US + J7_STOP_TIMEOUT_S * 1000000 ))
+              if (( in_finalize )) && (( term_deadline_us > stop_deadline_us )); then term_deadline_us="$stop_deadline_us"; fi
+              while kill -0 "$pid" 2>/dev/null; do
+                now_us_set
+                if (( in_finalize )); then
+                  if (( NOW_US >= stop_deadline_us )); then
+                    STOP_CODE="J7_FINALIZE_TIMEOUT:stop-${name}"
+                    break
+                  fi
+                  if (( NOW_US >= term_deadline_us )); then
+                    break
+                  fi
+                  sleep_us_capped "$sleep_us" "$term_deadline_us"
+                else
+                  if (( waited >= J7_STOP_TIMEOUT_S )); then
+                    break
+                  fi
+                  sleep "$(( sleep_us / 1000000 ))"
+                fi
+                waited=$((waited + 1))
+                budget_check
+              done
+              if [[ "$STOP_CODE" != J7_FINALIZE_TIMEOUT:* ]] && kill -0 "$pid" 2>/dev/null; then
+                signal=KILL
+                kill -KILL "$pid" 2>/dev/null || true
+                waited=0
+                if (( in_finalize )); then
+                  exit_deadline_us="$stop_deadline_us"
+                else
+                  now_us_set
+                  exit_deadline_us=$(( NOW_US + 10000000 ))
+                fi
+                while kill -0 "$pid" 2>/dev/null; do
+                  now_us_set
+                  if (( in_finalize )); then
+                    if (( NOW_US >= exit_deadline_us )); then
+                      STOP_CODE="J7_FINALIZE_TIMEOUT:stop-${name}"
+                      break
+                    fi
+                    sleep_us_capped "$sleep_us" "$exit_deadline_us"
+                  else
+                    if (( waited >= 10 )); then
+                      break
+                    fi
+                    sleep 1
+                  fi
+                  waited=$((waited + 1))
+                done
+              fi
+            fi
+            if kill -0 "$pid" 2>/dev/null; then
+              pidgone=false
+            else
+              pidgone=true
+              wait "$pid" 2>/dev/null || true
+            fi
+            if [[ "$pidgone" == true && "$STOP_CODE" != J7_FINALIZE_TIMEOUT:* ]]; then
+              now_us_set
+              deadline_us=$(( NOW_US + J7_PORT_RELEASE_TIMEOUT_S * 1000000 ))
+              if (( in_finalize )) && (( deadline_us > stop_deadline_us )); then deadline_us="$stop_deadline_us"; fi
+              while :; do
+                now_us_set
+                if (( in_finalize )) && (( NOW_US >= deadline_us )); then
+                  STOP_CODE="J7_FINALIZE_TIMEOUT:stop-${name}"
+                  break
+                fi
+                rc=0
+                probed=true
+                if (( in_finalize )); then
+                  run_bounded_until_us "$deadline_us" port_probe_exec "$port" || rc=$?
+                else
+                  port_probe "$port" || rc=$?
+                fi
+                (( rc == 0 )) && break
+                now_us_set
+                if (( in_finalize )); then
+                  (( NOW_US < deadline_us )) || { STOP_CODE="J7_FINALIZE_TIMEOUT:stop-${name}"; break; }
+                  sleep_us_capped "$sleep_us" "$deadline_us"
+                else
+                  (( NOW_US < deadline_us )) || break
+                  sleep 1
+                fi
+                budget_check
+              done
+            fi
+            if [[ "$STOP_CODE" == J7_FINALIZE_TIMEOUT:* ]]; then
+              if kill -0 "$pid" 2>/dev/null; then signal=KILL; fi
+              kill -KILL "$pid" 2>/dev/null || true
+            fi
+            if [[ "$pidgone" == true && "$probed" == true ]] && (( rc == 0 )); then
+              released=true
+            fi
+            now_us_set
+            waited_ms=$(( (NOW_US - stop_started_us) / 1000 ))
+            printf '%s\t%s\n' "${name}StopSignal" "$signal" >> "$facts"
+            printf '%s\t%s\n' "${name}PidGone" "$pidgone" >> "$facts"
+            printf '%s\t%s\n' "${name}PortReleased" "$released" >> "$facts"
+            printf '%s\t%s\n' "${name}StopWaitedMs" "$waited_ms" >> "$facts"
+            printf 'J7_APP_STOP port=%s signal=%s pidGone=%s portReleased=%s waitedMs=%s\n' \
+              "$port" "$signal" "$pidgone" "$released" "$waited_ms"
+            if [[ "$STOP_CODE" == J7_FINALIZE_TIMEOUT:* ]]; then return 1; fi
+            if [[ "$pidgone" != true ]]; then STOP_CODE="J7_STOP_PID_ALIVE:$port"; return 1; fi
+            if [[ "$released" != true ]]; then STOP_CODE="J7_PORT_NOT_RELEASED:$port"; return 1; fi
+            return 0
+          }
+
+          observe_ports_after() {
+            local rc=0 msg='' deadline=0
+            deadline=$((SECONDS + J7_PORT_RELEASE_TIMEOUT_S))
+            while :; do
+              rc=0
+              a3_ports_free || rc=$?
+              (( rc == 0 )) && break
+              (( SECONDS < deadline )) || break
+              budget_check
+              sleep 1
+            done
+            if (( rc == 0 )); then
+              fact port3100After free
+              fact port3999After free
+              fact port3100AfterProbeExit 0
+              fact port3999AfterProbeExit 0
+            else
+              msg="$(tr -d '\r\n' < "$private/a3-ports.log")"
+              if [[ "$msg" == *A3_PORT_NOT_RELEASED:3100* ]]; then fail 'J7_PORT_NOT_RELEASED:3100'; fi
+              if [[ "$msg" == *A3_PORT_NOT_RELEASED:3999* ]]; then fail 'J7_PORT_NOT_RELEASED:3999'; fi
+              fail "J7_PORT_PROBE_FAILED:3100+3999:$rc"
+            fi
+            rc=0
+            deadline=$((SECONDS + J7_PORT_RELEASE_TIMEOUT_S))
+            while :; do
+              port3101_free || rc=$?
+              (( rc == 0 )) && break
+              (( rc != 1 )) && fail "J7_PORT_PROBE_FAILED:3101:$rc"
+              (( SECONDS < deadline )) || break
+              budget_check
+              sleep 1
+            done
+            if (( rc == 0 )); then
+              fact port3101After free
+              fact port3101AfterProbeExit 0
+            else
+              fail 'J7_PORT_NOT_RELEASED:3101'
+            fi
+          }
+
+          write_cleanup() { # outcome
+            local outcome="$1" rc=0
+            fact outcome "$outcome"
+            fact phase "$phase"
+            fact failureCodes "$(IFS=,; printf '%s' "${failures[*]:-}")"
+            fact elapsedMs "$(((SECONDS - started) * 1000))"
+            fact deadlineHit "$deadline_hit"
+            fact stepCapMinutes "$J7_STEP_CAP_MINUTES"
+            fact budgetSeconds "$J7_STEP_BUDGET_S"
+            fact finalizeReserveSeconds "$J7_FINALIZE_RESERVE_S"
+            if (( in_finalize )); then
+              local saved_action_deadline_us="$finalize_action_deadline_us"
+              finalize_action_deadline_us="$finalize_deadline_us"
+              finalize_bounded cleanup-json "$J7_FINALIZE_CLEANUP_S" node "$private/j7-observe.cjs" cleanup \
+                --facts "$facts" --evidence-dir "$ws/$evidence_dir" --a3-dir "$ws/e2e-evidence" \
+                --out "$cleanup_json" >"$private/cleanup.out" 2>"$private/cleanup.err" || rc=$?
+              finalize_action_deadline_us="$saved_action_deadline_us"
+            else
+              run_bounded "$J7_FINALIZE_CLEANUP_S" node "$private/j7-observe.cjs" cleanup \
+                --facts "$facts" --evidence-dir "$ws/$evidence_dir" --a3-dir "$ws/e2e-evidence" \
+                --out "$cleanup_json" >"$private/cleanup.out" 2>"$private/cleanup.err" || rc=$?
+            fi
+            if (( rc == 124 )); then
+              failures+=('J7_CLEANUP_JSON_FAILED')
+              return 1
+            fi
+            (( rc == 0 )) || return 1
+            return 0
+          }
+
+          on_exit() {
+            local rc=$?
+            if (( finalized )); then return 0; fi
+            finalized=1
+            in_finalize=1
+            local on_exit_us step_cap_us
+            on_exit_us="$(now_us)"
+            finalize_deadline_us=$(( on_exit_us + J7_FINALIZE_RESERVE_S * 1000000 ))
+            step_cap_us=$(( started_us + (J7_STEP_BUDGET_S + J7_FINALIZE_RESERVE_S) * 1000000 ))
+            (( finalize_deadline_us > step_cap_us )) && finalize_deadline_us="$step_cap_us"
+            finalize_action_deadline_us=$(( finalize_deadline_us - J7_FINALIZE_CLEANUP_S * 1000000 ))
+            (( finalize_action_deadline_us < on_exit_us )) && finalize_action_deadline_us="$on_exit_us"
+            set +e
+            if [[ -n "$full_pid" ]] && kill -0 "$full_pid" 2>/dev/null; then
+              stop_instance full "$full_port" "$full_pid" || { failures+=("${STOP_CODE:-J7_STOP_FAILED:full}"); printf '%s\n' "${STOP_CODE:-J7_STOP_FAILED:full}" >&2; }
+            fi
+            if [[ -n "$nodata_pid" ]] && kill -0 "$nodata_pid" 2>/dev/null; then
+              stop_instance nodata "$nodata_port" "$nodata_pid" || { failures+=("${STOP_CODE:-J7_STOP_FAILED:nodata}"); printf '%s\n' "${STOP_CODE:-J7_STOP_FAILED:nodata}" >&2; }
+            fi
+            if (( db_created )) && (( ! db_dropped )) && [[ -n "$fresh_db" ]]; then
+              local drop_rc=0 count_rc=0 count_out=''
+              finalize_bounded drop "$J7_PSQL_TIMEOUT_S" docker exec "$PG_CONTAINER_ID" psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
+                -c "DROP DATABASE \"$fresh_db\"" >"$private/drop-fallback.log" 2>&1 || drop_rc=$?
+              if (( drop_rc == 0 )); then
+                db_dropped=1
+                fact freshDbDropped true
+                count_rc=0
+                finalize_bounded count "$J7_PSQL_TIMEOUT_S" docker exec "$PG_CONTAINER_ID" psql -U postgres -d postgres -tAc \
+                  "SELECT count(*) FROM pg_database WHERE datname = '$fresh_db'" \
+                  >"$private/drop-count.out" 2>"$private/drop-count.err" || count_rc=$?
+                count_out="$(cat "$private/drop-count.out" 2>/dev/null || true)"
+                if (( count_rc == 0 )); then
+                  if [[ "$(printf '%s' "$count_out" | tr -d ' \r\n')" == 0 ]]; then
+                    db_gone=1
+                    fact freshDbGone true
+                  else
+                    failures+=('J7_DB_DROP_VERIFY_FAILED')
+                  fi
+                elif (( count_rc != 124 && count_rc != 126 )); then
+                  failures+=('J7_DB_DROP_VERIFY_FAILED')
+                fi
+              elif (( drop_rc != 124 && drop_rc != 126 )); then
+                failures+=('J7_DB_DROP_FAILED')
+              fi
+            fi
+            if [[ -z "${port3100After:-}" ]]; then
+              if finalize_bounded ports-3100 5 a3_ports_free; then
+                fact port3100After free
+                fact port3999After free
+              else
+                fact port3100After unknown
+                fact port3999After unknown
+              fi
+            fi
+            if [[ -z "${port3101After:-}" ]]; then
+              if finalize_bounded ports-3101 5 port3101_free; then fact port3101After free; else fact port3101After unknown; fi
+            fi
+            case " ${failures[*]:-} " in
+              *J7_SAFE_FILES_*) phase=verify ;;
+            esac
+            write_cleanup failure || failures+=('J7_CLEANUP_JSON_FAILED')
+            printf 'J7_RUNNER_EXIT rc=%s phase=%s\n' "$rc" "$phase" >&3
+            exit "$rc"
+          }
+
+          started_us="$(now_us)"
+
+          if [[ -z "${RUNNER_TEMP:-}" || ! -d "${RUNNER_TEMP:-}" ]]; then
+            printf 'J7_RUNNER_FAIL phase=preflight code=%s\n' 'J7_RUNNER_TEMP_MISSING' >&2
+            exit 2
+          fi
+          private="$(mktemp -d "$RUNNER_TEMP/j7-private.XXXXXXXX")" || exit 2
+          facts="$private/facts.tsv"
+          : > "$facts"
+          exec 3>&2
+          trap 'on_exit' EXIT
+
+          for tool in node git docker pnpm sha256sum openssl sed grep awk; do
+            command -v "$tool" >/dev/null 2>&1 || fail "J7_TOOL_MISSING:$tool"
+          done
+          [[ "${PG_CONTAINER_ID:-}" =~ ^[0-9a-f]{64}$ ]] || fail 'J7_PG_CONTAINER_ID_INVALID'
+          fact runner "${RUNNER_OS:-unknown}/${RUNNER_ARCH:-unknown}"
+          fact runnerClock "$J7_CLOCK_SOURCE"
+          fact job "${GITHUB_JOB:-unknown}"
+          fact event "${GITHUB_EVENT_NAME:-unknown}"
+          fact repository "${GITHUB_REPOSITORY:-unknown}"
+          fact ref "${GITHUB_REF:-unknown}"
+          fact githubSha "${GITHUB_SHA:-unknown}"
+          fact runId "${GITHUB_RUN_ID:-0}"
+          fact runAttempt "${GITHUB_RUN_ATTEMPT:-0}"
+
+          # 0) 证据目录必须是干净的：本步骤只允许产出三份固定安全文件。
+          mkdir -p "$evidence_dir"
+          [[ -z "$(ls -A "$evidence_dir")" ]] || fail 'J7_PREFLIGHT_EVIDENCE_NOT_EMPTY'
+          for name in j7-attribution.json j7-nodata.json j7-cleanup.json; do
+            [[ ! -e "$evidence_dir/$name" && ! -L "$evidence_dir/$name" ]] || fail "J7_PREFLIGHT_EVIDENCE_EXISTS:$name"
+          done
+
+          # 1) 旧 A3 端口/结果证据必须实际存在且 release_exit=0；缺一件即拒（不靠 J7 自己再猜）。
+          for segment in main model consent errors flow; do
+            result="e2e-evidence/$segment/result.txt"
+            port_after="e2e-evidence/$segment/port-after.log"
+            [[ -f "$result" && ! -L "$result" && -s "$result" ]] || fail "J7_A3_EVIDENCE_MISSING:$segment:result"
+            [[ -f "$port_after" && ! -L "$port_after" ]] || fail "J7_A3_EVIDENCE_MISSING:$segment:port-after"
+            grep -qx 'release_exit=0' "$result" || fail "J7_A3_EVIDENCE_RELEASE:$segment"
+            grep -qx 'test_exit=0' "$result" || fail "J7_A3_EVIDENCE_TEST:$segment"
+          done
+
+          # 2) 同一 e2e test 构建（不是 build-and-audit 的 original/production 构建）。
+          [[ -s .next/standalone/server.js && ! -L .next/standalone/server.js ]] || fail 'J7_BUILD_MISSING:server'
+          [[ -s .next/standalone/.next/BUILD_ID && ! -L .next/standalone/.next/BUILD_ID ]] || fail 'J7_BUILD_MISSING:build-id'
+          build_id="$(tr -d '\r\n' < .next/standalone/.next/BUILD_ID)"
+          [[ "$build_id" =~ ^[A-Za-z0-9_-]{1,64}$ ]] || fail 'J7_BUILD_ID_INVALID'
+          server_bytes="$(wc -c < .next/standalone/server.js | tr -d ' ')"
+          server_sha="$(sha256_upper .next/standalone/server.js)"
+          app_env="$(node -e '
+            const fs = require("node:fs");
+            const source = fs.readFileSync(process.argv[1], "utf8");
+            const values = [...source.matchAll(/"APP_ENV_AT_BUILD":"([^"]*)"/g)].map((hit) => hit[1]);
+            if (!values.length) process.exit(1);
+            process.stdout.write([...new Set(values)].join(","));
+          ' .next/standalone/server.js)" || fail 'J7_APP_ENV_MARKER_MISSING'
+          head="$(git rev-parse --verify HEAD)"
+          tree="$(git rev-parse --verify 'HEAD^{tree}')"
+          [[ "$head" =~ ^[0-9a-f]{40}$ && "$tree" =~ ^[0-9a-f]{40}$ ]] || fail 'J7_GIT_ID_INVALID'
+          [[ "$head" == "${GITHUB_SHA:-}" ]] || fail 'J7_HEAD_MISMATCH'
+          fact buildId "$build_id"
+          fact serverJsBytes "$server_bytes"
+          fact serverJsSha256 "$server_sha"
+          fact appEnvAtBuild "$app_env"
+          fact head "$head"
+          fact tree "$tree"
+          printf 'J7_RUN_CONTEXT={"runId":%s,"runAttempt":%s,"job":"%s","head":"%s","tree":"%s","buildId":"%s"}\n' \
+            "${GITHUB_RUN_ID:-0}" "${GITHUB_RUN_ATTEMPT:-0}" "${GITHUB_JOB:-unknown}" "$head" "$tree" "$build_id"
+
+          # 3) 真实鉴权生产者所需的 TOTP 种子只从受审 e2e/run-auth.ts 读，不进 workflow。
+          totp="$(sed -n "s/.*RUN_AUTH_TOTP *= *'\([A-Z2-7=]*\)'.*/\1/p" e2e/run-auth.ts | head -n 1 | tr -d '=')"
+          [[ "$totp" =~ ^[A-Z2-7]{16,}$ ]] || fail 'J7_TOTP_SOURCE_MISSING'
+          cat > "$private/j7-port-free.cjs" <<'PORT_FREE_EOF'
+          'use strict';
+          // 3101 的 tcp-connect 观测：连上=被占，ECONNREFUSED=空闲，其余/超时=探针失败（不算空闲）。
+          const net = require('node:net');
+          const host = process.argv[2];
+          const port = Number(process.argv[3]);
+          if (!host || !Number.isInteger(port) || port < 1 || port > 65535) {
+            console.error('J7_PORT_PROBE_ARGS');
+            process.exit(2);
+          }
+          const socket = net.connect({ host, port });
+          socket.setTimeout(2000);
+          socket.once('connect', () => {
+            socket.destroy();
+            console.error(`J7_PORT_BUSY:${port}`);
+            process.exit(1);
+          });
+          socket.once('timeout', () => {
+            socket.destroy();
+            console.error(`J7_PORT_PROBE_ERROR:${port}:TIMEOUT`);
+            process.exit(2);
+          });
+          socket.once('error', (error) => {
+            if (error && error.code === 'ECONNREFUSED') process.exit(0);
+            console.error(`J7_PORT_PROBE_ERROR:${port}:${error && error.code ? error.code : 'UNKNOWN'}`);
+            process.exit(2);
+          });
+          PORT_FREE_EOF
+
+          cat > "$private/j7-port-owner.cjs" <<'PORT_OWNER_EOF'
+          'use strict';
+          // during 归属证明：Linux 读 /proc/net/tcp{,6} 的 LISTEN inode 再扫 /proc/<pid>/fd；
+          // 没有 /proc（如 Windows 测试台）时退回 netstat -ano。
+          // 0=属于期望 PID；3=被其它 PID 占用；4=没有任何监听；5=有监听但找不到 owner；2=参数/平台错误。
+          const fs = require('node:fs');
+          const { execFileSync } = require('node:child_process');
+          const port = Number(process.argv[2]);
+          const expected = Number(process.argv[3]);
+          const alt = Number(process.argv[4] || 0);
+          if (!Number.isInteger(port) || port < 1 || port > 65535 || !Number.isInteger(expected) || expected < 1) process.exit(2);
+          const hexPort = port.toString(16).toUpperCase().padStart(4, '0');
+
+          function procOwners() {
+            if (!fs.existsSync('/proc/net/tcp')) return null;
+            const inodes = new Set();
+            for (const file of ['/proc/net/tcp', '/proc/net/tcp6']) {
+              let text = '';
+              try {
+                text = fs.readFileSync(file, 'utf8');
+              } catch {
+                continue;
+              }
+              for (const line of text.split('\n').slice(1)) {
+                const cols = line.trim().split(/\s+/);
+                if (cols.length < 10) continue;
+                const localPort = (cols[1] || '').split(':').pop();
+                if (cols[3] !== '0A' || localPort !== hexPort || cols[9] === '0') continue;
+                inodes.add(cols[9]);
+              }
+            }
+            if (!inodes.size) return new Set();
+            const owners = new Set();
+            for (const pid of fs.readdirSync('/proc')) {
+              if (!/^[0-9]+$/.test(pid)) continue;
+              let fds = [];
+              try {
+                fds = fs.readdirSync(`/proc/${pid}/fd`);
+              } catch {
+                continue;
+              }
+              for (const fd of fds) {
+                let target = '';
+                try {
+                  target = fs.readlinkSync(`/proc/${pid}/fd/${fd}`);
+                } catch {
+                  continue;
+                }
+                const match = /^socket:\[(\d+)\]$/.exec(target);
+                if (match && inodes.has(match[1])) {
+                  owners.add(Number(pid));
+                  break;
+                }
+              }
+            }
+            return owners;
+          }
+
+          function netstatOwners() {
+            let text = '';
+            try {
+              text = execFileSync('netstat', ['-ano'], { encoding: 'utf8', timeout: 5000 });
+            } catch {
+              return null;
+            }
+            const owners = new Set();
+            for (const line of text.split(/\r?\n/)) {
+              if (!/\bTCP\b/i.test(line)) continue;
+              const cols = line.trim().split(/\s+/);
+              if (cols.length < 5) continue;
+              const localPort = (cols[1] || '').split(':').pop();
+              if (localPort !== String(port)) continue;
+              const pid = Number(cols[cols.length - 1]);
+              if (Number.isInteger(pid) && pid > 0) owners.add(pid);
+            }
+            return owners;
+          }
+
+          function winParentMap() {
+            let text = '';
+            try {
+              text = execFileSync('ps', ['-W'], { encoding: 'utf8', timeout: 5000 });
+            } catch {
+              return null;
+            }
+            const map = new Map();
+            for (const line of text.split(/\r?\n/).slice(1)) {
+              const cols = line.trim().split(/\s+/);
+              if (cols.length < 8) continue;
+              const ppid = Number(cols[1]);
+              const winpid = Number(cols[3]);
+              if (Number.isInteger(winpid) && winpid > 0) map.set(winpid, Number.isInteger(ppid) ? ppid : 0);
+            }
+            return map;
+          }
+
+          function isDescendant(owner, roots, map) {
+            let current = owner;
+            for (let depth = 0; depth < 8 && current; depth += 1) {
+              if (roots.has(current)) return true;
+              current = map.get(current) || 0;
+            }
+            return false;
+          }
+
+          const proc = procOwners();
+          const owners = proc || netstatOwners();
+          if (!owners) process.exit(2);
+          if (!owners.size) process.exit(4);
+          const roots = new Set([expected]);
+          if (alt > 0) roots.add(alt);
+          if (owners.has(expected) || (alt > 0 && owners.has(alt))) {
+            process.stdout.write(`pid=${expected}\n`);
+            process.exit(0);
+          }
+          if (!proc) {
+            const map = winParentMap();
+            if (map && [...owners].some((owner) => isDescendant(owner, roots, map))) {
+              process.stdout.write(`pid=${expected}\n`);
+              process.exit(0);
+            }
+          }
+          process.stdout.write(`pid=${[...owners][0]}\n`);
+          process.exit(3);
+
+          PORT_OWNER_EOF
+
+          # 3b) 容器内独立 PG 身份：精确版本 + cluster 摘要；full 库名/存在性/current_database 均由容器核实。
+          phase=preflight
+          : "${DATABASE_URL:?DATABASE_URL_REQUIRED}"
+          read_pg_identity
+          fact pgContainerId "$PG_CONTAINER_ID"
+          printf 'J7_PG_CONTAINER id=%s source=env docker-exec-read\n' "$PG_CONTAINER_ID"
+          pg_version_before="$PG_VERSION_NUM"
+          pg_cluster_before="$PG_CLUSTER_SHA"
+          full_db="${DATABASE_URL##*/}"
+          full_db="${full_db%%\?*}"
+          [[ "$full_db" =~ ^e2e(_j7_[0-9a-f]{12})?$ ]] || fail "J7_FULL_DB_NAME_INVALID:$full_db"
+          psql_bounded postgres "SELECT count(*) FROM pg_database WHERE datname = '$full_db'" "$private/full-db-exists.raw" \
+            || fail 'J7_DB_QUERY_FAILED'
+          [[ "$(tr -d ' \r\n' < "$private/full-db-exists.raw")" == 1 ]] || fail "J7_FULL_DB_MISSING:$full_db"
+          psql_bounded "$full_db" 'SELECT current_database()' "$private/full-db-identity.raw" \
+            || fail 'J7_DB_IDENTITY_MISMATCH'
+          [[ "$(tr -d ' \r\n' < "$private/full-db-identity.raw")" == "$full_db" ]] || fail 'J7_DB_IDENTITY_MISMATCH'
+          fact fullDb "$full_db"
+          fact fullDbIdentityVerified true
+          fact fullDbExistsVerified true
+          printf 'J7_PG_IDENTITY version=%s cluster=%s fullDb=%s\n' "$PG_VERSION_NUM" "$PG_CLUSTER_SHA" "$full_db"
+
+          [[ -n "${A3_DRIVER_DIR:-}" && -f "$A3_DRIVER_DIR/ports.cjs" ]] || fail 'J7_A3_PORTS_HELPER_MISSING'
+          cat > "$private/j7-observe.cjs" <<'OBSERVE_EOF'
+          'use strict';
+          // J7 观测汇总/门禁：cleanup 只写固定安全 JSON；gate 重读实物并交叉核对后才允许专属上传。
+          // 由 body/j7-runner.sh 的 heredoc 原字节内联（inline_observer.py --check 保证一致）。
+          //
+          // 正式门（默认 `--mode formal`）只收 `j7-probe/3` 且强制 failureAttribution；`/2` 仅在
+          // `--mode offline --allow-legacy` 的离线复跑里接受，只打印 J7_SAFE_FILES_OFFLINE，不写产物、
+          // 不进 CI 上传路径。PG 身份（版本/集群摘要/库名）由 runner 在容器内独立读取后写 facts，
+          // 本文件只做对账，不再从探针报告复制。
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const crypto = require('node:crypto');
+
+          const A3_SEGMENTS = ['main', 'model', 'consent', 'errors', 'flow'];
+          const REPORT_FULL = 'j7-attribution.json';
+          const REPORT_NODATA = 'j7-nodata.json';
+          const CLEANUP = 'j7-cleanup.json';
+          const ALLOWED = [REPORT_FULL, REPORT_NODATA, CLEANUP];
+          const MAX_BYTES = 1024 * 1024;
+          const PG_MAJOR = 17;
+
+          function arg(name) {
+            const index = process.argv.indexOf(name);
+            return index > 0 && index + 1 < process.argv.length ? process.argv[index + 1] : undefined;
+          }
+          function failGate(code) {
+            process.stderr.write(`J7_SAFE_FILES_FAIL:${code}\n`);
+            process.exit(1);
+          }
+          function readFacts(file) {
+            const facts = new Map();
+            for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
+              if (!line) continue;
+              const tab = line.indexOf('\t');
+              if (tab < 1) continue;
+              facts.set(line.slice(0, tab), line.slice(tab + 1));
+            }
+            return facts;
+          }
+          const facts = readFacts(arg('--facts'));
+          const get = (key, fallback = '') => (facts.has(key) ? facts.get(key) : fallback);
+          const isTrue = (key) => get(key) === 'true';
+          const asInt = (key) => {
+            const value = Number(get(key, 'NaN'));
+            return Number.isInteger(value) ? value : null;
+          };
+          const asArray = (key) => get(key, '').split(',').map((value) => value.trim()).filter(Boolean);
+          const evidenceDir = arg('--evidence-dir');
+          const a3Dir = arg('--a3-dir');
+          const MODE = arg('--mode') || 'formal';
+          const OFFLINE = MODE === 'offline';
+          const ALLOW_LEGACY = process.argv.includes('--allow-legacy');
+
+          function digestOf(file) {
+            const bytes = fs.readFileSync(file);
+            return { bytes: bytes.length, sha256: crypto.createHash('sha256').update(bytes).digest('hex').toUpperCase() };
+          }
+          function normSha(value) {
+            return typeof value === 'string' && /^[0-9A-Fa-f]{64}$/.test(value) ? value.toUpperCase() : null;
+          }
+          function readJsonIfPresent(file) {
+            try {
+              return JSON.parse(fs.readFileSync(file, 'utf8'));
+            } catch {
+              return null;
+            }
+          }
+          function secretHits(text) {
+            const patterns = [
+              ['DSN_WITH_CREDENTIALS', /postgres(?:ql)?:\/\/[^\s"']+:[^\s"']+@/],
+              ['SESSION_COOKIE_VALUE', /(?:__Secure-)?authjs\.session-token=[^\s"',}]+/],
+              ['CONSENT_COOKIE_VALUE', /pj_(?:analytics|chat)=[^\s"',}]+/],
+              ['PRIVATE_KEY', /-----BEGIN [A-Z ]*PRIVATE KEY-----/],
+              ['EMAIL', /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/],
+              ['SECRET_NAME', /(?:J7_ADMIN_TOTP_SECRET|ADMIN_TOTP_KEY|CRON_SECRET|PRIVACY_HASH_SECRET|AUTH_SECRET)/],
+            ];
+            return patterns.filter(([, pattern]) => pattern.test(text)).map(([name]) => name);
+          }
+          function a3Summary() {
+            return {
+              segments: A3_SEGMENTS.map((name) => {
+                const resultPath = path.join(a3Dir, name, 'result.txt');
+                const portPath = path.join(a3Dir, name, 'port-after.log');
+                let releaseExit = null;
+                if (fs.existsSync(resultPath)) {
+                  const line = fs.readFileSync(resultPath, 'utf8').split('\n').find((row) => row.startsWith('release_exit='));
+                  if (line) releaseExit = Number(line.slice('release_exit='.length));
+                }
+                return {
+                  name,
+                  present: fs.existsSync(resultPath) && fs.existsSync(portPath),
+                  result: fs.existsSync(resultPath) ? digestOf(resultPath) : null,
+                  portAfter: fs.existsSync(portPath) ? digestOf(portPath) : null,
+                  releaseExit,
+                };
+              }),
+            };
+          }
+          function instance(kind, id, port) {
+            return {
+              id,
+              mode: kind,
+              port,
+              pid: asInt(`${kind}Pid`),
+              health: { http: asInt(`${kind}Health`), checks: asInt(`${kind}HealthChecks`) },
+              listeningObserved: isTrue(`${kind}Listening`),
+              probe: { exit: asInt(`${kind}ProbeExit`) },
+              stop: {
+                signal: get(`${kind}StopSignal`, 'none') || 'none',
+                pidGone: isTrue(`${kind}PidGone`),
+                portReleased: isTrue(`${kind}PortReleased`),
+                waitedMs: asInt(`${kind}StopWaitedMs`),
+              },
+            };
+          }
+          function portRow(port, host, observedBy) {
+            const after = get(`port${port}After`, 'unknown') || 'unknown';
+            return {
+              port,
+              host,
+              observedBy,
+              state: after === 'free' ? 'free' : 'unknown',
+              before: get(`port${port}Before`, 'unknown') || 'unknown',
+              during: get(`port${port}During`, 'unknown') || 'unknown',
+              duringPid: asInt(`port${port}DuringPid`),
+              duringOwner: get(`port${port}DuringOwner`, 'unknown') || 'unknown',
+              after,
+              afterProbeExit: asInt(`port${port}AfterProbeExit`),
+            };
+          }
+          function buildCleanup() {
+            const full = readJsonIfPresent(path.join(evidenceDir, REPORT_FULL));
+            const nodata = readJsonIfPresent(path.join(evidenceDir, REPORT_NODATA));
+            const evidenceFiles = [];
+            for (const name of [REPORT_FULL, REPORT_NODATA]) {
+              const file = path.join(evidenceDir, name);
+              if (fs.existsSync(file) && !fs.lstatSync(file).isSymbolicLink()) {
+                evidenceFiles.push({ name, ...digestOf(file) });
+              }
+            }
+            let stray = 0;
+            try {
+              stray = fs.readdirSync(evidenceDir).filter((name) => !ALLOWED.includes(name)).length;
+            } catch {
+              stray = 0;
+            }
+            const ports = [
+              portRow(3100, '0.0.0.0', 'ports.cjs'),
+              portRow(3101, '127.0.0.1', 'tcp-connect'),
+              portRow(3999, '127.0.0.1', 'ports.cjs'),
+            ];
+            const listeningAfter = ports.filter((row) => row.state !== 'free').map((row) => row.port);
+            const appStopped = isTrue('fullPidGone') && isTrue('nodataPidGone');
+            const probeExited = asInt('fullProbeExit') === 0 && asInt('nodataProbeExit') === 0;
+            const appOk = asInt('fullHealth') === 200 && asInt('nodataHealth') === 200 && isTrue('fullListening') && isTrue('nodataListening');
+            const initOk = isTrue('freshDbCreated') && isTrue('freshDbEmpty') && isTrue('freshDbIdentityVerified');
+            const stopOk = appStopped && isTrue('fullPortReleased') && isTrue('nodataPortReleased');
+            const portsFree = ports.every((row) => row.state === 'free' && row.afterProbeExit === 0);
+            return {
+              schema: 'j7-cleanup/2',
+              generatedAt: new Date().toISOString(),
+              outcome: get('outcome', 'failure'),
+              phase: get('phase', 'unknown'),
+              failures: asArray('failureCodes'),
+              runId: asInt('runId'),
+              attempt: asInt('runAttempt'),
+              tree: get('tree'),
+              appStopped,
+              probeExited,
+              listeningAfter,
+              strayLogs: stray,
+              observed: true,
+              ports,
+              roles: [
+                { role: 'app', exit: appOk ? 0 : 1 },
+                { role: 'init', exit: initOk ? 0 : 1 },
+                { role: 'stop', exit: stopOk && portsFree ? 0 : 1 },
+              ],
+              run: {
+                workflow: 'CI',
+                id: asInt('runId'),
+                attempt: asInt('runAttempt'),
+                job: get('job'),
+                event: get('event'),
+                repository: get('repository'),
+                ref: get('ref'),
+                githubSha: get('githubSha'),
+                head: get('head'),
+                tree: get('tree'),
+                sameCommit: get('head') !== '' && get('head') === get('githubSha'),
+                runner: get('runner'),
+              },
+              build: {
+                kind: 'e2e-test-build',
+                buildId: get('buildId'),
+                serverJs: { bytes: asInt('serverJsBytes'), sha256: get('serverJsSha256') },
+                standaloneTreeSha256: full && full.build ? full.build.standaloneTreeSha256 : null,
+                files: full && full.build ? full.build.files : null,
+                appEnvAtBuild: asArray('appEnvAtBuild').length ? asArray('appEnvAtBuild') : ['unset'],
+                stable: isTrue('buildStable'),
+                productionIdentity: {
+                  present: false,
+                  reason: 'build-and-audit is a different build; ci.yml:174/206 record no production serverJs sha256',
+                },
+              },
+              db: {
+                service: {
+                  image: 'postgres:17',
+                  versionNum: asInt('pgServiceVersionNum'),
+                  clusterSha256: normSha(get('pgServiceClusterSha256')),
+                  systemIdentifierRead: isTrue('pgSystemIdRead'),
+                  stoppedBy: 'runner',
+                },
+                full: {
+                  database: get('fullDb'),
+                  created: false,
+                  identityVerified: isTrue('fullDbIdentityVerified'),
+                  existsVerified: isTrue('fullDbExistsVerified'),
+                },
+                fresh: {
+                  database: get('freshDb'),
+                  created: isTrue('freshDbCreated'),
+                  emptyVerified: isTrue('freshDbEmpty'),
+                  identityVerified: isTrue('freshDbIdentityVerified'),
+                  dropped: isTrue('freshDbDropped'),
+                  goneVerified: isTrue('freshDbGone'),
+                },
+              },
+              instances: [instance('full', 'j7-full', 3100), instance('nodata', 'j7-nodata', 3101)],
+              a3: a3Summary(),
+              logs: { private: true, uploaded: false, strayInEvidenceDir: stray },
+              evidence: { dir: 'e2e-evidence/j7', files: evidenceFiles },
+              budget: {
+                stepCapMinutes: asInt('stepCapMinutes'),
+                internalBudgetSeconds: asInt('budgetSeconds'),
+                finalizeReserveSeconds: asInt('finalizeReserveSeconds'),
+                elapsedMs: asInt('elapsedMs'),
+                deadlineHit: isTrue('deadlineHit'),
+              },
+            };
+          }
+          function parseOrFail(text, label) {
+            try {
+              return JSON.parse(text);
+            } catch {
+              failGate(`${label}_JSON`);
+            }
+            return null;
+          }
+          function gate() {
+            const head = get('head');
+            const tree = get('tree');
+            const runId = asInt('runId');
+            const runAttempt = asInt('runAttempt');
+            let entries = [];
+            try {
+              entries = fs.readdirSync(evidenceDir);
+            } catch {
+              failGate('EVIDENCE_DIR_MISSING');
+            }
+            const missing = ALLOWED.filter((name) => !entries.includes(name));
+            if (missing.length) failGate(`EVIDENCE_DIR_MISSING:${missing.join('+')}`);
+            const extra = entries.filter((name) => !ALLOWED.includes(name));
+            if (extra.length) failGate(`EVIDENCE_DIR_EXTRA:${extra.slice(0, 3).join('+')}`);
+
+            const texts = {};
+            for (const name of ALLOWED) {
+              const file = path.join(evidenceDir, name);
+              let stat;
+              try {
+                stat = fs.lstatSync(file);
+              } catch {
+                failGate(`FILE_UNREADABLE:${name}`);
+              }
+              if (stat.isSymbolicLink()) failGate(`FILE_SYMLINK:${name}`);
+              if (!stat.isFile()) failGate(`FILE_NOT_REGULAR:${name}`);
+              if (stat.size < 1) failGate(`FILE_EMPTY:${name}`);
+              if (stat.size > MAX_BYTES) failGate(`FILE_TOO_BIG:${name}`);
+              texts[name] = fs.readFileSync(file, 'utf8');
+              const hits = secretHits(texts[name]);
+              if (hits.length) failGate(`FILE_SECRET:${name}:${hits.join('+')}`);
+            }
+
+            const full = parseOrFail(texts[REPORT_FULL], 'ATTRIBUTION');
+            const nodata = parseOrFail(texts[REPORT_NODATA], 'NODATA');
+            const cleanup = parseOrFail(texts[CLEANUP], 'CLEANUP');
+            const expect = (condition, code) => {
+              if (!condition) failGate(code);
+            };
+
+            if (OFFLINE) {
+              if (!ALLOW_LEGACY) failGate('OFFLINE_FLAG_REQUIRED');
+              expect(/^j7-probe\/(?:2|3)$/.test(String(full.schema)), 'ATTRIBUTION_SCHEMA');
+            } else {
+              expect(full.schema === 'j7-probe/3', 'ATTRIBUTION_SCHEMA_FORMAL');
+            }
+            if (full.schema === 'j7-probe/3') {
+              const attribution = full.failureAttribution;
+              expect(attribution && attribution.mode === 'main-instance', 'ATTRIBUTION_FAILURE_MODE');
+              expect(attribution && attribution.jobKey === 'analytics-aggregate', 'ATTRIBUTION_FAILURE_JOB');
+              expect(attribution && attribution.errorCode === 'version_conflict', 'ATTRIBUTION_FAILURE_CODE');
+              expect(attribution && attribution.failedStatus === 'FAILED', 'ATTRIBUTION_FAILURE_STATUS');
+              expect(attribution && attribution.httpStatus === 200, 'ATTRIBUTION_FAILURE_HTTP');
+              expect(attribution && Number.isInteger(attribution.failed && attribution.failed.generation) && attribution.failed.generation >= 0, 'ATTRIBUTION_FAILURE_GENERATION');
+              expect(attribution && attribution.buildId === get('buildId'), 'ATTRIBUTION_FAILURE_BUILD');
+              expect(attribution && attribution.source && attribution.source.commit === head && attribution.source.tree === tree, 'ATTRIBUTION_FAILURE_SOURCE');
+              expect(attribution && normSha(attribution.pg && attribution.pg.clusterSha256) === normSha(full.pg && full.pg.clusterSha256), 'ATTRIBUTION_FAILURE_PG');
+              expect(attribution && attribution.pg && attribution.pg.database === full.pg.database, 'ATTRIBUTION_FAILURE_DB');
+            }
+            expect(full.pass === true, 'ATTRIBUTION_PASS');
+            expect(full.mode === 'full', 'ATTRIBUTION_MODE');
+            expect(nodata.schema === 'j7-nodata/1', 'NODATA_SCHEMA');
+            expect(nodata.pass === true, 'NODATA_PASS');
+            expect(nodata.mode === 'nodata', 'NODATA_MODE');
+            for (const [label, report] of [['ATTRIBUTION', full], ['NODATA', nodata]]) {
+              expect(report.source && report.source.commit === head, `${label}_SOURCE_COMMIT`);
+              expect(report.source && report.source.tree === tree, `${label}_SOURCE_TREE`);
+              expect(report.run && report.run.workflow === 'CI', `${label}_RUN_WORKFLOW`);
+              expect(report.run && report.run.id === runId, `${label}_RUN_ID`);
+              expect(report.run && report.run.attempt === runAttempt, `${label}_RUN_ATTEMPT`);
+              expect(report.build && report.build.buildId === get('buildId'), `${label}_BUILD_ID`);
+              expect(report.app && report.app.health === 200, `${label}_HEALTH`);
+              expect(normSha(report.pg && report.pg.clusterSha256), `${label}_PG_CLUSTER`);
+              expect(report.pg && Number.isInteger(report.pg.versionNum), `${label}_PG_VERSION`);
+            }
+            expect(full.build && full.build.standaloneTreeSha256, 'ATTRIBUTION_BUILD_TREE');
+            expect(full.build.standaloneTreeSha256 === nodata.build.standaloneTreeSha256, 'BUILD_TREE_MISMATCH');
+            const fullCluster = normSha(full.pg.clusterSha256);
+            const nodataCluster = normSha(nodata.pg.clusterSha256);
+            const serviceCluster = normSha(cleanup.db && cleanup.db.service && cleanup.db.service.clusterSha256);
+            expect(fullCluster === nodataCluster, 'PG_CLUSTER_MISMATCH');
+            expect(serviceCluster !== null && serviceCluster === fullCluster, 'CLEANUP_PG_CLUSTER');
+            expect(cleanup.db && cleanup.db.full && cleanup.db.full.database === full.pg.database, 'FULL_DB_MISMATCH');
+            expect(cleanup.db && cleanup.db.fresh && cleanup.db.fresh.database === nodata.pg.database, 'NODATA_DB_MISMATCH');
+            expect(nodata.noData && nodata.noData.models && nodata.noData.models.database === cleanup.db.fresh.database, 'NODATA_MODELS_DB_MISMATCH');
+            expect(Number.isInteger(cleanup.db.service.versionNum), 'CLEANUP_PG_VERSION');
+            expect(cleanup.db.service.versionNum === full.pg.versionNum && cleanup.db.service.versionNum === nodata.pg.versionNum, 'PG_VERSION_MISMATCH');
+            expect(Math.floor(cleanup.db.service.versionNum / 10000) === PG_MAJOR, 'CLEANUP_PG_MAJOR');
+            expect(cleanup.db.service.systemIdentifierRead === true, 'CLEANUP_PG_SYSTEM_ID');
+            expect(cleanup.db.full.identityVerified === true, 'CLEANUP_FULL_DB_IDENTITY');
+            expect(cleanup.db.full.existsVerified === true, 'CLEANUP_FULL_DB_EXISTS');
+            expect(cleanup.db.fresh.identityVerified === true, 'CLEANUP_FRESH_DB_IDENTITY');
+
+            expect(cleanup.schema === 'j7-cleanup/2', 'CLEANUP_SCHEMA');
+            expect(cleanup.outcome === 'success', 'CLEANUP_OUTCOME');
+            expect(cleanup.phase === 'complete', 'CLEANUP_PHASE');
+            expect(Array.isArray(cleanup.failures) && cleanup.failures.length === 0, 'CLEANUP_FAILURES');
+            expect(cleanup.run.id === runId && cleanup.run.attempt === runAttempt, 'CLEANUP_RUN_ID');
+            expect(cleanup.runId === runId && cleanup.attempt === runAttempt, 'CLEANUP_RUN_BIND');
+            expect(cleanup.tree === tree, 'CLEANUP_TREE');
+            expect(cleanup.appStopped === true && cleanup.probeExited === true, 'CLEANUP_FLAGS');
+            expect(Array.isArray(cleanup.listeningAfter) && cleanup.listeningAfter.length === 0, 'CLEANUP_LISTENING');
+            expect(cleanup.strayLogs === 0, 'CLEANUP_LOGS');
+            expect(cleanup.observed === true, 'CLEANUP_OBSERVED');
+            expect(cleanup.run.head === head && cleanup.run.tree === tree, 'CLEANUP_RUN_IDS');
+            expect(cleanup.run.sameCommit === true, 'CLEANUP_SAME_COMMIT');
+            expect(cleanup.run.job === 'e2e', 'CLEANUP_JOB');
+            expect(cleanup.run.repository === get('repository'), 'CLEANUP_REPOSITORY');
+            expect(cleanup.run.event === get('event'), 'CLEANUP_EVENT');
+            expect(cleanup.build.stable === true, 'CLEANUP_BUILD_UNSTABLE');
+            expect(cleanup.build.buildId === full.build.buildId, 'CLEANUP_BUILD_ID');
+            expect(cleanup.build.standaloneTreeSha256 === full.build.standaloneTreeSha256, 'CLEANUP_BUILD_TREE');
+            expect(cleanup.build.serverJs && cleanup.build.serverJs.sha256 === get('serverJsSha256'), 'CLEANUP_SERVER_SHA');
+            expect(cleanup.build.productionIdentity && cleanup.build.productionIdentity.present === false, 'CLEANUP_PRODUCTION_IDENTITY');
+            expect(cleanup.db.service.stoppedBy === 'runner', 'CLEANUP_PG_STOP_OWNER');
+            expect(cleanup.db.full.created === false, 'CLEANUP_FULL_DB_CREATED');
+            expect(cleanup.db.fresh.created === true && cleanup.db.fresh.emptyVerified === true, 'CLEANUP_FRESH_DB_CREATED');
+            expect(cleanup.db.fresh.dropped === true && cleanup.db.fresh.goneVerified === true, 'CLEANUP_FRESH_DB_DROPPED');
+
+            expect(Array.isArray(cleanup.instances) && cleanup.instances.length === 2, 'CLEANUP_INSTANCES');
+            for (const wanted of [{ id: 'j7-full', port: 3100 }, { id: 'j7-nodata', port: 3101 }]) {
+              const row = cleanup.instances.find((item) => item.id === wanted.id);
+              expect(row, `INSTANCE_MISSING:${wanted.id}`);
+              expect(row.port === wanted.port, `INSTANCE_PORT:${wanted.id}`);
+              expect(row.health && row.health.http === 200, `INSTANCE_HEALTH:${wanted.id}`);
+              expect(row.listeningObserved === true, `INSTANCE_LISTEN:${wanted.id}`);
+              expect(row.probe && row.probe.exit === 0, `INSTANCE_PROBE:${wanted.id}`);
+              expect(row.stop && row.stop.pidGone === true, `INSTANCE_PID:${wanted.id}`);
+              expect(row.stop && row.stop.portReleased === true, `INSTANCE_RELEASED:${wanted.id}`);
+              expect(row.stop && /^(TERM|KILL)$/.test(String(row.stop.signal)), `INSTANCE_SIGNAL:${wanted.id}`);
+            }
+            expect(Array.isArray(cleanup.ports) && cleanup.ports.length === 3, 'CLEANUP_PORTS');
+            for (const port of [3100, 3101, 3999]) {
+              const row = cleanup.ports.find((item) => item.port === port);
+              expect(row, `PORT_MISSING:${port}`);
+              expect(row.before === 'free', `PORT_BEFORE:${port}`);
+              expect(row.after === 'free', `PORT_AFTER:${port}`);
+              expect(row.state === 'free', `PORT_STATE:${port}`);
+              expect(row.afterProbeExit === 0, `PORT_AFTER_EXIT:${port}`);
+              expect(['ports.cjs', 'tcp-connect'].includes(row.observedBy), `PORT_OBSERVER:${port}`);
+            }
+            const port3100 = cleanup.ports.find((row) => row.port === 3100);
+            const port3101 = cleanup.ports.find((row) => row.port === 3101);
+            const fullInstance = cleanup.instances.find((item) => item.id === 'j7-full');
+            const nodataInstance = cleanup.instances.find((item) => item.id === 'j7-nodata');
+            expect(port3100.during === 'in-use', 'PORT_3100_DURING');
+            expect(port3101.during === 'in-use', 'PORT_3101_DURING');
+            expect(port3100.duringOwner === 'app' && port3100.duringPid === fullInstance.pid, 'PORT_OWNER:3100');
+            expect(port3101.duringOwner === 'app' && port3101.duringPid === nodataInstance.pid, 'PORT_OWNER:3101');
+            for (const role of ['app', 'init', 'stop']) {
+              const entry = (cleanup.roles || []).find((item) => item && item.role === role);
+              expect(entry && entry.exit === 0, `CLEANUP_ROLE:${role}`);
+            }
+
+            expect(cleanup.a3 && Array.isArray(cleanup.a3.segments) && cleanup.a3.segments.length === A3_SEGMENTS.length, 'CLEANUP_A3');
+            for (const segment of cleanup.a3.segments) {
+              expect(segment.present === true, `A3_PRESENT:${segment.name}`);
+              expect(segment.releaseExit === 0, `A3_RELEASE:${segment.name}`);
+              expect(segment.result && segment.result.bytes > 0, `A3_RESULT:${segment.name}`);
+              expect(segment.portAfter && Number.isInteger(segment.portAfter.bytes), `A3_PORT_AFTER:${segment.name}`);
+            }
+
+            const rows = cleanup.evidence && Array.isArray(cleanup.evidence.files) ? cleanup.evidence.files : [];
+            expect(rows.length === 2, 'CLEANUP_EVIDENCE_LIST');
+            for (const name of [REPORT_FULL, REPORT_NODATA]) {
+              const row = rows.find((item) => item.name === name);
+              expect(row, `EVIDENCE_ROW:${name}`);
+              const actual = digestOf(path.join(evidenceDir, name));
+              expect(row.bytes === actual.bytes && row.sha256 === actual.sha256, `EVIDENCE_DIGEST:${name}`);
+            }
+
+            const digests = [REPORT_FULL, REPORT_NODATA, CLEANUP].map((name) => digestOf(path.join(evidenceDir, name)).sha256);
+            const marker = OFFLINE ? 'J7_SAFE_FILES_OFFLINE' : 'J7_SAFE_FILES';
+            process.stdout.write(
+              `${marker} ok=3 attribution=${digests[0]} nodata=${digests[1]} cleanup=${digests[2]} ` +
+                `buildId=${cleanup.build.buildId} freshDb=${cleanup.db.fresh.database}\n`,
+            );
+          }
+          function probeSchema() {
+            const reportPath = arg('--report');
+            if (!reportPath || !fs.existsSync(reportPath)) failGate('INPUT_REPORT_MISSING');
+            const report = parseOrFail(fs.readFileSync(reportPath, 'utf8'), 'ATTRIBUTION');
+            const expect = (condition, code) => {
+              if (!condition) failGate(code);
+            };
+            if (OFFLINE) {
+              expect(ALLOW_LEGACY, 'OFFLINE_FLAG_REQUIRED');
+            } else {
+              expect(report.schema === 'j7-probe/3', 'ATTRIBUTION_SCHEMA_FORMAL');
+              const attribution = report.failureAttribution;
+              expect(attribution && attribution.mode === 'main-instance', 'ATTRIBUTION_FAILURE_MODE');
+              expect(attribution && attribution.failedStatus === 'FAILED', 'ATTRIBUTION_FAILURE_STATUS');
+              expect(attribution && attribution.errorCode === 'version_conflict', 'ATTRIBUTION_FAILURE_CODE');
+              expect(attribution && Number.isInteger(attribution.failed && attribution.failed.generation), 'ATTRIBUTION_FAILURE_GENERATION');
+            }
+            process.stdout.write('J7_PROBE_SCHEMA_OK\n');
+          }
+
+          function retryableGate() {
+            const reportPath = arg('--report');
+            if (!reportPath || !fs.existsSync(reportPath)) failGate('INPUT_REPORT_MISSING');
+            const stat = fs.lstatSync(reportPath);
+            if (stat.isSymbolicLink() || !stat.isFile()) failGate('INPUT_REPORT_TYPE');
+            if (stat.size < 1 || stat.size > MAX_BYTES) failGate('INPUT_REPORT_SIZE');
+            const text = fs.readFileSync(reportPath, 'utf8');
+            const hits = secretHits(text);
+            if (hits.length) failGate(`INPUT_REPORT_SECRET:${hits.join('+')}`);
+            const report = parseOrFail(text, 'RETRYABLE');
+            const appPath = arg('--app');
+            let expectedApp = null;
+            if (appPath) {
+              if (!fs.existsSync(appPath)) failGate('BINDING_APP_MISSING');
+              expectedApp = parseOrFail(fs.readFileSync(appPath, 'utf8'), 'BINDING_APP');
+            }
+            const expect = (condition, code) => {
+              if (!condition) failGate(code);
+            };
+            const head = get('head');
+            const tree = get('tree');
+            const runId = asInt('runId');
+            const runAttempt = asInt('runAttempt');
+            const mainPath = path.join(evidenceDir, REPORT_FULL);
+            if (!fs.existsSync(mainPath)) failGate('BINDING_MAIN_REPORT_MISSING');
+            const mainDigest = digestOf(mainPath).sha256;
+            expect(/^j7-retryable\/(?:1|2)$/.test(String(report.schema)), 'BINDING_SCHEMA');
+            expect(report.jobKey === 'analytics-aggregate' && report.sameKey === true, 'BINDING_KEY');
+            expect(report.attempts === 2, 'BINDING_ATTEMPTS');
+            expect(report.run && report.run.workflow === 'CI' && report.run.id === runId && report.run.attempt === runAttempt, 'BINDING_RUN');
+            expect(report.source && report.source.commit === head && report.source.tree === tree, 'BINDING_SOURCE');
+            expect(report.build && report.build.buildId === get('buildId'), 'BINDING_BUILD');
+            if (report.schema === 'j7-retryable/2') {
+              expect(report.build && report.build.serverJsSha256 === get('serverJsSha256'), 'BINDING_BUILD_SHA');
+              expect(
+                report.app &&
+                  report.app.origin === `http://localhost:${get('fullPort')}` &&
+                  Number(report.app.pid) === asInt('fullPid') &&
+                  typeof report.app.startTicks === 'string' &&
+                  /^[0-9]+$/.test(report.app.startTicks) &&
+                  (!expectedApp || (report.app.startTicks === expectedApp.startTicks && Number(report.app.pid) === Number(expectedApp.pid))),
+                'BINDING_APP',
+              );
+            }
+            expect(
+              report.pg &&
+                report.pg.database === get('fullDb') &&
+                normSha(report.pg.clusterSha256) === normSha(get('pgServiceClusterSha256')) &&
+                report.pg.versionNum === asInt('pgServiceVersionNum'),
+              'BINDING_PG',
+            );
+            expect(report.anchor && report.anchor.mainProbeReportSha256 === mainDigest, 'BINDING_ANCHOR');
+            expect(report.anchor && report.anchor.errorCode === 'version_conflict', 'BINDING_ANCHOR_CODE');
+            expect(report.before && report.before.status === 'FAILED' && Number.isInteger(report.before.generation), 'BINDING_BEFORE');
+            expect(report.anchor && report.anchor.expectedFailedGeneration === report.before.generation, 'BINDING_ANCHOR_GEN');
+            expect(report.after && report.after.status === 'SUCCEEDED' && report.after.generation === report.before.generation + 1, 'BINDING_GENERATION');
+            expect(report.after && report.after.lastErrorCode === null, 'BINDING_AFTER_CODE');
+            const checks = report.checks;
+            expect(
+              checks &&
+                typeof checks === 'object' &&
+                checks.sameKey === true &&
+                checks.errorCleared === true &&
+                checks.successAdvanced === true &&
+                checks.leaseReleased === true &&
+                checks.otherKeysUnchanged === true &&
+                checks.generationDelta === 1,
+              'BINDING_CHECKS',
+            );
+            expect(Array.isArray(report.otherKeys), 'BINDING_OTHER_KEYS');
+            expect(report.window && Date.parse(report.window.startedAt) <= Date.parse(report.window.endedAt), 'BINDING_WINDOW');
+            expect(report.http && report.http.status === 200 && report.http.bodyStatus === 'SUCCEEDED', 'BINDING_HTTP');
+            process.stdout.write('J7_RETRYABLE_BINDING_OK\n');
+          }
+
+          const mode = process.argv[2];
+          if (mode === 'cleanup') {
+            const out = arg('--out');
+            if (!out) failGate('OUT_MISSING');
+            const report = buildCleanup();
+            fs.writeFileSync(out, `${JSON.stringify(report, null, 2)}\n`, { encoding: 'utf8' });
+            process.stdout.write('J7_CLEANUP_OK\n');
+          } else if (mode === 'gate') {
+            gate();
+          } else if (mode === 'schema') {
+            probeSchema();
+          } else if (mode === 'retryable') {
+            retryableGate();
+          } else {
+            process.stderr.write('J7_OBSERVE_MODE\n');
+            process.exit(2);
+          }
+          OBSERVE_EOF
+
+          phase=preflight
+          budget_check
+          observe_ports_before
+          printf 'J7_PORT_OBS before=free ports=3100,3101,3999 probe=ports.cjs+3101\n'
+
+          # 4) 全实例：hosted PG17 的既有 e2e 库（A3 已建 schema/JobState），同一 3100。
+          phase=j7-full
+          budget_check
+          start_app "$full_port" "$private/server-3100.log"
+          full_pid=$STARTED_PID
+          full_alt=$STARTED_ALT
+          printf 'J7_APP_START port=%s pid=%s\n' "$full_port" "$full_pid"
+          wait_health "$full_port" "$full_pid"
+          fact fullPort "$full_port"
+          fact fullPid "$full_pid"
+          fact fullHealth "$HEALTH_STATUS"
+          fact fullHealthChecks "$HEALTH_CHECKS"
+          fact fullListening true
+
+          # 4a) 首次监听观测：同一 PID 的 origin/startTicks 供 retryable 的 expect 使用（full 探针之前）。
+          retryable_app="$private/retryable-app.json"
+          observe_limit="$J7_OBSERVE_APP_TIMEOUT_S"
+          observe_remaining=$((J7_STEP_BUDGET_S - (SECONDS - started) - J7_FINALIZE_RESERVE_S))
+          (( observe_remaining > 5 )) || fail 'J7_BUDGET_EXCEEDED:observe-app'
+          (( observe_limit > observe_remaining )) && observe_limit="$observe_remaining"
+          observe_rc=0
+          run_bounded "$observe_limit" env J7_REPO="$ws" \
+            node tests/evidence/j7-retryable.mjs observe-app --origin "http://localhost:$full_port" --pid "$full_pid" \
+            >"$retryable_app" 2>"$private/observe-app.err" || observe_rc=$?
+          if (( observe_rc == 124 )); then fail 'J7_OBSERVE_APP_TIMEOUT'; fi
+          if (( observe_rc == 125 )); then fail 'J7_BUDGET_EXCEEDED:observe-app'; fi
+          if (( observe_rc != 0 )); then
+            grep -E '^J7_RETRYABLE_[A-Z0-9_:.,-]{1,160}$' "$private/observe-app.err" | head -n 3 >&2 || true
+            fail 'J7_RETRYABLE_OBSERVE_FAILED'
+          fi
+          node -e '
+            const fs = require("node:fs");
+            const app = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+            if (app.origin !== process.argv[2] || Number(app.pid) !== Number(process.argv[3]) || typeof app.startTicks !== "string" || !/^[0-9]+$/.test(app.startTicks)) process.exit(1);
+          ' "$retryable_app" "http://localhost:$full_port" "$full_pid" || fail 'J7_RETRYABLE_APP_BINDING'
+          app_start_ticks="$(node -e 'const fs=require("node:fs");const a=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));process.stdout.write(a.startTicks)' "$retryable_app")" || fail 'J7_RETRYABLE_APP_BINDING'
+          printf 'J7_FIRST_APP_BINDING={"runId":%s,"runAttempt":%s,"job":"%s","event":"%s","ref":"%s","head":"%s","tree":"%s","pid":%s,"startTicks":"%s"}\n' \
+            "${GITHUB_RUN_ID:-0}" "${GITHUB_RUN_ATTEMPT:-0}" "${GITHUB_JOB:-unknown}" "${GITHUB_EVENT_NAME:-unknown}" "${GITHUB_REF:-unknown}" "$head" "$tree" "$full_pid" "$app_start_ticks"
+
+          # 4a2) Prepare the same-instance JobState rows before the full /3 probe records its baseline.
+          [[ -n "${DATABASE_URL:-}" && -n "${CRON_SECRET:-}" ]] || fail 'J7_JOBSTATE_PREFLIGHT_ENV'
+          jobstate_expect="$private/jobstate-preflight-expect.json"
+          if ! node - "$retryable_app" "$full_pid" "$app_start_ticks" "$full_port" \
+            "$pg_version_before" "$full_db" "$pg_cluster_before" "$jobstate_expect" \
+            2>"$private/jobstate-expect.err" <<'JOBSTATE_EXPECT_EOF'
+          const fs = require('node:fs');
+          const [observed, pid, ticks, port, version, database, cluster, out] = process.argv.slice(2);
+          const info = fs.lstatSync(observed);
+          if (!info.isFile() || info.size === 0 || info.size > 4096) process.exit(1);
+          const app = JSON.parse(fs.readFileSync(observed, 'utf8'));
+          const appPid = Number(pid);
+          if (port !== '3100' || !Number.isSafeInteger(appPid) || appPid <= 1 ||
+              app?.origin !== 'http://localhost:3100' || app.pid !== appPid ||
+              typeof app.startTicks !== 'string' || app.startTicks !== ticks || !/^[1-9]\d{0,31}$/.test(ticks) ||
+              !/^17\d{4}$/.test(version) || database !== 'e2e' || !/^[0-9a-f]{64}$/i.test(cluster) || /^0{64}$/.test(cluster)) {
+            process.exit(1);
+          }
+          const expect = {
+            app: { origin: app.origin, pid: appPid, startTicks: app.startTicks },
+            pg: { versionNum: Number(version), database, clusterSha256: cluster },
+          };
+          fs.writeFileSync(out, `${JSON.stringify(expect)}\n`, { encoding: 'utf8', flag: 'wx', mode: 0o600 });
+          JOBSTATE_EXPECT_EOF
+          then
+            fail 'J7_JOBSTATE_PREFLIGHT_EXPECT'
+          fi
+          jobstate_remaining=$((J7_STEP_BUDGET_S - (SECONDS - started) - J7_FINALIZE_RESERVE_S))
+          (( jobstate_remaining > 0 )) || fail 'J7_BUDGET_EXCEEDED:jobstate-preflight'
+          jobstate_limit=75
+          (( jobstate_limit > jobstate_remaining )) && jobstate_limit="$jobstate_remaining"
+          jobstate_rc=0
+          run_bounded "$jobstate_limit" env J7_ALLOW_WRITES=1 J7_REPO="$ws" \
+            J7_PROBE_DB_URL="$DATABASE_URL" J7_CRON_SECRET="$CRON_SECRET" \
+            node tests/evidence/j7-jobstate-preflight.mjs --expect "$jobstate_expect" \
+            >"$private/jobstate-preflight.out" 2>"$private/jobstate-preflight.err" || jobstate_rc=$?
+          case "$jobstate_rc" in
+            0) ;;
+            124) fail 'J7_JOBSTATE_PREFLIGHT_TIMEOUT' ;;
+            125) fail 'J7_BUDGET_EXCEEDED:jobstate-preflight' ;;
+            *) fail 'J7_JOBSTATE_PREFLIGHT_FAILED' ;;
+          esac
+          [[ ! -s "$private/jobstate-preflight.err" ]] && \
+            cmp -s "$private/jobstate-preflight.out" <(printf 'J7_JOBSTATE_PREFLIGHT_OK\n') || fail 'J7_JOBSTATE_PREFLIGHT_MARKER'
+          printf 'J7_JOBSTATE_PREFLIGHT_OK\n'
+
+          observe_port_in_use "$full_port" "$full_pid" "$full_alt"
+          rc=0
+          run_bounded "$J7_PROBE_TIMEOUT_S" env \
+            J7_MODE=full J7_ALLOW_WRITES=1 J7_APP_URL="http://localhost:$full_port" \
+            J7_PROBE_DB_URL="${DATABASE_URL:?DATABASE_URL_REQUIRED}" \
+            J7_STANDALONE_DIR="$ws/.next/standalone" J7_REPO="$ws" \
+            J7_SOURCE_COMMIT="$head" J7_SOURCE_TREE="$tree" J7_BUILD_ID="$build_id" \
+            J7_RUN_ID="${GITHUB_RUN_ID:?}" J7_RUN_ATTEMPT="${GITHUB_RUN_ATTEMPT:?}" J7_WORKFLOW=CI \
+            J7_EXPECT_PG_MAJOR=17 \
+            J7_CRON_SECRET="${CRON_SECRET:?CRON_SECRET_REQUIRED}" J7_ADMIN_TOTP_SECRET="$totp" \
+            J7_PROBE_TIMEOUT_MS=60000 J7_REPORT="$report_full" \
+            node tests/evidence/j7-attribution-probe.mjs >"$private/probe-full.out" 2>"$private/probe-full.err" || rc=$?
+          if (( rc == 125 )); then
+            fail "J7_BUDGET_EXCEEDED:$phase"
+          fi
+          if (( rc != 0 )); then
+            grep -E '^J7_PROBE_FAILED:[A-Za-z0-9_:.,-]{1,160}$' "$private/probe-full.err" | head -n 3 >&2 || true
+            fail "J7_PROBE_FAILED:full:$rc"
+          fi
+          grep -qx 'J7_PROBE_OK' "$private/probe-full.out" || fail 'J7_PROBE_MARKER_MISSING:full'
+          [[ -f "$report_full" && ! -L "$report_full" && -s "$report_full" ]] || fail 'J7_REPORT_MISSING:full'
+          if ! node "$private/j7-observe.cjs" schema --mode formal --facts "$facts" --report "$report_full" >"$private/schema.log" 2>&1; then
+            cat "$private/schema.log" >&2
+            fail 'J7_PROBE_SCHEMA_FORMAL'
+          fi
+          fact fullProbeExit 0
+
+          # 4b) retryable：同一实例、同一库、同一构建；主报告写妥后、停 full 之前。
+          #     先按 CONTRACT 生成闭集 expect（probeSha256 从原报告字节独立复算），再 produce 一次真实调用。
+          #     产物固定名 J7-RETRYABLE.json，只在 $RUNNER_TEMP，独立命名上传；主三件目录不许多出文件。
+          phase=j7-retryable
+          budget_check
+          retryable_expect="$private/retryable-expect.json"
+          node - "$facts" "$report_full" "$retryable_app" "$retryable_expect" <<'EXPECT_EOF'
+          const fs = require('node:fs');
+          const crypto = require('node:crypto');
+          const [factsPath, probePath, appPath, outPath] = process.argv.slice(2);
+          const facts = new Map();
+          for (const line of fs.readFileSync(factsPath, 'utf8').split('\n')) {
+            if (!line) continue;
+            const tab = line.indexOf('\t');
+            if (tab > 0) facts.set(line.slice(0, tab), line.slice(tab + 1));
+          }
+          const probeBytes = fs.readFileSync(probePath);
+          const probe = JSON.parse(probeBytes.toString('utf8'));
+          const app = JSON.parse(fs.readFileSync(appPath, 'utf8'));
+          if (!probe.failureAttribution || !Number.isInteger(probe.failureAttribution.failed && probe.failureAttribution.failed.generation)) {
+            process.stderr.write('J7_RETRYABLE_EXPECT_GENERATION\n');
+            process.exit(1);
+          }
+          const expect = {
+            schema: 'j7-retryable-expect/1',
+            run: { workflow: 'CI', job: facts.get('job'), id: Number(facts.get('runId')), attempt: Number(facts.get('runAttempt')) },
+            source: { commit: facts.get('head'), tree: facts.get('tree') },
+            build: { buildId: facts.get('buildId'), serverJsSha256: facts.get('serverJsSha256') },
+            pg: { versionNum: Number(facts.get('pgServiceVersionNum')), database: facts.get('fullDb'), clusterSha256: facts.get('pgServiceClusterSha256') },
+            app: { origin: app.origin, pid: Number(app.pid), startTicks: app.startTicks },
+            probeSha256: crypto.createHash('sha256').update(probeBytes).digest('hex').toUpperCase(),
+            expectedFailedGeneration: probe.failureAttribution.failed.generation,
+          };
+          fs.writeFileSync(outPath, JSON.stringify(expect, null, 2) + '\n');
+          EXPECT_EOF
+          retryable_json="$private/J7-RETRYABLE.json"
+          rc=0
+          run_bounded "$J7_RETRYABLE_TIMEOUT_S" env \
+            J7_ALLOW_WRITES=1 J7_REPO="$ws" J7_STANDALONE_DIR="$ws/.next/standalone" \
+            J7_PROBE_DB_URL="${DATABASE_URL:?}" DATABASE_URL="${DATABASE_URL:?}" \
+            J7_CRON_SECRET="${CRON_SECRET:?}" J7_RETRYABLE_TIMEOUT_MS="$J7_RETRYABLE_INTERNAL_TIMEOUT_MS" \
+            node tests/evidence/j7-retryable.mjs produce --expect "$retryable_expect" --probe "$report_full" --out "$retryable_json" \
+            >"$private/retryable.out" 2>"$private/retryable.err" || rc=$?
+          if (( rc == 124 )); then
+            fail 'J7_RETRYABLE_TIMEOUT'
+          fi
+          if (( rc == 125 )); then
+            fail "J7_BUDGET_EXCEEDED:$phase"
+          fi
+          if (( rc != 0 )); then
+            grep -E '^J7_RETRYABLE_[A-Z0-9_:.,-]{1,160}$' "$private/retryable.err" | head -n 3 >&2 || true
+            fail "J7_RETRYABLE_FAILED:$rc"
+          fi
+          grep -qx 'J7_RETRYABLE_OK' "$private/retryable.out" || fail 'J7_RETRYABLE_MARKER_MISSING'
+          [[ "$(basename "$retryable_json")" == 'J7-RETRYABLE.json' ]] || fail 'J7_RETRYABLE_NAME'
+          [[ -f "$retryable_json" && ! -L "$retryable_json" ]] || fail 'J7_RETRYABLE_FILE'
+          retryable_bytes="$(wc -c < "$retryable_json" | tr -d ' ')"
+          (( retryable_bytes > 0 && retryable_bytes <= 1048576 )) || fail "J7_RETRYABLE_SIZE:$retryable_bytes"
+          fact retryableSha256 "$(sha256_upper "$retryable_json")"
+          node "$private/j7-observe.cjs" retryable --facts "$facts" --evidence-dir "$ws/$evidence_dir" \
+            --app "$retryable_app" --report "$retryable_json" >"$private/retryable-gate.log" 2>&1 || {
+            cat "$private/retryable-gate.log" >&2
+            rcode="$(sed -n 's/^J7_SAFE_FILES_FAIL://p' "$private/retryable-gate.log" | tail -n 1)"
+            [[ "$rcode" =~ ^[A-Za-z0-9_:.,-]{1,120}$ ]] || rcode='BINDING_FAILED'
+            fail "J7_RETRYABLE_${rcode}"
+          }
+          if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+            printf 'retryable=1\n' >> "$GITHUB_OUTPUT"
+          fi
+          printf 'J7_RETRYABLE_BOUND ok=1 anchor=%s sha=%s\n' "$(sha256_upper "$report_full")" "$(sha256_upper "$retryable_json")"
+          stop_instance full "$full_port" "$full_pid" || fail "$STOP_CODE"
+          full_pid=''
+
+          # 5) 无数据实例：同一 cluster 的唯一空库 e2e_j7_<12hex>，端口 3101。
+          phase=j7-nodata
+          budget_check
+          fresh_db="e2e_j7_$(openssl rand -hex 6)"
+          [[ "$fresh_db" =~ ^e2e_j7_[0-9a-f]{12}$ ]] || fail 'J7_DB_NAME_INVALID'
+          exists="$(docker exec "$PG_CONTAINER_ID" psql -U postgres -d postgres -tAc \
+            "SELECT count(*) FROM pg_database WHERE datname = '$fresh_db'" 2>"$private/db-query.err" | tr -d ' \r\n')" \
+            || fail 'J7_DB_QUERY_FAILED'
+          [[ "$exists" == 0 ]] || fail 'J7_DB_NAME_COLLISION'
+          docker exec "$PG_CONTAINER_ID" psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
+            -c "CREATE DATABASE \"$fresh_db\"" >"$private/db-create.log" 2>&1 || fail 'J7_DB_CREATE_FAILED'
+          db_created=1
+          fact freshDb "$fresh_db"
+          fact freshDbCreated true
+          pg_version="$PG_VERSION_NUM"
+          psql_bounded "$fresh_db" 'SELECT current_database()' "$private/fresh-db-identity.raw" \
+            || fail 'J7_FRESH_DB_IDENTITY_MISMATCH'
+          [[ "$(tr -d ' \r\n' < "$private/fresh-db-identity.raw")" == "$fresh_db" ]] || fail 'J7_FRESH_DB_IDENTITY_MISMATCH'
+          fact freshDbIdentityVerified true
+          fresh_url="postgresql://postgres:postgres@localhost:5432/$fresh_db"
+          rc=0
+          run_bounded "$J7_DB_PUSH_TIMEOUT_S" db_push "$fresh_url" >"$private/db-push.log" 2>&1 || rc=$?
+          if (( rc == 125 )); then
+            fail "J7_BUDGET_EXCEEDED:$phase"
+          fi
+          (( rc == 0 )) || fail "J7_DB_PUSH_FAILED:$rc"
+          count="$(docker exec "$PG_CONTAINER_ID" psql -U postgres -d "$fresh_db" -tAc \
+            'SELECT count(*) FROM "Model3D"' 2>"$private/db-empty.err" | tr -d ' \r\n')" || fail 'J7_FRESH_DB_NOT_MIGRATED'
+          [[ "$count" == 0 ]] || fail "J7_FRESH_DB_NOT_EMPTY:$count"
+          fact freshDbEmpty true
+
+          start_app "$nodata_port" "$private/server-3101.log" \
+            "DATABASE_URL=$fresh_url" "APP_ORIGIN=http://localhost:$nodata_port" "AUTH_URL=http://localhost:$nodata_port"
+          nodata_pid=$STARTED_PID
+          nodata_alt=$STARTED_ALT
+          printf 'J7_APP_START port=%s pid=%s db=%s\n' "$nodata_port" "$nodata_pid" "$fresh_db"
+          wait_health "$nodata_port" "$nodata_pid"
+          fact nodataPort "$nodata_port"
+          fact nodataPid "$nodata_pid"
+          fact nodataHealth "$HEALTH_STATUS"
+          fact nodataHealthChecks "$HEALTH_CHECKS"
+          fact nodataListening true
+          observe_port_in_use "$nodata_port" "$nodata_pid" "$nodata_alt"
+          rc=0
+          run_bounded "$J7_PROBE_TIMEOUT_S" env \
+            DATABASE_URL="$fresh_url" J7_MODE=nodata J7_APP_URL="http://localhost:$nodata_port" \
+            J7_PROBE_DB_URL="$fresh_url" \
+            J7_STANDALONE_DIR="$ws/.next/standalone" J7_REPO="$ws" \
+            J7_SOURCE_COMMIT="$head" J7_SOURCE_TREE="$tree" J7_BUILD_ID="$build_id" \
+            J7_RUN_ID="${GITHUB_RUN_ID:?}" J7_RUN_ATTEMPT="${GITHUB_RUN_ATTEMPT:?}" J7_WORKFLOW=CI \
+            J7_EXPECT_PG_MAJOR=17 \
+            J7_ADMIN_TOTP_SECRET="$totp" \
+            J7_PROBE_TIMEOUT_MS=60000 J7_REPORT="$report_nodata" \
+            node tests/evidence/j7-attribution-probe.mjs >"$private/probe-nodata.out" 2>"$private/probe-nodata.err" || rc=$?
+          if (( rc == 125 )); then
+            fail "J7_BUDGET_EXCEEDED:$phase"
+          fi
+          if (( rc != 0 )); then
+            grep -E '^J7_PROBE_FAILED:[A-Za-z0-9_:.,-]{1,160}$' "$private/probe-nodata.err" | head -n 3 >&2 || true
+            fail "J7_PROBE_FAILED:nodata:$rc"
+          fi
+          grep -qx 'J7_PROBE_OK' "$private/probe-nodata.out" || fail 'J7_PROBE_MARKER_MISSING:nodata'
+          [[ -f "$report_nodata" && ! -L "$report_nodata" && -s "$report_nodata" ]] || fail 'J7_REPORT_MISSING:nodata'
+          fact nodataProbeExit 0
+
+          # 5b) PG 必须仍是起跑时的同一集群/同一版本（中途换容器或重启即拒）。
+          read_pg_identity
+          [[ "$PG_CLUSTER_SHA" == "$pg_cluster_before" ]] || fail 'J7_PG_CLUSTER_CHANGED'
+          [[ "$PG_VERSION_NUM" == "$pg_version_before" ]] || fail 'J7_PG_VERSION_CHANGED'
+          stop_instance nodata "$nodata_port" "$nodata_pid" || fail "$STOP_CODE"
+          nodata_pid=''
+
+          # 6) 私库回收：只删本步骤成功 CREATE 的那一个库，并核实它真的消失。
+          phase=cleanup
+          budget_check
+          if (( db_created )) && (( ! db_dropped )); then
+            drop_rc=0
+            run_bounded "$J7_PSQL_TIMEOUT_S" docker exec "$PG_CONTAINER_ID" psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
+              -c "DROP DATABASE \"$fresh_db\"" >"$private/db-drop.log" 2>&1 || drop_rc=$?
+            if (( drop_rc == 125 )); then fail "J7_BUDGET_EXCEEDED:$phase"; fi
+            (( drop_rc == 0 )) || fail 'J7_DB_DROP_FAILED'
+            db_dropped=1
+            fact freshDbDropped true
+            count_rc=0
+            gone="$(run_bounded "$J7_PSQL_TIMEOUT_S" docker exec "$PG_CONTAINER_ID" psql -U postgres -d postgres -tAc \
+              "SELECT count(*) FROM pg_database WHERE datname = '$fresh_db'" 2>"$private/db-gone.err")" || count_rc=$?
+            if (( count_rc == 125 )); then fail "J7_BUDGET_EXCEEDED:$phase"; fi
+            (( count_rc == 0 )) || fail 'J7_DB_DROP_VERIFY_FAILED'
+            gone="$(printf '%s' "$gone" | tr -d ' \r\n')"
+            [[ "$gone" == 0 ]] || fail 'J7_DB_STILL_PRESENT'
+            db_gone=1
+            fact freshDbGone true
+          fi
+          printf 'J7_DB name=%s created=%s dropped=%s gone=%s version=%s\n' \
+            "$fresh_db" "$db_created" "$db_dropped" "$db_gone" "$pg_version"
+
+          observe_ports_after
+          printf 'J7_PORT_OBS after=free ports=3100,3101,3999 probe=ports.cjs+3101\n'
+
+          # 7) 同一构建未被替换（server.js 与 BUILD_ID 前后一致）。
+          phase=verify
+          budget_check
+          [[ "$(sha256_upper .next/standalone/server.js)" == "$server_sha" ]] || fail 'J7_BUILD_CHANGED'
+          [[ "$(tr -d '\r\n' < .next/standalone/.next/BUILD_ID)" == "$build_id" ]] || fail 'J7_BUILD_CHANGED'
+          fact buildStable true
+
+          # 8) 三份固定安全文件 + 专属上传前的交叉核验（自报之外，重读实物与摘要）。
+          phase=complete
+          write_cleanup success || fail 'J7_CLEANUP_JSON_FAILED'
+          gate_log="$private/gate.log"
+          if ! node "$private/j7-observe.cjs" gate --mode formal --facts "$facts" --evidence-dir "$ws/$evidence_dir" \
+            --a3-dir "$ws/e2e-evidence" >"$gate_log" 2>&1; then
+            cat "$gate_log" >&2
+            gate_code="$(sed -n 's/^J7_SAFE_FILES_FAIL://p' "$gate_log" | tail -n 1)"
+            [[ "$gate_code" =~ ^[A-Za-z0-9_:.,-]{1,120}$ ]] || gate_code='GATE_FAILED'
+            fail "J7_SAFE_FILES_${gate_code}"
+          fi
+          cat "$gate_log"
+
+          # 8b) 认证绑定回执：只写固定安全字段（无 DSN/密钥/原日志），供独立具名上传链核身份。
+          binding_json="$private/J7-RUNNER-BINDING.json"
+          node - "$facts" "$retryable_app" "$report_full" "$retryable_json" "$binding_json" <<'BIND_EOF'
+          const fs = require('node:fs');
+          const crypto = require('node:crypto');
+          const [factsPath, appPath, probePath, retryPath, outPath] = process.argv.slice(2);
+          const facts = new Map();
+          for (const line of fs.readFileSync(factsPath, 'utf8').split('\n')) {
+            if (!line) continue;
+            const tab = line.indexOf('\t');
+            if (tab > 0) facts.set(line.slice(0, tab), line.slice(tab + 1));
+          }
+          const app = JSON.parse(fs.readFileSync(appPath, 'utf8'));
+          const sha = (file) => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex').toUpperCase();
+          const binding = {
+            schema: 'j7-runner-binding/1',
+            run: { workflow: 'CI', job: facts.get('job'), id: Number(facts.get('runId')), attempt: Number(facts.get('runAttempt')) },
+            source: { commit: facts.get('head'), tree: facts.get('tree'), event: facts.get('event'), ref: facts.get('ref') },
+            app: { origin: app.origin, pid: Number(app.pid), startTicks: app.startTicks },
+            build: { buildId: facts.get('buildId'), serverJsBytes: Number(facts.get('serverJsBytes')), serverJsSha256: facts.get('serverJsSha256') },
+            pg: { versionNum: Number(facts.get('pgServiceVersionNum')), database: facts.get('fullDb'), clusterSha256: facts.get('pgServiceClusterSha256'), containerId: String(process.env.PG_CONTAINER_ID || '') },
+            probe: { mainFullSha256: sha(probePath) },
+            retryable: { fileSha256: sha(retryPath), fileBytes: fs.statSync(retryPath).size },
+            cleanup: { outcome: 'success', phase: 'complete', appStopped: true, probeExited: true },
+          };
+          fs.writeFileSync(outPath, `${JSON.stringify(binding, null, 2)}\n`, { encoding: 'utf8', mode: 0o600 });
+          BIND_EOF
+          binding_sha="$(sha256_upper "$binding_json")"
+          printf 'J7_RUNNER_BINDING sha256=%s bytes=%s startTicks=%s\n' "$binding_sha" "$(wc -c < "$binding_json" | tr -d ' ')" "$app_start_ticks"
+
+          # 8c) 成功出口移交：只把 upload 步骤读取的两个固定件放到 runner.temp 根，
+          #     仅当 complete cleanup 与原 gate 都通过才到达；独占暂存、普通文件、闭集与 SHA
+          #     复核、目标已存在即失败，绝不覆盖。失败/超时分支不可达。
+          stage_upload_file() { # src name
+            local src="$1" name="$2" sha='' bytes='' target=''
+            HANDOFF_CODE=''
+            [[ -f "$src" && ! -L "$src" ]] || { HANDOFF_CODE="J7_UPLOAD_HANDOFF_MISSING:$name"; return 1; }
+            sha="$(sha256_upper "$src")"
+            bytes="$(wc -c < "$src" | tr -d ' ')"
+            (( bytes > 0 && bytes <= 1048576 )) || { HANDOFF_CODE="J7_UPLOAD_HANDOFF_SIZE:$name"; return 1; }
+            target="$RUNNER_TEMP/$name"
+            [[ ! -e "$target" && ! -L "$target" ]] || { HANDOFF_CODE="J7_UPLOAD_HANDOFF_EXISTS:$name"; return 1; }
+            cp -- "$src" "$handoff_stage/$name" || { HANDOFF_CODE="J7_UPLOAD_HANDOFF_COPY:$name"; return 1; }
+            [[ "$(sha256_upper "$handoff_stage/$name")" == "$sha" ]] || { HANDOFF_CODE="J7_UPLOAD_HANDOFF_SHA:$name"; return 1; }
+            [[ "$(wc -c < "$handoff_stage/$name" | tr -d ' ')" == "$bytes" ]] || { HANDOFF_CODE="J7_UPLOAD_HANDOFF_BYTES:$name"; return 1; }
+            mv -n -- "$handoff_stage/$name" "$target" 2>/dev/null || { HANDOFF_CODE="J7_UPLOAD_HANDOFF_MOVE:$name"; return 1; }
+            [[ -f "$target" && ! -L "$target" ]] || { HANDOFF_CODE="J7_UPLOAD_HANDOFF_TARGET:$name"; return 1; }
+            [[ "$(sha256_upper "$target")" == "$sha" ]] || { HANDOFF_CODE="J7_UPLOAD_HANDOFF_VERIFY:$name"; return 1; }
+            HANDOFF_SHA="$sha"
+            HANDOFF_BYTES="$bytes"
+            handoff_owned_files+=("$target")
+            handoff_owned_shas+=("$sha")
+            return 0
+          }
+          rollback_handoff() {
+            local i file sha
+            for i in "${!handoff_owned_files[@]}"; do
+              file="${handoff_owned_files[$i]}"
+              sha="${handoff_owned_shas[$i]}"
+              [[ -f "$file" && ! -L "$file" ]] || continue
+              [[ "$(sha256_upper "$file")" == "$sha" ]] || continue
+              rm -f -- "$file"
+            done
+            [[ -n "${handoff_stage:-}" ]] && rm -rf -- "$handoff_stage" 2>/dev/null || true
+          }
+          handoff_stage="$RUNNER_TEMP/.j7-handoff.${GITHUB_RUN_ID:?}.${GITHUB_RUN_ATTEMPT:?}"
+          handoff_owned_files=()
+          handoff_owned_shas=()
+          mkdir -m 700 "$handoff_stage" 2>/dev/null || fail 'J7_UPLOAD_HANDOFF_STAGE'
+          if ! stage_upload_file "$retryable_json" 'J7-RETRYABLE.json'; then
+            failures+=("$HANDOFF_CODE")
+            rollback_handoff
+            write_cleanup failure || true
+            fail "$HANDOFF_CODE"
+          fi
+          retryable_stage_sha="$HANDOFF_SHA"
+          if ! stage_upload_file "$binding_json" 'J7-RUNNER-BINDING.json'; then
+            failures+=("$HANDOFF_CODE")
+            rollback_handoff
+            write_cleanup failure || true
+            fail "$HANDOFF_CODE"
+          fi
+          binding_stage_sha="$HANDOFF_SHA"
+          fact uploadHandoffRetryableSha256 "$retryable_stage_sha"
+          fact uploadHandoffBindingPreFinalizedSha256 "$binding_stage_sha"
+          printf 'J7_UPLOAD_HANDOFF ok=2 retryableSha=%s bindingPreFinalizedSha=%s\n' "$retryable_stage_sha" "$binding_stage_sha"
+
+          finalized=1
+          trap - EXIT
+          printf 'J7_RUNNER_OK\n'
+          exit 0
+
+      # 专属上传：只列三份已由 gate 交叉核验的安全文件；缺一件即 error，绝不再走 e2e-evidence/** 宽路径。
+      # 放在旧广域上传之后，因此不需要改 playwright-report 的任何字节（J7 文件在它之后才产生）。
+      # retryable 是独立旁证：单独命名、独立路径，绝不与主三件同目录或同名。
+      - name: Upload J7 attribution receipt (exactly three safe files)
+        if: ${{ !cancelled() && steps.j7_probe.outcome == 'success' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: j7-attribution-receipt
+          path: |
+            e2e-evidence/j7/j7-attribution.json
+            e2e-evidence/j7/j7-nodata.json
+            e2e-evidence/j7/j7-cleanup.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Upload J7 retryable receipt (separate named artifact)
+        id: j7_retryable_upload
+        if: ${{ !cancelled() && steps.j7_probe.outcome == 'success' && steps.j7_probe.outputs.retryable == '1' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: j7-retryable-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/J7-RETRYABLE.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Finalize J7 runner binding (safe fields + upload anchor)
+        id: j7_binding_finalize
+        if: ${{ !cancelled() && steps.j7_probe.outcome == 'success' && steps.j7_retryable_upload.outcome == 'success' }}
+        shell: bash
+        env:
+          RETRYABLE_ARTIFACT_NAME: j7-retryable-${{ github.run_id }}-${{ github.run_attempt }}
+          RETRYABLE_ARTIFACT_ID: ${{ steps.j7_retryable_upload.outputs.artifact-id }}
+          RETRYABLE_ARTIFACT_DIGEST: ${{ steps.j7_retryable_upload.outputs.artifact-digest }}
+        run: |
+          set -Eeuo pipefail
+          node - <<'EOF'
+          const fs = require('node:fs');
+          const file = `${process.env.RUNNER_TEMP}/J7-RUNNER-BINDING.json`;
+          const binding = JSON.parse(fs.readFileSync(file, 'utf8'));
+          binding.upload = {
+            artifactName: process.env.RETRYABLE_ARTIFACT_NAME,
+            artifactId: process.env.RETRYABLE_ARTIFACT_ID,
+            zipSha256: process.env.RETRYABLE_ARTIFACT_DIGEST || '',
+          };
+          fs.writeFileSync(file, JSON.stringify(binding, null, 2) + '\n');
+          console.log('J7_RUNNER_BINDING_UPLOAD artifactId=' + binding.upload.artifactId + ' zipSha256=' + binding.upload.zipSha256);
+          EOF
+      - name: Upload J7 runner binding receipt (safe fields only)
+        id: j7_binding_upload
+        if: ${{ !cancelled() && steps.j7_binding_finalize.outcome == 'success' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: j7-runner-binding-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/J7-RUNNER-BINDING.json
+          retention-days: 7
+          if-no-files-found: error
+
   posix-storage-security:
     runs-on: ubuntu-latest
     permissions:
