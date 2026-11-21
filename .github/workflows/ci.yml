@@ -1392,9 +1392,23 @@ jobs:
         run: |
           # <<<J6-RUN-BLOCK
           set -Eeuo pipefail
+          j6_stage=checkout
+          j6_archive_on_exit=0
+          j6_finish() {
+            local status=$1
+            if (( status != 0 )); then
+              printf 'J6_STEP_FAILED stage=%s rc=%d\n' "$j6_stage" "$status" >&2 || true
+            fi
+            if (( j6_archive_on_exit )); then
+              archive_j6_server_log > /dev/null 2>&1 || true
+            fi
+          }
+          trap 'j6_finish "$?"' EXIT
           unset M5T8_TEST_DATABASE_URL M5T8_E2E_SCHEDULER T10_STATE_CAPTURE
           [[ "$(git rev-parse HEAD)" == "$GITHUB_SHA" ]]
+          j6_stage=tracking
           [[ -z "$(git status --porcelain --untracked-files=no)" ]]
+          j6_stage=private-root
           export J6_SEAM_EVIDENCE_ROOT="${RUNNER_TEMP:?}/j6-${GITHUB_RUN_ID:?}-${GITHUB_RUN_ATTEMPT:?}"
           mkdir "$J6_SEAM_EVIDENCE_ROOT"
           export J6_SEAM_RUN_DIR="$J6_SEAM_EVIDENCE_ROOT/run"
@@ -1404,24 +1418,31 @@ jobs:
               mv .next/standalone-server.log "$J6_SEAM_EVIDENCE_ROOT/standalone-server.log"
             fi
           }
-          trap 'archive_j6_server_log || true' EXIT
+          j6_archive_on_exit=1
+          j6_stage=preport
           node "$A3_DRIVER_DIR/ports.cjs" > "$J6_SEAM_EVIDENCE_ROOT/port-before.log" 2>&1
+          j6_stage=stale-log
           [[ ! -e .next/standalone-server.log ]]
 
           # 两个跟踪落点：仓内 spec + 仓内 checker；摘要只在 env，失败关闭。
+          j6_stage=tracking
           J6_DB_NAME="${J6_SEAM_DB_PREFIX:?}_${GITHUB_RUN_ID:?}_${GITHUB_RUN_ATTEMPT:?}"
           [[ "$J6_DB_NAME" =~ ^b10_j6_seam_[1-9][0-9]{0,19}_[1-9][0-9]{0,5}$ ]]
           git ls-files --error-unmatch -- "$J6_SPEC_PATH" > /dev/null
           git ls-files --error-unmatch -- "$J6_CHECKER_PATH" > /dev/null
+          j6_stage=pin-spec
           sha256sum --strict -c <<< "$J6_SPEC_SHA256  $J6_SPEC_PATH" > "$J6_SEAM_EVIDENCE_ROOT/spec-sha.log"
+          j6_stage=pin-checker
           sha256sum --strict -c <<< "$J6_CHECKER_SHA256  $J6_CHECKER_PATH" > "$J6_SEAM_EVIDENCE_ROOT/checker-sha.log"
 
           # 独占库：GitHub postgres service 的容器客户端；只 CREATE，不 DROP；Prisma DSN 只给 app/Prisma。
+          j6_stage=pg-create
           [[ "${PG_CONTAINER_ID:-}" =~ ^[0-9a-f]{64}$ ]] || { printf 'J6_PG_SERVICE_ID_INVALID\n' >&2; exit 1; }
           docker exec "$PG_CONTAINER_ID" psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
             -c "CREATE DATABASE \"$J6_DB_NAME\";" > "$J6_SEAM_EVIDENCE_ROOT/pg-create.log" 2>&1
           export DATABASE_URL="postgresql://postgres:${PGPASSWORD:-postgres}@127.0.0.1:5432/${J6_DB_NAME}?schema=public"
           # 两个容器侧查询的 stderr 只落独占私有目录（不在任何上传路径）；作业日志只出固定阶段码。
+          j6_stage=pg-ident-query
           J6_DIAG_DIR="$J6_SEAM_EVIDENCE_ROOT/diag"
           mkdir "$J6_DIAG_DIR"
           pg_ident_status=0
@@ -1429,18 +1450,23 @@ jobs:
             -c "SELECT current_database() || ':' || current_setting('server_version_num');" \
             2> "$J6_DIAG_DIR/pg-identity.err")" || pg_ident_status=$?
           if (( pg_ident_status != 0 )); then printf 'J6_PG_IDENTITY_QUERY_FAILED\n' >&2; exit "$pg_ident_status"; fi
+          j6_stage=pg-ident-shape
           [[ "$pg_ident" =~ ^${J6_DB_NAME}:17[0-9]{4}$ ]]
+          j6_stage=pg-cluster-query
           pg_cluster_status=0
           pg_cluster_raw="$(docker exec "$PG_CONTAINER_ID" psql -U postgres -d "$J6_DB_NAME" -At -v ON_ERROR_STOP=1 \
             -c "SELECT system_identifier::text FROM pg_control_system();" \
             2> "$J6_DIAG_DIR/pg-cluster.err")" || pg_cluster_status=$?
           if (( pg_cluster_status != 0 )); then printf 'J6_PG_CLUSTER_QUERY_FAILED\n' >&2; exit "$pg_cluster_status"; fi
+          j6_stage=pg-cluster-shape
           [[ "$pg_cluster_raw" =~ ^[0-9]{1,20}$ ]]
           pg_cluster_sha="$(printf '%s' "$pg_cluster_raw" | sha256sum | cut -d' ' -f1 | tr 'a-f' 'A-F')"
           printf 'database=%s\nserver_version_num=%s\ncluster_sha256=%s\n' "${pg_ident%%:*}" "${pg_ident##*:}" "$pg_cluster_sha" \
             > "$J6_SEAM_EVIDENCE_ROOT/pg-identity.txt"
+          j6_stage=prisma
           pnpm prisma db push --skip-generate > "$J6_SEAM_EVIDENCE_ROOT/prisma-push.log" 2>&1
 
+          j6_stage=playwright
           set +e
           CI=1 J6_SEAM_EVIDENCE=1 pnpm test:e2e "$J6_SPEC_PATH" \
             --project=chromium --workers=1 --retries=0 \
@@ -1448,15 +1474,34 @@ jobs:
             > "$J6_SEAM_EVIDENCE_ROOT/playwright.log" 2>&1
           pw_status=$?
           set -Eeuo pipefail
-          archive_j6_server_log
+          j6_stage=server-log
+          archive_j6_server_log > /dev/null 2>&1 || {
+            archive_status=$?
+            if (( pw_status != 0 )); then
+              j6_stage=playwright
+              exit "$pw_status"
+            fi
+            exit "$archive_status"
+          }
+          j6_stage=post-port
           port_after_status=0
           node "$A3_DRIVER_DIR/ports.cjs" > "$J6_SEAM_EVIDENCE_ROOT/port-after.log" 2>&1 || port_after_status=$?
-          printf 'pw_exit=%s\nport_after_exit=%s\n' "$pw_status" "$port_after_status" > "$J6_SEAM_EVIDENCE_ROOT/stage-exit.txt"
-          if (( pw_status != 0 )); then exit "$pw_status"; fi
+          stage_exit_status=0
+          printf 'pw_exit=%s\nport_after_exit=%s\n' "$pw_status" "$port_after_status" > "$J6_SEAM_EVIDENCE_ROOT/stage-exit.txt" || stage_exit_status=$?
+          if (( pw_status != 0 )); then
+            j6_stage=playwright
+            exit "$pw_status"
+          fi
           if (( port_after_status != 0 )); then exit "$port_after_status"; fi
+          if (( stage_exit_status != 0 )); then
+            j6_stage=post-status
+            exit "$stage_exit_status"
+          fi
+          j6_stage=server-log
           [[ -s "$J6_SEAM_EVIDENCE_ROOT/standalone-server.log" ]]
 
           # 应用侧（spec 的 Prisma 连接）三元组必须与 service 侧独立读取逐字段相等；拒额外键与原始标识。
+          j6_stage=run-pg
           run_pg_status=0
           run_pg="$(node -e '
           const fs = require("node:fs");
@@ -1480,6 +1525,7 @@ jobs:
           expected_pg="$(printf '%s\n%s\n%s\n' "${pg_ident%%:*}" "${pg_ident##*:}" "$pg_cluster_sha")"
           [[ "$run_pg" == "$expected_pg" ]] || { printf 'J6_PG_TRIPLE_MISMATCH\n' >&2; exit 1; }
 
+          j6_stage=checker
           node "$J6_CHECKER_PATH" \
             --run "$J6_SEAM_RUN_DIR" \
             --expect-sha "$GITHUB_SHA" \
@@ -1499,9 +1545,11 @@ jobs:
             --receipt "$J6_SEAM_RUN_DIR/RUNNER-RECEIPT.json" \
             > "$J6_SEAM_EVIDENCE_ROOT/checker.log" 2>&1
 
+          j6_stage=staging
           for name in RUN.json CHECK-EVIDENCE.json RUNNER-RECEIPT.json; do
             [[ -f "$J6_SEAM_RUN_DIR/$name" && -s "$J6_SEAM_RUN_DIR/$name" && ! -L "$J6_SEAM_RUN_DIR/$name" ]]
           done
+          j6_stage=publish
           PUBLISH_DIR="${RUNNER_TEMP:?}/j6-publish-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           mkdir "$PUBLISH_DIR"
           [[ -d "$PUBLISH_DIR" && ! -L "$PUBLISH_DIR" ]]
