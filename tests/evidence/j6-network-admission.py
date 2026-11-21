@@ -33,6 +33,8 @@ DIAGNOSTIC_WIRING_SHA = '9872bbeabed838b8bc45afd57bc754bc295bc9ebc0386fab80f68e6
 PLAYWRIGHT_PROGRESS_WIRING_SHA = '6cf262942d6ec5775c78effbc65cb8643164c9ac07f274e6fb797e9b0f69d621'
 CASE_PROGRESS_WIRING_SHA = '4d798a55d1d8336139c7fa35b7b368296e153ad5de84633572103ba680f3721f'
 CASE_PROGRESS_SPEC_SHA = '9ec8eb5f5a075bfdca966a55037a45b74b5268f297f78dd7b7ebd0a4adbe0fed'
+BODY_PROGRESS_WIRING_SHA = 'b2607731cf559e3b0f630b361678810f849623a252b8d1cc48be19597555d55a'
+BODY_PROGRESS_SPEC_SHA = '6285246afb87907a690c20067b767dc351f58d694f94212a31d2d97d72c75690'
 BRIDGE_BUILD_STEP_SHA = 'f9d09773928ab01d9c051eb1d4f002f56af08fcb8f25360eec621bda95a87448'
 CHECKOUT_COMMAND = '[command]/usr/bin/git log -1 --format=%H'
 CHECKOUT = 'Run actions/checkout@v4'
@@ -315,10 +317,15 @@ def checker_source(git, authenticated=False):
     block = section[0][begin:end + len(marker)]
     normalized = re.sub(rb'(?m)^(          J6_(?:SPEC|CHECKER)_SHA256: )[^\n]+$', rb'\1<PIN>', block)
     wiring_sha = digest(normalized)
-    wiring_pins = (BRIDGE_WIRING_SHA, DIAGNOSTIC_WIRING_SHA, PLAYWRIGHT_PROGRESS_WIRING_SHA,
-                   CASE_PROGRESS_WIRING_SHA) if authenticated else (WIRING_SHA,)
-    need(wiring_sha in wiring_pins, 'WIRING')
-    expected_spec = CASE_PROGRESS_SPEC_SHA if wiring_sha == CASE_PROGRESS_WIRING_SHA else PINS[SPEC]
+    wiring_specs = {
+        BRIDGE_WIRING_SHA: PINS[SPEC],
+        DIAGNOSTIC_WIRING_SHA: PINS[SPEC],
+        PLAYWRIGHT_PROGRESS_WIRING_SHA: PINS[SPEC],
+        CASE_PROGRESS_WIRING_SHA: CASE_PROGRESS_SPEC_SHA,
+        BODY_PROGRESS_WIRING_SHA: BODY_PROGRESS_SPEC_SHA,
+    } if authenticated else {WIRING_SHA: PINS[SPEC]}
+    need(wiring_sha in wiring_specs, 'WIRING')
+    expected_spec = wiring_specs[wiring_sha]
     pins = re.findall(rb'(?m)^          J6_(SPEC|CHECKER)_SHA256: ([0-9a-fA-F]{64})$', block)
     allowed_checkers = (PINS[CHECKER], REPLAY_CHECKER_SHA) if authenticated else (PINS[CHECKER],)
     need([name for name, _ in pins] == [b'SPEC', b'CHECKER'] and pins[0][1].decode().lower() == expected_spec

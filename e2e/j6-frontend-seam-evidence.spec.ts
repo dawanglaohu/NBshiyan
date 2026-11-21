@@ -975,7 +975,9 @@ function projectAggregateEvidence(input: {
 }
 
 function recordJ6Case(checkpoint: 'spec-registered' | 'before-all-entered' | 'before-all-complete'
-  | 'case-entered' | 'first-nav-started' | 'first-nav-returned'): void {
+  | 'case-entered' | 'first-nav-started' | 'first-nav-returned'
+  | 'home-http-ok' | 'home-url-ok' | 'home-style-ok' | 'catalog-ssr-ok'
+  | 'consent-nav-ok' | 'model-network-ok' | 'persisted-aggregate-ok' | 'case-body-passed'): void {
   const root = process.env.J6_SEAM_EVIDENCE_ROOT;
   const directory = process.env.J6_PW_PROGRESS_DIR;
   if (!ENABLED || !root || directory !== path.join(root, 'pw-progress')) return;
@@ -1100,7 +1102,9 @@ if (ENABLED) {
         const navigation = await page.goto('/en');
         recordJ6Case('first-nav-returned');
         expect(navigation?.status(), '/en 文档状态').toBe(200);
+        recordJ6Case('home-http-ok');
         await expect(page).toHaveURL(/\/en$/);
+        recordJ6Case('home-url-ok');
 
         const tokenFacts = await page.evaluate(() => {
           const rootStyle = getComputedStyle(document.documentElement);
@@ -1130,6 +1134,7 @@ if (ENABLED) {
         expect(tokenFacts.bodyLineHeight, 'body 行高').toBe(TOKENS.bodyLineHeight);
         expect(tokenFacts.heroBtnBorderWidth, '主控件边宽').toBe(TOKENS.cssBorder);
         expect(tokenFacts.heroBtnBorderRadius, '主控件圆角').toBe(TOKENS.cssRadius);
+        recordJ6Case('home-style-ok');
 
         const ssr = await request.get('/en/products');
         expect(ssr.status(), 'SSR 目录状态').toBe(200);
@@ -1138,6 +1143,7 @@ if (ENABLED) {
         const articleCardCount = (html.match(/<article[^>]*class="card/g) ?? []).length;
         expect(hasTitle, 'SSR 目录标题').toBe(true);
         expect(articleCardCount, 'SSR 产品卡数量').toBeGreaterThanOrEqual(12);
+        recordJ6Case('catalog-ssr-ok');
 
         // 未同意阶段：真实进入一次产品页，必须在同意点击前显式断言网络与持久层零写入。
         await page.locator('header.site nav.nav-desktop a[href="/en/products"]').click();
@@ -1188,6 +1194,7 @@ if (ENABLED) {
 
         // 目录走 SSR；页面不得自己再拉一次 /api/models（与 brand-smoke 同一条产品要求）。
         expect(pageRequests.filter((entry) => entry === 'GET /api/models'), '页面不额外请求 GET /api/models').toEqual([]);
+        recordJ6Case('consent-nav-ok');
 
         // 指针下真实卡片的 slug 是独立 DOM 读，用来和事件里的 productSlug 交叉核。
         const pointer = { x: 320, y: 260 };
@@ -1291,6 +1298,7 @@ if (ENABLED) {
         expect(await cardAfter.getAttribute('data-slug'), '成功后卡片 slug 不变').toBe(slug);
         expect(cardAtPointer.slug, '指针卡片 slug').toBe(slug);
         expect(cardAtPointer.state, '指针卡片初始未就绪').not.toBe('ready');
+        recordJ6Case('model-network-ok');
 
         const eventIds = [...new Set(events.map((event) => event.eventId))];
         const rows = await database().analyticsEvent.findMany({
@@ -1399,6 +1407,7 @@ if (ENABLED) {
         if (!siteAfter.sourceThrough || !productAfter.sourceThrough) throw new Error('J6_SEAM_SOURCE_THROUGH_MISSING');
         expect(siteAfter.sourceThrough.getTime(), 'site sourceThrough 覆盖本次事件').toBeGreaterThanOrEqual(maxReceivedAt);
         expect(productAfter.sourceThrough.getTime(), 'product sourceThrough 覆盖本次事件').toBeGreaterThanOrEqual(maxReceivedAt);
+        recordJ6Case('persisted-aggregate-ok');
 
         // 同意撤回阶段：在同一已授权会话通过页脚偏好面板撤回同意，真实导航后必须零上报、零入库。
         const postsBeforeWithdraw = posts.length;
@@ -1601,6 +1610,7 @@ if (ENABLED) {
           collectedApis: [ANALYTICS_EVENTS, ANALYTICS_CONSENT, OPERATIONS],
         };
         state.status = 'passed';
+        recordJ6Case('case-body-passed');
       } catch (error) {
         state.status = 'failed';
         state.errors.push(error instanceof Error ? error.message : String(error));
