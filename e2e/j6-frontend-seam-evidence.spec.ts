@@ -974,6 +974,18 @@ function projectAggregateEvidence(input: {
   };
 }
 
+function recordJ6Case(checkpoint: 'spec-registered' | 'before-all-entered' | 'before-all-complete'
+  | 'case-entered' | 'first-nav-started' | 'first-nav-returned'): void {
+  const root = process.env.J6_SEAM_EVIDENCE_ROOT;
+  const directory = process.env.J6_PW_PROGRESS_DIR;
+  if (!ENABLED || !root || directory !== path.join(root, 'pw-progress')) return;
+  try {
+    writeFileSync(path.join(directory, checkpoint), '', { flag: 'wx' });
+  } catch {
+    // Observation failure leaves the capture result unchanged.
+  }
+}
+
 if (ENABLED) {
   // 本采集不写 trace/video/screenshot：失败 trace 会把请求头与响应体带进制品，
   // 与“安全网络摘要”口径冲突；证据只落 RUN.json（白名单字段）。
@@ -981,10 +993,12 @@ if (ENABLED) {
 
   test.describe('J6 前台主流程接缝证据（opt-in）', () => {
     test.beforeAll(async ({ browser }, testInfo) => {
+      recordJ6Case('before-all-entered');
       run = beginRun(testInfo, browser.version());
       if (process.env.M5T8_E2E_SCHEDULER === '1') {
         throw new Error('J6_SEAM_SCHEDULER_ON：本采集必须在不带并发调度的专属实例上运行');
       }
+      recordJ6Case('before-all-complete');
     });
 
     test.afterEach(({}, testInfo) => {
@@ -1005,6 +1019,7 @@ if (ENABLED) {
     });
 
     test('同构建 /en→products：token、SSR 无 /api/models、真实 GLB 同 viewId、T12 日行增量', async ({ context, request, browser, baseURL }) => {
+      recordJ6Case('case-entered');
       test.setTimeout(240_000);
       const state = requireRun();
       const evidence: Record<string, unknown> = state.evidence;
@@ -1081,7 +1096,9 @@ if (ENABLED) {
         const preConsentStartedAt = new Date().toISOString();
         const dbBeforePreConsent = await database().analyticsEvent.count();
 
+        recordJ6Case('first-nav-started');
         const navigation = await page.goto('/en');
+        recordJ6Case('first-nav-returned');
         expect(navigation?.status(), '/en 文档状态').toBe(200);
         await expect(page).toHaveURL(/\/en$/);
 
@@ -1592,4 +1609,5 @@ if (ENABLED) {
       }
     });
   });
+  recordJ6Case('spec-registered');
 }

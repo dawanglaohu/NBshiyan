@@ -31,6 +31,8 @@ BUILD_STEP_SHA = '369cecafd4845365eba0e55fb4c529ad1b8ed1e0294ef6d75c23f5385b2857
 BRIDGE_WIRING_SHA = 'b154752a4f2550b5c466c8ad303ba367009302c6887565add8ad9d5f49a59555'
 DIAGNOSTIC_WIRING_SHA = '9872bbeabed838b8bc45afd57bc754bc295bc9ebc0386fab80f68e68a195f705'
 PLAYWRIGHT_PROGRESS_WIRING_SHA = '6cf262942d6ec5775c78effbc65cb8643164c9ac07f274e6fb797e9b0f69d621'
+CASE_PROGRESS_WIRING_SHA = '4d798a55d1d8336139c7fa35b7b368296e153ad5de84633572103ba680f3721f'
+CASE_PROGRESS_SPEC_SHA = '9ec8eb5f5a075bfdca966a55037a45b74b5268f297f78dd7b7ebd0a4adbe0fed'
 BRIDGE_BUILD_STEP_SHA = 'f9d09773928ab01d9c051eb1d4f002f56af08fcb8f25360eec621bda95a87448'
 CHECKOUT_COMMAND = '[command]/usr/bin/git log -1 --format=%H'
 CHECKOUT = 'Run actions/checkout@v4'
@@ -311,13 +313,16 @@ def checker_source(git, authenticated=False):
     end = section[0].find(marker, section[0].find(f'      - name: {UPLOAD}\n'.encode()))
     need(0 <= begin < end, 'WIRING')
     block = section[0][begin:end + len(marker)]
+    normalized = re.sub(rb'(?m)^(          J6_(?:SPEC|CHECKER)_SHA256: )[^\n]+$', rb'\1<PIN>', block)
+    wiring_sha = digest(normalized)
+    wiring_pins = (BRIDGE_WIRING_SHA, DIAGNOSTIC_WIRING_SHA, PLAYWRIGHT_PROGRESS_WIRING_SHA,
+                   CASE_PROGRESS_WIRING_SHA) if authenticated else (WIRING_SHA,)
+    need(wiring_sha in wiring_pins, 'WIRING')
+    expected_spec = CASE_PROGRESS_SPEC_SHA if wiring_sha == CASE_PROGRESS_WIRING_SHA else PINS[SPEC]
     pins = re.findall(rb'(?m)^          J6_(SPEC|CHECKER)_SHA256: ([0-9a-fA-F]{64})$', block)
     allowed_checkers = (PINS[CHECKER], REPLAY_CHECKER_SHA) if authenticated else (PINS[CHECKER],)
-    need([name for name, _ in pins] == [b'SPEC', b'CHECKER'] and pins[0][1].decode().lower() == PINS[SPEC]
+    need([name for name, _ in pins] == [b'SPEC', b'CHECKER'] and pins[0][1].decode().lower() == expected_spec
          and pins[1][1].decode().lower() in allowed_checkers, 'PINS')
-    normalized = re.sub(rb'(?m)^(          J6_(?:SPEC|CHECKER)_SHA256: )[^\n]+$', rb'\1<PIN>', block)
-    wiring_pins = (BRIDGE_WIRING_SHA, DIAGNOSTIC_WIRING_SHA, PLAYWRIGHT_PROGRESS_WIRING_SHA) if authenticated else (WIRING_SHA,)
-    need(digest(normalized) in wiring_pins, 'WIRING')
     sources = {name: git.blob(name) for name in PINS}
     need([digest(sources[name]) for name in PINS] == [value.decode().lower() for _, value in pins], 'PINS')
     return sources

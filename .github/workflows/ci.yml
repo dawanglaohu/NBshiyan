@@ -1386,7 +1386,7 @@ jobs:
           PG_CONTAINER_ID: ${{ job.services.postgres.id }}
           J6_SEAM_DB_PREFIX: b10_j6_seam
           J6_SPEC_PATH: e2e/j6-frontend-seam-evidence.spec.ts
-          J6_SPEC_SHA256: 68C212158889DED53D2EC183D262E64A734558EE2D917348E4582D505A3BE514
+          J6_SPEC_SHA256: 9EC8EB5F5A075BFDCA966A55037A45B74B5268F297F78DD7B7EBD0A4ADBE0FED
           J6_CHECKER_PATH: tests/evidence/j6-check-evidence.cjs
           J6_CHECKER_SHA256: 8298C8EA447C5CDAFE10AB270EE99749ADCE838F4361A76C3778D9C07DC907D9
         run: |
@@ -1410,6 +1410,19 @@ jobs:
                   done
                 fi
                 printf 'J6_PLAYWRIGHT_PROGRESS last=%s rc=%d\n' "$last" "$status" >&2 || true
+                if [[ "$last" == setup-complete ]]; then
+                  local case_last=unknown
+                  if [[ -n "$j6_pw_progress_dir" && ! -L "$j6_pw_progress_dir" ]]; then
+                    for checkpoint in first-nav-returned first-nav-started case-entered before-all-complete before-all-entered spec-registered; do
+                      local marker="$j6_pw_progress_dir/$checkpoint"
+                      if [[ -f "$marker" && ! -L "$marker" && ! -s "$marker" ]]; then
+                        case_last=$checkpoint
+                        break
+                      fi
+                    done
+                  fi
+                  printf 'J6_PLAYWRIGHT_CASE_PROGRESS last=%s rc=%d\n' "$case_last" "$status" >&2 || true
+                fi
               fi
             fi
             if (( j6_archive_on_exit )); then
