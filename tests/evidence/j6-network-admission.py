@@ -30,6 +30,7 @@ WIRING_SHA = '93262480500bdce24266bb042d24ca5d47f0041c8e6588141dc3f994a3b3cd91'
 BUILD_STEP_SHA = '369cecafd4845365eba0e55fb4c529ad1b8ed1e0294ef6d75c23f5385b28572c'
 BRIDGE_WIRING_SHA = 'b154752a4f2550b5c466c8ad303ba367009302c6887565add8ad9d5f49a59555'
 DIAGNOSTIC_WIRING_SHA = '9872bbeabed838b8bc45afd57bc754bc295bc9ebc0386fab80f68e68a195f705'
+PLAYWRIGHT_PROGRESS_WIRING_SHA = '6cf262942d6ec5775c78effbc65cb8643164c9ac07f274e6fb797e9b0f69d621'
 BRIDGE_BUILD_STEP_SHA = 'f9d09773928ab01d9c051eb1d4f002f56af08fcb8f25360eec621bda95a87448'
 CHECKOUT_COMMAND = '[command]/usr/bin/git log -1 --format=%H'
 CHECKOUT = 'Run actions/checkout@v4'
@@ -315,7 +316,7 @@ def checker_source(git, authenticated=False):
     need([name for name, _ in pins] == [b'SPEC', b'CHECKER'] and pins[0][1].decode().lower() == PINS[SPEC]
          and pins[1][1].decode().lower() in allowed_checkers, 'PINS')
     normalized = re.sub(rb'(?m)^(          J6_(?:SPEC|CHECKER)_SHA256: )[^\n]+$', rb'\1<PIN>', block)
-    wiring_pins = (BRIDGE_WIRING_SHA, DIAGNOSTIC_WIRING_SHA) if authenticated else (WIRING_SHA,)
+    wiring_pins = (BRIDGE_WIRING_SHA, DIAGNOSTIC_WIRING_SHA, PLAYWRIGHT_PROGRESS_WIRING_SHA) if authenticated else (WIRING_SHA,)
     need(digest(normalized) in wiring_pins, 'WIRING')
     sources = {name: git.blob(name) for name in PINS}
     need([digest(sources[name]) for name in PINS] == [value.decode().lower() for _, value in pins], 'PINS')

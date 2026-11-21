@@ -1394,10 +1394,23 @@ jobs:
           set -Eeuo pipefail
           j6_stage=checkout
           j6_archive_on_exit=0
+          j6_pw_progress_dir=
           j6_finish() {
             local status=$1
             if (( status != 0 )); then
               printf 'J6_STEP_FAILED stage=%s rc=%d\n' "$j6_stage" "$status" >&2 || true
+              if [[ "$j6_stage" == playwright ]]; then
+                local checkpoint last=unknown
+                if [[ -n "$j6_pw_progress_dir" ]]; then
+                  for checkpoint in setup-complete seed-accepted setup-entered; do
+                    if [[ -f "$j6_pw_progress_dir/$checkpoint" && ! -L "$j6_pw_progress_dir/$checkpoint" ]]; then
+                      last=$checkpoint
+                      break
+                    fi
+                  done
+                fi
+                printf 'J6_PLAYWRIGHT_PROGRESS last=%s rc=%d\n' "$last" "$status" >&2 || true
+              fi
             fi
             if (( j6_archive_on_exit )); then
               archive_j6_server_log > /dev/null 2>&1 || true
@@ -1468,7 +1481,10 @@ jobs:
 
           j6_stage=playwright
           set +e
-          CI=1 J6_SEAM_EVIDENCE=1 pnpm test:e2e "$J6_SPEC_PATH" \
+          if (umask 077; mkdir -- "$J6_SEAM_EVIDENCE_ROOT/pw-progress") 2>/dev/null; then
+            j6_pw_progress_dir="$J6_SEAM_EVIDENCE_ROOT/pw-progress"
+          fi
+          CI=1 J6_SEAM_EVIDENCE=1 J6_PW_PROGRESS_DIR="$j6_pw_progress_dir" pnpm test:e2e "$J6_SPEC_PATH" \
             --project=chromium --workers=1 --retries=0 \
             --output "$J6_SEAM_EVIDENCE_ROOT/test-results" \
             > "$J6_SEAM_EVIDENCE_ROOT/playwright.log" 2>&1
