@@ -82,6 +82,9 @@ type GlbFact = {
   contentLength: number | null;
   contentType: string | null;
   fromServiceWorker: boolean;
+  frameMain: boolean;
+  pagePath: string | null;
+  resourceType: string;
   servedFileSize: number | null;
   servedFileSha256: string | null;
   bodyBytes: number | null;
@@ -1076,6 +1079,10 @@ if (ENABLED) {
           contentLength: length ? Number(length) : null,
           contentType: response.headers()['content-type'] ?? null,
           fromServiceWorker: response.fromServiceWorker(),
+          // 归属锚：同一主帧、同一页面路径、同一采集轮（RUN.startedAt 之后）。
+          frameMain: response.request().frame() === page.mainFrame(),
+          pagePath: canonicalPath(page.url()),
+          resourceType: response.request().resourceType(),
           servedFileSize: served && existsSync(served) ? statSync(served).size : null,
           servedFileSha256: served && existsSync(served) ? sha256Hex(readFileSync(served)) : null,
           bodyBytes: null,
@@ -1217,6 +1224,7 @@ if (ENABLED) {
         }, pointer);
 
         // 真实的指针移动启用 3D 懒加载；不要求激活点击，也不拦截 GLB。
+        const attemptStartedAt = Date.now();
         await page.mouse.move(pointer.x, pointer.y);
         await expect.poll(() => posts.flatMap((post) => post.events).filter((event) => event.kind === 'model_view_start').length, { timeout: 120_000 })
           .toBeGreaterThan(0);
@@ -1265,14 +1273,30 @@ if (ENABLED) {
         const boundProductView = productViews.find((view) => view.navigationId === start.navigationId && view.productSlug === start.productSlug);
         if (!boundProductView) throw new Error('J6_SEAM_PRODUCT_VIEW_UNBOUND');
 
-        // 先求该 slug 在 SSR 目录里真正的 model URL，再要求 facts 里唯一匹配的响应就是它。
+        // 先求该 slug 在 SSR 目录里真正的 model URL，再要求 facts 里该 URL 的响应字节唯一。
+        // 首次产品页已按真实网络加载同一模型；第二次客户端导航复用页面模型缓存（drei useGLTF），
+        // 此时本轮尝试没有新响应，只能以“同一主帧、同一页面路径、同一采集轮、同一目录 URL”的
+        // 预热响应归属；有本轮响应时仍要求恰好一条且落在窗口内。
         const catalogModel = await resolveCatalogModel(slug);
         expect(catalogModel.slug, '目录绑定 slug 与关联 slug 同一').toBe(slug);
         const chosenFacts = glbFacts.filter((fact) => fact.path === catalogModel.pathname);
-        if (chosenFacts.length !== 1) {
-          throw new Error(`J6_SEAM_GLB_CHOICE ${catalogModel.pathname} count=${chosenFacts.length} facts=${JSON.stringify(glbFacts.map((fact) => `${fact.path}:${fact.status}`))}`);
+        if (chosenFacts.length === 0) {
+          throw new Error(`J6_SEAM_GLB_CHOICE ${catalogModel.pathname} count=0 facts=${JSON.stringify(glbFacts.map((fact) => `${fact.path}:${fact.status}`))}`);
         }
-        const chosenGlb = chosenFacts[0]!;
+        const chosenVariants = new Set(chosenFacts.map((fact) => `${fact.status}:${String(fact.bodySha256)}:${String(fact.bodyBytes)}`));
+        if (chosenVariants.size !== 1) {
+          throw new Error(`J6_SEAM_GLB_CHOICE ${catalogModel.pathname} variants=${chosenVariants.size} facts=${JSON.stringify(chosenFacts.map((fact) => `${fact.status}:${String(fact.bodyBytes)}`))}`);
+        }
+        const chosenGlb = chosenFacts[chosenFacts.length - 1]!;
+        const attemptFacts = chosenFacts.filter((fact) => fact.responseAt >= attemptStartedAt);
+        const cacheServed = attemptFacts.length === 0;
+        const captureStartMs = Date.parse(state.startedAt);
+        if (cacheServed) {
+          if (!chosenGlb.frameMain || chosenGlb.fromServiceWorker || chosenGlb.pagePath !== '/en/products'
+              || chosenGlb.responseAt < captureStartMs) {
+            throw new Error(`J6_SEAM_GLB_OWNERSHIP path=${chosenGlb.path} frame=${String(chosenGlb.frameMain)} sw=${String(chosenGlb.fromServiceWorker)} page=${String(chosenGlb.pagePath)} at=${chosenGlb.responseAt}`);
+          }
+        }
         if (chosenGlb.status !== 200) throw new Error(`J6_SEAM_GLB_STATUS ${chosenGlb.path} ${chosenGlb.status}`);
         if (chosenGlb.fromServiceWorker) throw new Error(`J6_SEAM_GLB_SERVICE_WORKER ${chosenGlb.path}`);
         if (chosenGlb.search !== catalogModel.search) {
@@ -1299,8 +1323,9 @@ if (ENABLED) {
         const successMs = Date.parse(succeeded.occurredAt ?? '');
         if (!Number.isFinite(startMs) || !Number.isFinite(successMs)) throw new Error('J6_SEAM_EVENT_TIME_MISSING');
         if (successMs < startMs) throw new Error(`J6_SEAM_EVENT_TIME_ORDER start=${startMs} success=${successMs}`);
-        if (chosenGlb.responseAt < startMs - 2_000 || chosenGlb.responseAt > successMs + 2_000) {
-          throw new Error(`J6_SEAM_GLB_WINDOW at=${chosenGlb.responseAt} start=${startMs} success=${successMs}`);
+        if (chosenGlb.responseAt < (cacheServed ? captureStartMs : startMs - 2_000)
+            || chosenGlb.responseAt > successMs + 2_000) {
+          throw new Error(`J6_SEAM_GLB_WINDOW at=${chosenGlb.responseAt} start=${startMs} success=${successMs} cache=${String(cacheServed)}`);
         }
         // 指针卡片、事件 slug、目录路径、实际响应四者同一。
         const cardAfter = page.locator(`[data-testid="product-viewport"][data-slug="${slug}"]`);
@@ -1348,9 +1373,9 @@ if (ENABLED) {
         expect(persistedStart.productSlug, '持久 start productSlug').toBe(start.productSlug);
         expect(persistedSuccess.occurredAt.getTime(), '持久终态不早于 start').toBeGreaterThanOrEqual(persistedStart.occurredAt.getTime());
         expect(rowByKind('model_load_failure'), '本路径不应有失败终态').toBeUndefined();
-        if (chosenGlb.responseAt < persistedStart.occurredAt.getTime() - 2_000
+        if (chosenGlb.responseAt < (cacheServed ? captureStartMs : persistedStart.occurredAt.getTime() - 2_000)
             || chosenGlb.responseAt > persistedSuccess.occurredAt.getTime() + 2_000) {
-          throw new Error(`J6_SEAM_GLB_WINDOW at=${chosenGlb.responseAt} dbStart=${persistedStart.occurredAt.getTime()} dbSuccess=${persistedSuccess.occurredAt.getTime()}`);
+          throw new Error(`J6_SEAM_GLB_WINDOW at=${chosenGlb.responseAt} dbStart=${persistedStart.occurredAt.getTime()} dbSuccess=${persistedSuccess.occurredAt.getTime()} cache=${String(cacheServed)}`);
         }
         const maxReceivedAt = Math.max(...rows.map((row) => row.receivedAt.getTime()));
 
@@ -1582,6 +1607,9 @@ if (ENABLED) {
           chosen: chosenGlb,
           catalogPath: catalogModel.pathname,
           catalogSearch: catalogModel.search,
+          cacheServed,
+          attemptStartedAt: new Date(attemptStartedAt).toISOString(),
+          attemptResponseCount: attemptFacts.length,
           window: {
             startAt: persistedStart.occurredAt.getTime(),
             successAt: persistedSuccess.occurredAt.getTime(),

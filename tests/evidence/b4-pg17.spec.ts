@@ -48,7 +48,9 @@ async function startCrond(busybox: string) {
   await writeFile(join(spool, 'root'), `*/5 * * * * exec /bin/bash ${path('tick.sh')} tick ${root} ${process.execPath}\n`, { mode: 0o600 });
   if (nextBoundary() - Date.now() < 5_000) await sleep(nextBoundary() - Date.now() + 1_000);
   return spawn(busybox, ['crond', '-f', '-c', spool, '-l', '8', '-L', path('crond.private.log')], {
-    stdio: 'ignore', env: { PATH: process.env.PATH, TZ: 'UTC' },
+    // crond only needs PATH and TZ; Next augments ProcessEnv with a required NODE_ENV, so the partial
+    // env is asserted at the type level and the child still receives exactly these two variables.
+    stdio: 'ignore', env: { PATH: process.env.PATH, TZ: 'UTC' } as unknown as NodeJS.ProcessEnv,
   });
 }
 
@@ -478,6 +480,7 @@ test('B4 PG17 real schedule and ADMIN revision', async ({ playwright }) => {
     const rounds: Round[] = [];
     stage = 'initial_true_tick';
     crond = await startCrond(busybox);
+    assert.ok(crond);
     assert.ok(crond.pid);
     await writeFile(path('crond.pid'), String(crond.pid), { mode: 0o600 });
     const firstBoundary = nextBoundary();
@@ -522,6 +525,7 @@ test('B4 PG17 real schedule and ADMIN revision', async ({ playwright }) => {
     assert.deepEqual(await readDay(db, restarted.date, restarted.revision), stoppedDay);
     stage = 'resumed_true_tick';
     crond = await startCrond(busybox);
+    assert.ok(crond);
     assert.ok(crond.pid);
     await writeFile(path('crond.pid'), String(crond.pid), { mode: 0o600 });
     const resumed = await recordRound({ name: 'resumed', db, index: 3, boundary: stopped.boundary + INTERVAL, crond, after: stopped.boundary + 75_000, previous: restarted, timezone: target, revision: patch.timezoneRevision, occurredAt, receivedAt: secondReceived, count: 2 });

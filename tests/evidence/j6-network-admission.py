@@ -24,7 +24,7 @@ PINS = {
     SPEC: '68c212158889ded53d2ec183d262e64a734558ee2d917348e4582d505a3be514',
     CHECKER: '1bee734a87ddb952f023c526f94ba4ef3c1cc898dc4e86d3bd090e8d72fca362',
 }
-REPLAY_CHECKER_SHA = '8298c8ea447c5cdafe10ab270ee99749adce838f4361a76c3778d9c07dc907d9'
+REPLAY_CHECKER_SHA = '36f198e8c64d5bfbe39e46a0989af522493f1191ac515c512eb7a5e09836e4b7'
 WORKFLOW = '.github/workflows/ci.yml'
 WIRING_SHA = '93262480500bdce24266bb042d24ca5d47f0041c8e6588141dc3f994a3b3cd91'
 BUILD_STEP_SHA = '369cecafd4845365eba0e55fb4c529ad1b8ed1e0294ef6d75c23f5385b28572c'
@@ -34,7 +34,7 @@ PLAYWRIGHT_PROGRESS_WIRING_SHA = '6cf262942d6ec5775c78effbc65cb8643164c9ac07f274
 CASE_PROGRESS_WIRING_SHA = '4d798a55d1d8336139c7fa35b7b368296e153ad5de84633572103ba680f3721f'
 CASE_PROGRESS_SPEC_SHA = '9ec8eb5f5a075bfdca966a55037a45b74b5268f297f78dd7b7ebd0a4adbe0fed'
 BODY_PROGRESS_WIRING_SHA = 'b2607731cf559e3b0f630b361678810f849623a252b8d1cc48be19597555d55a'
-BODY_PROGRESS_SPEC_SHA = '2e346be8bff2a6672c268e5904b40779500a41397e33a7092c102f6c15b2d954'
+BODY_PROGRESS_SPEC_SHA = '0981d02d6338c6386e3aa3b97859b82cca4aec78944b118d91093116a88dd4b4'
 BRIDGE_BUILD_STEP_SHA = 'f9d09773928ab01d9c051eb1d4f002f56af08fcb8f25360eec621bda95a87448'
 CHECKOUT_COMMAND = '[command]/usr/bin/git log -1 --format=%H'
 CHECKOUT = 'Run actions/checkout@v4'
@@ -369,6 +369,20 @@ def materialize_sources(git, root, pinned, original):
         if path.startswith('/models/') and fact['status'] == 200:
             paths.add('public' + path)
     need(len(paths) <= 16, 'GLB_PATH')
+    # 缓存预热契约：本轮无响应时只接受同一主帧/同一目录页/同一采集轮的预热响应。
+    glb = original['evidence']['glb']
+    need(type(glb.get('cacheServed')) is bool, 'GLB_CACHE_FLAG')
+    count = glb.get('attemptResponseCount')
+    need(type(count) is int and 0 <= count <= 16, 'GLB_CACHE_COUNT')
+    if glb['cacheServed']:
+        need(count == 0, 'GLB_CACHE_COUNT')
+        need(match(glb.get('attemptStartedAt'), UTC + r'\.\d{3}Z'), 'GLB_CACHE_START')
+    else:
+        need(count >= 1, 'GLB_CACHE_COUNT')
+    chosen = glb.get('chosen') or {}
+    need(chosen.get('frameMain') is True, 'GLB_FRAME')
+    need(chosen.get('pagePath') == '/en/products', 'GLB_PAGE')
+    need(chosen.get('resourceType') in ('fetch', 'xhr'), 'GLB_RESOURCE')
     for name in sorted(paths):
         write(root / name, git.blob(name, 20 * 1024 * 1024))
     write(root / CHECKER, pinned[CHECKER])

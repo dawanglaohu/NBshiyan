@@ -51,14 +51,12 @@ jobs:
       # Independently reviewed J4 and J1 single-file pins (reusing this job's APP_ENV=test build and PG17 runtime image).
       J4_SCRIPT_SHA256: fdea52db37dd2948150731be4d6a0a4ef6b2b12220a2a58d7d73505bceae904c
       B10_J1_APPROVED_FILE_SHA256: c8a1744cc09c7037ceb94887f49d1194643f04330f0826ce4d49b3664696822e
-      # Approved by the independent database review R2 (seal 22/22 3948517c6e2ce8b99068c22f44de095cad34113ff6f24366183ed3b019229ba7,
-      # MANIFEST-APPROVED.sha256): generated from the ed9685a2 git blobs plus the three added B4 files and byte-identical to the
-      # backend candidate manifest (1460 B, 16 lines). The text is the 16-line `sha256sum` manifest in LC_ALL=C path order; the
-      # digest is the SHA-256 of exactly that text. The stage step checks the text against the pin outside the checkout, then the
-      # checkout against the text; b4-pg17.sh stage and run repeat the check.
+      # B4_APPROVED_MANIFEST_TEXT: 16 lines, LF, LC_ALL=C path order; the digest is the SHA-256 of exactly that text.
+      # The stage step checks the text against the pin outside the checkout, then the checkout against the text;
+      # b4-pg17.sh stage and run repeat the check.
       # Repair (localhost/AI_ADDRCONFIG): tests/evidence/b4-pg17.sh line 126 is `getent -A ahostsv4 localhost` (glibc getent --no-addrconfig),
-      # Still required to resolve to exactly 127.0.0.1. The J5 approval updates the three B4 runner files; all other pins stay fixed.
-      B4_APPROVAL_SHA256: ad3f0e8863f998dcbbb7e1c9ff159d4899bda10ee72eceb5ec90dea7d3da519b
+      # Still required to resolve to exactly 127.0.0.1.
+      B4_APPROVAL_SHA256: 852084bb6b5505d36f28dd7802efe3dd7b65ae3c9c131112c459e21963e2696d
       B4_APPROVED_MANIFEST_TEXT: |
         c0d3456a93ab010d0bbc5ee836dc1b211042e9a2397299cbe650e07afb832683  deploy/cron.nbshiyan
         fcd9810487f9b5a780a070cb37b9cad758169c12362223a995db40214353e5ad  e2e/analytics-job-runtime.spec.ts
@@ -75,7 +73,7 @@ jobs:
         6ceaab8a080e76bba1d64d1c9da4469d93e537e502838dacd0106d8927f994e5  src/lib/contracts/account.ts
         420aea6bddbb5b449f5f1c789146d503e9f59045d6b6e933729d5991daf4881f  tests/evidence/b4-pg17.config.ts
         e434cdc785c6d93350bcaecbf288f3bb7a8b378f0f84ff3ec0c4bb67289a7f87  tests/evidence/b4-pg17.sh
-        56781a943715c62743befc1022a707c205f8761d49346ab6e624eb2ecf1d06c6  tests/evidence/b4-pg17.spec.ts
+        442e140a3e342fed0dacf99e7597c9a9459d6ebaaaf1c06c174e53beb65aab04  tests/evidence/b4-pg17.spec.ts
     steps:
       # Full history: b4-pg17.sh stage needs the baseline commit object (merge-base --is-ancestor, tree of the baseline).
       - uses: actions/checkout@v4

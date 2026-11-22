@@ -50,7 +50,8 @@ const REQUIRED_SOURCE_SET = new Set(REQUIRED_SOURCES);
 const RUNNER_KEYS = ['runId', 'runAttempt', 'job', 'workflow', 'ref', 'source'];
 const GLB_FACT_KEYS = [
   'path', 'search', 'status', 'contentLength', 'contentType',
-  'fromServiceWorker', 'servedFileSize', 'servedFileSha256',
+  'fromServiceWorker', 'frameMain', 'pagePath', 'resourceType',
+  'servedFileSize', 'servedFileSha256',
   'bodyBytes', 'bodySha256', 'requestAt', 'responseAt',
 ];
 const SITE_DELTA_KEYS = ['visitors', 'pageViews', 'productViews', 'modelStarts', 'modelSuccesses', 'modelFailures', 'durationMsSum'];
@@ -679,14 +680,18 @@ function validateEvidence(run, ctx, build) {
     }
   }
 
-  // facts 中与目录路径匹配的响应必须唯一且自身为 200/非 SW/真实字节；chosen 必须与该唯一事实逐字段相等。
+  // facts 中与目录路径匹配的响应必须字节唯一（允许缓存预热下的同字节重复）；chosen 必须是最后一条。
   const matchingFacts = catalogModel && typeof catalogModel.path === 'string'
     ? glbFacts.filter((fact) => fact && fact.path === catalogModel.path)
     : [];
-  if (catalogModel && typeof catalogModel.path === 'string' && matchingFacts.length !== 1) {
-    add('E_GLB_FACT_COUNT', `${catalogModel.path} count=${matchingFacts.length}`);
+  if (catalogModel && typeof catalogModel.path === 'string' && matchingFacts.length === 0) {
+    add('E_GLB_FACT_COUNT', `${catalogModel.path} count=0`);
   }
-  const matchedFact = matchingFacts.length === 1 ? matchingFacts[0] : null;
+  const matchingVariants = new Set(matchingFacts.map((fact) => `${fact.status}:${String(fact.bodySha256)}:${String(fact.bodyBytes)}`));
+  if (matchingFacts.length > 0 && matchingVariants.size !== 1) {
+    add('E_GLB_FACT_VARIANTS', `${catalogModel.path} variants=${matchingVariants.size}`);
+  }
+  const matchedFact = matchingFacts.length > 0 ? matchingFacts[matchingFacts.length - 1] : null;
   const chosen = glb?.chosen;
 
   const verifyGlbResponse = (target, label) => {
@@ -701,6 +706,12 @@ function validateEvidence(run, ctx, build) {
     }
     if (target.status !== 200) add('E_GLB_STATUS', `${label}:${String(target.status)}`);
     if (target.fromServiceWorker !== false) add('E_GLB_SERVICE_WORKER', `${label}:${String(target.fromServiceWorker)}`);
+    // 归属锚：响应必须来自同一主帧、同一目录页、同一采集轮。
+    if (target.frameMain !== true) add('E_GLB_FRAME', `${label}:${String(target.frameMain)}`);
+    if (target.pagePath !== '/en/products') add('E_GLB_PAGE', `${label}:${String(target.pagePath)}`);
+    if (target.resourceType !== 'fetch' && target.resourceType !== 'xhr') {
+      add('E_GLB_RESOURCE', `${label}:${String(target.resourceType)}`);
+    }
     if (!(num(target.bodyBytes) > 1_000)) add('E_GLB_BODY', `${label}:${String(target.bodyBytes)}`);
     if (typeof target.bodySha256 !== 'string' || !/^[0-9A-F]{64}$/.test(target.bodySha256)) {
       add('E_GLB_BODY_SHA', `${label}:${String(target.bodySha256)}`);
@@ -773,6 +784,9 @@ function validateEvidence(run, ctx, build) {
 
   let matchedStart = null;
   let matchedTerminal = null;
+  // 归属窗口只算一次：客户端窗口与持久化回读必须共用同一组边界。
+  let glbWindow = null;
+  const runStartAt = isIso(run.startedAt) ? Date.parse(run.startedAt) : NaN;
   if (association) {
     const { viewId, navigationId, productSlug, startEventId, terminalEventId, pageViewEventId, productViewEventId, oneTerminalForView } = association;
     if (typeof viewId !== 'string' || !viewId) add('E_ASSOC_VIEW_ID');
@@ -803,10 +817,39 @@ function validateEvidence(run, ctx, build) {
     } else if (successAt < startAt) {
       add('E_ASSOC_TIME_ORDER', `${start.occurredAt} > ${terminal.occurredAt}`);
     } else if (glb?.chosen) {
+      // 归属窗口：本轮有响应时下界取 start−2000；本轮无响应（页面模型缓存复用）时下界取
+      // 采集轮起点，并额外要求预热响应早于本轮尝试开始。持久化回读用同一组边界。
+      const attemptAt = isIso(glb.attemptStartedAt) ? Date.parse(glb.attemptStartedAt) : NaN;
+      if (!Number.isFinite(runStartAt)) add('E_GLB_CACHE_START', `run:${String(run.startedAt)}`);
+      // 从原始事实复算尝试计数：目录 URL 中 responseAt ≥ attemptStartedAt 的响应条数。
+      const recomputedCount = Number.isFinite(attemptAt)
+        ? matchingFacts.filter((fact) => num(fact.responseAt) !== null && fact.responseAt >= attemptAt).length
+        : null;
+      if (recomputedCount !== null && recomputedCount !== glb.attemptResponseCount) {
+        add('E_GLB_CACHE_COUNT', `recomputed=${recomputedCount} reported=${String(glb.attemptResponseCount)}`);
+      }
+      if (recomputedCount !== null && (recomputedCount === 0) !== glb.cacheServed) {
+        add('E_GLB_CACHE_FLAG', `cacheServed=${String(glb.cacheServed)} recomputed=${String(recomputedCount === 0)}`);
+      }
+      if (!Number.isFinite(attemptAt) || attemptAt < runStartAt || attemptAt > startAt) {
+        add('E_GLB_CACHE_START', `attempt=${String(glb.attemptStartedAt)} not in [${runStartAt}, ${startAt}]`);
+      }
+      if (glb.cacheServed === true) {
+        if (glb.attemptResponseCount !== 0) add('E_GLB_CACHE_COUNT', String(glb.attemptResponseCount));
+        if (num(glb.chosen.responseAt) !== null && glb.chosen.responseAt >= attemptAt) {
+          add('E_GLB_CACHE_START', `chosen=${glb.chosen.responseAt} >= attempt=${attemptAt}`);
+        }
+      } else if (glb.cacheServed === false) {
+        if (!(num(glb.attemptResponseCount) >= 1)) add('E_GLB_CACHE_COUNT', String(glb.attemptResponseCount));
+      } else {
+        add('E_GLB_CACHE_FLAG', String(glb.cacheServed));
+      }
+      const lower = glb.cacheServed === true ? runStartAt : startAt - 2_000;
+      glbWindow = { startAt, successAt, lower, upper: successAt + 2_000, cacheServed: glb.cacheServed };
       const checkResponseInWindow = (target, label) => {
-        if (num(target?.responseAt) === null
-            || target.responseAt < startAt - 2_000 || target.responseAt > successAt + 2_000) {
-          add('E_GLB_WINDOW', `${label}:${String(target?.responseAt)} not in [${startAt - 2_000}, ${successAt + 2_000}]`);
+        if (num(target?.responseAt) === null || !Number.isFinite(lower)
+            || target.responseAt < lower || target.responseAt > successAt + 2_000) {
+          add('E_GLB_WINDOW', `${label}:${String(target?.responseAt)} not in [${lower}, ${successAt + 2_000}] cache=${String(glb.cacheServed)}`);
         }
       };
       checkResponseInWindow(glb.chosen, 'chosen');
@@ -962,9 +1005,16 @@ function validateEvidence(run, ctx, build) {
         const dbStartAt = Date.parse(startRow.occurredAt);
         const dbSuccessAt = Date.parse(terminalRow.occurredAt);
         if (dbSuccessAt < dbStartAt) add('E_DB_TIME_ORDER', `${startRow.occurredAt} > ${terminalRow.occurredAt}`);
-        else if (matchedFact && (num(matchedFact.responseAt) === null
-            || matchedFact.responseAt < dbStartAt - 2_000 || matchedFact.responseAt > dbSuccessAt + 2_000)) {
-          add('E_GLB_WINDOW', `db:${String(matchedFact.responseAt)} not in [${dbStartAt - 2_000}, ${dbSuccessAt + 2_000}]`);
+        else {
+          // 持久化回读与客户端同一窗口：同一组 start/terminal，同一 cacheServed 下界。
+          if (glbWindow && (glbWindow.startAt !== dbStartAt || glbWindow.successAt !== dbSuccessAt)) {
+            add('E_GLB_WINDOW_DB_DRIFT', `db=${dbStartAt}..${dbSuccessAt} client=${glbWindow.startAt}..${glbWindow.successAt}`);
+          }
+          const dbLower = glbWindow && glbWindow.cacheServed === true ? runStartAt : dbStartAt - 2_000;
+          if (matchedFact && (num(matchedFact.responseAt) === null || !Number.isFinite(dbLower)
+              || matchedFact.responseAt < dbLower || matchedFact.responseAt > dbSuccessAt + 2_000)) {
+            add('E_GLB_WINDOW', `db:${String(matchedFact.responseAt)} not in [${dbLower}, ${dbSuccessAt + 2_000}] cache=${String(glbWindow?.cacheServed)}`);
+          }
         }
       }
     }
