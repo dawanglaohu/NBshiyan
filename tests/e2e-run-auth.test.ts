@@ -360,13 +360,48 @@ test('run-auth runner resolution uses the declared consumer under strict depende
   }
 });
 
-test('run-auth actual runner orders webServer plugin readiness before globalSetup', () => {
+test('run-auth actual runner orders webServer plugin readiness before globalSetup', async () => {
   const runner = readFileSync(path.join(path.dirname(resolveRunnerPackage()), 'lib/runner/index.js'), 'utf8');
   assert.match(runner, /webServerPluginsForConfig\(config2\).*config2\.plugins\.push/s);
   const global = runner.slice(runner.indexOf('function createGlobalSetupTasks('), runner.indexOf('function createRunTestsTasks('));
   assert.ok(global.indexOf('createPluginSetupTasks') < global.indexOf('config2.globalSetups.map'));
-  const setup = readFileSync('e2e/global-setup.ts', 'utf8');
-  assert.match(setup, /return runGlobalSetupInitialization\(\(\) => initializeRunAuth\(/);
+
+  const source = readFileSync('e2e/global-setup.ts', 'utf8');
+  const tree = ts.createSourceFile('global-setup.ts', source, ts.ScriptTarget.Latest, true);
+  const declaration = tree.statements.find((node): node is ts.FunctionDeclaration =>
+    ts.isFunctionDeclaration(node) && node.modifiers?.some((modifier) => modifier.kind === ts.SyntaxKind.DefaultKeyword) === true);
+  assert.ok(declaration);
+  const code = ts.transpileModule(declaration.getText(tree), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+  }).outputText;
+  const request = {};
+  const cleanup = () => {};
+  let wrapped = 0;
+  let initialized = 0;
+  // Run the actual hook body with a synthetic seed and initializer to verify ordering without using a database or HTTP.
+  const setup = runInNewContext(`${code}\nexports.default;`, {
+    exports: {}, process: { env: { DATABASE_URL: 'synthetic' } },
+    E2E_ADMIN: { email: 'unit@example.test', password: '' },
+    execFileSync: () => '', request,
+    runGlobalSetupInitialization: (run: () => Promise<() => void>) => {
+      wrapped++;
+      return runGlobalSetupInitialization(run);
+    },
+    initializeRunAuth: async (origin: string, factory: unknown) => {
+      assert.equal(origin, ORIGIN);
+      assert.equal(factory, request);
+      await Promise.resolve();
+      initialized++;
+      return cleanup;
+    },
+    recordJ6Setup: (checkpoint: string) => {
+      if (checkpoint === 'setup-complete') assert.equal(initialized, 1, 'setup-complete follows run-auth initialization');
+    },
+  }) as () => Promise<unknown>;
+  assert.equal(await setup(), cleanup, 'globalSetup returns the original run-auth cleanup callback');
+  assert.equal(wrapped, 1, 'globalSetup uses the shared initialization boundary');
+  assert.equal(initialized, 1, 'globalSetup initializes run-auth exactly once');
+
   for (const lifecycle of ['admin.spec.ts', 'admin-enroll.spec.ts', 'admin-login.spec.ts', 'admin-device-session.spec.ts', 'hotfix-login-empty.spec.ts']) assert.doesNotMatch(readFileSync(`e2e/${lifecycle}`, 'utf8'), /loadRunAuth|readRunAuth/);
 });
 

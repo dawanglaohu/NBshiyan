@@ -11,7 +11,8 @@ import { execFileSync } from 'node:child_process';
 import { spawn, type ChildProcess } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { EventEmitter } from 'node:events';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
+import { isDeepStrictEqual } from 'node:util';
 import { createServer, type Server } from 'node:net';
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -1008,33 +1009,35 @@ function loginSucceeded(result: { jar: CookieJar; response: Response }): boolean
   return result.response.status === 302 && !location.includes('error') && result.jar.hasSession();
 }
 
-describe('M3-T20 真实 socket/Next HTTP（实例阶段）', { concurrency: 1, skip: skipHttp }, () => {
-  before(async () => {
-    if (!standaloneDir) return;
-    const serverJs = path.join(standaloneDir, 'server.js');
-    if (!existsSync(serverJs)) throw new Error('B10_M3T20_STANDALONE_DIR must contain server.js');
-    const port = await pickFreePort();
-    httpBase = `http://127.0.0.1:${port}`;
-    standalone = spawn(process.execPath, [serverJs], {
-      cwd: standaloneDir,
-      env: {
-        ...process.env,
-        DATABASE_URL: databaseUrl,
-        PORT: String(port),
-        HOSTNAME: '127.0.0.1',
-        NODE_ENV: 'production',
-        APP_ENV: 'test',
-        AUTH_URL: httpBase,
-        AUTH_TRUST_HOST: 'true',
-        ORIGIN: httpBase,
-        APP_ORIGIN: httpBase,
-        NEXTAUTH_URL: httpBase,
-        NEXT_PUBLIC_SITE_URL: httpBase,
-      },
-      stdio: ['ignore', 'ignore', 'ignore'],
-    });
-    await waitForServer(standalone, httpBase);
+async function startStandalone(): Promise<void> {
+  if (!standaloneDir) return;
+  const serverJs = path.join(standaloneDir, 'server.js');
+  if (!existsSync(serverJs)) throw new Error('B10_M3T20_STANDALONE_DIR must contain server.js');
+  const port = await pickFreePort();
+  httpBase = `http://127.0.0.1:${port}`;
+  standalone = spawn(process.execPath, [serverJs], {
+    cwd: standaloneDir,
+    env: {
+      ...process.env,
+      DATABASE_URL: databaseUrl,
+      PORT: String(port),
+      HOSTNAME: '127.0.0.1',
+      NODE_ENV: 'production',
+      APP_ENV: 'test',
+      AUTH_URL: httpBase,
+      AUTH_TRUST_HOST: 'true',
+      ORIGIN: httpBase,
+      APP_ORIGIN: httpBase,
+      NEXTAUTH_URL: httpBase,
+      NEXT_PUBLIC_SITE_URL: httpBase,
+    },
+    stdio: ['ignore', 'ignore', 'ignore'],
   });
+  await waitForServer(standalone, httpBase);
+}
+
+describe('M3-T20 真实 socket/Next HTTP（实例阶段）', { concurrency: 1, skip: skipHttp }, () => {
+  before(startStandalone);
 
   test('登录→reauth 签 grant→reset→受限 enroll/confirm→旧 TOTP 拒/新 TOTP 可登录', { timeout: 300_000 }, async () => {
     const member = await makeAccount();
@@ -1217,3 +1220,165 @@ describe('M3-T20 真实 socket/Next HTTP（实例阶段）', { concurrency: 1, s
     }
   });
 });
+
+// Kept outside the default T20 suites so CI can select just this cross-route case.
+if (process.env.B10_J1_AUTH_SEAM === 'true') {
+  if (process.platform !== 'linux' || process.env.CI !== 'true' || !CI_MODE || !REQUIRE_DB || !baseDatabaseUrl || !standaloneDir) {
+    throw new Error('B10_J1_ISOLATED_PG17_AND_STANDALONE_REQUIRED');
+  }
+  const j1Database = new URL(baseDatabaseUrl);
+  if (j1Database.hostname !== '127.0.0.1' || !j1Database.port || j1Database.search || j1Database.hash) {
+    throw new Error('B10_J1_LOOPBACK_DATABASE_REQUIRED');
+  }
+  test('B10 J1 same standalone settings and auth states', { timeout: 240_000 }, async () => {
+    let phase = 'identity';
+    const checks: string[] = [];
+    const settingsPath = '/api/admin/settings/analytics';
+    const reauthPath = '/api/admin/account/reauth';
+    const settingsKeys = ['analytics.recompute', 'analytics.settings'];
+    const fixtureTime = new Date();
+    const initial = { version: 4, timezone: 'America/Denver', timezoneRevision: 7, recomputableFrom: null };
+    const postJson = (body: unknown, method = 'POST') => ({
+      method, headers: { 'content-type': 'application/json' }, body: JSON.stringify(body),
+    });
+    const same = (left: unknown, right: unknown, code: string) => assert.ok(isDeepStrictEqual(left, right), code);
+    const readSettings = () => db.siteSetting.findMany({ where: { key: { in: settingsKeys } }, orderBy: { key: 'asc' } });
+    const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+    async function stateFor(userId: string) {
+      return db.$transaction(async (tx) => ({
+        user: await tx.user.findUniqueOrThrow({ where: { id: userId } }),
+        devices: await tx.adminDeviceSession.findMany({ where: { userId }, orderBy: { id: 'asc' } }),
+        grants: await tx.adminActionGrant.findMany({ where: { userId }, orderBy: { id: 'asc' } }),
+        recovery: await tx.adminRecoverySession.findMany({ where: { userId }, orderBy: { id: 'asc' } }),
+        settings: await tx.siteSetting.findMany({ where: { key: { in: settingsKeys } }, orderBy: { key: 'asc' } }),
+        audit: await tx.auditLog.findMany({ where: { actorId: userId }, orderBy: { id: 'asc' } }),
+      }), { isolationLevel: 'RepeatableRead' });
+    }
+
+    function issuedJar(source: Response, kind: 'regular' | 'restricted') {
+      const jar = new CookieJar();
+      jar.copyFrom(source);
+      assert.ok(kind === 'regular' ? jar.hasSession() && !jar.has('pj_recovery') : !jar.hasSession() && jar.has('pj_recovery'), 'J1_COOKIE_KIND');
+      return jar;
+    }
+
+    async function deniedMatrix(member: Awaited<ReturnType<typeof makeAccount>>, issued: Response, kind: 'regular' | 'restricted') {
+      const baseline = await stateFor(member.user.id);
+      // Each request starts with the original real credential. A 401 may clear the previous jar.
+      for (const [pathname, init, fieldEnvelope] of [
+        [settingsPath, {}, false],
+        [settingsPath, postJson({ timezone: 'Asia/Shanghai', expectedVersion: initial.version }, 'PATCH'), false],
+        [reauthPath, postJson({ purpose: 'TOTP_RESET', password: PASSWORD, totp: wallCode(member.plain) }), true],
+      ] as const) {
+        const response = await http(pathname, init, issuedJar(issued, kind));
+        assert.equal(response.status, 401, 'J1_DENIAL_STATUS');
+        assert.ok(response.headers.get('cache-control')?.includes('no-store'), 'J1_DENIAL_CACHE');
+        const body = await response.json() as { error?: string; requestId?: string } | null;
+        assert.ok(body?.error === 'unauthorized', 'J1_DENIAL_CODE');
+        same(Object.keys(body).sort(), fieldEnvelope ? ['error', 'requestId'] : ['error'], 'J1_DENIAL_KEYS');
+        if (fieldEnvelope) assert.ok(typeof body.requestId === 'string' && uuid.test(body.requestId), 'J1_DENIAL_REQUEST_ID');
+        same(await stateFor(member.user.id), baseline, 'J1_DENIAL_WROTE_STATE');
+      }
+    }
+
+    try {
+      const [identity] = await db.$queryRaw<{ version: number; database: string; schemaName: string; host: string }[]>`
+        SELECT current_setting('server_version_num')::int AS version, current_database() AS database,
+               current_schema() AS "schemaName", host(inet_server_addr()) AS host`;
+      assert.ok(identity && identity.version >= 170000 && identity.version < 180000 &&
+        identity.database === CI_DB && identity.schemaName === schema && identity.host === '127.0.0.1', 'J1_PG17');
+      const buildId = readFileSync(path.join(standaloneDir, '.next/BUILD_ID'), 'utf8').trim();
+      const build = JSON.parse(readFileSync(path.join(standaloneDir, '.next/required-server-files.json'), 'utf8'));
+      assert.ok(/^[A-Za-z0-9_-]{1,128}$/.test(buildId) && buildId === process.env.B10_J1_BUILD_ID &&
+        build.config.env.APP_ENV_AT_BUILD === 'test', 'J1_BUILD_ID');
+      const buildSha256 = process.env.B10_J1_BUILD_SHA256;
+      assert.ok(typeof buildSha256 === 'string' && /^[0-9a-f]{64}$/.test(buildSha256), 'J1_BUILD_DIGEST');
+      const gitId = (name: string) => execFileSync('git', ['rev-parse', name], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+      const commit = gitId('HEAD');
+      const tree = gitId('HEAD^{tree}');
+      assert.ok(commit === process.env.B10_J1_SOURCE_COMMIT && tree === process.env.B10_J1_SOURCE_TREE &&
+        [commit, tree].every((value) => /^[0-9a-f]{40}$/.test(value)), 'J1_SOURCE_ID');
+      await db.siteSetting.create({ data: { key: 'analytics.settings', value: {
+        version: initial.version, timezone: initial.timezone, timezoneRevision: initial.timezoneRevision,
+        changedAt: fixtureTime.toISOString(), updatedBy: null,
+      } } });
+      await startStandalone();
+      const listener = new URL(httpBase).port;
+      const owner = execFileSync('ss', ['-Hltnp', `sport = :${listener}`], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 2_000 }).trim().split('\n');
+      assert.ok(standalone?.pid && owner.length === 1 && owner[0]!.split(/\s+/).includes(`127.0.0.1:${listener}`) &&
+        owner[0]!.includes(`pid=${standalone.pid},`), 'J1_LISTENER');
+      const port = Number(listener);
+      const pid = standalone.pid;
+      const seededSettings = await readSettings();
+
+      phase = 'ordinary';
+      const revoked = await makeAccount();
+      const regular = await login(revoked.user.email, PASSWORD, wallCode(revoked.plain));
+      assert.equal(loginSucceeded(regular), true, 'J1_LOGIN');
+      const active = await db.adminDeviceSession.findMany({ where: { userId: revoked.user.id, id: { not: revoked.deviceId }, revokedAt: null } });
+      assert.equal(active.length, 1, 'J1_ACTIVE_DEVICE_COUNT');
+      const device = active[0]!;
+      const ordinaryBefore = await stateFor(revoked.user.id);
+      assert.equal(device.sessionVersion, ordinaryBefore.user.sessionVersion, 'J1_ACTIVE_DEVICE_VERSION');
+      assert.equal(ordinaryBefore.user.role, 'ADMIN', 'J1_ACTIVE_USER_ROLE');
+      const get = await http(settingsPath, {}, issuedJar(regular.response, 'regular'));
+      assert.equal(get.status, 200, 'J1_ORDINARY_SETTINGS');
+      assert.ok(get.headers.get('cache-control')?.includes('no-store'), 'J1_ORDINARY_CACHE');
+      same(await get.json(), initial, 'J1_ORDINARY_SETTINGS_DTO');
+      same(await stateFor(revoked.user.id), ordinaryBefore, 'J1_ORDINARY_READ_WROTE_STATE');
+
+      const grant = await http(reauthPath, postJson({ purpose: 'DEVICE_REVOKE', targetId: device.id, password: PASSWORD,
+        totp: authenticator.clone({ epoch: Date.now() + 30_000 }).generate(revoked.plain) }), issuedJar(regular.response, 'regular'));
+      assert.equal(grant.status, 200, 'J1_ORDINARY_REAUTH');
+      const issuedGrant = await grant.json() as { token?: string; purpose?: string; expiresAt?: string } | null;
+      assert.ok(typeof issuedGrant?.token === 'string' && issuedGrant.token.length >= 32 && issuedGrant.purpose === 'DEVICE_REVOKE' &&
+        typeof issuedGrant.expiresAt === 'string' && Date.parse(issuedGrant.expiresAt) > Date.now(), 'J1_REVOKE_GRANT');
+      checks.push('ordinary-settings-200', 'ordinary-reauth-200');
+
+      phase = 'revoked';
+      const revoke = await http(`/api/admin/account/devices/${encodeURIComponent(device.id)}/revoke`,
+        postJson({ actionGrant: issuedGrant.token }), issuedJar(regular.response, 'regular'));
+      assert.equal(revoke.status, 200, 'J1_REAL_DEVICE_REVOKE');
+      const revokedDto = await revoke.json() as { id?: string; revokedAt?: string };
+      const afterRevoke = await stateFor(revoked.user.id);
+      const target = afterRevoke.devices.find((row) => row.id === device.id);
+      assert.ok(revokedDto.id === device.id && target?.revokedAt?.toISOString() === revokedDto.revokedAt &&
+        target?.revokedReason === 'device_revoke' && target.sessionVersion === device.sessionVersion &&
+        afterRevoke.user.sessionVersion === ordinaryBefore.user.sessionVersion, 'J1_REVOKED_STATE');
+      assert.ok(afterRevoke.grants.length === 1 && afterRevoke.grants[0]?.purpose === 'DEVICE_REVOKE' &&
+        afterRevoke.grants[0]?.usedAt instanceof Date && afterRevoke.grants[0]?.targetId === device.id &&
+        afterRevoke.grants[0]?.deviceSessionId === device.id, 'J1_REVOKE_CONSUMED');
+      assert.equal(afterRevoke.audit.filter((entry) => entry.action === 'account.device_revoke' && entry.target === device.id).length, 1, 'J1_REVOKE_AUDIT');
+      await deniedMatrix(revoked, regular.response, 'regular');
+      checks.push('same-version-device-revoked', 'revoked-route-matrix-401');
+
+      phase = 'restricted';
+      const recovery = await makeAccount();
+      const recoveryLogin = await login(recovery.user.email, PASSWORD, wallCode(recovery.plain));
+      assert.equal(loginSucceeded(recoveryLogin), true, 'J1_RECOVERY_LOGIN');
+      const beforeReset = await stateFor(recovery.user.id);
+      assert.equal(beforeReset.recovery.length, 0, 'J1_PRE_RESET_RECOVERY');
+      const reset = await http('/api/admin/account/2fa/reset', postJson({ currentPassword: PASSWORD,
+        totp: authenticator.clone({ epoch: Date.now() + 30_000 }).generate(recovery.plain) }), recoveryLogin.jar);
+      assert.equal(reset.status, 200, 'J1_REAL_RESET');
+      await reset.body?.cancel();
+      issuedJar(reset, 'restricted');
+      const afterReset = await stateFor(recovery.user.id);
+      const restricted = afterReset.recovery[0];
+      assert.ok(afterReset.recovery.length === 1 && restricted?.source === 'SELF_REAUTH' && restricted.completedAt === null &&
+        restricted.revokedAt === null && restricted.expiresAt > new Date() && restricted.sessionVersion === afterReset.user.sessionVersion &&
+        afterReset.user.sessionVersion === beforeReset.user.sessionVersion + 1, 'J1_RESTRICTED_STATE');
+      await deniedMatrix(recovery, reset, 'restricted');
+      checks.push('product-issued-self-reauth', 'restricted-route-matrix-401');
+      same(await readSettings(), seededSettings, 'J1_SETTINGS_CHANGED');
+      assert.ok(standalone?.pid === pid && standalone.exitCode === null && standalone.signalCode === null, 'J1_LISTENER_CHANGED');
+      console.log('B10_J1_EVIDENCE ' + JSON.stringify({ version: 1, commit, tree, buildId, buildSha256, pgVersionNum: identity.version, pid, port,
+        checks, routes: { ordinary: { settingsGet: 200, reauthPost: 200 }, revoked: { settingsGet: 401, settingsPatch: 401, reauthPost: 401 },
+          restricted: { settingsGet: 401, settingsPatch: 401, reauthPost: 401 } } }));
+    } catch {
+      // Keep account and credential values out of TAP diagnostics.
+      throw new Error(`B10_J1_FAILED_${phase}`);
+    }
+  });
+}

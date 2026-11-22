@@ -22,6 +22,7 @@ var densityProbe = (function () {
   var FAMILY = {px: 'p', py: 'p', pt: 'p', pr: 'p', pb: 'p', pl: 'p',
                 mx: 'm', my: 'm', mt: 'm', mr: 'm', mb: 'm', ml: 'm', 'gap-x': 'gap', 'gap-y': 'gap'};
   var REPLACED = /^(IMG|SVG|CANVAS|VIDEO|INPUT|SELECT|TEXTAREA|BUTTON|PROGRESS|METER|IFRAME)$/;
+  var ROWLIKE = /^(TR|TD|TH)$/;
   var LIMIT = 30;
 
   function num(v, dflt) {
@@ -202,7 +203,10 @@ var densityProbe = (function () {
       for (var k = 0; k < fixed.length; k++) if (fixed[k].contains(el)) return true;
       return false;
     }
+    // 表格行与单元格按结构算内容：它们本身就是工作面的一行，落在首屏顶部带里也不是壳条。
+    // 其余宽矮条保持原判（含只有一端有字的提示条），壳条照旧。
     function inBar(el) {
+      if (ROWLIKE.test(el.tagName.toUpperCase())) return false;
       for (var k = 0; k < bars.length; k++) if (bars[k].contains(el)) return true;
       return false;
     }
