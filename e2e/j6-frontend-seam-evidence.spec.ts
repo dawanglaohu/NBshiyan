@@ -1197,7 +1197,17 @@ if (ENABLED) {
         recordJ6Case('consent-nav-ok');
 
         // 指针下真实卡片的 slug 是独立 DOM 读，用来和事件里的 productSlug 交叉核。
-        const pointer = { x: 320, y: 260 };
+        const pointerViewport = page.locator('[data-testid="product-viewport"]').first();
+        await expect(pointerViewport).toBeInViewport();
+        const pointerBox = await pointerViewport.boundingBox();
+        const viewportSize = page.viewportSize();
+        if (!pointerBox || !viewportSize) throw new Error('J6_SEAM_CARD_AT_POINTER_BOX_MISSING');
+        const visibleLeft = Math.max(0, pointerBox.x);
+        const visibleTop = Math.max(0, pointerBox.y);
+        const visibleRight = Math.min(viewportSize.width, pointerBox.x + pointerBox.width);
+        const visibleBottom = Math.min(viewportSize.height, pointerBox.y + pointerBox.height);
+        if (visibleRight <= visibleLeft || visibleBottom <= visibleTop) throw new Error('J6_SEAM_CARD_AT_POINTER_OUTSIDE_VIEWPORT');
+        const pointer = { x: (visibleLeft + visibleRight) / 2, y: (visibleTop + visibleBottom) / 2 };
         const cardAtPointer = await page.evaluate(({ x, y }) => {
           const element = document.elementFromPoint(x, y);
           const viewport = element?.closest('[data-testid="product-viewport"]');
