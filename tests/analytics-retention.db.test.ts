@@ -1707,6 +1707,62 @@ describe('analytics retention job', { concurrency: false, skip, timeout: 180_000
     assert.equal(await count(db, Prisma.sql`SELECT COUNT(*)::int AS "count" FROM "AnalyticsEvent" WHERE "eventId" = 'ev-late'`), 0);
   });
 
+  test('B10 state 保留等号到期、月末夹取与更东时区旧 revision 均须被计入候选并删除', async () => {
+    assert.ok(db);
+    // 1) 精确等号到期 + 月末夹取：2026-02-28T00:00:00Z (UTC) 时，2025-01-31 的 +13 个自然月夹到 2026-02-28T00:00:00Z（等号到期），
+    //    而 2025-02-01 要到 2026-03-01T00:00:00Z 才到期（必须保留）。
+    const feb28 = new Date('2026-02-28T00:00:00.000Z');
+    await db.$executeRaw`DELETE FROM "AnalyticsDaily"`;
+    await db.$executeRaw`DELETE FROM "AnalyticsAggregateDayState"`;
+    await db.$executeRaw`DELETE FROM "AnalyticsDayChange"`;
+    await db.$executeRaw`DELETE FROM "AnalyticsEvent"`;
+    await db.$executeRaw`DELETE FROM "AnalyticsDailyRollup"`;
+    await db.$executeRaw`DELETE FROM "AnalyticsRollupDay"`;
+    await db.$executeRaw`DELETE FROM "JobState"`;
+    await db.$executeRaw`
+      INSERT INTO "SiteSetting" ("key", "value")
+      VALUES ('analytics.settings', ${JSON.stringify({ version: 1, timezone: 'UTC', timezoneRevision: 1, changedAt: feb28.toISOString(), updatedBy: null })}::jsonb)
+      ON CONFLICT ("key") DO UPDATE SET "value" = EXCLUDED."value"
+    `;
+    await db.$executeRaw`
+      INSERT INTO "AnalyticsAggregateDayState" ("localDate", "timezoneRevision", "timezone", "markerVersions", "updatedAt")
+      VALUES
+        ('2025-01-31', 1, 'UTC', '{}'::jsonb, ${utc(feb28)}),
+        ('2025-02-01', 1, 'UTC', '{}'::jsonb, ${utc(feb28)})
+    `;
+    const runClamp = await runAnalyticsRetention({ db, context: context(feb28, false), clock: () => feb28, deleteAuthorized: true });
+    assert.equal(runClamp.kind, 'completed');
+    if (runClamp.kind !== 'completed') return;
+    assert.equal(runClamp.report.candidates.dayState, 1, '2025-01-31 在 2026-02-28 等号夹取到期应计入候选');
+    assert.equal(runClamp.report.deletedDayStates, 1, '2025-01-31 应被删除');
+    const keptClamp = await db.$queryRaw<{ localDate: string }[]>`SELECT "localDate" FROM "AnalyticsAggregateDayState" ORDER BY "localDate"`;
+    assert.deepEqual(keptClamp.map((r) => r.localDate), ['2025-02-01']);
+
+    // 2) 更东时区旧 revision：当前站点 Pacific/Honolulu (UTC-10) 在 2026-06-15T05:00Z 时本地日为 2026-06-14，
+    //    旧 revision 在 Pacific/Kiritimati (UTC+14) 的 2025-05-15 已于 2026-06-14T10:00Z 到期，必须删；2025-05-16 未到期保留。
+    const tzNow = new Date('2026-06-15T05:00:00.000Z');
+    await db.$executeRaw`DELETE FROM "AnalyticsAggregateDayState"`;
+    await db.$executeRaw`DELETE FROM "JobState"`;
+    await db.$executeRaw`
+      INSERT INTO "SiteSetting" ("key", "value")
+      VALUES ('analytics.settings', ${JSON.stringify({ version: 2, timezone: 'Pacific/Honolulu', timezoneRevision: 2, changedAt: tzNow.toISOString(), updatedBy: null })}::jsonb)
+      ON CONFLICT ("key") DO UPDATE SET "value" = EXCLUDED."value"
+    `;
+    await db.$executeRaw`
+      INSERT INTO "AnalyticsAggregateDayState" ("localDate", "timezoneRevision", "timezone", "markerVersions", "updatedAt")
+      VALUES
+        ('2025-05-15', 1, 'Pacific/Kiritimati', '{}'::jsonb, ${utc(tzNow)}),
+        ('2025-05-16', 1, 'Pacific/Kiritimati', '{}'::jsonb, ${utc(tzNow)})
+    `;
+    const runEast = await runAnalyticsRetention({ db, context: context(tzNow, false), clock: () => tzNow, deleteAuthorized: true });
+    assert.equal(runEast.kind, 'completed');
+    if (runEast.kind !== 'completed') return;
+    assert.equal(runEast.report.candidates.dayState, 1, '更东时区旧 revision 已到期 state 应计入候选');
+    assert.equal(runEast.report.deletedDayStates, 1, '更东时区旧 revision 已到期 state 应被删除');
+    const keptEast = await db.$queryRaw<{ localDate: string }[]>`SELECT "localDate" FROM "AnalyticsAggregateDayState" ORDER BY "localDate"`;
+    assert.deepEqual(keptEast.map((r) => r.localDate), ['2025-05-16']);
+  });
+
   test('可整日重算的到期日：删除前用剩余预算做单日聚合，成功后才删且不记 gap', async () => {
     assert.ok(db);
     // cutoff 落在本地 23:58，事件 receivedAt 在 cutoff，occurredAt 到次日 00:03：

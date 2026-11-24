@@ -851,6 +851,17 @@ describe('M3-T20 真实 PG：reset→enroll→confirm', { concurrency: 1, skip: 
     });
     const locked = await db.$transaction((tx) => recoveryRepo.lockActiveAccountForSelfRebind(tx, member.user.id, member.deviceId));
     assert.equal(locked, undefined);
+
+    // B10 E-69：旧 password+totp 兼容路径在设备到达精确闲置/绝对到期点（含等号）时也必须在锁内拒绝，不得签发 SELF_REAUTH。
+    const expiredMember = await makeAccount();
+    const beforeExpired = await userRow(expiredMember.user.id);
+    now = new Date(start.getTime() + 2 * 60 * 60 * 1000);
+    await expectAppError(selfRebind.rebind({
+      kind: 'password', userId: expiredMember.user.id, sid: expiredMember.deviceId, ip: null,
+    }), 'unauthorized');
+    const afterExpired = await userRow(expiredMember.user.id);
+    assert.equal(afterExpired.sessionVersion, beforeExpired.sessionVersion);
+    assert.equal(await db.adminRecoverySession.count({ where: { userId: expiredMember.user.id } }), 0);
   });
 
   test('缺现密码/仅 TOTP 不能签 grant；recoveryCode 拒绝且不消费 grant', async () => {

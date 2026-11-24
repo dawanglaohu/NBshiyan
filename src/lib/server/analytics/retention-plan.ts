@@ -472,10 +472,10 @@ export function metadataRetentionCaps(deletedStates: number): { stateCap: number
 /** 新表删除的候选扫描上限：与单轮上限同量级，避免只读查询无界。 */
 export const DAILY_RETENTION_SCAN_LIMIT = 2_000;
 
-/** state 到期日预筛的下界：`localDate < 今日 − 13 自然月`（真正的到期判定还要按行内时区正推）。 */
+/** state 到期日预筛上界：今日 − 13 自然月再加 6 天（覆盖等号日、月末夹取最多 3 天与跨时区旧 revision 最多 2 天），真实到期仍按行内时区正推判定。 */
 export function stateRetentionFloor(todayLocalDate: string): string {
   assertLocalDate(todayLocalDate);
-  return shiftCalendarMonths(todayLocalDate, -ROLLUP_RETENTION_MONTHS);
+  return shiftLocalDays(shiftCalendarMonths(todayLocalDate, -ROLLUP_RETENTION_MONTHS), 6);
 }
 
 /** `AnalyticsDayChange` 的严格上界：`UTC 今日 − 13 自然月 − 2 天`。 */

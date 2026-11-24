@@ -1,5 +1,8 @@
 import { createHash } from 'node:crypto';
 import { Prisma, type PrismaClient } from '@prisma/client';
+import { ADMIN_SESSION_POLICY } from '../config';
+import { isStrictlyBefore } from './device-session';
+import { effectiveDeadline, type ExpiryPolicy } from './session-expiry';
 
 /** 恢复凭据只存 SHA-256；明文是 256bit base64url，只在签发响应里出现一次。M3-T19 核销时复用同一函数。 */
 export function hashRecoveryPermitToken(token: string): string {
@@ -167,11 +170,16 @@ export type RecoveryRepo = {
   createRecoverySession(tx: Prisma.TransactionClient, session: NewRecoverySession): Promise<void>;
 
   /**
-   * M3-T20：本人换验证器先锁 User→Device，确认账号仍启用 2FA 且当前设备属于本人、未撤销、sv 未变。
+   * M3-T20：本人换验证器先锁 User→Device，确认账号仍启用 2FA 且当前设备属于本人、未撤销、sv 未变、未达期限（E-69）。
    * 锁序与 action-grant 的 consumeLocked 相同（User 再 Device），可与其在同一事务里重入。
    * 返回 undefined 表示会话/设备已不可用；sv 递增由调用方在同一事务完成。
    */
-  lockActiveAccountForSelfRebind(tx: Prisma.TransactionClient, userId: string, sid: string): Promise<{ sessionVersion: number } | undefined>;
+  lockActiveAccountForSelfRebind(
+    tx: Prisma.TransactionClient,
+    userId: string,
+    sid: string,
+    options?: { clock?: () => Date; sessionPolicy?: ExpiryPolicy },
+  ): Promise<{ sessionVersion: number; now?: Date } | undefined>;
   /** M3-T5：无锁读 tokenHash 对应的 userId/email，只用于选定要锁的 User 行与账号桶主体。 */
   readRecoverySessionHint(db: RecoveryDb, tokenHash: string): Promise<RecoverySessionHint | undefined>;
   /**
@@ -286,17 +294,29 @@ export function createRecoveryRepo(): RecoveryRepo {
       await tx.adminRecoverySession.create({ data: session });
     },
 
-    async lockActiveAccountForSelfRebind(tx, userId, sid) {
-      const users = await tx.$queryRaw<{ sessionVersion: number; disabled: boolean; totpEnabled: boolean }[]>`
-        SELECT "sessionVersion", disabled, "totpEnabled"
+    async lockActiveAccountForSelfRebind(tx, userId, sid, options) {
+      const users = await tx.$queryRaw<{
+        sessionVersion: number;
+        disabled: boolean;
+        totpEnabled: boolean;
+        lockedUntil: Date | null;
+      }[]>`
+        SELECT "sessionVersion", disabled, "totpEnabled", "lockedUntil"
         FROM "User"
         WHERE id = ${userId}
         FOR UPDATE
       `;
       const user = users[0];
       if (!user || user.disabled || !user.totpEnabled) return undefined;
-      const devices = await tx.$queryRaw<{ id: string }[]>`
-        SELECT id
+      const devices = await tx.$queryRaw<{
+        id: string;
+        remembered: boolean;
+        createdAt: Date;
+        lastActivityAt: Date;
+        absoluteExpiresAt: Date | null;
+        hardExpiresAt: Date | null;
+      }[]>`
+        SELECT id, remembered, "createdAt", "lastActivityAt", "absoluteExpiresAt", "hardExpiresAt"
         FROM "AdminDeviceSession"
         WHERE id = ${sid}
           AND "userId" = ${userId}
@@ -304,8 +324,14 @@ export function createRecoveryRepo(): RecoveryRepo {
           AND "sessionVersion" = ${user.sessionVersion}
         FOR UPDATE
       `;
-      if (devices.length !== 1) return undefined;
-      return { sessionVersion: user.sessionVersion };
+      const device = devices[0];
+      if (!device) return undefined;
+      const now = options?.clock ? options.clock() : new Date();
+      if (!(now instanceof Date) || !Number.isFinite(now.getTime())) throw new Error('self rebind clock');
+      if (user.lockedUntil && user.lockedUntil > now) return undefined;
+      const policy = options?.sessionPolicy ?? ADMIN_SESSION_POLICY;
+      if (!isStrictlyBefore(now, effectiveDeadline(device, policy))) return undefined;
+      return { sessionVersion: user.sessionVersion, now };
     },
 
     async readRecoverySessionHint(db, tokenHash) {
