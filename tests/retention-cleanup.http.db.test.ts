@@ -249,10 +249,23 @@ describe('analytics retention cleanup', { concurrency: false, skip, timeout: 120
     assert.equal(blocked.status, 'busy');
     assert.deepEqual(await hashes(), ['leased']);
     await db.$executeRaw`DELETE FROM "JobState"`;
-    const pair = await Promise.all([
-      runRetentionCleanup({ db, clock: () => now, mode: 'delete', audit: async () => {} }),
-      runRetentionCleanup({ db, clock: () => now, mode: 'delete', audit: async () => {} }),
-    ]);
+    let firstInsideLease!: () => void;
+    let releaseFirst!: () => void;
+    const reachedAudit = new Promise<void>((resolve) => { firstInsideLease = resolve; });
+    const allowFinish = new Promise<void>((resolve) => { releaseFirst = resolve; });
+    const first = runRetentionCleanup({
+      db,
+      clock: () => now,
+      mode: 'delete',
+      audit: async () => {
+        firstInsideLease();
+        await allowFinish;
+      },
+    });
+    await reachedAudit;
+    const second = await runRetentionCleanup({ db, clock: () => now, mode: 'delete', audit: async () => {} });
+    releaseFirst();
+    const pair = [await first, second];
     assert.deepEqual(pair.map((item) => item.status).sort(), ['busy', 'succeeded']);
     assert.deepEqual(await hashes(), []);
   });
