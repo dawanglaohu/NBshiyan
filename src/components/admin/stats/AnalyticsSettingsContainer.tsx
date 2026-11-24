@@ -9,10 +9,13 @@ import {
   type AnalyticsSettingsResult,
   type AnalyticsSettingsUpdateResult,
 } from '@/lib/client/ops';
+import {
+  applyAnalyticsReload,
+  applyInitialAnalyticsLoad,
+  type AnalyticsSettingsNotice as Notice,
+} from '@/lib/admin/analytics-settings-state';
 import type { AnalyticsSettingsDTO } from '@/lib/contracts/analytics';
 import styles from './AnalyticsSettingsContainer.module.css';
-
-type Notice = { kind: 'ok' | 'err'; text: string } | null;
 
 /** 可注入的请求面：e2e/单测可以在不发 HTTP 的情况下驱动同一状态机。 */
 export type AnalyticsSettingsApi = {
@@ -74,15 +77,15 @@ export default function AnalyticsSettingsContainer({ api = defaultApi }: { api?:
     api
       .load({ signal: controller.signal })
       .then((r) => {
-        if (r.ok) {
-          setSaved(r.data);
-          setTimezone(r.data.timezone);
-          setLoadErr(null);
-        } else if (r.action !== 'login') {
-          setLoadErr(r.text || '读取站点时区失败。');
-        }
+        if (controller.signal.aborted) return;
+        const next = applyInitialAnalyticsLoad(r);
+        if (next.saved !== null) setSaved(next.saved);
+        if (next.timezone !== null) setTimezone(next.timezone);
+        setLoadErr(next.loadErr);
       })
-      .catch(() => setLoadErr('读取站点时区失败。'));
+      .catch(() => {
+        if (!controller.signal.aborted) setLoadErr('读取站点时区失败。');
+      });
     return () => controller.abort();
   }, [api]);
 
@@ -108,13 +111,12 @@ export default function AnalyticsSettingsContainer({ api = defaultApi }: { api?:
     setBusy(true);
     const r = await api.load({});
     setBusy(false);
-    if (r.ok) {
-      setSaved(r.data);
-      setConflict(false);
-      setNotice({ kind: 'ok', text: `已读取最新配置（version ${r.data.version}）；你的输入保留。` });
-      return;
-    }
-    setNotice({ kind: 'err', text: r.text || '读取最新配置失败。' });
+    const next = applyAnalyticsReload(saved, r);
+    if (next.saved !== null) setSaved(next.saved);
+    if (next.timezone !== null) setTimezone(next.timezone);
+    setConflict(next.conflict);
+    setLoadErr(next.loadErr);
+    setNotice(next.notice);
   };
 
   const save = async (e: React.FormEvent<HTMLFormElement>) => {
