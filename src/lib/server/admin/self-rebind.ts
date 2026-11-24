@@ -1,11 +1,12 @@
 import { randomBytes } from 'node:crypto';
 import { z } from 'zod';
 import type { PrismaClient } from '@prisma/client';
-import { ADMIN_GRANT_POLICY } from '@/lib/server/config';
+import { ADMIN_GRANT_POLICY, ADMIN_SESSION_POLICY } from '@/lib/server/config';
 import { prisma } from '@/lib/server/db';
 import { AppError } from '@/lib/server/http/errors';
 import { hashRecoverySessionToken, createRecoveryRepo, type RecoveryRepo } from './recovery-repo';
 import type { ActionGrantService } from './action-grant';
+import type { ExpiryPolicy } from './session-expiry';
 
 /** 10 节:20 本人换验证器：受限重绑页；旧 TOTP/密码保留到 confirm。 */
 export const SELF_REBIND_PAGE = '/admin-recovery';
@@ -75,25 +76,33 @@ export function createSelfRebindService(deps: {
   db?: PrismaClient;
   clock?: () => Date;
   restrictedTtlMs?: number;
+  sessionPolicy?: ExpiryPolicy;
   repo?: RecoveryRepo;
   grants: Pick<ActionGrantService, 'consume'>;
 }): SelfRebindService {
   const db = deps.db ?? prisma;
   const clock = deps.clock ?? (() => new Date());
   const restrictedTtlMs = deps.restrictedTtlMs ?? ADMIN_GRANT_POLICY.restrictedTtlMs;
+  const sessionPolicy = deps.sessionPolicy ?? ADMIN_SESSION_POLICY;
   const repo = deps.repo ?? createRecoveryRepo();
 
   return {
     async rebind(input) {
-      const now = clock();
-      if (!(now instanceof Date) || !Number.isFinite(now.getTime())) throw new Error('self rebind clock');
+      const preflight = clock();
+      if (!(preflight instanceof Date) || !Number.isFinite(preflight.getTime())) throw new Error('self rebind clock');
       const token = randomBytes(32).toString('base64url');
       const tokenHash = hashRecoverySessionToken(token);
-      const expiresAt = new Date(now.getTime() + restrictedTtlMs);
+      let expiresAt = new Date(preflight.getTime() + restrictedTtlMs);
 
       await db.$transaction(async (tx) => {
-        const account = await repo.lockActiveAccountForSelfRebind(tx, input.userId, input.sid);
+        const account = await repo.lockActiveAccountForSelfRebind(tx, input.userId, input.sid, {
+          clock,
+          sessionPolicy,
+        });
         if (!account) throw new AppError('unauthorized');
+        const now = account.now ?? clock();
+        if (!(now instanceof Date) || !Number.isFinite(now.getTime())) throw new Error('self rebind clock');
+        expiresAt = new Date(now.getTime() + restrictedTtlMs);
 
         if (input.kind === 'grant') {
           const consumed = await deps.grants.consume(

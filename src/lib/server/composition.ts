@@ -117,6 +117,7 @@ export function createAdminServices(deps: {
       clock,
       grants: actionGrants,
       restrictedTtlMs: config.grant.restrictedTtlMs,
+      sessionPolicy: config.session,
     }),
   };
 }
