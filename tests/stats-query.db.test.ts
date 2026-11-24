@@ -248,6 +248,101 @@ describe('M6-T1 core statistics on dedicated PostgreSQL', { skip: !connection &&
     StatsDTOSchema.parse({ sources: noSamples.sources });
   });
 
+  test('R1 inherits site coverage for product days without a product row', async () => {
+    const writeAt = new Date('2026-03-11T15:55:00Z');
+    await db.siteSetting.create({
+      data: { key: 'analytics.settings', value: { timezone: revision.timezone, timezoneRevision: 2,
+        version: 1, changedAt: writeAt.toISOString(), updatedBy: null } },
+    });
+    await db.jobState.create({
+      data: { key: AGGREGATE_JOB_KEY, generation: 1, leaseOwner: 'm6-test', lockedUntil: now, lastStatus: 'RUNNING' },
+    });
+    await db.analyticsEvent.createMany({
+      data: [
+        { date: '2026-03-08T06:00:00Z', slug: product },
+        { date: '2026-03-09T06:00:00Z', slug: 'paper-bags' },
+      ].map(({ date, slug }, index) => ({
+        eventId: 'product-event-' + index, semanticKey: 'product-key-' + index, payloadHash: 'test-hash',
+        kind: 'product_view', occurredAt: new Date(date), receivedAt: new Date(date),
+        browserHash: 'test-browser', productSlug: slug, locale: 'en',
+      })),
+    });
+    const written = await runDailyAggregateRound({
+      db, now: writeAt, clock: () => writeAt, timezoneRevision: 2, siteTimezone: revision.timezone,
+      generation: 1, leaseOwner: 'm6-test', currentDate: '2026-03-11',
+      baseDates: [march8.from, march9.from, '2026-03-10'],
+    });
+    assert.equal(written.status, 'ok');
+    assert.deepEqual(written.committed, [march8.from, march9.from, '2026-03-10']);
+    const inactiveDay = '2026-03-10';
+    const inactiveProductRows = await db.analyticsDaily.count({
+      where: { timezoneRevision: 2, dimension: 'product:' + product, localDate: { in: [march9.from, inactiveDay] } },
+    });
+    assert.equal(inactiveProductRows, 0);
+
+    const inactive = await read({ from: inactiveDay, to: inactiveDay, productSlug: product });
+    for (const name of ['visitors', 'product_views', 'model_starts', 'model_successes', 'model_failures', 'chat_starts']) {
+      const metric = source(inactive, name);
+      assert.deepEqual([metric.state, metric.value, metric.coverage], ['zero', 0, 'full'], name);
+      assert.equal(metric.lastSucceededAt, writeAt.toISOString());
+      assert.equal(metric.dataThrough, null);
+    }
+    const pageViews = source(inactive, 'page_views');
+    assert.deepEqual([pageViews.state, pageViews.value], ['no_data', null]);
+    const mean = source(inactive, 'mean_load_duration_ms');
+    assert.deepEqual([mean.state, mean.value, mean.loadDurationSamples, mean.coverage], ['no_data', null, 0, 'full']);
+    assert.deepEqual(inactive.modelSuccessRate, { value: null, coverage: 'full' });
+    StatsDTOSchema.parse({ sources: inactive.sources });
+
+    const mixed = await read({ from: march8.from, to: inactiveDay, productSlug: product });
+    const mixedViews = source(mixed, 'product_views');
+    assert.deepEqual([mixedViews.state, mixedViews.value, mixedViews.coverage], ['ok', 1, 'full']);
+    assert.equal(mixedViews.dataThrough, '2026-03-09T06:00:00.000Z');
+
+    const stateKey = { localDate_timezoneRevision: { localDate: march9.from, timezoneRevision: 2 } };
+    await db.analyticsAggregateDayState.update({ where: stateKey, data: { gapKind: 'raw_partial' } });
+    const partial = await read({ ...march9, productSlug: product });
+    const partialViews = source(partial, 'product_views');
+    assert.deepEqual([partialViews.state, partialViews.value, partialViews.coverage], ['no_data', null, 'partial']);
+    assert.equal(partialViews.dataThrough, '2026-03-09T06:00:00.000Z');
+    assert.equal(partialViews.lastSucceededAt, writeAt.toISOString());
+    const partialMean = source(partial, 'mean_load_duration_ms');
+    assert.deepEqual(
+      [partialMean.state, partialMean.value, partialMean.loadDurationSamples, partialMean.coverage],
+      ['no_data', null, 0, 'partial'],
+    );
+    assert.deepEqual(partial.modelSuccessRate, { value: null, coverage: 'partial' });
+  });
+
+  test('R2 historical marker dates and day-state use the daily row timezone after a revision change', async () => {
+    await putDaily(march8.from, { pageViews: 3 });
+    await putState(march8.from);
+    await putDaily(march8.from, { timezoneRevision: 3, timezone: 'Asia/Tokyo', pageViews: 99 });
+    await db.siteSetting.create({
+      data: { key: 'analytics.settings', value: { timezone: 'Asia/Tokyo', timezoneRevision: 3,
+        version: 2, changedAt: aggregatedAt.toISOString(), updatedBy: null } },
+    });
+    const query = { ...march8, timezoneRevision: 2 };
+    const initial = source(await read(query), 'page_views');
+    assert.deepEqual(
+      [initial.timezone, initial.timezoneRevision, initial.value, initial.coverage],
+      ['America/New_York', 2, 3, 'full'],
+    );
+
+    await db.analyticsDayChange.create({ data: { utcDate: '2026-03-07', version: 1n } });
+    assert.equal(source(await read(query), 'page_views').coverage, 'full');
+    await db.analyticsDayChange.create({ data: { utcDate: '2026-03-09', version: 1n } });
+    assert.equal(source(await read(query), 'page_views').coverage, 'partial');
+    await db.analyticsDayChange.update({ where: { utcDate: '2026-03-09' }, data: { version: 0n } });
+    assert.equal(source(await read(query), 'page_views').coverage, 'full');
+
+    await db.analyticsAggregateDayState.update({
+      where: { localDate_timezoneRevision: { localDate: march8.from, timezoneRevision: 2 } },
+      data: { timezone: 'Asia/Tokyo' },
+    });
+    assert.equal(source(await read(query), 'page_views').coverage, 'partial');
+  });
+
   test('returns source failure from a PostgreSQL error and preserves unsupported product page views', async () => {
     const url = new URL(connection!);
     url.searchParams.set('schema', schema + '_missing');

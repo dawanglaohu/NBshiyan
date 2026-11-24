@@ -195,9 +195,7 @@ async function readSnapshot(
     const byDay = new Map(states.map((state) => [state.localDate, state]));
     const liveVersions = await readLiveMarkerVersions(tx);
     for (const siteRow of siteRows) {
-      const row = selectedRows.get(siteRow.localDate);
-      if (row === undefined) continue;
-      if (siteRow.timezone !== scope.timezone || row.timezone !== siteRow.timezone) {
+      if (siteRow.timezone !== scope.timezone) {
         throw new Error('Analytics daily timezone differs from the selected revision');
       }
       const state = byDay.get(siteRow.localDate);
@@ -210,20 +208,26 @@ async function readSnapshot(
         liveVersions,
       });
 
+      const row = selectedRows.get(siteRow.localDate);
+      if (row !== undefined && row.timezone !== siteRow.timezone) {
+        throw new Error('Analytics product timezone differs from the site day');
+      }
+      // Product rows are sparse. The site day proves coverage for a missing product row.
+      const timestamps = row ?? siteRow;
       const counts: DayReading['counts'] = {};
       for (const source of sources) {
         if (source === 'mean_load_duration_ms') continue;
-        const value = row[COUNT_COLUMNS[source]];
+        const value = row === undefined ? 0 : row[COUNT_COLUMNS[source]];
         if (value !== null) counts[source] = value;
       }
       modern.push({
         complete: day.status === 'complete',
         counts,
         duration: sources.includes('mean_load_duration_ms')
-          ? { sum: row.durationMsSum, samples: row.loadDurationSamples }
+          ? { sum: row?.durationMsSum ?? 0n, samples: row?.loadDurationSamples ?? 0 }
           : null,
-        dataThrough: row.sourceThrough,
-        lastSucceededAt: row.aggregatedAt,
+        dataThrough: timestamps.sourceThrough,
+        lastSucceededAt: timestamps.aggregatedAt,
       });
     }
   }
