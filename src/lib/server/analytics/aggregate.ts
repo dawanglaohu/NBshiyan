@@ -544,8 +544,14 @@ export async function runAggregateOnce(deps: {
   // 预算耗尽时本阶段直接跳过，不开任何 CAS/终态事务。
   let metadataHandled = new Set<string>();
   const dailyRawCutoff = deps.daily?.rawCutoff ?? new Date(deps.now.getTime() - RAW_EVENT_RETENTION_MS);
+  const dailyFloor = deps.daily ? scanFloorLocalDate(deps.currentDate) : '';
+  const dailyBaseDates = deps.daily
+    ? new Set(
+        (deps.rebuildFrom !== undefined ? [...deps.daily.baseDates, ...plan.siteDates] : deps.daily.baseDates)
+          .filter((date) => date >= dailyFloor),
+      )
+    : new Set<string>();
   if (deps.daily) {
-    const floor = scanFloorLocalDate(deps.currentDate);
     const phase = await writeDailyMetadataPhase(deps.db, {
       now: deps.now,
       cutoff: plan.cutoff,
@@ -553,9 +559,9 @@ export async function runAggregateOnce(deps: {
       rawCutoff: dailyRawCutoff,
       timezone: deps.siteTimezone,
       revision: deps.timezoneRevision,
-      floor,
+      floor: dailyFloor,
       today: deps.currentDate,
-      baseDates: new Set(deps.daily.baseDates.filter((date) => date >= floor)),
+      baseDates: dailyBaseDates,
       generation: deps.generation,
       leaseOwner: deps.daily.leaseOwner,
       ...(deps.clock !== undefined ? { leaseClock: deps.clock } : {}),
@@ -603,7 +609,6 @@ export async function runAggregateOnce(deps: {
       }
       if (deps.daily) {
         const daily = deps.daily;
-        const floor = scanFloorLocalDate(deps.currentDate);
         dailyCapture.value = await runDailyInTx(tx, {
           now: deps.now,
           cutoff: plan.cutoff,
@@ -611,14 +616,14 @@ export async function runAggregateOnce(deps: {
           rawCutoff: dailyRawCutoff,
           timezone: deps.siteTimezone,
           revision: deps.timezoneRevision,
-          floor,
+          floor: dailyFloor,
           today: deps.currentDate,
           maxDays: daily.maxDays ?? DAILY_AGGREGATE_MAX_DAYS,
           deadlineReached,
           generation: deps.generation,
           leaseOwner: daily.leaseOwner,
           ...(deps.clock !== undefined ? { leaseClock: deps.clock } : {}),
-          baseDates: new Set(daily.baseDates.filter((date) => date >= floor)),
+          baseDates: dailyBaseDates,
           reservedDays: new Set(plan.siteDates),
           metadataHandled,
           resolveProduct: daily.resolveProductSlugFromPath ?? defaultProductSlugFromPath,
@@ -1050,9 +1055,10 @@ export async function runDailyInTx(
   });
 
   // ---- plan（同一快照）----------------------------------------------------
-  const states = await readDayStatesInDomain(tx, revision, floor, today);
+  const stateDomainEnd = args.baseDates.has(today) ? shiftLocalDate(today, 1) : today;
+  const states = await readDayStatesInDomain(tx, revision, floor, stateDomainEnd);
   const live = await readLiveMarkerVersions(tx);
-  const siteRows = await readSiteRowDatesInDomain(tx, revision, floor, today);
+  const siteRows = await readSiteRowDatesInDomain(tx, revision, floor, stateDomainEnd);
   const earliestRecomputable = dailyCoverageStart(now, timezone, args.rawCutoff);
 
   const candidates = new Set<string>();
@@ -1625,9 +1631,10 @@ export async function writeDailyMetadataPhase(
       leaseOwner: args.leaseOwner,
       ...(args.leaseClock !== undefined ? { leaseClock: args.leaseClock } : {}),
     });
-    const states = await readDayStatesInDomain(tx, args.revision, args.floor, args.today);
+    const stateDomainEnd = args.baseDates.has(args.today) ? shiftLocalDate(args.today, 1) : args.today;
+    const states = await readDayStatesInDomain(tx, args.revision, args.floor, stateDomainEnd);
     const live = await readLiveMarkerVersions(tx);
-    const siteRows = await readSiteRowDatesInDomain(tx, args.revision, args.floor, args.today);
+    const siteRows = await readSiteRowDatesInDomain(tx, args.revision, args.floor, stateDomainEnd);
     const earliestRecomputable = dailyCoverageStart(args.now, args.timezone, args.rawCutoff);
     const candidates = new Set<string>();
     for (const date of args.baseDates) candidates.add(date);

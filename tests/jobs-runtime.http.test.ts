@@ -905,6 +905,69 @@ describe('M5-T4 pending 分类与完整值 CAS 消费', { concurrency: false, sk
     assert.equal(Number(daily[0]!.c), 0);
     assert.equal(await readBacklog(), originalBacklog);
   });
+
+  test('B10 时区切换 rebuildFrom：48h 以前但在 30 天原始窗内的日须重建 AnalyticsDaily，不得标成 not_backfilled', async () => {
+    await reset();
+    const conn = requireDb();
+    await conn.$executeRawUnsafe(`DELETE FROM "AnalyticsDaily"`);
+    await conn.$executeRawUnsafe(`DELETE FROM "AnalyticsAggregateDayState"`);
+    await conn.$executeRawUnsafe(`DELETE FROM "AnalyticsDayChange"`);
+    const tenDaysAgo = '2026-02-14';
+    await conn.$executeRaw`
+      INSERT INTO "AnalyticsEvent" (
+        "eventId", "semanticKey", "payloadHash", "browserHash", "kind", "locale",
+        "productSlug", "path", "occurredAt", "receivedAt"
+      ) VALUES (
+        ${`tz-rb-${process.pid}`}, ${`tz-rb-sk-${process.pid}`}, ${'p'.repeat(64)}, ${'bh-tz-rb'},
+        ${'page_view'}::"AnalyticsEventKind", ${'en'}, ${null}, ${'/en'},
+        ${`${tenDaysAgo}T02:00:00.000Z`}::timestamptz AT TIME ZONE 'UTC',
+        ${`${tenDaysAgo}T02:00:00.000Z`}::timestamptz AT TIME ZONE 'UTC'
+      )
+    `;
+    await conn.$executeRaw`
+      INSERT INTO "AnalyticsDayChange" ("utcDate", "version", "updatedAt")
+      VALUES (${tenDaysAgo}, 1::bigint, ${`${tenDaysAgo}T02:00:00.000Z`}::timestamptz AT TIME ZONE 'UTC')
+    `;
+    await seedSettings(JSON.stringify({
+      version: 1,
+      timezone: 'Asia/Tokyo',
+      timezoneRevision: 2,
+      changedAt: BASE.toISOString(),
+      updatedBy: 'admin-a',
+    }));
+    await seedBacklog(JSON.stringify({
+      timezoneRevision: 2,
+      timezone: 'Asia/Tokyo',
+      recomputableFrom: '2026-01-26T15:00:00.000Z',
+      requestedAt: BASE.toISOString(),
+      updatedBy: 'admin-a',
+      status: 'pending',
+    }));
+
+    const outcome = await runJob();
+    assert.equal(outcome.kind, 'ran');
+    if (outcome.kind !== 'ran') assert.fail('job did not run');
+    assert.equal(outcome.status, 'SUCCEEDED');
+    assert.equal(await readBacklog(), null, '重算完成后待办应被消费');
+
+    const daily = await conn.$queryRaw<{ visitors: number; pageViews: number | null; timezone: string }[]>`
+      SELECT "visitors", "pageViews", "timezone"
+      FROM "AnalyticsDaily"
+      WHERE "localDate" = ${tenDaysAgo} AND "timezoneRevision" = 2 AND "dimension" = 'site'
+    `;
+    assert.equal(daily.length, 1, '48h 以前可重算日必须在新 revision 下生成 AnalyticsDaily site 行');
+    assert.equal(daily[0]!.visitors, 1);
+    assert.equal(daily[0]!.pageViews, 1);
+    assert.equal(daily[0]!.timezone, 'Asia/Tokyo');
+
+    const state = await conn.$queryRaw<{ gapKind: string | null }[]>`
+      SELECT "gapKind"
+      FROM "AnalyticsAggregateDayState"
+      WHERE "localDate" = ${tenDaysAgo} AND "timezoneRevision" = 2
+    `;
+    assert.equal(state.length, 1);
+    assert.equal(state[0]!.gapKind, null, '可重算日不得被误标成 not_backfilled 终止缺口');
+  });
 });
 
 

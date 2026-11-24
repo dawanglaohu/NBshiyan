@@ -834,6 +834,36 @@ describe('M5-T12 anonymous daily aggregate on real PostgreSQL', { concurrency: f
     );
   });
 
+  test('B10 今日（baseDates 含 TODAY）已提交后再遇 guard 中止：planExpected 取真实行，writeDailyGap 须写入 clock_inversion', async () => {
+    await reset();
+    const conn = requireDb();
+    const todayAt = new Date('2026-03-05T01:00:00.000Z');
+    await insertEvent({ kind: 'page_view', browserHash: 'b-today', path: '/en', occurredAt: todayAt, receivedAt: todayAt });
+    const first = await roundRun({ baseDates: [TODAY] });
+    assert.equal(first.status, 'ok');
+    assert.deepEqual(first.committed, [TODAY]);
+
+    const beforeState = await readDayState(conn, { localDate: TODAY, timezoneRevision: REV });
+    assert.ok(beforeState, '首次提交后 TODAY 必须有 day-state 行');
+    assert.equal(beforeState.gapKind, null);
+
+    // 插入 receivedAt > cutoff 的 TODAY 倒置事件，触发 Q4 day_guard 中止。
+    await insertEvent({
+      kind: 'page_view',
+      browserHash: 'b-inv',
+      path: '/en',
+      occurredAt: new Date('2026-03-05T01:30:00.000Z'),
+      receivedAt: new Date('2026-03-05T03:00:00.000Z'),
+    });
+    const second = await roundRun({ baseDates: [TODAY] });
+    assert.equal(second.status, 'guard');
+    assert.equal(second.gaps.length, 1);
+    assert.equal(second.gaps[0]!.localDate, TODAY);
+    assert.equal(second.gaps[0]!.write, 'written', '已有 day-state 的 TODAY 必须按真实期望 CAS 写 gap，不能 cas_failed');
+    const afterState = await readDayState(conn, { localDate: TODAY, timezoneRevision: REV });
+    assert.equal(afterState?.gapKind, 'clock_inversion');
+  });
+
   // ---- B2：真实 PostgreSQL 上的保留额度（四表 20k / Daily 1k / metadata 独立 500×2 / 扫描窗 2k） ----
   // 全部走生产 `runAnalyticsRetention` 的真实删除链：真租约、真 settings revision、真 DELETE。
   // 额度只看 report 与库内实际行数，不用纯函数预算或复制算法替代。
