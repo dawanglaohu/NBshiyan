@@ -1,4 +1,5 @@
 import { Prisma, type PrismaClient } from '@prisma/client';
+import type { ConversationCreateRequest } from '../../contracts/chat';
 import { products } from '../../../data/products';
 import { visitorSessionTouchSql } from './visitor-session-repo';
 
@@ -67,6 +68,10 @@ export type ChatConversationRow = {
   lastSeq: number;
 };
 
+type VisitorConversationForWrite = Pick<ChatConversationRow, 'status' | 'clientConversationId'>
+  & Pick<ConversationCreateRequest, 'locale'>
+  & { anonymizedAt: Date | null };
+
 export type ChatMessageRow = {
   id: string;
   conversationId: string;
@@ -93,6 +98,24 @@ export function isUniqueViolation(error: unknown): boolean {
 
 export function createChatRepo(db: ChatWriteDb) {
   return {
+    async setWriteTimeouts(tx: ChatTx, remainingMs: number): Promise<void> {
+      const timeout = String(remainingMs);
+      await tx.$queryRaw`
+        SELECT set_config('statement_timeout', ${timeout}, true) AS statement_budget,
+               set_config('lock_timeout', ${timeout}, true) AS lock_budget
+      `;
+    },
+
+    async lockVisitorConversation(tx: ChatTx, conversationId: string, visitorSessionId: string) {
+      const rows = await tx.$queryRaw<VisitorConversationForWrite[]>`
+        SELECT "status"::text AS "status", "anonymizedAt", "clientConversationId", "locale"
+        FROM "ChatConversation"
+        WHERE "id" = ${conversationId} AND "visitorSessionId" = ${visitorSessionId}
+        FOR UPDATE
+      `;
+      return rows[0] ?? null;
+    },
+
     /** 同一个访客会话 + 客户端会话 UUID 是否已经建过。唯一键 (visitorSessionId, clientConversationId)。 */
     async findConversation(
       tx: ChatTx,
