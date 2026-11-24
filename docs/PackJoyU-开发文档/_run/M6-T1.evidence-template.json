@@ -2,9 +2,14 @@
   "scope": "task-contract",
   "tasks": {
     "M6-T1": {
-      "contractHash": "5558812fdcf0f2b21fcb6d3b1e9d13b82435029c90afd6dca4df43d19e8e7df1",
-      "evidence": [],
-      "verdict": "pending"
+      "contractHash": "edf33a1b83dbcdff02e5c33a8035c1e784beeb4e4d76d8f2a9877ac5cda4c3bf",
+      "evidence": [
+        "前置能力核验：M5-T3(analytics-aggregate)、M2-T4/M2-T7(model-events)、M5-T12(analytics-anon-aggregate) 均已落地；src/lib/server/ops/stats-query.ts 直接复用 shiftLocalDate、siteDayUtcBounds、siteLocalDate、classifyDayCompleteness、meanDurationMs、successRate、parseMarkerVersions、readLiveMarkerVersions、AGGREGATE_JOB_KEY、runInRepeatableReadSnapshot、rollupExpiryCutoff、shiftCalendarMonths 与 AppError，未重复造轮子。",
+        "有效路径与阶段核验：task-contracts.json 中 M6-T1 的 stage=primitive、wiring=[]、effectivePaths 为 src/lib/server/ops/source-dto.ts、src/lib/server/ops/stats-query.ts、tests/stats-query.db.test.ts，与 PR #565（6171b5d1）实际改动路径完全一致（另含任务笔记回填），HTTP 接线由 M6-T6 交付。",
+        "接口字段与 09/10/13/17/19 条款核验：复用 src/lib/contracts/ops.ts 的 StatsQuerySchema/StatsSourceSchema/StatsSourceDTOSchema/StatsDTOSchema 与 role 过滤矩阵；覆盖 E-49（含完整站点日缺产品行证 0 及 partial 站点日不证 0）、E-50（未覆盖 no_data、未接入 not_connected）、E-55（站点 IANA 时区左闭右开 DST 日界与旧 revision 行内 timezone 映射 live marker）、E-63（加权耗时均值、配对终态、仅授权 start 分母、0% 与无样本 null、product pageViews 返回 no_data）。",
+        "专用 PG 17.11 验收与复核：M6T1_REQUIRE_DATABASE=true 运行 tests/stats-query.db.test.ts 9/9 通过（0 skip），关联纯测 64/64 通过，tsc --noEmit、范围内 eslint、lint:ru-yo 均 0 错误；实施方与审查方 Jev 裁决一致采纳 A（jev-1.14.0, high 0.85）；Codex 与审查方第 2 轮复核均无阻断项。"
+      ],
+      "verdict": "pass"
     }
   }
 }
