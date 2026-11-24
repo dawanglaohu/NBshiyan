@@ -20,6 +20,7 @@ import { CHAT_VISITOR_POLICY } from './config';
 import { createVisitorSessionRepo, type VisitorSessionStore } from './chat/visitor-session-repo';
 import { createVisitorSessionService, type VisitorSessionService } from './chat/visitor-session';
 import { createConversationService, type ConversationService } from './chat/conversation-service';
+import { createMessageService, type MessageService } from './chat/message-service';
 import { createVisitorReadService, type VisitorReadService } from './chat/visitor-read';
 import { createSelfRebindService, type SelfRebindService } from './admin/self-rebind';
 import { createChatReadRepo, type ChatReadDb, type ChatWriteDb } from './chat/repo';
@@ -186,6 +187,7 @@ export function createAnalyticsIngestServices(deps: {
 export type ChatServices = HttpServices & {
   visitorSessions: VisitorSessionService;
   conversations: ConversationService;
+  messages: MessageService;
   visitorRead: VisitorReadService;
 };
 
@@ -211,6 +213,7 @@ export function createChatServices(deps: {
       policy: CHAT_VISITOR_POLICY,
     }),
     conversations: createConversationService({ db: chatDb, clock }),
+    messages: createMessageService({ db: chatDb, clock }),
     visitorRead: createVisitorReadService({ repo: createChatReadRepo(chatReadDb) }),
   };
 }

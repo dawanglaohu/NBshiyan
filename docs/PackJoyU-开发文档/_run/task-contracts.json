@@ -2168,7 +2168,8 @@
         "src/app/api/chat/conversations/",
         "src/lib/server/chat/repo.ts",
         "src/lib/server/composition.ts",
-        "tests/chat-visitor-append.db.test.ts"
+        "tests/chat-visitor-append.db.test.ts",
+        ".github/workflows/ci.yml"
       ],
       "outputPaths": [
         "src/lib/server/chat/message-service.ts"

@@ -1,0 +1,78 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M2-T8": {
+      "contractHash": "768ac3a35bcb8588206a7ddfbf25301e9293ef63e6d10eb46e41a455954c4396",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M4-T10": {
+      "contractHash": "3a1b36787f007fe4e00cc6b82465fefe51bf4a25e2e37006e20b9fccfd30a889",
+      "evidence": [
+        "Prerequisites verified on main (c7b3461b): M4-T1 (POST /api/chat/conversations, ChatConversation/ChatMessage/ChatNotification schema, firstMessagePayloadHash, chatRetainUntil, stableNotificationMessageId, ChatRepo) and M4-T2 (GET /api/chat/conversations/[id], POST /api/chat/conversations/[id]/read, ChatReadRepo) are landed.",
+        "Effective paths verified after DOC_PATCH b11-m4t10-ci-support-20261124: added .github/workflows/ci.yml to M4-T10.supportPaths (zero conflicts with Batch 11 siblings M4-T3/M6-T1; zero already-landed tasks flagged for revalidation). All modified files are inside effectivePaths.",
+        "10-接口约定 & 08-后端架构 verified: src/app/api/chat/conversations/[id]/messages/route.ts:22 enforces exact same-origin (403 forbidden_origin), 16KiB body limit before JSON.parse (413 too_large), strict ChatMessageRequestSchema (400 invalid + controlled fieldErrors), single HttpOnly visitor cookie (401 unauthorized, clears ambiguous/invalid cookie), shared write rate limit bucket 20/min/cookie with onStoreError=closed and Retry-After=60 (429 rate_limited), visitorSessions.resolve, strict ChatConversationParamsSchema (404 not_found), MessageReceivedDTOSchema output, Cache-Control: private, no-store, and single ApiDailyCounter recording at final response boundary.",
+        "Atomic transaction & edges E-18/E-33/E-37/E-78/E-86/E-90 verified: src/lib/server/chat/message-service.ts:39-100 runs ReadCommitted tx with per-statement statement_timeout/lock_timeout budget (repo.ts:101), locks (id, visitorSessionId) FOR UPDATE (repo.ts:109), re-checks session validity (repo.ts:299), rejects anonymized (409 conversation_anonymized) and closed (409 conversation_closed), checks payloadHash via firstMessagePayloadHash (409 idempotency_conflict on mismatch, returns original receipt with duplicate=true and zero new rows/notifications/retainUntil change on match), allocates seq + updates 90d retainUntil + inserts VISITOR message + unique QUEUED notification in one tx, and conditionally touches session before commit (rolls back to 401 on 0 rows). repo.ts:43 maps both 57014 and 55P03 timeouts to 503 service_unavailable.",
+        "Wiring verified: POST /api/chat/conversations/[id]/messages registered at src/app/api/chat/conversations/[id]/messages/route.ts:22; createMessageService registered in createChatServices at src/lib/server/composition.ts:190,216 reusing shared db.ts prisma.",
+        "Local checks passed: tsc --noEmit (exit 0), pnpm run lint (exit 0), node scripts/check-admin-guard.mjs (45 routes pass), real PostgreSQL tests chat-visitor-append.db.test.ts (10/10 pass, 0 skip) + chat-first-message.db.test.ts (30/30 pass) + chat-visitor-read.http.test.ts (19/19 pass) + chat-session.http.test.ts (19/19 pass); CI YAML validated with tests/chat-visitor-append.db.test.ts added to all three PG17 gate lists.",
+        "Jev adjudications logged to _run/judgments.jsonl: M4-T10:review:hash pick=A (low 0.24, adopt=take(A)) and M4-T10:review:ci pick=B (medium 0.68, adopt=take(B)), both consistent with implementer; run review confirmed 0 fake nouls yes and all 5 claims supports (high 0.86-1.00)."
+      ],
+      "verdict": "pass"
+    },
+    "M4-T11": {
+      "contractHash": "500094577a167b35774f557b75b0797cc5d513df43a4029bce7c332a2515f43c",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M4-T13": {
+      "contractHash": "b4da96c00d337397aec6d58aecd9ae98c138698338666bf379afba7ea145e9c9",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M4-T14": {
+      "contractHash": "1cb6fb337e2bc907981d6d31cb693549c8695c192e2f1ba02b02d64d44f16b65",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M4-T5": {
+      "contractHash": "6905f8486cbf54ba21d1de3f57e043aedcf08e4a8d1d60f9aa428ecc805ba820",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M4-T6": {
+      "contractHash": "2294cc4095ded713badb1f361d443201c5a5ae7bea4a5f9165366f20566519e1",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M4-T9": {
+      "contractHash": "e430a022f38e92d8d54e72ac93cac563df20c7c1c5a8a59e2f9894d48695303e",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T1": {
+      "contractHash": "24ba2a701eeabebabb21d35d25c82595813bdedb2c649886a8346c015a5caa6b",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T10": {
+      "contractHash": "3f55829eb07e6c749baaf118417b8b7aa5b31d6964022336bf0839c58404ea76",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T4": {
+      "contractHash": "4e756ded881f028bcc3ed6cd7f37927cf04762be96e8595fbcd0eea1adae43cd",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T8": {
+      "contractHash": "ca479c93511b64a6eddc976fe5cfd9533e5c60128b7216207ef020251315c371",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T9": {
+      "contractHash": "b30eff5e85379d7710c761ba30ac3be6492201f9558672908b8668089b928f86",
+      "evidence": [],
+      "verdict": "pending"
+    }
+  }
+}
