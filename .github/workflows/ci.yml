@@ -474,6 +474,7 @@ jobs:
               'tests/analytics-ingest.http.db.test.ts',
               'tests/analytics-aggregate.db.test.ts',
               'tests/chat-visitor-read.http.test.ts',
+              'tests/chat-visitor-append.db.test.ts',
               'tests/analytics-daily.db.test.ts',
               'tests/analytics-day-state.db.test.ts',
               'tests/jobs-runtime.http.test.ts',
@@ -530,6 +531,7 @@ jobs:
             tests/analytics-ingest.http.db.test.ts \
             tests/analytics-aggregate.db.test.ts \
             tests/chat-visitor-read.http.test.ts \
+            tests/chat-visitor-append.db.test.ts \
             tests/analytics-daily.db.test.ts \
             tests/analytics-day-state.db.test.ts \
             tests/jobs-runtime.http.test.ts \
@@ -572,6 +574,7 @@ jobs:
             'tests/analytics-ingest.http.db.test.ts',
             'tests/analytics-aggregate.db.test.ts',
             'tests/chat-visitor-read.http.test.ts',
+            'tests/chat-visitor-append.db.test.ts',
               'tests/analytics-daily.db.test.ts',
               'tests/analytics-day-state.db.test.ts',
             'tests/jobs-runtime.http.test.ts',

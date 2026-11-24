@@ -9,6 +9,7 @@ import { ConversationReceivedDTOSchema, MessageReceivedDTOSchema } from '../src/
 import { AppErrorDTOSchema } from '../src/lib/contracts/errors';
 import { CHAT_RETENTION_MS, CHAT_WRITE_COOKIE_LIMIT } from '../src/lib/chat/rules';
 import { CHAT_VISITOR_COOKIE, hashChatToken } from '../src/lib/server/chat/visitor-session';
+import { isDatabaseUnavailable } from '../src/lib/server/chat/repo';
 import { CHAT_VISITOR_POLICY } from '../src/lib/server/config';
 import { MemoryStore, setRateLimitStore } from '../src/lib/server/ratelimit';
 
@@ -372,5 +373,31 @@ describe('M4-T10 visitor append through route handlers and PostgreSQL', {
     await expectError(limited, 429, 'rate_limited');
     assert.equal(limited.headers.get('retry-after'), '60');
     assert.deepEqual(await snapshot(id), saved);
+  });
+
+  test('lock timeout returns 503 service_unavailable without mutating rows or session, and retry with same key succeeds', async () => {
+    const { id, cookie, visitor } = await seed();
+    const saved = await snapshot(id);
+    const activity = await db.chatVisitorSession.findUniqueOrThrow({ where: { id: visitor.id } });
+    const body = payload();
+
+    const blocked = await db.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT "id" FROM "ChatConversation" WHERE "id" = ${id} FOR UPDATE`;
+      return send(id, cookie, body);
+    }, { timeout: 10_000 });
+
+    await expectError(blocked, 503, 'service_unavailable');
+    assert.equal(isDatabaseUnavailable({ code: 'P2010', meta: { code: '55P03' } }), true);
+    assert.deepEqual(await snapshot(id), saved);
+    assert.deepEqual(await db.chatVisitorSession.findUniqueOrThrow({ where: { id: visitor.id } }), activity);
+
+    const retried = await send(id, cookie, body);
+    assert.equal(retried.status, 200);
+    const receipt = MessageReceivedDTOSchema.parse(await retried.json());
+    assert.equal(receipt.duplicate, false);
+    assert.equal(receipt.message.seq, 2);
+
+    const counter = await db.apiDailyCounter.findFirst({ where: { routeId: 'POST /api/chat/conversations/[id]/messages' } });
+    assert.ok(counter && counter.requestCount >= 2 && counter.errorCount >= 1);
   });
 });

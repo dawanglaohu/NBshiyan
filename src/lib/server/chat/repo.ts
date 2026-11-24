@@ -23,7 +23,7 @@ export class ChatTransactionBudgetExceeded extends Error {
  * 「数据库不可用或超时」的保守分类，只认确定的类别：
  * - 连接初始化/不可达/连接池超时：PrismaClientInitializationError/RustPanicError 与 P1001/P1002/P1008/P1017/P2024；
  * - 事务超时 P2028；
- * - 服务端 statement_timeout 取消语句：P2010 + SQLSTATE 57014；
+ * - 服务端 statement_timeout / lock_timeout 取消语句：P2010 + SQLSTATE 57014 / 55P03；
  * - 明确的网络错误码（连接被拒/重置/超时/解析失败）。
  *
  * 不按 message 关键词匹配，也不把全部 P2010 归进来——触发器 RAISE EXCEPTION 等数据层错误
@@ -40,7 +40,7 @@ export function isDatabaseUnavailable(error: unknown): boolean {
   for (const code of [shaped.code, shaped.errorCode]) {
     if (typeof code === 'string' && (DB_UNAVAILABLE_CODES.has(code) || NET_CODES.has(code))) return true;
   }
-  if (shaped.code === 'P2010' && shaped.meta?.code === '57014') return true;
+  if (shaped.code === 'P2010' && (shaped.meta?.code === '57014' || shaped.meta?.code === '55P03')) return true;
   return shaped.cause !== error && isDatabaseUnavailable(shaped.cause);
 }
 
