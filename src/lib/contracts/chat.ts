@@ -190,10 +190,34 @@ function checkChatSync(
 export const ChatSyncDTOSchema = ChatSyncObjectSchema.superRefine(checkChatSync);
 export type ChatSyncDTO = z.infer<typeof ChatSyncDTOSchema>;
 
+export const ChatNotificationStatusSchema = z.enum(['QUEUED', 'SENDING', 'SENT', 'FAILED', 'UNKNOWN', 'DISABLED']);
+
+export const ChatNotificationSummaryDTOSchema = z.object({
+  messageId: IdSchema,
+  status: ChatNotificationStatusSchema,
+}).strict();
+export type ChatNotificationSummaryDTO = z.infer<typeof ChatNotificationSummaryDTOSchema>;
+
 export const AdminChatSyncDTOSchema = z.object({
   conversation: AdminChatConversationDTOSchema,
   ...chatSyncShape,
-}).strict().superRefine(checkChatSync);
+  notifications: z.array(ChatNotificationSummaryDTOSchema).max(100),
+}).strict().superRefine((value, context) => {
+  checkChatSync(value, context);
+  const visitorSeq = new Map(value.messages.filter(({ sender }) => sender === 'VISITOR').map(({ id, seq }) => [id, seq]));
+  let previousSeq = 0;
+  value.notifications.forEach(({ messageId }, index) => {
+    const seq = visitorSeq.get(messageId);
+    if (seq === undefined || seq <= previousSeq) {
+      context.addIssue({
+        code: 'custom', path: ['notifications', index, 'messageId'],
+        message: 'Notifications must reference unique visitor messages from this page in sequence order.',
+      });
+      return;
+    }
+    previousSeq = seq;
+  });
+});
 export type AdminChatSyncDTO = z.infer<typeof AdminChatSyncDTOSchema>;
 
 export const ChatSummaryDTOSchema = AdminChatConversationObjectSchema.extend({

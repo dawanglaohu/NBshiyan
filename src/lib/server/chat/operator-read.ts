@@ -77,7 +77,11 @@ export function createOperatorReadService(deps: { db: Pick<PrismaClient, '$trans
 
         return {
           conversation: conversationDto(conversation),
-          messages: page.messages.map(({ createdAt, ...row }) => ({ ...row, createdAt: createdAt.toISOString() })),
+          messages: page.messages.map(({ id, seq, sender, bodyText, createdAt }) => ({
+            id, seq, sender, bodyText, createdAt: createdAt.toISOString(),
+          })),
+          notifications: page.messages.flatMap(({ id, sender, notification }) =>
+            sender === 'VISITOR' && notification ? [{ messageId: id, status: notification.status }] : []),
           lastSeq,
           nextAfterSeq: page.nextAfterSeq,
           hasMore: page.hasMore,

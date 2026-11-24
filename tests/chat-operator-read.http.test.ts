@@ -3,9 +3,10 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { createRequire } from 'node:module';
+import { setTimeout as delay } from 'node:timers/promises';
 import { PrismaClient, type Role } from '@prisma/client';
 import { authenticator } from 'otplib';
-import { AdminChatSyncDTOSchema, ChatSummaryPageDTOSchema, ConversationReceivedDTOSchema } from '../src/lib/contracts/chat';
+import { AdminChatSyncDTOSchema, ChatSummaryPageDTOSchema, ChatSyncDTOSchema, ConversationReceivedDTOSchema, MessageReceivedDTOSchema } from '../src/lib/contracts/chat';
 import { AppErrorDTOSchema } from '../src/lib/contracts/errors';
 import { encrypt, hashSecret } from '../src/lib/server/admin/crypto';
 import { MemoryStore, setRateLimitStore } from '../src/lib/server/ratelimit';
@@ -131,12 +132,13 @@ describe('M4-T3 operator inbox HTTP', { skip: !url && 'no dedicated M4T3_TEST_DA
     const session = await startVisitor(request('/api/chat/session', '', { locale: 'en' }));
     assert.equal(session.status, 200, await session.clone().text());
     const cookie = cookies(session);
-    const created = await create(request(visitorPath, cookie, {
+    const payload = {
       clientConversationId: randomUUID(), clientMessageId: randomUUID(),
       locale: 'en', bodyText: 'First consultation', email: 'visitor@example.com',
-    }));
+    };
+    const created = await create(request(visitorPath, cookie, payload));
     assert.equal(created.status, 200, await created.clone().text());
-    return { ...ConversationReceivedDTOSchema.parse(await created.json()), cookie };
+    return { ...ConversationReceivedDTOSchema.parse(await created.json()), cookie, payload };
   }
 
   async function expectError(response: Response, status: number, code: string) {
@@ -227,6 +229,7 @@ describe('M4-T3 operator inbox HTTP', { skip: !url && 'no dedicated M4T3_TEST_DA
     assert.equal(first.lastSeq, 102);
     assert.equal(first.hasMore, true);
     assert.deepEqual(first.read, { lastReadSeq: 0 });
+    assert.deepEqual(first.notifications, [{ messageId: message.id, status: 'QUEUED' }]);
 
     const newMessagePath = `${visitorPath}/${id}/messages`;
     const appended = await append(request(newMessagePath, cookie, {
@@ -256,12 +259,94 @@ describe('M4-T3 operator inbox HTTP', { skip: !url && 'no dedicated M4T3_TEST_DA
     assert.deepEqual(await (await mark(id, admin.cookie, 50)).json(), { lastReadSeq: 103 });
   });
 
+  test('E-35: detail returns all six stored statuses in visitor message page order', async () => {
+    const { conversationId: id, cookie, message } = await conversation();
+    await conversation();
+    const replyId = randomUUID();
+    const now = new Date();
+    await db.$transaction([
+      db.chatMessage.create({ data: {
+        id: replyId, conversationId: id, seq: 2, sender: 'OPERATOR', authorId: admin.userId,
+        clientMessageId: randomUUID(), payloadHash: 'fixture', bodyText: 'Operator reply', createdAt: now,
+      } }),
+      db.chatNotification.create({ data: {
+        id: randomUUID(), conversationId: id, messageId: replyId, status: 'SENT',
+        availableAt: now, stableMessageId: 'reply-fixture', createdAt: now, updatedAt: now,
+      } }),
+      db.chatConversation.update({ where: { id }, data: { lastSeq: 2 } }),
+    ]);
+    const statuses = ['QUEUED', 'SENDING', 'SENT', 'FAILED', 'UNKNOWN', 'DISABLED'] as const;
+    const ids = [message.id];
+    for (const status of statuses.slice(1)) {
+      const res = await append(request(`${visitorPath}/${id}/messages`, cookie, {
+        clientMessageId: randomUUID(), bodyText: `Message for ${status}`,
+      }), context(id));
+      assert.equal(res.status, 200, await res.clone().text());
+      ids.push(MessageReceivedDTOSchema.parse(await res.json()).message.id);
+    }
+    const expected = statuses.map((status, index) => ({ messageId: ids[index]!, status }));
+    for (const [index, { messageId, status }] of expected.entries()) {
+      await db.chatNotification.update({ where: { messageId }, data: {
+        status, createdAt: new Date(now.getTime() - index * 1000),
+        leaseOwner: 'internal-worker', providerMessageId: 'internal-provider-id',
+      } });
+    }
+
+    const first = await sync(id, admin.cookie, '?limit=3');
+    assert.deepEqual(first.messages.map((row) => row.id), [ids[0], replyId, ids[1]]);
+    assert.deepEqual(first.notifications, expected.slice(0, 2));
+    assert.equal(first.nextAfterSeq, 3);
+    const rest = await sync(id, sales.cookie, `?afterSeq=${first.nextAfterSeq}`);
+    assert.deepEqual(rest.notifications, expected.slice(2));
+    assert.deepEqual((await sync(id)).notifications, expected);
+    assert.deepEqual((await sync(id, admin.cookie, '?afterSeq=7')).notifications, []);
+
+    const visitor = await visitorDetail(request(`${visitorPath}/${id}`, cookie), context(id));
+    assert.equal(visitor.status, 200, await visitor.clone().text());
+    assert.deepEqual(ChatSyncDTOSchema.parse(await visitor.json()).messages[0], message);
+  });
+
+  test('E-35: a worker commit after the conversation read appears only in the next snapshot', async () => {
+    const { conversationId: id, message } = await conversation();
+    const { pending } = await db.$transaction(async (tx) => {
+      await tx.$executeRaw`LOCK TABLE "ChatMessage" IN ACCESS EXCLUSIVE MODE`;
+      const pending = getDetail(id, admin.cookie);
+      // The message query can block only after the route has read the conversation.
+      const deadline = Date.now() + 3_000;
+      let waiting = false;
+      while (!waiting && Date.now() < deadline) {
+        const [state] = await tx.$queryRaw<{ waiting: boolean }[]>`
+          SELECT EXISTS (
+            SELECT 1 FROM pg_locks
+            WHERE relation = '"ChatMessage"'::regclass AND mode = 'AccessShareLock' AND NOT granted
+          ) AS waiting
+        `;
+        waiting = state!.waiting;
+        if (!waiting) await delay(20);
+      }
+      assert.ok(waiting, 'detail must reach the message query before the worker commits');
+      await tx.chatNotification.update({ where: { messageId: message.id }, data: { status: 'SENT' } });
+      return { pending };
+    }, { timeout: 10_000 });
+    const response = await pending;
+    assert.equal(response.status, 200, await response.clone().text());
+    const snapshot = AdminChatSyncDTOSchema.parse(await response.json());
+    assert.deepEqual(snapshot.messages, [message]);
+    assert.deepEqual(snapshot.notifications, [{ messageId: message.id, status: 'QUEUED' }]);
+    assert.deepEqual((await sync(id)).notifications, [{ messageId: message.id, status: 'SENT' }]);
+  });
+
   test('E-35 / E-41 / E-86 / E-89: delivery failure and cookie expiry leave retained messages processable', async () => {
-    const { conversationId: id, cookie, message, receivedAt } = await conversation();
+    const { conversationId: id, cookie, message, receivedAt, payload } = await conversation();
     const before = await db.chatConversation.findUniqueOrThrow({ where: { id } });
     const outbox = await db.chatNotification.findUniqueOrThrow({ where: { messageId: message.id } });
     assert.equal(outbox.status, 'QUEUED');
     await db.chatNotification.update({ where: { id: outbox.id }, data: { status: 'FAILED' } });
+    const replay = await create(request(visitorPath, cookie, payload));
+    assert.equal(replay.status, 200, await replay.clone().text());
+    assert.deepEqual(ConversationReceivedDTOSchema.parse(await replay.json()), {
+      conversationId: id, message, receivedAt, duplicate: true,
+    });
     await db.chatVisitorSession.update({
       where: { id: before.visitorSessionId }, data: { absoluteExpiresAt: new Date(Date.now() - 1000) },
     });
@@ -274,6 +359,7 @@ describe('M4-T3 operator inbox HTTP', { skip: !url && 'no dedicated M4T3_TEST_DA
       assert.equal(current.conversation.status, 'OPEN');
       assert.equal(current.conversation.email, 'visitor@example.com');
       assert.deepEqual(current.messages, [message]);
+      assert.deepEqual(current.notifications, [{ messageId: message.id, status: 'FAILED' }]);
       assert.equal(current.messages[0]?.createdAt, receivedAt);
       assert.equal((await mark(id, cookie, 1)).status, 200);
     }

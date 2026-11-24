@@ -274,7 +274,7 @@ test('chat pagination validates wire queries, nested privacy and monotonic seque
     { ...sync, hasMore: true },
   ]);
   const adminConversation = { ...conversation, email: 'sales@example.com' };
-  const adminSync = { ...sync, conversation: adminConversation };
+  const adminSync = { ...sync, conversation: adminConversation, notifications: [] };
   assert.deepEqual(contracts.AdminChatSyncDTOSchema.parse(adminSync), adminSync);
   const page = { items: [{ ...adminConversation, lastSeq: 3, lastReadSeq: 0 }], nextCursor: null, hasMore: false, unreadTotal: 3 };
   assert.deepEqual(contracts.ChatSummaryPageDTOSchema.parse(page), page);
@@ -286,34 +286,62 @@ const syncConversation = {
   createdAt: at, updatedAt: at, lastActivityAt: at, retainUntil: '2027-01-17T16:20:00.000Z', anonymizedAt: null,
 };
 
-for (const { audience, schema, conversation } of [
-  { audience: 'visitor', schema: contracts.ChatSyncDTOSchema, conversation: syncConversation },
-  { audience: 'admin', schema: contracts.AdminChatSyncDTOSchema, conversation: { ...syncConversation, email: null } },
+test('M4-T3 admin notifications are strict, unique and ordered by the current visitor message page', () => {
+  const statuses = ['QUEUED', 'SENDING', 'SENT', 'FAILED', 'UNKNOWN', 'DISABLED'] as const;
+  const messages = statuses.map((_, index) => ({ ...message, id: `cm_notice_${index}`, seq: index + 4 }));
+  const operatorMessage = { ...message, id: 'cm_operator', seq: 10, sender: 'OPERATOR' };
+  const notifications = statuses.map((status, index) => ({ messageId: messages[index]!.id, status }));
+  const visitor = {
+    conversation: syncConversation, messages: [...messages, operatorMessage],
+    lastSeq: 11, nextAfterSeq: 10, hasMore: true, read: { lastReadSeq: 0 },
+  };
+  const admin = { ...visitor, conversation: { ...syncConversation, email: null } };
+  const schema = contracts.AdminChatSyncDTOSchema;
+  assert.deepEqual(schema.parse({ ...admin, notifications }).notifications, notifications);
+  assert.deepEqual(schema.parse({ ...admin, notifications: [notifications[3]] }).notifications, [notifications[3]]);
+  rejects(schema, [
+    admin,
+    { ...admin, notifications: [notifications[0], notifications[0]] },
+    { ...admin, notifications: [notifications[1], notifications[0]] },
+    { ...admin, notifications: [{ messageId: 'cm_off_page', status: 'SENT' }] },
+    { ...admin, notifications: [{ messageId: operatorMessage.id, status: 'SENT' }] },
+    { ...admin, notifications: [{ ...notifications[0], status: 'sent' }] },
+    { ...admin, notifications: [{ ...notifications[0], leaseOwner: 'worker', stableMessageId: 'internal' }] },
+    { ...admin, notifications: Array.from({ length: 101 }, () => notifications[0]) },
+  ]);
+  assert.deepEqual(contracts.ChatSyncDTOSchema.parse(visitor), visitor);
+  rejects(contracts.ChatSyncDTOSchema, [{ ...visitor, notifications }]);
+  rejects(contracts.ChatMessageDTOSchema, [{ ...message, notification: notifications[0] }]);
+});
+
+for (const { audience, schema, conversation, extras } of [
+  { audience: 'visitor', schema: contracts.ChatSyncDTOSchema, conversation: syncConversation, extras: {} },
+  { audience: 'admin', schema: contracts.AdminChatSyncDTOSchema, conversation: { ...syncConversation, email: null }, extras: { notifications: [] } },
 ]) {
   test(`R1 ${audience} sync rejects a sequence gap within a page`, () => {
     rejects(schema, [{
-      conversation, messages: [{ ...message, seq: 3 }, { ...message, seq: 5 }],
+      ...extras, conversation, messages: [{ ...message, seq: 3 }, { ...message, seq: 5 }],
       lastSeq: 5, nextAfterSeq: 5, hasMore: false, read: { lastReadSeq: 0 },
     }]);
   });
 
   test(`R1 ${audience} sync rejects a cursor beyond its last returned message`, () => {
     rejects(schema, [{
-      conversation, messages: [{ ...message, seq: 3 }],
+      ...extras, conversation, messages: [{ ...message, seq: 3 }],
       lastSeq: 5, nextAfterSeq: 5, hasMore: false, read: { lastReadSeq: 0 },
     }]);
   });
 
   test(`R1 ${audience} sync rejects a premature end-of-page marker`, () => {
     rejects(schema, [{
-      conversation, messages: [{ ...message, seq: 3 }],
+      ...extras, conversation, messages: [{ ...message, seq: 3 }],
       lastSeq: 5, nextAfterSeq: 3, hasMore: false, read: { lastReadSeq: 0 },
     }]);
   });
 
   test(`R1 ${audience} sync rejects an empty page that claims more messages`, () => {
     rejects(schema, [{
-      conversation, messages: [],
+      ...extras, conversation, messages: [],
       lastSeq: 5, nextAfterSeq: 3, hasMore: true, read: { lastReadSeq: 0 },
     }]);
   });
@@ -327,7 +355,7 @@ for (const { audience, schema, conversation } of [
       { sequences: [], lastSeq: 3, nextAfterSeq: 3, hasMore: false },
     ]) {
       const sync = {
-        conversation, messages: page.sequences.map((seq) => ({ ...message, seq })),
+        ...extras, conversation, messages: page.sequences.map((seq) => ({ ...message, seq })),
         lastSeq: page.lastSeq, nextAfterSeq: page.nextAfterSeq, hasMore: page.hasMore, read: { lastReadSeq: 0 },
       };
       assert.deepEqual(schema.parse(sync), sync);

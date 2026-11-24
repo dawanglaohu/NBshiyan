@@ -430,6 +430,8 @@ jobs:
           # M4-T2 访客读游标真实 PG/route 回归：只认专属变量、必须 loopback；缺地址时上一条 require 直接失败。
           # 测试自建 chatread_<pid>_<hex> schema，事后按同名 DROP CASCADE，不落 public。
           B10_M4T2_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
+          M4T3_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
+          M4T3_REQUIRE_DATABASE: 'true'
           B10_M4T4_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
           M3T2_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e?schema=m3t2
           M3T2_REQUIRE_DATABASE: 'true'
@@ -474,6 +476,7 @@ jobs:
               'tests/analytics-ingest.http.db.test.ts',
               'tests/analytics-aggregate.db.test.ts',
               'tests/chat-visitor-read.http.test.ts',
+              'tests/chat-operator-read.http.test.ts',
               'tests/chat-visitor-append.db.test.ts',
               'tests/analytics-daily.db.test.ts',
               'tests/analytics-day-state.db.test.ts',
@@ -531,6 +534,7 @@ jobs:
             tests/analytics-ingest.http.db.test.ts \
             tests/analytics-aggregate.db.test.ts \
             tests/chat-visitor-read.http.test.ts \
+            tests/chat-operator-read.http.test.ts \
             tests/chat-visitor-append.db.test.ts \
             tests/analytics-daily.db.test.ts \
             tests/analytics-day-state.db.test.ts \
@@ -574,6 +578,7 @@ jobs:
             'tests/analytics-ingest.http.db.test.ts',
             'tests/analytics-aggregate.db.test.ts',
             'tests/chat-visitor-read.http.test.ts',
+            'tests/chat-operator-read.http.test.ts',
             'tests/chat-visitor-append.db.test.ts',
               'tests/analytics-daily.db.test.ts',
               'tests/analytics-day-state.db.test.ts',

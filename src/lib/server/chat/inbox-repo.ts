@@ -67,7 +67,14 @@ export function createInboxRepo(db: QueryDb) {
       where: { conversationId, seq: { gt: afterSeq, lte: lastSeq }, redactedAt: null },
       orderBy: { seq: 'asc' },
       take: limit,
-      select: { id: true, seq: true, sender: true, bodyText: true, createdAt: true },
+      select: {
+        id: true,
+        seq: true,
+        sender: true,
+        bodyText: true,
+        createdAt: true,
+        notification: { select: { status: true } },
+      },
     }),
 
     async lockOperator(userId: string, deviceId: string) {
