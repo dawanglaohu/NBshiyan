@@ -1184,15 +1184,16 @@
     "verdict": "pass"
   },
   "M4-T3": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "2950980a6fda2101fe228ff591a256b5477751ff5e3eefea6fc890a2446d629c",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "45132b347bcdc61f1f800585e7a30aa33c29cbd67179ad620b7781f2bea9086a",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M4-T3《查询当前授权运营的收件箱及读状态》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "Prerequisites verified on main (284065a4): M4-T2 (chat-visitor-sync-api: read-cursor.ts consecutivePage/pageStartSeq/ChatSequenceGap, visitor read routes) and M3-T1 (current-admin-permissions: requireAdmin, decideAdminAccess, withClearedSession, ADMIN_SESSION_POLICY) are landed; M4-T1/M4-T4/M4-T10 ChatConversation/ChatMessage/ChatReadCursor/ChatNotification schema and outbox are landed.",
+      "DOC_PATCH b11-m4t3-notification-ci-20261124 verified against Jev adjudication (M4-T3:review, jev-1.14.0, pick=detail_sidecar high 0.89, adopt=take(detail_sidecar)): Section 10 (02-设计/10-接口约定.md:39,87) now defines AdminChatSyncDTO.notifications (ChatNotificationSummaryDTO[], max 100, {messageId, status} using Prisma ChatNotificationStatus QUEUED/SENDING/SENT/FAILED/UNKNOWN/DISABLED, ordered ascending by message seq, unique per visitor message in the same snapshot, excluding internal outbox columns, leaving ChatMessageDTO and visitor ChatSyncDTO unchanged).",
+      "Effective paths verified in _run/task-contracts.json: M4-T3.supportPaths now includes src/lib/contracts/chat.ts, tests/contracts-foundation.test.ts, and .github/workflows/ci.yml alongside read-cursor.ts, composition.ts, and tests/chat-operator-read.http.test.ts. All Batch 11 sibling tasks (M4-T10, M6-T1) are already landed; zero parallel file conflicts.",
+      "13/17/19 alignment verified: M4-T3 edges E-19/E-32/E-34/E-35/E-41/E-78/E-79/E-86/E-89 and stage=integration wiring (backendRoutes + container) match the patched Section 10 AdminChatSyncDTO contract and Section 17 isolated PG17 CI requirement.",
+      "Task-contract review only: current PR #567 code (102cd1cb) passes lint, tsc, check-admin-guard, and 68/68 local PG17 tests, but still requires Round 1 code rework R1 (implement AdminChatSyncDTO.notifications in contracts/repo/service/tests) and R2 (wire tests/chat-operator-read.http.test.ts into .github/workflows/ci.yml PG17 gate)."
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-11-24T13:29:03.988912+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },

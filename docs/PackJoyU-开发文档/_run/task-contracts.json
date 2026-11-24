@@ -1801,9 +1801,12 @@
         "container"
       ],
       "supportPaths": [
+        "src/lib/contracts/chat.ts",
         "src/lib/server/chat/read-cursor.ts",
         "src/lib/server/composition.ts",
-        "tests/chat-operator-read.http.test.ts"
+        "tests/chat-operator-read.http.test.ts",
+        "tests/contracts-foundation.test.ts",
+        ".github/workflows/ci.yml"
       ],
       "outputPaths": [
         "src/lib/server/chat/operator-read.ts",
