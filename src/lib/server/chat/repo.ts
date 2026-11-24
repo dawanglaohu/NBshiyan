@@ -1,4 +1,5 @@
 import { Prisma, type PrismaClient } from '@prisma/client';
+import type { ConversationCreateRequest } from '../../contracts/chat';
 import { products } from '../../../data/products';
 import { visitorSessionTouchSql } from './visitor-session-repo';
 
@@ -22,7 +23,7 @@ export class ChatTransactionBudgetExceeded extends Error {
  * 「数据库不可用或超时」的保守分类，只认确定的类别：
  * - 连接初始化/不可达/连接池超时：PrismaClientInitializationError/RustPanicError 与 P1001/P1002/P1008/P1017/P2024；
  * - 事务超时 P2028；
- * - 服务端 statement_timeout 取消语句：P2010 + SQLSTATE 57014；
+ * - 服务端 statement_timeout / lock_timeout 取消语句：P2010 + SQLSTATE 57014 / 55P03；
  * - 明确的网络错误码（连接被拒/重置/超时/解析失败）。
  *
  * 不按 message 关键词匹配，也不把全部 P2010 归进来——触发器 RAISE EXCEPTION 等数据层错误
@@ -39,7 +40,7 @@ export function isDatabaseUnavailable(error: unknown): boolean {
   for (const code of [shaped.code, shaped.errorCode]) {
     if (typeof code === 'string' && (DB_UNAVAILABLE_CODES.has(code) || NET_CODES.has(code))) return true;
   }
-  if (shaped.code === 'P2010' && shaped.meta?.code === '57014') return true;
+  if (shaped.code === 'P2010' && (shaped.meta?.code === '57014' || shaped.meta?.code === '55P03')) return true;
   return shaped.cause !== error && isDatabaseUnavailable(shaped.cause);
 }
 
@@ -67,6 +68,10 @@ export type ChatConversationRow = {
   lastSeq: number;
 };
 
+type VisitorConversationForWrite = Pick<ChatConversationRow, 'status' | 'clientConversationId'>
+  & Pick<ConversationCreateRequest, 'locale'>
+  & { anonymizedAt: Date | null };
+
 export type ChatMessageRow = {
   id: string;
   conversationId: string;
@@ -93,6 +98,24 @@ export function isUniqueViolation(error: unknown): boolean {
 
 export function createChatRepo(db: ChatWriteDb) {
   return {
+    async setWriteTimeouts(tx: ChatTx, remainingMs: number): Promise<void> {
+      const timeout = String(remainingMs);
+      await tx.$queryRaw`
+        SELECT set_config('statement_timeout', ${timeout}, true) AS statement_budget,
+               set_config('lock_timeout', ${timeout}, true) AS lock_budget
+      `;
+    },
+
+    async lockVisitorConversation(tx: ChatTx, conversationId: string, visitorSessionId: string) {
+      const rows = await tx.$queryRaw<VisitorConversationForWrite[]>`
+        SELECT "status"::text AS "status", "anonymizedAt", "clientConversationId", "locale"
+        FROM "ChatConversation"
+        WHERE "id" = ${conversationId} AND "visitorSessionId" = ${visitorSessionId}
+        FOR UPDATE
+      `;
+      return rows[0] ?? null;
+    },
+
     /** 同一个访客会话 + 客户端会话 UUID 是否已经建过。唯一键 (visitorSessionId, clientConversationId)。 */
     async findConversation(
       tx: ChatTx,
