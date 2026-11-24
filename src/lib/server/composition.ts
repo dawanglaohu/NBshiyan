@@ -21,6 +21,7 @@ import { createVisitorSessionRepo, type VisitorSessionStore } from './chat/visit
 import { createVisitorSessionService, type VisitorSessionService } from './chat/visitor-session';
 import { createConversationService, type ConversationService } from './chat/conversation-service';
 import { createMessageService, type MessageService } from './chat/message-service';
+import { createOperatorReadService, type OperatorReadService } from './chat/operator-read';
 import { createVisitorReadService, type VisitorReadService } from './chat/visitor-read';
 import { createSelfRebindService, type SelfRebindService } from './admin/self-rebind';
 import { createChatReadRepo, type ChatReadDb, type ChatWriteDb } from './chat/repo';
@@ -189,9 +190,10 @@ export type ChatServices = HttpServices & {
   conversations: ConversationService;
   messages: MessageService;
   visitorRead: VisitorReadService;
+  operatorRead: OperatorReadService;
 };
 
-/** 访客必要会话。每次调用新建服务，不保存当前 cookie 或会话行。 */
+/** 聊天服务组合点。服务实例不持有请求身份。 */
 export function createChatServices(deps: {
   db?: ApiCounterDb & VisitorSessionStore;
   config?: ServerConfig;
@@ -215,6 +217,7 @@ export function createChatServices(deps: {
     conversations: createConversationService({ db: chatDb, clock }),
     messages: createMessageService({ db: chatDb, clock }),
     visitorRead: createVisitorReadService({ repo: createChatReadRepo(chatReadDb) }),
+    operatorRead: createOperatorReadService({ db: chatDb, clock }),
   };
 }
 
