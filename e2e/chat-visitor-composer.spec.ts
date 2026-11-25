@@ -543,6 +543,18 @@ test.describe('M4-T5 visitor first-party chat composer & UX boundaries', () => {
         expect(closeAfterShrink).not.toBeNull();
         expect(sendAfterShrink!.y + sendAfterShrink!.height).toBeLessThanOrEqual(460);
         expect(closeAfterShrink!.y).toBeGreaterThanOrEqual(0);
+        // A viewport resize can reach CSS before the visualViewport listener publishes its sample.
+        const staleSampleTop = await panel.evaluate((el, previousHeight) => {
+          const style = (el as HTMLElement).style;
+          const sampled = style.getPropertyValue('--chat-vv-height');
+          try {
+            style.setProperty('--chat-vv-height', `${previousHeight}px`);
+            return el.getBoundingClientRect().top;
+          } finally {
+            style.setProperty('--chat-vv-height', sampled);
+          }
+        }, vp.height);
+        expect(staleSampleTop).toBeGreaterThanOrEqual(0);
       }
 
       // Escape closes panel and restores focus to entry button

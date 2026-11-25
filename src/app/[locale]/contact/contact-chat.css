@@ -17,6 +17,7 @@
 }
 
 .pj-chat-panel {
+  --chat-visible-height: min(100dvh, var(--chat-vv-height, 100dvh));
   position: fixed;
   z-index: 60;
   left: calc(16px + env(safe-area-inset-left, 0px));
@@ -27,7 +28,7 @@
   );
   width: auto;
   max-height: calc(
-    var(--chat-vv-height, 100dvh) - 32px - var(--pj-consent-h, 0px) -
+    var(--chat-visible-height) - 32px - var(--pj-consent-h, 0px) -
       var(--pj-toast-h, 0px) - env(safe-area-inset-top, 0px) -
       env(safe-area-inset-bottom, 0px)
   );
@@ -50,7 +51,7 @@
     max-height: min(
       460px,
       calc(
-        var(--chat-vv-height, 100dvh) - 32px - var(--pj-consent-h, 0px) -
+        var(--chat-visible-height) - 32px - var(--pj-consent-h, 0px) -
           var(--pj-toast-h, 0px) - env(safe-area-inset-top, 0px) -
           env(safe-area-inset-bottom, 0px)
       )
