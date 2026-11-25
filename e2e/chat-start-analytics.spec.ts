@@ -1,6 +1,14 @@
 import { randomUUID } from 'node:crypto';
 import { PrismaClient } from '@prisma/client';
+import { E2E_EDGE_AUTH_SECRET } from '../scripts/e2e-edge-auth';
 import { expect, test } from './fixtures';
+
+const CHAT_ANALYTICS_EDGE_IPS: Readonly<Record<string, string>> = {
+  'consented chat emits single chat_start -> aggregate increments chatStarts; reply & retry dedupe cleanly': '198.18.20.1',
+  'decline + later post-consent never backfills chat_start; failed send and spoofed productSlug handled cleanly': '198.18.20.2',
+  'R3: declined submit saved on server -> lost response -> post-consent -> same-key retry duplicate=true emits zero chat_start': '198.18.20.3',
+  'R3: originally consented submit -> lost response -> manual retry duplicate=true emits chat_start once': '198.18.20.4',
+};
 
 const E2E_DB = process.env.DATABASE_URL;
 let db: PrismaClient | undefined;
@@ -45,6 +53,15 @@ async function readSiteAndProductChatStarts(productSlug: string): Promise<{ site
 }
 
 test.describe('M4-T5 consent-gated chat_start analytics producer', () => {
+  test.beforeEach(async ({ context }, testInfo) => {
+    const ip = CHAT_ANALYTICS_EDGE_IPS[testInfo.title];
+    if (!ip) throw new Error(`Missing edge IP mapping for test: ${testInfo.title}`);
+    await context.setExtraHTTPHeaders({
+      'x-edge-auth': E2E_EDGE_AUTH_SECRET,
+      'cf-connecting-ip': ip,
+    });
+  });
+
   test('consented chat emits single chat_start -> aggregate increments chatStarts; reply & retry dedupe cleanly', async ({
     page,
     request,
@@ -248,6 +265,196 @@ test.describe('M4-T5 consent-gated chat_start analytics producer', () => {
     await expect.poll(() => capturedChatStarts.length).toBe(1);
     expect(capturedChatStarts[0].productSlug).toBeUndefined();
     expect(capturedChatStarts[0].path).toBe('/en/contact');
+    expect(external.urls).toEqual([]);
+  });
+
+  test('R3: declined submit saved on server -> lost response -> post-consent -> same-key retry duplicate=true emits zero chat_start', async ({
+    page,
+    external,
+  }) => {
+    test.setTimeout(45_000);
+    const marker = randomUUID().slice(0, 8);
+    const analyticsCalls: string[] = [];
+    page.on('request', (req) => {
+      if (req.url().includes('/api/analytics/events') && req.method() === 'POST') {
+        analyticsCalls.push(req.postData() ?? '');
+      }
+    });
+
+    await page.goto('/en/contact');
+    await page.getByRole('button', { name: 'Reject all' }).click();
+    await page.waitForResponse(
+      (res) => res.url().endsWith('/api/analytics/consent') && res.request().method() === 'POST',
+    );
+
+    await page.getByTestId('contact-human-chat').click();
+    await expect(page.getByTestId('chat-availability-status')).toHaveText('Offline message');
+
+    // First real attempt writes to DB, then drops response across internal retries to enter manual retry;
+    // when unblocked, capture the real HTTP JSON body directly via route.fetch() to verify duplicate=true safely.
+    let capturedClientConvId = '';
+    let dropStage = true;
+    let forwardedWriteCount = 0;
+    let retryJson: { conversationId: string; duplicate: boolean } | undefined;
+    await page.route('**/api/chat/conversations', async (route) => {
+      if (route.request().method() === 'POST') {
+        if (dropStage) {
+          const body = route.request().postDataJSON() as { clientConversationId: string };
+          capturedClientConvId = body.clientConversationId;
+          if (forwardedWriteCount === 0) {
+            forwardedWriteCount += 1;
+            const realRes = await route.fetch();
+            expect([200, 201]).toContain(realRes.status());
+          }
+          await route.abort('failed');
+          return;
+        }
+        const realRes = await route.fetch();
+        expect(realRes.status()).toBe(200);
+        retryJson = (await realRes.json()) as { conversationId: string; duplicate: boolean };
+        await route.fulfill({ response: realRes });
+        return;
+      }
+      await route.continue();
+    });
+
+    const msgText = `R3 declined lost response [${marker}]`;
+    await page.getByLabel('Message').fill(msgText);
+    await page.getByTestId('chat-send').click();
+    await expect(page.getByTestId('chat-send-error')).toBeVisible({ timeout: 20_000 });
+    expect(capturedClientConvId).toBeTruthy();
+
+    // Verify 1 conversation & 1 message are already persisted in PostgreSQL while UI has no receipt yet
+    const preRetryConv = await prisma().chatConversation.findFirst({
+      where: { clientConversationId: capturedClientConvId },
+      include: { messages: true },
+    });
+    expect(preRetryConv).not.toBeNull();
+    expect(preRetryConv?.messages).toHaveLength(1);
+    expect(analyticsCalls).toEqual([]);
+
+    // User now grants analytics consent AFTER the original submission was already saved under decline.
+    // Activate footer Cookie settings via keyboard focus so the open floating chat panel stays mounted with its draft.
+    await page.locator('#cookie-settings-link').focus();
+    await page.keyboard.press('Enter');
+    const dialog = page.getByRole('dialog', { name: 'Cookie settings' });
+    await expect(dialog).toBeVisible();
+    await dialog.getByRole('button', { name: 'Accept all' }).click();
+    await page.waitForResponse(
+      (res) => res.url().endsWith('/api/analytics/consent') && res.request().method() === 'POST',
+    );
+
+    // Unblock and manually retry with the SAME clientConversationId -> server returns duplicate=true
+    dropStage = false;
+    const retryPromise = page.waitForResponse(
+      (res) => res.url().endsWith('/api/chat/conversations') && res.request().method() === 'POST',
+    );
+    await page.getByTestId('chat-send').click();
+    const retryRes = await retryPromise;
+    expect(retryRes.status()).toBe(200);
+    await expect(page.getByTestId('chat-receipt')).toContainText('Received, awaiting human handling');
+    await page.unroute('**/api/chat/conversations');
+    expect(retryJson?.duplicate).toBe(true);
+    expect(retryJson?.conversationId).toBe(preRetryConv!.id);
+    await page.waitForTimeout(400);
+
+    // Zero chat_start emitted or persisted, and DB still has exactly 1 conversation & 1 message
+    expect(analyticsCalls.some((p) => p.includes('chat_start'))).toBe(false);
+    const convRows = await prisma().chatConversation.findMany({
+      where: { clientConversationId: capturedClientConvId },
+      include: { messages: true },
+    });
+    expect(convRows).toHaveLength(1);
+    expect(convRows[0].messages).toHaveLength(1);
+    expect(external.urls).toEqual([]);
+  });
+
+  test('R3: originally consented submit -> lost response -> manual retry duplicate=true emits chat_start once', async ({
+    page,
+    request,
+    external,
+  }) => {
+    test.setTimeout(45_000);
+    const marker = randomUUID().slice(0, 8);
+    await runAggregateNow(request);
+    const beforeCounts = await readSiteAndProductChatStarts('color-boxes');
+
+    const postedEvents: Array<Record<string, unknown>> = [];
+    page.on('request', (req) => {
+      if (req.url().endsWith('/api/analytics/events') && req.method() === 'POST') {
+        const json = req.postDataJSON() as { events?: Array<Record<string, unknown>> } | null;
+        if (json?.events) postedEvents.push(...json.events);
+      }
+    });
+
+    await page.goto('/en/products');
+    await page.getByRole('button', { name: 'Accept all' }).click();
+    await page.waitForResponse(
+      (res) => res.url().endsWith('/api/analytics/consent') && res.request().method() === 'POST',
+    );
+    await page.locator('a[href*="/contact?product=color-boxes"]').first().click();
+    await expect(page).toHaveURL(/\/en\/contact\?product=color-boxes/);
+
+    await expect
+      .poll(() => postedEvents.filter((e) => e.kind === 'page_view' && e.path === '/en/contact').length)
+      .toBeGreaterThanOrEqual(1);
+    const navigationId = String(
+      [...postedEvents].reverse().find((e) => e.kind === 'page_view' && e.path === '/en/contact')!.navigationId,
+    );
+
+    await page.getByTestId('contact-human-chat').click();
+    await expect(page.getByTestId('chat-availability-status')).toHaveText('Offline message');
+
+    let dropStage = true;
+    let forwarded = 0;
+    let retryJson: { duplicate: boolean } | undefined;
+    await page.route('**/api/chat/conversations', async (route) => {
+      if (route.request().method() === 'POST') {
+        if (dropStage) {
+          if (forwarded === 0) {
+            forwarded += 1;
+            const realRes = await route.fetch();
+            expect([200, 201]).toContain(realRes.status());
+          }
+          await route.abort('failed');
+          return;
+        }
+        const realRes = await route.fetch();
+        expect(realRes.status()).toBe(200);
+        retryJson = (await realRes.json()) as { duplicate: boolean };
+        await route.fulfill({ response: realRes });
+        return;
+      }
+      await route.continue();
+    });
+
+    await page.getByLabel('Message').fill(`R3 consented lost response [${marker}]`);
+    await page.getByTestId('chat-send').click();
+    await expect(page.getByTestId('chat-send-error')).toBeVisible({ timeout: 20_000 });
+    expect(postedEvents.filter((e) => e.kind === 'chat_start')).toHaveLength(0);
+
+    // Manual same-key retry receives duplicate=true and emits chat_start once
+    dropStage = false;
+    const retryPromise = page.waitForResponse(
+      (res) => res.url().endsWith('/api/chat/conversations') && res.request().method() === 'POST',
+    );
+    await page.getByTestId('chat-send').click();
+    const retryRes = await retryPromise;
+    expect(retryRes.status()).toBe(200);
+    await expect(page.getByTestId('chat-receipt')).toContainText('Received, awaiting human handling');
+    await page.unroute('**/api/chat/conversations');
+    expect(retryJson?.duplicate).toBe(true);
+
+    await expect.poll(() => postedEvents.filter((e) => e.kind === 'chat_start').length).toBe(1);
+    const dbEvents = await prisma().analyticsEvent.findMany({
+      where: { navigationId, kind: 'chat_start' },
+    });
+    expect(dbEvents).toHaveLength(1);
+
+    await runAggregateNow(request);
+    const afterCounts = await readSiteAndProductChatStarts('color-boxes');
+    expect(afterCounts.site).toBe(beforeCounts.site + 1);
+    expect(afterCounts.product).toBe(beforeCounts.product + 1);
     expect(external.urls).toEqual([]);
   });
 });

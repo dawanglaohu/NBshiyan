@@ -27,7 +27,6 @@ import {
 } from '@/lib/contracts/chat';
 import {
   BodyTextSchema,
-  EmailSchema,
   IdSchema,
   ProductSlugSchema,
   SitePathSchema,
@@ -165,14 +164,9 @@ export function sanitizeChatSourcePath(locale: ClientLocale, pathname: string): 
   return parsed.success ? parsed.data : undefined;
 }
 
-export function trimOptionalEmail(raw: string): string | undefined {
-  const trimmed = raw.trim();
-  return trimmed.length > 0 ? trimmed : undefined;
-}
-
 export function validateVisitorComposer(input: {
   bodyText: string;
-  email: string;
+  email?: string;
   includeEmail: boolean;
 }): ChatComposerValidationResult {
   const errors: ChatComposerValidationErrors = {};
@@ -201,20 +195,18 @@ export function validateVisitorComposer(input: {
 
   let validEmail: string | undefined;
   if (input.includeEmail) {
-    const trimmedEmail = input.email.trim();
-    if (trimmedEmail.length > 0) {
-      if (/[\r\n<>]/.test(input.email)) {
+    const parsedEmail = ConversationCreateRequestSchema.shape.email.safeParse(input.email);
+    if (!parsedEmail.success) {
+      const rawEmail = typeof input.email === 'string' ? input.email : '';
+      if (/[\r\n<>]/.test(rawEmail)) {
         errors.email = 'email_invalid';
-      } else if (trimmedEmail.length > CHAT_EMAIL_MAX_LENGTH) {
+      } else if (rawEmail.trim().length > CHAT_EMAIL_MAX_LENGTH) {
         errors.email = 'email_too_long';
       } else {
-        const parsedEmail = EmailSchema.safeParse(input.email);
-        if (!parsedEmail.success) {
-          errors.email = 'email_invalid';
-        } else {
-          validEmail = parsedEmail.data;
-        }
+        errors.email = 'email_invalid';
       }
+    } else {
+      validEmail = parsedEmail.data;
     }
   }
 
@@ -237,6 +229,38 @@ export function classifyChatFailureTerminal(failure: ClientApiFailure): ChatTerm
 
 export function isConversationTerminalStatus(conversation: Pick<ChatConversationDTO, 'status' | 'anonymizedAt'>): boolean {
   return conversation.status === 'CLOSED' || conversation.anonymizedAt !== null;
+}
+
+/**
+ * 仅推进到从 1 起连续取齐的最大消息序号；中间存在未拉取的缺口时不得跳过，
+ * 避免本地追加 seq=3 后跳过服务端尚未拉取的客服 seq=2。
+ */
+export function contiguousMessageSeq(messages: readonly Pick<ChatMessageDTO, 'seq'>[]): number {
+  const seqs = Array.from(new Set(messages.map((item) => item.seq))).sort((a, b) => a - b);
+  let cursor = 0;
+  for (const seq of seqs) {
+    if (seq === cursor + 1) {
+      cursor += 1;
+    } else if (seq > cursor + 1) {
+      break;
+    }
+  }
+  return cursor;
+}
+
+export function mergeConversationSnapshot(
+  current: ChatConversationDTO | null,
+  incoming: ChatConversationDTO,
+): ChatConversationDTO {
+  if (!current || current.id !== incoming.id) return incoming;
+  const latest = incoming.version >= current.version ? incoming : current;
+  const closed = current.status === 'CLOSED' || incoming.status === 'CLOSED' ? 'CLOSED' : latest.status;
+  const anonymizedAt = current.anonymizedAt ?? incoming.anonymizedAt;
+  return {
+    ...latest,
+    status: closed,
+    anonymizedAt,
+  };
 }
 
 export function mergeChatMessages(
@@ -294,9 +318,8 @@ export async function createChatConversation(
     locale: input.locale,
     bodyText: input.bodyText,
   };
-  const trimmedEmail = input.email !== undefined ? trimOptionalEmail(input.email) : undefined;
-  if (trimmedEmail !== undefined) {
-    payload.email = trimmedEmail;
+  if (input.email !== undefined) {
+    payload.email = input.email;
   }
   if (isPublishedProductSlug(input.productSlug)) {
     payload.productSlug = input.productSlug;
@@ -308,7 +331,11 @@ export async function createChatConversation(
     }
   }
 
-  const body = ConversationCreateRequestSchema.parse(payload);
+  const parsed = ConversationCreateRequestSchema.parse(payload);
+  const body = { ...parsed };
+  if (body.email === undefined) {
+    delete body.email;
+  }
   return requestApi({
     path: '/api/chat/conversations',
     method: 'POST',
@@ -455,8 +482,9 @@ const DEFAULT_ANALYTICS_DEPS: ChatStartDeps = {
 
 export function createChatStartTracker(deps: ChatStartDeps = DEFAULT_ANALYTICS_DEPS) {
   const emittedByNav = new Map<string, { clientConversationId: string; event: ChatStartEvent }>();
+  const attemptByConversation = new Map<string, ChatStartAttemptContext | null>();
 
-  function captureAttemptContext(): ChatStartAttemptContext | null {
+  function sampleContext(): ChatStartAttemptContext | null {
     if (!deps.canCollect()) return null;
     const nav = deps.getNavigation();
     if (!nav) return null;
@@ -468,17 +496,39 @@ export function createChatStartTracker(deps: ChatStartDeps = DEFAULT_ANALYTICS_D
     };
   }
 
+  /**
+   * 首次真正发起建会提交时将当时的同意与导航上下文绑定到 `clientConversationId`；
+   * 同键手动重试继续沿用原提交的绑定结果，防止响应丢失后因“后补同意”补发历史 chat_start。
+   */
+  function bindAttemptContext(clientConversationId: string): ChatStartAttemptContext | null {
+    if (attemptByConversation.has(clientConversationId)) {
+      return attemptByConversation.get(clientConversationId) ?? null;
+    }
+    const sampled = sampleContext();
+    attemptByConversation.set(clientConversationId, sampled);
+    return sampled;
+  }
+
+  function captureAttemptContext(clientConversationId?: string): ChatStartAttemptContext | null {
+    if (clientConversationId) return bindAttemptContext(clientConversationId);
+    return sampleContext();
+  }
+
   function emitOnCreateSuccess(input: EmitChatStartInput): EmitChatStartResult {
-    const { context, clientConversationId, productSlug } = input;
-    if (!context) return { status: 'skipped' };
+    const { clientConversationId, productSlug } = input;
+    const bound = attemptByConversation.has(clientConversationId)
+      ? attemptByConversation.get(clientConversationId) ?? null
+      : input.context;
+
+    if (!bound) return { status: 'skipped' };
     if (!deps.canCollect()) return { status: 'skipped' };
 
     const activeNav = deps.getNavigation();
     if (!activeNav) return { status: 'skipped' };
-    if (deps.getPageVisitSeq() !== context.pageVisitSeq) return { status: 'skipped' };
-    if (activeNav.navigationId !== context.navigationId) return { status: 'skipped' };
+    if (deps.getPageVisitSeq() !== bound.pageVisitSeq) return { status: 'skipped' };
+    if (activeNav.navigationId !== bound.navigationId) return { status: 'skipped' };
 
-    const existing = emittedByNav.get(context.navigationId);
+    const existing = emittedByNav.get(bound.navigationId);
     if (existing) {
       if (existing.clientConversationId === clientConversationId) {
         return { status: 'reused', event: existing.event };
@@ -486,13 +536,13 @@ export function createChatStartTracker(deps: ChatStartDeps = DEFAULT_ANALYTICS_D
       return { status: 'skipped' };
     }
 
-    const parsedPath = SitePathSchema.safeParse(context.path);
+    const parsedPath = SitePathSchema.safeParse(bound.path);
     const candidate: Record<string, unknown> = {
       kind: 'chat_start',
       eventId: deps.makeUuid(),
       occurredAt: deps.nowIso(),
-      locale: context.locale,
-      navigationId: context.navigationId,
+      locale: bound.locale,
+      navigationId: bound.navigationId,
     };
     if (parsedPath.success) {
       candidate.path = parsedPath.data;
@@ -506,7 +556,7 @@ export function createChatStartTracker(deps: ChatStartDeps = DEFAULT_ANALYTICS_D
       return { status: 'skipped' };
     }
 
-    emittedByNav.set(context.navigationId, {
+    emittedByNav.set(bound.navigationId, {
       clientConversationId,
       event: parsedEvent.data,
     });
@@ -515,6 +565,7 @@ export function createChatStartTracker(deps: ChatStartDeps = DEFAULT_ANALYTICS_D
   }
 
   return {
+    bindAttemptContext,
     captureAttemptContext,
     emitOnCreateSuccess,
   };

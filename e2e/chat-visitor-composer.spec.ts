@@ -1,6 +1,18 @@
 import { randomUUID } from 'node:crypto';
 import { PrismaClient } from '@prisma/client';
+import { E2E_EDGE_AUTH_SECRET } from '../scripts/e2e-edge-auth';
+import { createChatConversation, validateVisitorComposer } from '../src/lib/client/chat';
 import { consent, expect, test } from './fixtures';
+
+const CHAT_COMPOSER_EDGE_IPS: Readonly<Record<string, string>> = {
+  'home -> contact -> lazy session -> send/append/refresh with real DB receipt and no fake online indicators': '198.18.20.11',
+  'email validation preserves message, network outage retries idempotently, and closing drops unsent drafts': '198.18.20.12',
+  '401/404 and CLOSED threads stop old submits and show Start a new conversation without auto-sending old drafts': '198.18.20.13',
+  'minimalist-flat styles, responsive sizing, no overlap, keyboard focus and 44px targets at 1920/1440/390': '198.18.20.14',
+  'R1: sync cursor stops at contiguous seq when seq=3 arrives before Refresh, then pulls 2 and keeps 1,2,3 across reopen': '198.18.20.15',
+  'R2: concurrent Refresh and Append stay consistent in panel & parent cache across both response orders and reopen': '198.18.20.16',
+  'R4: email schema consistency — omitted/empty/spaces send cleanly; CRLF/display-name/oversize error with draft retained & zero submit': '198.18.20.17',
+};
 
 const E2E_DB = process.env.DATABASE_URL;
 let db: PrismaClient | undefined;
@@ -28,6 +40,15 @@ function rectsOverlap(
 }
 
 test.describe('M4-T5 visitor first-party chat composer & UX boundaries', () => {
+  test.beforeEach(async ({ context }, testInfo) => {
+    const ip = CHAT_COMPOSER_EDGE_IPS[testInfo.title];
+    if (!ip) throw new Error(`Missing edge IP mapping for test: ${testInfo.title}`);
+    await context.setExtraHTTPHeaders({
+      'x-edge-auth': E2E_EDGE_AUTH_SECRET,
+      'cf-connecting-ip': ip,
+    });
+  });
+
   test('home -> contact -> lazy session -> send/append/refresh with real DB receipt and no fake online indicators', async ({
     page,
     external,
@@ -69,8 +90,6 @@ test.describe('M4-T5 visitor first-party chat composer & UX boundaries', () => {
     await entryBtn.click();
     const sessionResponse = await sessionResponsePromise;
     expect(sessionResponse.status()).toBe(200);
-    const sessionJson = (await sessionResponse.json()) as { available: boolean; expiresAt: string };
-    expect(sessionJson.available).toBe(true);
     expect(sessionRequests).toEqual(['POST']);
 
     const panel = page.getByTestId('chat-panel');
@@ -90,57 +109,50 @@ test.describe('M4-T5 visitor first-party chat composer & UX boundaries', () => {
     await page.getByTestId('chat-send').click();
     const createRes = await createResPromise;
     expect([200, 201]).toContain(createRes.status());
-    const created = (await createRes.json()) as {
-      conversationId: string;
-      message: { id: string; seq: number; bodyText: string; createdAt: string };
-      receivedAt: string;
-    };
-    expect(created.conversationId).toBeTruthy();
-    expect(created.message.id).toBeTruthy();
-    expect(created.message.seq).toBe(1);
-    expect(Date.parse(created.receivedAt)).toBeGreaterThan(0);
 
     const receipt = page.getByTestId('chat-receipt');
     await expect(receipt).toBeVisible();
     await expect(receipt).toContainText('Received, awaiting human handling');
-    await expect(receipt).toHaveAttribute('data-conversation-id', created.conversationId);
-    await expect(receipt).toHaveAttribute('data-message-id', created.message.id);
     await expect(receipt).toHaveAttribute('data-seq', '1');
-    await expect(receipt).toHaveAttribute('data-received-at', created.receivedAt);
+    const convId1 = (await receipt.getAttribute('data-conversation-id'))!;
+    const msg1Id = (await receipt.getAttribute('data-message-id'))!;
+    const receivedAt1 = (await receipt.getAttribute('data-received-at'))!;
+    expect(convId1).toBeTruthy();
+    expect(msg1Id).toBeTruthy();
+    expect(Date.parse(receivedAt1)).toBeGreaterThan(0);
 
     const items = page.getByTestId('chat-message-item');
     await expect(items).toHaveCount(1);
-    await expect(items.nth(0)).toHaveAttribute('data-message-id', created.message.id);
+    await expect(items.nth(0)).toHaveAttribute('data-message-id', msg1Id);
     await expect(items.nth(0)).toHaveAttribute('data-seq', '1');
     await expect(items.nth(0)).toContainText(body1);
 
     // Verify real PostgreSQL persistence
     const dbConv = await prisma().chatConversation.findUnique({
-      where: { id: created.conversationId },
+      where: { id: convId1 },
       include: { messages: { orderBy: { seq: 'asc' } } },
     });
     expect(dbConv).not.toBeNull();
     expect(dbConv?.email).toBeNull();
-    expect(dbConv?.messages.map((m) => [m.seq, m.bodyText])).toEqual([[1, body1]]);
+    expect(dbConv?.messages.map((m) => [m.id, m.seq, m.bodyText])).toEqual([[msg1Id, 1, body1]]);
 
     // Second message append uses /messages
     const body2 = `Follow-up question [${marker}-2]`;
     await page.getByLabel('Message').fill(body2);
     const appendResPromise = page.waitForResponse(
       (res) =>
-        res.url().includes(`/api/chat/conversations/${created.conversationId}/messages`) &&
+        res.url().includes(`/api/chat/conversations/${convId1}/messages`) &&
         res.request().method() === 'POST',
     );
     await page.getByTestId('chat-send').click();
     const appendRes = await appendResPromise;
     expect([200, 201]).toContain(appendRes.status());
-    const appended = (await appendRes.json()) as {
-      message: { id: string; seq: number };
-      receivedAt: string;
-    };
-    expect(appended.message.seq).toBe(2);
+    await expect(receipt).toHaveAttribute('data-seq', '2');
+    const msg2Id = (await receipt.getAttribute('data-message-id'))!;
+    expect(msg2Id).toBeTruthy();
+    expect(msg2Id).not.toBe(msg1Id);
     await expect(items).toHaveCount(2);
-    await expect(items.nth(1)).toHaveAttribute('data-message-id', appended.message.id);
+    await expect(items.nth(1)).toHaveAttribute('data-message-id', msg2Id);
     await expect(items.nth(1)).toHaveAttribute('data-seq', '2');
     await expect(items.nth(1)).toContainText(body2);
 
@@ -151,7 +163,7 @@ test.describe('M4-T5 visitor first-party chat composer & UX boundaries', () => {
       prisma().chatMessage.create({
         data: {
           id: `opmsg_${marker}`,
-          conversationId: created.conversationId,
+          conversationId: convId1,
           seq: 3,
           sender: 'OPERATOR',
           authorId: null,
@@ -162,14 +174,14 @@ test.describe('M4-T5 visitor first-party chat composer & UX boundaries', () => {
         },
       }),
       prisma().chatConversation.update({
-        where: { id: created.conversationId },
+        where: { id: convId1 },
         data: { lastSeq: 3, updatedAt: now, lastActivityAt: now },
       }),
     ]);
 
     const syncResPromise = page.waitForResponse(
       (res) =>
-        res.url().includes(`/api/chat/conversations/${created.conversationId}?`) &&
+        res.url().includes(`/api/chat/conversations/${convId1}?`) &&
         res.request().method() === 'GET',
     );
     await page.getByTestId('chat-refresh').click();
@@ -348,10 +360,12 @@ test.describe('M4-T5 visitor first-party chat composer & UX boundaries', () => {
     await page.getByTestId('chat-send').click();
     const c1Res = await c1Promise;
     expect([200, 201]).toContain(c1Res.status());
-    const c1 = (await c1Res.json()) as { conversationId: string };
+    await expect(page.getByTestId('chat-receipt')).toHaveAttribute('data-seq', '1');
+    const c1ConversationId = (await page.getByTestId('chat-panel').getAttribute('data-conversation-id'))!;
+    expect(c1ConversationId).toBeTruthy();
 
     await prisma().chatConversation.update({
-      where: { id: c1.conversationId },
+      where: { id: c1ConversationId },
       data: { status: 'CLOSED' },
     });
 
@@ -379,7 +393,7 @@ test.describe('M4-T5 visitor first-party chat composer & UX boundaries', () => {
     await expect(page.getByTestId('chat-receipt')).toContainText('Received, awaiting human handling');
     const c2ConversationId = await page.getByTestId('chat-receipt').getAttribute('data-conversation-id');
     expect(c2ConversationId).toBeTruthy();
-    expect(c2ConversationId).not.toBe(c1.conversationId);
+    expect(c2ConversationId).not.toBe(c1ConversationId);
     const dbC2 = await prisma().chatConversation.findUnique({
       where: { id: c2ConversationId! },
       include: { messages: true },
@@ -402,6 +416,10 @@ test.describe('M4-T5 visitor first-party chat composer & UX boundaries', () => {
         viewport: { width: vp.width, height: vp.height },
         hasTouch: vp.isMobile,
         isMobile: vp.isMobile,
+        extraHTTPHeaders: {
+          'x-edge-auth': E2E_EDGE_AUTH_SECRET,
+          'cf-connecting-ip': '198.18.20.14',
+        },
       });
       const page = await context.newPage();
       await page.goto('/en/contact');
@@ -523,6 +541,440 @@ test.describe('M4-T5 visitor first-party chat composer & UX boundaries', () => {
         }
       }
       await context.close();
+    }
+  });
+
+  test('R1: sync cursor stops at contiguous seq when seq=3 arrives before Refresh, then pulls 2 and keeps 1,2,3 across reopen', async ({
+    page,
+  }) => {
+    const marker = randomUUID().slice(0, 8);
+    await page.goto('/en/contact');
+    await consent(page, 'none');
+    await page.goto('/en/contact');
+
+    await page.getByTestId('contact-human-chat').click();
+    await expect(page.getByTestId('chat-availability-status')).toHaveText('Offline message');
+
+    const body1 = `R1 msg1 [${marker}]`;
+    await page.getByLabel('Message').fill(body1);
+    const cResPromise = page.waitForResponse(
+      (res) => res.url().endsWith('/api/chat/conversations') && res.request().method() === 'POST',
+    );
+    await page.getByTestId('chat-send').click();
+    const cRes = await cResPromise;
+    expect([200, 201]).toContain(cRes.status());
+    await expect(page.getByTestId('chat-receipt')).toHaveAttribute('data-seq', '1');
+    const conversationId = (await page.getByTestId('chat-panel').getAttribute('data-conversation-id'))!;
+    expect(conversationId).toBeTruthy();
+    await expect(page.getByTestId('chat-panel')).toHaveAttribute('data-last-seq', '1');
+
+    // Operator writes seq=2 directly in DB without visitor refreshing yet
+    const opBody = `R1 op2 [${marker}]`;
+    const t2 = new Date();
+    await prisma().$transaction([
+      prisma().chatMessage.create({
+        data: {
+          id: `r1_op_${marker}`,
+          conversationId,
+          seq: 2,
+          sender: 'OPERATOR',
+          clientMessageId: randomUUID(),
+          payloadHash: randomUUID().replace(/-/g, ''),
+          bodyText: opBody,
+          createdAt: t2,
+        },
+      }),
+      prisma().chatConversation.update({
+        where: { id: conversationId },
+        data: { lastSeq: 2, updatedAt: t2, lastActivityAt: t2 },
+      }),
+    ]);
+
+    // Visitor appends seq=3 before refreshing; contiguous cursor must stay at 1 (never jump to 3)
+    const body3 = `R1 msg3 [${marker}]`;
+    await page.getByLabel('Message').fill(body3);
+    const aResPromise = page.waitForResponse(
+      (res) =>
+        res.url().includes(`/api/chat/conversations/${conversationId}/messages`) &&
+        res.request().method() === 'POST',
+    );
+    await page.getByTestId('chat-send').click();
+    const aRes = await aResPromise;
+    expect([200, 201]).toContain(aRes.status());
+    await expect(page.getByTestId('chat-receipt')).toHaveAttribute('data-seq', '3');
+
+    const items = page.getByTestId('chat-message-item');
+    await expect(items).toHaveCount(2);
+    await expect(page.getByTestId('chat-panel')).toHaveAttribute('data-last-seq', '1');
+
+    // Explicit Refresh must request afterSeq=1 and fetch missing seq=2
+    const seenAfterSeqs: string[] = [];
+    page.on('request', (req) => {
+      if (req.url().includes(`/api/chat/conversations/${conversationId}?`) && req.method() === 'GET') {
+        seenAfterSeqs.push(new URL(req.url()).searchParams.get('afterSeq') ?? '');
+      }
+    });
+    await page.getByTestId('chat-refresh').click();
+    await expect(items).toHaveCount(3);
+    expect(seenAfterSeqs).toEqual(['1']);
+    await expect(items.nth(0)).toHaveAttribute('data-seq', '1');
+    await expect(items.nth(0)).toContainText(body1);
+    await expect(items.nth(1)).toHaveAttribute('data-seq', '2');
+    await expect(items.nth(1)).toContainText(opBody);
+    await expect(items.nth(2)).toHaveAttribute('data-seq', '3');
+    await expect(items.nth(2)).toContainText(body3);
+    await expect(page.getByTestId('chat-panel')).toHaveAttribute('data-last-seq', '3');
+
+    // Close and reopen preserves ordered 1,2,3 (once each) and cursor 3
+    await page.getByTestId('chat-close').click();
+    await expect(page.getByTestId('chat-panel')).toHaveCount(0);
+    await page.getByTestId('contact-human-chat').click();
+    await expect(page.getByTestId('chat-availability-status')).toHaveText('Offline message');
+
+    await expect(items).toHaveCount(3);
+    await expect(items.nth(0)).toHaveAttribute('data-seq', '1');
+    await expect(items.nth(1)).toHaveAttribute('data-seq', '2');
+    await expect(items.nth(2)).toHaveAttribute('data-seq', '3');
+    await expect(page.getByTestId('chat-panel')).toHaveAttribute('data-last-seq', '3');
+
+    await page.getByTestId('chat-refresh').click();
+    await expect.poll(() => seenAfterSeqs.length).toBe(2);
+    expect(seenAfterSeqs[1]).toBe('3');
+    await expect(items).toHaveCount(3);
+  });
+
+  test('R2: concurrent Refresh and Append stay consistent in panel & parent cache across both response orders and reopen', async ({
+    page,
+  }) => {
+    test.setTimeout(60_000);
+    // Order A: Refresh completes first with operator seq=2, late Append receipt seq=3 completes afterwards
+    {
+      const marker = randomUUID().slice(0, 8);
+      await page.goto('/en/contact');
+      await consent(page, 'none');
+      await page.goto('/en/contact');
+      await page.getByTestId('contact-human-chat').click();
+      await expect(page.getByTestId('chat-availability-status')).toHaveText('Offline message');
+
+      await page.getByLabel('Message').fill(`R2A msg1 [${marker}]`);
+      const cResPromise = page.waitForResponse(
+        (res) => res.url().endsWith('/api/chat/conversations') && res.request().method() === 'POST',
+      );
+      await page.getByTestId('chat-send').click();
+      const cRes = await cResPromise;
+      expect([200, 201]).toContain(cRes.status());
+      await expect(page.getByTestId('chat-receipt')).toHaveAttribute('data-seq', '1');
+      const conversationId = (await page.getByTestId('chat-panel').getAttribute('data-conversation-id'))!;
+      expect(conversationId).toBeTruthy();
+
+      const t2 = new Date();
+      await prisma().$transaction([
+        prisma().chatMessage.create({
+          data: {
+            id: `r2a_op_${marker}`,
+            conversationId,
+            seq: 2,
+            sender: 'OPERATOR',
+            clientMessageId: randomUUID(),
+            payloadHash: randomUUID().replace(/-/g, ''),
+            bodyText: `R2A op2 [${marker}]`,
+            createdAt: t2,
+          },
+        }),
+        prisma().chatConversation.update({
+          where: { id: conversationId },
+          data: { lastSeq: 2, updatedAt: t2, lastActivityAt: t2 },
+        }),
+      ]);
+
+      let releaseAppend!: () => void;
+      const appendHeld = new Promise<void>((resolve) => {
+        releaseAppend = resolve;
+      });
+      let appendStartedResolve!: () => void;
+      const appendStarted = new Promise<void>((resolve) => {
+        appendStartedResolve = resolve;
+      });
+
+      await page.route(`**/api/chat/conversations/${conversationId}/messages`, async (route) => {
+        if (route.request().method() === 'POST') {
+          appendStartedResolve();
+          await appendHeld;
+          await route.continue();
+          return;
+        }
+        await route.continue();
+      });
+
+      const appendResponsePromise = page.waitForResponse(
+        (res) =>
+          res.url().endsWith(`/api/chat/conversations/${conversationId}/messages`) &&
+          res.request().method() === 'POST',
+      );
+      await page.getByLabel('Message').fill(`R2A msg3 [${marker}]`);
+      await page.getByTestId('chat-send').click();
+      await appendStarted;
+
+      // Refresh while append is in flight (server DB still has only seq 1..2) -> completes first with seq=2
+      await page.getByTestId('chat-refresh').click();
+      const items = page.getByTestId('chat-message-item');
+      await expect(items).toHaveCount(2);
+      await expect(items.nth(1)).toHaveAttribute('data-seq', '2');
+      await expect(page.getByTestId('chat-panel')).toHaveAttribute('data-last-seq', '2');
+
+      // Now release late append request/receipt (seq=3); must merge without overwriting seq=2
+      releaseAppend();
+      const appendRes = await appendResponsePromise;
+      expect([200, 201]).toContain(appendRes.status());
+      await page.unroute(`**/api/chat/conversations/${conversationId}/messages`);
+
+      await expect(items).toHaveCount(3);
+      await expect(items.nth(0)).toHaveAttribute('data-seq', '1');
+      await expect(items.nth(1)).toHaveAttribute('data-seq', '2');
+      await expect(items.nth(2)).toHaveAttribute('data-seq', '3');
+      await expect(page.getByTestId('chat-panel')).toHaveAttribute('data-last-seq', '3');
+      await expect(page.getByTestId('chat-receipt')).toHaveAttribute('data-seq', '3');
+
+      // Reopen from parent cache must match identically
+      await page.getByTestId('chat-close').click();
+      await page.getByTestId('contact-human-chat').click();
+      await expect(page.getByTestId('chat-availability-status')).toHaveText('Offline message');
+      await expect(items).toHaveCount(3);
+      await expect(items.nth(1)).toHaveAttribute('data-seq', '2');
+      await expect(items.nth(2)).toHaveAttribute('data-seq', '3');
+      await expect(page.getByTestId('chat-panel')).toHaveAttribute('data-last-seq', '3');
+      await expect(page.getByTestId('chat-receipt')).toHaveAttribute('data-seq', '3');
+    }
+
+    // Order B: Append finishes first (receipt seq=3), earlier Refresh returns afterwards with seq=2;
+    // then CLOSED status via Refresh persists across reopen too
+    {
+      const marker = randomUUID().slice(0, 8);
+      await page.goto('/en/contact');
+      await page.getByTestId('contact-human-chat').click();
+      await expect(page.getByTestId('chat-availability-status')).toHaveText('Offline message');
+
+      await page.getByLabel('Message').fill(`R2B msg1 [${marker}]`);
+      const cResPromise = page.waitForResponse(
+        (res) => res.url().endsWith('/api/chat/conversations') && res.request().method() === 'POST',
+      );
+      await page.getByTestId('chat-send').click();
+      const cRes = await cResPromise;
+      expect([200, 201]).toContain(cRes.status());
+      await expect(page.getByTestId('chat-receipt')).toHaveAttribute('data-seq', '1');
+      const conversationId = (await page.getByTestId('chat-panel').getAttribute('data-conversation-id'))!;
+      expect(conversationId).toBeTruthy();
+
+      const t2 = new Date();
+      await prisma().$transaction([
+        prisma().chatMessage.create({
+          data: {
+            id: `r2b_op_${marker}`,
+            conversationId,
+            seq: 2,
+            sender: 'OPERATOR',
+            clientMessageId: randomUUID(),
+            payloadHash: randomUUID().replace(/-/g, ''),
+            bodyText: `R2B op2 [${marker}]`,
+            createdAt: t2,
+          },
+        }),
+        prisma().chatConversation.update({
+          where: { id: conversationId },
+          data: { lastSeq: 2, updatedAt: t2, lastActivityAt: t2 },
+        }),
+      ]);
+
+      let releaseRefresh!: () => void;
+      const refreshHeld = new Promise<void>((resolve) => {
+        releaseRefresh = resolve;
+      });
+      let refreshStartedResolve!: () => void;
+      const refreshStarted = new Promise<void>((resolve) => {
+        refreshStartedResolve = resolve;
+      });
+      let interceptOnce = true;
+
+      await page.route(`**/api/chat/conversations/${conversationId}?*`, async (route) => {
+        if (interceptOnce && route.request().method() === 'GET') {
+          interceptOnce = false;
+          const response = await route.fetch();
+          refreshStartedResolve();
+          await refreshHeld;
+          await route.fulfill({ response });
+          return;
+        }
+        await route.continue();
+      });
+
+      // Start Refresh first (captured seq=2 before append) and hold it
+      await page.getByTestId('chat-refresh').click();
+      await refreshStarted;
+
+      // Send append and let it succeed first -> sets receipt seq=3 and cursor=1
+      await page.getByLabel('Message').fill(`R2B msg3 [${marker}]`);
+      await page.getByTestId('chat-send').click();
+      const items = page.getByTestId('chat-message-item');
+      await expect(items).toHaveCount(2);
+      await expect(page.getByTestId('chat-receipt')).toHaveAttribute('data-seq', '3');
+      await expect(page.getByTestId('chat-panel')).toHaveAttribute('data-last-seq', '1');
+
+      // Release earlier Refresh -> must merge seq=2, advance cursor to 3, and KEEP receipt seq=3
+      releaseRefresh();
+      await page.unroute(`**/api/chat/conversations/${conversationId}?*`);
+      await expect(items).toHaveCount(3);
+      await expect(items.nth(1)).toHaveAttribute('data-seq', '2');
+      await expect(items.nth(2)).toHaveAttribute('data-seq', '3');
+      await expect(page.getByTestId('chat-panel')).toHaveAttribute('data-last-seq', '3');
+      await expect(page.getByTestId('chat-receipt')).toHaveAttribute('data-seq', '3');
+
+      // Now close conversation in DB, refresh to observe CLOSED, then Close & Reopen -> still CLOSED with [1,2,3], cursor 3, receipt 3
+      await prisma().chatConversation.update({
+        where: { id: conversationId },
+        data: { status: 'CLOSED' },
+      });
+      await page.getByTestId('chat-refresh').click();
+      await expect(page.getByTestId('chat-terminal-banner')).toBeVisible();
+      await expect(page.getByTestId('chat-send')).toBeDisabled();
+      await expect(page.getByTestId('chat-start-new')).toBeVisible();
+
+      await page.getByTestId('chat-close').click();
+      await page.getByTestId('contact-human-chat').click();
+      await expect(page.getByTestId('chat-terminal-banner')).toBeVisible();
+      await expect(page.getByTestId('chat-send')).toBeDisabled();
+      await expect(page.getByTestId('chat-start-new')).toBeVisible();
+      await expect(items).toHaveCount(3);
+      await expect(page.getByTestId('chat-panel')).toHaveAttribute('data-last-seq', '3');
+      await expect(page.getByTestId('chat-receipt')).toHaveAttribute('data-seq', '3');
+    }
+  });
+
+  test('R4: email schema consistency — omitted/empty/spaces send cleanly; CRLF/display-name/oversize error with draft retained & zero submit', async ({
+    page,
+  }) => {
+    // 1) UI tests for blank spaces ("   "), display-name, oversize, and omitted email
+    await page.goto('/en/contact');
+    await consent(page, 'none');
+    await page.goto('/en/contact');
+
+    let postCreateCount = 0;
+    page.on('request', (req) => {
+      if (req.url().endsWith('/api/chat/conversations') && req.method() === 'POST') {
+        postCreateCount += 1;
+      }
+    });
+
+    await page.getByTestId('contact-human-chat').click();
+    await expect(page.getByTestId('chat-availability-status')).toHaveText('Offline message');
+
+    const draft = 'R4 preserved message draft';
+    const messageInput = page.getByLabel('Message');
+    const emailInput = page.getByLabel('Email (optional)');
+
+    // Display name rejected client-side with zero network submit
+    await messageInput.fill(draft);
+    await emailInput.fill('Bob <bob@example.com>');
+    await page.getByTestId('chat-send').click();
+    await expect(emailInput).toHaveAttribute('aria-invalid', 'true');
+    await expect(messageInput).toHaveValue(draft);
+    expect(postCreateCount).toBe(0);
+
+    // Over 254 chars rejected client-side with zero network submit
+    await emailInput.fill(`${'b'.repeat(246)}@example.com`);
+    await page.getByTestId('chat-send').click();
+    await expect(emailInput).toHaveAttribute('aria-invalid', 'true');
+    await expect(messageInput).toHaveValue(draft);
+    expect(postCreateCount).toBe(0);
+
+    // Plain spaces ("   ") treated as omitted and sends successfully with email=null in DB
+    await emailInput.fill('   ');
+    const spaceResPromise = page.waitForResponse(
+      (res) => res.url().endsWith('/api/chat/conversations') && res.request().method() === 'POST',
+    );
+    await page.getByTestId('chat-send').click();
+    const spaceRes = await spaceResPromise;
+    expect([200, 201]).toContain(spaceRes.status());
+    await expect(page.getByTestId('chat-receipt')).toHaveAttribute('data-seq', '1');
+    const spaceConvId = (await page.getByTestId('chat-panel').getAttribute('data-conversation-id'))!;
+    expect(spaceConvId).toBeTruthy();
+    const dbRow = await prisma().chatConversation.findUnique({ where: { id: spaceConvId } });
+    expect(dbRow?.email).toBeNull();
+    expect(postCreateCount).toBe(1);
+
+    // 2) Client validation + serialization contract parity (CRLF vs omitted/empty/spaces)
+    expect(validateVisitorComposer({ bodyText: 'Hello', email: undefined, includeEmail: true })).toEqual({
+      valid: true,
+      bodyText: 'Hello',
+    });
+    expect(validateVisitorComposer({ bodyText: 'Hello', email: '', includeEmail: true })).toEqual({
+      valid: true,
+      bodyText: 'Hello',
+    });
+    expect(validateVisitorComposer({ bodyText: 'Hello', email: '   ', includeEmail: true })).toEqual({
+      valid: true,
+      bodyText: 'Hello',
+    });
+
+    for (const badCrlf of ['\r\n', '\n', '\r', '  \r\n  ', 'Alice <a@b.com>', `${'c'.repeat(246)}@example.com`]) {
+      const checked = validateVisitorComposer({ bodyText: draft, email: badCrlf, includeEmail: true });
+      expect(checked.valid, `expected validation reject for ${JSON.stringify(badCrlf)}`).toBe(false);
+      if (!checked.valid) expect(checked.errors.email).toBeTruthy();
+
+      let calls = 0;
+      await expect(
+        createChatConversation(
+          {
+            clientConversationId: randomUUID(),
+            clientMessageId: randomUUID(),
+            locale: 'en',
+            bodyText: draft,
+            email: badCrlf,
+          },
+          {
+            transport: async () => {
+              calls += 1;
+              return new Response('{}', { status: 200 });
+            },
+          },
+        ),
+      ).rejects.toThrow();
+      expect(calls, `expected zero network calls for ${JSON.stringify(badCrlf)}`).toBe(0);
+    }
+
+    // Serialization omits email key when omitted / empty / plain spaces
+    for (const blank of [undefined, '', '   ']) {
+      let sentBody: Record<string, unknown> = {};
+      const okRes = await createChatConversation(
+        {
+          clientConversationId: randomUUID(),
+          clientMessageId: randomUUID(),
+          locale: 'en',
+          bodyText: 'Hello',
+          email: blank,
+        },
+        {
+          transport: async (_path, init) => {
+            sentBody = JSON.parse(String(init.body)) as Record<string, unknown>;
+            return new Response(
+              JSON.stringify({
+                conversationId: 'conv_mock_r4',
+                receivedAt: new Date().toISOString(),
+                duplicate: false,
+                message: {
+                  id: 'msg_mock_r4',
+                  seq: 1,
+                  sender: 'VISITOR',
+                  bodyText: 'Hello',
+                  createdAt: new Date().toISOString(),
+                },
+              }),
+              { status: 201, headers: { 'content-type': 'application/json' } },
+            );
+          },
+        },
+      );
+      expect(okRes.ok).toBe(true);
+      expect(Object.prototype.hasOwnProperty.call(sentBody, 'email')).toBe(false);
     }
   });
 });

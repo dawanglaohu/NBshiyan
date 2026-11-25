@@ -9,11 +9,13 @@ import {
   appendChatMessage,
   chatStartTracker,
   classifyChatFailureTerminal,
+  contiguousMessageSeq,
   createChatConversation,
   fetchChatConversationUpdates,
   isConversationTerminalStatus,
   mergeChatAuthors,
   mergeChatMessages,
+  mergeConversationSnapshot,
   openChatSession,
   randomChatUuid,
   validateVisitorComposer,
@@ -36,6 +38,17 @@ export type PersistedChatThreadState = {
   lastSeq: number;
   receipt: ChatReceiptBanner | null;
   receivedAtEntries: Array<[string, string]>;
+  terminalReason: ChatTerminalReason | null;
+};
+
+type ThreadSnapshot = {
+  conversation: ChatConversationDTO | null;
+  messages: ChatMessageDTO[];
+  authors: ChatAuthorReferenceDTO[];
+  lastSeq: number;
+  receipt: ChatReceiptBanner | null;
+  receivedAtByMessageId: Map<string, string>;
+  terminalReason: ChatTerminalReason | null;
 };
 
 type ChatContainerProps = {
@@ -50,6 +63,51 @@ type ChatContainerProps = {
 };
 
 type SessionPhase = 'checking' | 'ready' | 'unavailable';
+
+function createInitialThread(persisted: PersistedChatThreadState | null): ThreadSnapshot {
+  if (!persisted) {
+    return {
+      conversation: null,
+      messages: [],
+      authors: [],
+      lastSeq: 0,
+      receipt: null,
+      receivedAtByMessageId: new Map(),
+      terminalReason: null,
+    };
+  }
+  return {
+    conversation: persisted.conversation,
+    messages: persisted.messages,
+    authors: persisted.authors,
+    lastSeq: contiguousMessageSeq(persisted.messages),
+    receipt: persisted.receipt,
+    receivedAtByMessageId: new Map(persisted.receivedAtEntries),
+    terminalReason: persisted.terminalReason,
+  };
+}
+
+function pickLatestReceipt(
+  current: ChatReceiptBanner | null,
+  incoming: ChatReceiptBanner,
+): ChatReceiptBanner {
+  if (!current) return incoming;
+  if (current.conversationId !== incoming.conversationId) return incoming;
+  return incoming.seq >= current.seq ? incoming : current;
+}
+
+function toPersistedState(snapshot: ThreadSnapshot): PersistedChatThreadState | null {
+  if (!snapshot.conversation) return null;
+  return {
+    conversation: snapshot.conversation,
+    messages: snapshot.messages,
+    authors: snapshot.authors,
+    lastSeq: snapshot.lastSeq,
+    receipt: snapshot.receipt,
+    receivedAtEntries: Array.from(snapshot.receivedAtByMessageId.entries()),
+    terminalReason: snapshot.terminalReason,
+  };
+}
 
 export default function ChatContainer({
   panelId,
@@ -67,24 +125,20 @@ export default function ChatContainer({
   const emailInputRef = useRef<HTMLInputElement | null>(null);
   const bodyInputRef = useRef<HTMLTextAreaElement | null>(null);
   const mountedRef = useRef(true);
+  const epochRef = useRef(0);
   const sessionAbortRef = useRef<AbortController | null>(null);
   const sendAbortRef = useRef<AbortController | null>(null);
   const syncAbortRef = useRef<AbortController | null>(null);
+  const submittingRef = useRef(false);
+  const refreshingRef = useRef(false);
+  const startingNewRef = useRef(false);
 
   const [sessionPhase, setSessionPhase] = useState<SessionPhase>('checking');
   const [sessionError, setSessionError] = useState<string | null>(null);
-  const [terminalReason, setTerminalReason] = useState<ChatTerminalReason | null>(null);
 
-  const [conversation, setConversation] = useState<ChatConversationDTO | null>(
-    persistedThread?.conversation ?? null,
-  );
-  const [messages, setMessages] = useState<ChatMessageDTO[]>(persistedThread?.messages ?? []);
-  const [authors, setAuthors] = useState<ChatAuthorReferenceDTO[]>(persistedThread?.authors ?? []);
-  const [lastSeq, setLastSeq] = useState<number>(persistedThread?.lastSeq ?? 0);
-  const [receipt, setReceipt] = useState<ChatReceiptBanner | null>(persistedThread?.receipt ?? null);
-  const [receivedAtByMessageId, setReceivedAtByMessageId] = useState<Map<string, string>>(
-    () => new Map(persistedThread?.receivedAtEntries ?? []),
-  );
+  const [thread, setThread] = useState<ThreadSnapshot>(() => createInitialThread(persistedThread));
+  const threadRef = useRef<ThreadSnapshot>(thread);
+  threadRef.current = thread;
 
   const [email, setEmail] = useState('');
   const [bodyText, setBodyText] = useState('');
@@ -100,28 +154,13 @@ export default function ChatContainer({
 
   const [vvVars, setVvVars] = useState<{ height?: string; offsetBottom?: string }>({});
 
-  const syncThreadUp = useCallback(
-    (
-      nextConversation: ChatConversationDTO | null,
-      nextMessages: ChatMessageDTO[],
-      nextAuthors: ChatAuthorReferenceDTO[],
-      nextLastSeq: number,
-      nextReceipt: ChatReceiptBanner | null,
-      nextMap: Map<string, string>,
-      ended: ChatTerminalReason | null,
-    ) => {
-      if (!nextConversation || ended !== null) {
-        onThreadChange(null);
-        return;
-      }
-      onThreadChange({
-        conversation: nextConversation,
-        messages: nextMessages,
-        authors: nextAuthors,
-        lastSeq: nextLastSeq,
-        receipt: nextReceipt,
-        receivedAtEntries: Array.from(nextMap.entries()),
-      });
+  const commitThread = useCallback(
+    (updater: (prev: ThreadSnapshot) => ThreadSnapshot): ThreadSnapshot => {
+      const next = updater(threadRef.current);
+      threadRef.current = next;
+      setThread(next);
+      onThreadChange(toPersistedState(next));
+      return next;
     },
     [onThreadChange],
   );
@@ -151,22 +190,25 @@ export default function ChatContainer({
       sessionAbortRef.current?.abort();
       const controller = new AbortController();
       sessionAbortRef.current = controller;
+      const attemptEpoch = epochRef.current;
 
       setSessionPhase('checking');
       setSessionError(null);
       if (options?.resetTerminal) {
-        setTerminalReason(null);
+        commitThread((prev) => ({ ...prev, terminalReason: null }));
       }
 
       const result = await openChatSession(locale, { signal: controller.signal });
-      if (!mountedRef.current || controller.signal.aborted) return;
+      if (!mountedRef.current || controller.signal.aborted || attemptEpoch !== epochRef.current) return;
 
       if (!result.ok) {
         const terminal = classifyChatFailureTerminal(result);
         if (terminal) {
-          setTerminalReason(terminal);
+          commitThread((prev) => ({
+            ...prev,
+            terminalReason: prev.terminalReason ?? terminal,
+          }));
           setSessionPhase('unavailable');
-          onThreadChange(null);
           return;
         }
         setSessionPhase('unavailable');
@@ -183,7 +225,7 @@ export default function ChatContainer({
       setSessionPhase('ready');
       setSessionError(null);
     },
-    [locale, onThreadChange, t],
+    [commitThread, locale, t],
   );
 
   useEffect(() => {
@@ -243,18 +285,31 @@ export default function ChatContainer({
   };
 
   const handleStartNewConversation = async () => {
-    if (startingNew) return;
+    if (startingNewRef.current) return;
+    startingNewRef.current = true;
+    epochRef.current += 1;
+
     sendAbortRef.current?.abort();
     syncAbortRef.current?.abort();
-
+    submittingRef.current = false;
+    refreshingRef.current = false;
+    setSubmitting(false);
+    setRefreshing(false);
     setStartingNew(true);
-    setTerminalReason(null);
-    setConversation(null);
-    setMessages([]);
-    setAuthors([]);
-    setLastSeq(0);
-    setReceipt(null);
-    setReceivedAtByMessageId(new Map());
+
+    const emptyThread: ThreadSnapshot = {
+      conversation: null,
+      messages: [],
+      authors: [],
+      lastSeq: 0,
+      receipt: null,
+      receivedAtByMessageId: new Map(),
+      terminalReason: null,
+    };
+    threadRef.current = emptyThread;
+    setThread(emptyThread);
+    onThreadChange(null);
+
     setEmail('');
     setBodyText('');
     setFieldErrors({});
@@ -262,10 +317,10 @@ export default function ChatContainer({
     setRefreshError(null);
     setClientConversationId(randomChatUuid());
     setClientMessageId(randomChatUuid());
-    onThreadChange(null);
 
     await runSessionCheck({ resetTerminal: true });
     if (mountedRef.current) {
+      startingNewRef.current = false;
       setStartingNew(false);
     }
   };
@@ -273,9 +328,11 @@ export default function ChatContainer({
   const applyServerFailure = (failure: ClientApiFailure) => {
     const terminal = classifyChatFailureTerminal(failure);
     if (terminal) {
-      setTerminalReason(terminal);
+      commitThread((prev) => ({
+        ...prev,
+        terminalReason: prev.terminalReason ?? terminal,
+      }));
       setSubmitError(null);
-      onThreadChange(null);
       return;
     }
 
@@ -299,9 +356,12 @@ export default function ChatContainer({
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (submitting || sessionPhase !== 'ready' || terminalReason !== null) return;
+    const activeThread = threadRef.current;
+    if (submittingRef.current || sessionPhase !== 'ready' || activeThread.terminalReason !== null) {
+      return;
+    }
 
-    const includeEmail = conversation === null;
+    const includeEmail = activeThread.conversation === null;
     const validation = validateVisitorComposer({
       bodyText,
       email,
@@ -329,19 +389,22 @@ export default function ChatContainer({
     setFieldErrors({});
     setSubmitError(null);
     setRefreshError(null);
+    submittingRef.current = true;
     setSubmitting(true);
 
     sendAbortRef.current?.abort();
     const controller = new AbortController();
     sendAbortRef.current = controller;
+    const attemptEpoch = epochRef.current;
 
-    if (conversation === null) {
-      const analyticsContext = chatStartTracker.captureAttemptContext();
+    if (activeThread.conversation === null) {
       const attemptConversationId = clientConversationId;
+      const attemptMessageId = clientMessageId;
+      const analyticsContext = chatStartTracker.bindAttemptContext(attemptConversationId);
       const res = await createChatConversation(
         {
           clientConversationId: attemptConversationId,
-          clientMessageId,
+          clientMessageId: attemptMessageId,
           locale,
           bodyText: validation.bodyText,
           email: validation.email,
@@ -351,7 +414,10 @@ export default function ChatContainer({
         { signal: controller.signal },
       );
 
-      if (!mountedRef.current || controller.signal.aborted) return;
+      if (!mountedRef.current || controller.signal.aborted || attemptEpoch !== epochRef.current) {
+        return;
+      }
+      submittingRef.current = false;
       setSubmitting(false);
 
       if (!res.ok) {
@@ -379,41 +445,54 @@ export default function ChatContainer({
         retainUntil: new Date(Date.parse(nowIso) + 90 * 24 * 60 * 60 * 1000).toISOString(),
         anonymizedAt: null,
       };
-
-      const nextMessages = mergeChatMessages(messages, [res.data.message]);
-      const nextMap = new Map(receivedAtByMessageId);
-      nextMap.set(res.data.message.id, res.data.receivedAt);
-      const nextReceipt: ChatReceiptBanner = {
+      const newReceipt: ChatReceiptBanner = {
         conversationId: res.data.conversationId,
         messageId: res.data.message.id,
         seq: res.data.message.seq,
         receivedAt: res.data.receivedAt,
       };
-      const nextSeq = Math.max(lastSeq, res.data.message.seq);
 
-      setConversation(createdConversation);
-      setMessages(nextMessages);
-      setLastSeq(nextSeq);
-      setReceivedAtByMessageId(nextMap);
-      setReceipt(nextReceipt);
+      commitThread((prev) => {
+        const nextConversation = mergeConversationSnapshot(prev.conversation, createdConversation);
+        const nextMessages = mergeChatMessages(prev.messages, [res.data.message]);
+        const nextMap = new Map(prev.receivedAtByMessageId);
+        nextMap.set(res.data.message.id, res.data.receivedAt);
+        const nextTerminal = isConversationTerminalStatus(nextConversation)
+          ? (nextConversation.anonymizedAt !== null ? 'anonymized' : 'closed')
+          : prev.terminalReason;
+        return {
+          conversation: nextConversation,
+          messages: nextMessages,
+          authors: prev.authors,
+          lastSeq: contiguousMessageSeq(nextMessages),
+          receipt: pickLatestReceipt(prev.receipt, newReceipt),
+          receivedAtByMessageId: nextMap,
+          terminalReason: nextTerminal,
+        };
+      });
+
       setBodyText('');
       setEmail('');
       setClientMessageId(randomChatUuid());
-      syncThreadUp(createdConversation, nextMessages, authors, nextSeq, nextReceipt, nextMap, null);
       return;
     }
 
+    const targetConversationId = activeThread.conversation.id;
+    const attemptMessageId = clientMessageId;
     const res = await appendChatMessage(
       {
-        conversationId: conversation.id,
-        clientMessageId,
+        conversationId: targetConversationId,
+        clientMessageId: attemptMessageId,
         locale,
         bodyText: validation.bodyText,
       },
       { signal: controller.signal },
     );
 
-    if (!mountedRef.current || controller.signal.aborted) return;
+    if (!mountedRef.current || controller.signal.aborted || attemptEpoch !== epochRef.current) {
+      return;
+    }
+    submittingRef.current = false;
     setSubmitting(false);
 
     if (!res.ok) {
@@ -421,28 +500,40 @@ export default function ChatContainer({
       return;
     }
 
-    const nextMessages = mergeChatMessages(messages, [res.data.message]);
-    const nextMap = new Map(receivedAtByMessageId);
-    nextMap.set(res.data.message.id, res.data.receivedAt);
-    const nextReceipt: ChatReceiptBanner = {
-      conversationId: conversation.id,
+    const newReceipt: ChatReceiptBanner = {
+      conversationId: targetConversationId,
       messageId: res.data.message.id,
       seq: res.data.message.seq,
       receivedAt: res.data.receivedAt,
     };
-    const nextSeq = Math.max(lastSeq, res.data.message.seq);
 
-    setMessages(nextMessages);
-    setLastSeq(nextSeq);
-    setReceivedAtByMessageId(nextMap);
-    setReceipt(nextReceipt);
+    commitThread((prev) => {
+      if (!prev.conversation || prev.conversation.id !== targetConversationId) return prev;
+      const nextMessages = mergeChatMessages(prev.messages, [res.data.message]);
+      const nextMap = new Map(prev.receivedAtByMessageId);
+      nextMap.set(res.data.message.id, res.data.receivedAt);
+      return {
+        ...prev,
+        messages: nextMessages,
+        lastSeq: contiguousMessageSeq(nextMessages),
+        receipt: pickLatestReceipt(prev.receipt, newReceipt),
+        receivedAtByMessageId: nextMap,
+      };
+    });
+
     setBodyText('');
     setClientMessageId(randomChatUuid());
-    syncThreadUp(conversation, nextMessages, authors, nextSeq, nextReceipt, nextMap, null);
   };
 
   const handleRefreshMessages = async () => {
-    if (!conversation || refreshing) return;
+    const activeThread = threadRef.current;
+    if (!activeThread.conversation || refreshingRef.current) return;
+
+    const targetConversationId = activeThread.conversation.id;
+    const syncCursor = contiguousMessageSeq(activeThread.messages);
+    const attemptEpoch = epochRef.current;
+
+    refreshingRef.current = true;
     setRefreshing(true);
     setRefreshError(null);
 
@@ -450,49 +541,58 @@ export default function ChatContainer({
     const controller = new AbortController();
     syncAbortRef.current = controller;
 
-    const res = await fetchChatConversationUpdates(conversation.id, lastSeq, locale, {
+    const res = await fetchChatConversationUpdates(targetConversationId, syncCursor, locale, {
       signal: controller.signal,
     });
-    if (!mountedRef.current || controller.signal.aborted) return;
+    if (!mountedRef.current || controller.signal.aborted || attemptEpoch !== epochRef.current) {
+      return;
+    }
+    refreshingRef.current = false;
     setRefreshing(false);
 
     if (!res.ok) {
       const terminal = classifyChatFailureTerminal(res);
       if (terminal) {
-        setTerminalReason(terminal);
-        onThreadChange(null);
+        commitThread((prev) => {
+          if (!prev.conversation || prev.conversation.id !== targetConversationId) return prev;
+          return {
+            ...prev,
+            terminalReason: prev.terminalReason ?? terminal,
+          };
+        });
       } else {
         setRefreshError(res.text || t('refreshFailed'));
       }
       return;
     }
 
-    const nextConversation = res.data.conversation;
-    const nextMessages = mergeChatMessages(messages, res.data.messages);
-    const nextAuthors = mergeChatAuthors(authors, res.data.authors);
-    const nextSeq = Math.max(lastSeq, res.data.lastSeq);
-    const nextMap = new Map(receivedAtByMessageId);
-    for (const msg of res.data.messages) {
-      if (!nextMap.has(msg.id)) {
-        nextMap.set(msg.id, msg.createdAt);
+    commitThread((prev) => {
+      if (!prev.conversation || prev.conversation.id !== targetConversationId) return prev;
+      const nextConversation = mergeConversationSnapshot(prev.conversation, res.data.conversation);
+      const nextMessages = mergeChatMessages(prev.messages, res.data.messages);
+      const nextAuthors = mergeChatAuthors(prev.authors, res.data.authors);
+      const nextMap = new Map(prev.receivedAtByMessageId);
+      for (const msg of res.data.messages) {
+        if (!nextMap.has(msg.id)) {
+          nextMap.set(msg.id, msg.createdAt);
+        }
       }
-    }
-
-    setConversation(nextConversation);
-    setMessages(nextMessages);
-    setAuthors(nextAuthors);
-    setLastSeq(nextSeq);
-    setReceivedAtByMessageId(nextMap);
-
-    if (isConversationTerminalStatus(nextConversation)) {
-      const ended: ChatTerminalReason =
-        nextConversation.anonymizedAt !== null ? 'anonymized' : 'closed';
-      setTerminalReason(ended);
-      onThreadChange(null);
-    } else {
-      syncThreadUp(nextConversation, nextMessages, nextAuthors, nextSeq, receipt, nextMap, null);
-    }
+      const nextTerminal: ChatTerminalReason | null = isConversationTerminalStatus(nextConversation)
+        ? (nextConversation.anonymizedAt !== null ? 'anonymized' : 'closed')
+        : prev.terminalReason;
+      return {
+        conversation: nextConversation,
+        messages: nextMessages,
+        authors: nextAuthors,
+        lastSeq: contiguousMessageSeq(nextMessages),
+        receipt: prev.receipt,
+        receivedAtByMessageId: nextMap,
+        terminalReason: nextTerminal,
+      };
+    });
   };
+
+  const { conversation, messages, receipt, receivedAtByMessageId, terminalReason, lastSeq } = thread;
 
   const terminalMessage =
     terminalReason === 'closed' || terminalReason === 'anonymized'
@@ -521,6 +621,7 @@ export default function ChatContainer({
       aria-labelledby={titleId}
       data-testid="chat-panel"
       data-conversation-id={conversation?.id ?? ''}
+      data-last-seq={lastSeq}
       data-status={terminalReason ?? sessionPhase}
     >
       <header className="pj-chat-header">
