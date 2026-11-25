@@ -319,10 +319,17 @@ test.describe('M4-T5 consent-gated chat_start analytics producer', () => {
     });
 
     const msgText = `R3 declined lost response [${marker}]`;
+    await page.getByLabel('Email (optional)').fill('original@example.test');
     await page.getByLabel('Message').fill(msgText);
     await page.getByTestId('chat-send').click();
     await expect(page.getByTestId('chat-send-error')).toBeVisible({ timeout: 20_000 });
     expect(capturedClientConvId).toBeTruthy();
+    const pendingBody = page.getByTestId('chat-message');
+    await expect(pendingBody).not.toBeEditable();
+    await expect(page.getByTestId('chat-email')).not.toBeEditable();
+    await pendingBody.press('End');
+    await pendingBody.press('X');
+    await expect(pendingBody).toHaveValue(msgText);
 
     // Verify 1 conversation & 1 message are already persisted in PostgreSQL while UI has no receipt yet
     const preRetryConv = await prisma().chatConversation.findFirst({
@@ -356,6 +363,7 @@ test.describe('M4-T5 consent-gated chat_start analytics producer', () => {
     await page.unroute('**/api/chat/conversations');
     expect(retryJson?.duplicate).toBe(true);
     expect(retryJson?.conversationId).toBe(preRetryConv!.id);
+    await expect(pendingBody).toBeEditable();
     await page.waitForTimeout(400);
 
     // Zero chat_start emitted or persisted, and DB still has exactly 1 conversation & 1 message

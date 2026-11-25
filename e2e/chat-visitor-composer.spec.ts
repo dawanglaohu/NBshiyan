@@ -265,6 +265,33 @@ test.describe('M4-T5 visitor first-party chat composer & UX boundaries', () => {
     expect(seenClientConvIds.length).toBeGreaterThanOrEqual(2);
     expect(new Set(seenClientConvIds).size).toBe(1);
 
+    const appendPath = '**/api/chat/conversations/*/messages';
+    const payloads: string[] = [];
+    let resumeAppend = false;
+    await page.route(appendPath, async (route) => {
+      payloads.push(route.request().postData()!);
+      if (!resumeAppend) {
+        if (payloads.length === 1) expect((await route.fetch()).ok()).toBe(true);
+        return route.abort('failed');
+      }
+      const response = await route.fetch();
+      expect(await response.json()).toMatchObject({ duplicate: true, message: { seq: 2 } });
+      await route.fulfill({ response });
+    });
+    await messageInput.fill('Original follow-up');
+    await page.getByTestId('chat-send').click();
+    await expect(errBox).toBeVisible({ timeout: 15_000 });
+    await expect(messageInput).not.toBeEditable();
+    await messageInput.press('End');
+    await messageInput.press('X');
+    await expect(messageInput).toHaveValue('Original follow-up');
+    resumeAppend = true;
+    await page.getByTestId('chat-send').click();
+    await expect(page.getByTestId('chat-receipt')).toHaveAttribute('data-seq', '2');
+    expect(new Set(payloads).size).toBe(1);
+    await expect(messageInput).toBeEditable();
+    await page.unroute(appendPath);
+
     // Unsent draft on a new page/tab is NOT persisted after closing chat drawer
     await page.goto('/en/contact');
     await page.getByTestId('contact-human-chat').click();

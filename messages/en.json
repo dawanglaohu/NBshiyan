@@ -609,6 +609,7 @@
     "unavailablePrefix": "Unavailable",
     "sessionUnavailable": "Messaging is temporarily unavailable. Retry or use the inquiry form / email.",
     "retryAction": "Retry",
+    "sendUnconfirmed": "Delivery is unconfirmed. Send the same message again to check its status, or use the email form.",
     "useEmailEntry": "Use email / inquiry form",
     "receivedPrefix": "Saved",
     "receivedAwaitingHandling": "Received, awaiting human handling",

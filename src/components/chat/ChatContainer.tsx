@@ -19,8 +19,10 @@ import {
   openChatSession,
   randomChatUuid,
   validateVisitorComposer,
+  type AppendChatMessageInput,
   type ChatFieldErrorCode,
   type ChatTerminalReason,
+  type CreateChatConversationInput,
 } from '@/lib/client/chat';
 import type {
   ChatAuthorReferenceDTO,
@@ -30,6 +32,8 @@ import type {
 import { INQUIRY_EMAIL_EVENT } from '@/lib/inquiry/events';
 import Composer from './Composer';
 import MessageList, { type ChatReceiptBanner } from './MessageList';
+
+type MessageSubmission = CreateChatConversationInput | AppendChatMessageInput;
 
 export type PersistedChatThreadState = {
   conversation: ChatConversationDTO;
@@ -144,6 +148,7 @@ export default function ChatContainer({
   const [bodyText, setBodyText] = useState('');
   const [fieldErrors, setFieldErrors] = useState<{ bodyText?: string; email?: string }>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [pendingRetry, setPendingRetry] = useState<MessageSubmission | null>(null);
   const [refreshError, setRefreshError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -317,6 +322,7 @@ export default function ChatContainer({
     setRefreshError(null);
     setClientConversationId(randomChatUuid());
     setClientMessageId(randomChatUuid());
+    setPendingRetry(null);
 
     await runSessionCheck({ resetTerminal: true });
     if (mountedRef.current) {
@@ -325,9 +331,10 @@ export default function ChatContainer({
     }
   };
 
-  const applyServerFailure = (failure: ClientApiFailure) => {
+  const applyServerFailure = (failure: ClientApiFailure, submission: MessageSubmission) => {
     const terminal = classifyChatFailureTerminal(failure);
     if (terminal) {
+      setPendingRetry(null);
       commitThread((prev) => ({
         ...prev,
         terminalReason: prev.terminalReason ?? terminal,
@@ -344,6 +351,7 @@ export default function ChatContainer({
       mappedFieldErrors.bodyText = failure.fieldErrors.bodyText;
     }
     if (mappedFieldErrors.email || mappedFieldErrors.bodyText) {
+      setPendingRetry(null);
       setFieldErrors(mappedFieldErrors);
       setSubmitError(null);
       if (mappedFieldErrors.email) emailInputRef.current?.focus();
@@ -351,7 +359,12 @@ export default function ChatContainer({
       return;
     }
 
-    setSubmitError(t('sendFailedNotice'));
+    // A missing receipt can follow a committed write. A later rate limit also leaves that write unresolved.
+    const status = failure.status;
+    const unknownOutcome = pendingRetry !== null || failure.attempts > 1 ||
+      (failure.attempts > 0 && (status === undefined || status < 400 || status === 408 || status >= 500));
+    setPendingRetry(unknownOutcome ? submission : null);
+    setSubmitError(t(unknownOutcome ? 'sendUnconfirmed' : 'sendFailedNotice'));
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -397,22 +410,14 @@ export default function ChatContainer({
     sendAbortRef.current = controller;
     const attemptEpoch = epochRef.current;
 
-    if (activeThread.conversation === null) {
-      const attemptConversationId = clientConversationId;
-      const attemptMessageId = clientMessageId;
+    const submission: MessageSubmission = pendingRetry ?? (activeThread.conversation === null
+      ? { clientConversationId, clientMessageId, locale, bodyText: validation.bodyText, email: validation.email, productSlug, sourcePath }
+      : { conversationId: activeThread.conversation.id, clientMessageId, locale, bodyText: validation.bodyText });
+
+    if ('clientConversationId' in submission) {
+      const attemptConversationId = submission.clientConversationId;
       const analyticsContext = chatStartTracker.bindAttemptContext(attemptConversationId);
-      const res = await createChatConversation(
-        {
-          clientConversationId: attemptConversationId,
-          clientMessageId: attemptMessageId,
-          locale,
-          bodyText: validation.bodyText,
-          email: validation.email,
-          productSlug,
-          sourcePath,
-        },
-        { signal: controller.signal },
-      );
+      const res = await createChatConversation(submission, { signal: controller.signal });
 
       if (!mountedRef.current || controller.signal.aborted || attemptEpoch !== epochRef.current) {
         return;
@@ -421,22 +426,23 @@ export default function ChatContainer({
       setSubmitting(false);
 
       if (!res.ok) {
-        applyServerFailure(res);
+        applyServerFailure(res, submission);
         return;
       }
 
+      setPendingRetry(null);
       chatStartTracker.emitOnCreateSuccess({
         context: analyticsContext,
         clientConversationId: attemptConversationId,
-        productSlug,
+        productSlug: submission.productSlug,
       });
 
       const nowIso = res.data.receivedAt;
       const createdConversation: ChatConversationDTO = {
         id: res.data.conversationId,
-        locale,
-        productSlug: productSlug ?? null,
-        sourcePath: sourcePath ?? null,
+        locale: submission.locale,
+        productSlug: submission.productSlug ?? null,
+        sourcePath: submission.sourcePath ?? null,
         status: 'OPEN',
         version: 1,
         createdAt: res.data.message.createdAt,
@@ -477,17 +483,8 @@ export default function ChatContainer({
       return;
     }
 
-    const targetConversationId = activeThread.conversation.id;
-    const attemptMessageId = clientMessageId;
-    const res = await appendChatMessage(
-      {
-        conversationId: targetConversationId,
-        clientMessageId: attemptMessageId,
-        locale,
-        bodyText: validation.bodyText,
-      },
-      { signal: controller.signal },
-    );
+    const targetConversationId = submission.conversationId;
+    const res = await appendChatMessage(submission, { signal: controller.signal });
 
     if (!mountedRef.current || controller.signal.aborted || attemptEpoch !== epochRef.current) {
       return;
@@ -496,10 +493,11 @@ export default function ChatContainer({
     setSubmitting(false);
 
     if (!res.ok) {
-      applyServerFailure(res);
+      applyServerFailure(res, submission);
       return;
     }
 
+    setPendingRetry(null);
     const newReceipt: ChatReceiptBanner = {
       conversationId: targetConversationId,
       messageId: res.data.message.id,
@@ -769,6 +767,7 @@ export default function ChatContainer({
         emailError={fieldErrors.email}
         bodyError={fieldErrors.bodyText}
         submitting={submitting}
+        awaitingReceipt={pendingRetry !== null}
         disabled={composerDisabled}
         disabledReason={composerDisabledReason}
         emailInputRef={emailInputRef}

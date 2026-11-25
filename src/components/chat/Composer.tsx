@@ -12,6 +12,7 @@ type ComposerProps = {
   emailError?: string;
   bodyError?: string;
   submitting: boolean;
+  awaitingReceipt: boolean;
   disabled: boolean;
   disabledReason?: string;
   emailInputRef: RefObject<HTMLInputElement | null>;
@@ -28,6 +29,7 @@ export default function Composer({
   emailError,
   bodyError,
   submitting,
+  awaitingReceipt,
   disabled,
   disabledReason,
   emailInputRef,
@@ -51,6 +53,7 @@ export default function Composer({
           label={t('emailLabel')}
           description={t('emailDescription')}
           error={emailError}
+          readOnly={awaitingReceipt}
           disabled={disabled || submitting}
           disabledReason={disabled ? disabledReason : undefined}
           placeholder={t('emailPlaceholder')}
@@ -68,6 +71,7 @@ export default function Composer({
         context="public"
         label={t('messageLabel')}
         error={bodyError}
+        readOnly={awaitingReceipt}
         disabled={disabled || submitting}
         disabledReason={disabled ? disabledReason : undefined}
         placeholder={t('messagePlaceholder')}
