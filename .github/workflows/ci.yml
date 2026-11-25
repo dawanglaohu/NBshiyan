@@ -409,12 +409,13 @@ jobs:
       # passed、failed、skipped、todo、cancelled 缺任何一个，或不是非负整数，按文件门禁失败，不用 0 填充。
       # M3-T2 用 schema=m3t2 隔离。M3T2_REQUIRE_DATABASE 只在本步骤打开。缺地址时 admin-login-mode 与 admin-enroll-current-state 直接抛错。单元测试 job 不设它，pnpm test 继续跳过。
       # 每个套件校验自己的专用库名，表与 schema 由套件创建。
-      - name: Create dedicated mail and statistics test databases
+      - name: Create dedicated mail, statistics, and operator write test databases
         run: |
           docker exec "${{ job.services.postgres.id }}" \
             psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
             -c 'CREATE DATABASE "b9_m4t12_20261109"' \
-            -c 'CREATE DATABASE "m6t1_stats_test"'
+            -c 'CREATE DATABASE "m6t1_stats_test"' \
+            -c 'CREATE DATABASE "m4t11_operator_write_test"'
       - name: Analytics, chat, and other PostgreSQL regressions
         env:
           ADMIN_RESET_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
@@ -433,6 +434,8 @@ jobs:
           B10_M4T2_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
           M4T3_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
           M4T3_REQUIRE_DATABASE: 'true'
+          M4T11_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/m4t11_operator_write_test
+          M4T11_REQUIRE_DATABASE: 'true'
           M6T1_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/m6t1_stats_test
           M6T1_REQUIRE_DATABASE: 'true'
           B10_M4T4_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
@@ -480,6 +483,7 @@ jobs:
               'tests/analytics-aggregate.db.test.ts',
               'tests/chat-visitor-read.http.test.ts',
               'tests/chat-operator-read.http.test.ts',
+              'tests/chat-operator-write.http.test.ts',
               'tests/stats-query.db.test.ts',
               'tests/chat-visitor-append.db.test.ts',
               'tests/analytics-daily.db.test.ts',
@@ -539,6 +543,7 @@ jobs:
             tests/analytics-aggregate.db.test.ts \
             tests/chat-visitor-read.http.test.ts \
             tests/chat-operator-read.http.test.ts \
+            tests/chat-operator-write.http.test.ts \
             tests/stats-query.db.test.ts \
             tests/chat-visitor-append.db.test.ts \
             tests/analytics-daily.db.test.ts \
@@ -584,6 +589,7 @@ jobs:
             'tests/analytics-aggregate.db.test.ts',
             'tests/chat-visitor-read.http.test.ts',
             'tests/chat-operator-read.http.test.ts',
+            'tests/chat-operator-write.http.test.ts',
             'tests/stats-query.db.test.ts',
             'tests/chat-visitor-append.db.test.ts',
               'tests/analytics-daily.db.test.ts',

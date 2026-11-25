@@ -72,16 +72,37 @@ type VisitorConversationForWrite = Pick<ChatConversationRow, 'status' | 'clientC
   & Pick<ConversationCreateRequest, 'locale'>
   & { anonymizedAt: Date | null };
 
+export type OperatorConversationForWrite = Pick<ChatConversationRow, 'status'> & {
+  version: number;
+  anonymizedAt: Date | null;
+  retainUntil: Date;
+};
+
 export type ChatMessageRow = {
   id: string;
   conversationId: string;
   seq: number;
   sender: 'VISITOR' | 'OPERATOR';
+  authorId: string | null;
   clientMessageId: string;
   payloadHash: string;
   bodyText: string;
   createdAt: Date;
 };
+
+type ChatMessageKey = Pick<ChatMessageRow, 'conversationId' | 'sender' | 'clientMessageId'>;
+
+async function findMessage(tx: ChatTx, key: ChatMessageKey): Promise<ChatMessageRow | null> {
+  const [row] = await tx.$queryRaw<ChatMessageRow[]>`
+    SELECT "id", "conversationId", "seq", "sender"::text AS "sender", "authorId",
+           "clientMessageId", "payloadHash", "bodyText", "createdAt"
+    FROM "ChatMessage"
+    WHERE "conversationId" = ${key.conversationId}
+      AND "sender" = ${key.sender}::"ChatSender"
+      AND "clientMessageId" = ${key.clientMessageId}
+  `;
+  return row ?? null;
+}
 
 /** PostgreSQL 唯一约束冲突。Prisma 对 `$executeRaw` 报 P2010 + SQLSTATE 23505，对模型调用报 P2002。 */
 export function isUniqueViolation(error: unknown): boolean {
@@ -114,6 +135,22 @@ export function createChatRepo(db: ChatWriteDb) {
         FOR UPDATE
       `;
       return rows[0] ?? null;
+    },
+
+    async lockOperatorConversation(tx: ChatTx, id: string) {
+      const [row] = await tx.$queryRaw<OperatorConversationForWrite[]>`
+        SELECT "status"::text AS "status", "version", "anonymizedAt", "retainUntil"
+        FROM "ChatConversation" WHERE "id" = ${id}
+        FOR UPDATE
+      `;
+      return row ?? null;
+    },
+
+    closeConversation(tx: ChatTx, id: string, expectedVersion: number, updatedAt: Date) {
+      return tx.chatConversation.updateMany({
+        where: { id, version: expectedVersion, status: 'OPEN', anonymizedAt: null, retainUntil: { gt: updatedAt } },
+        data: { status: 'CLOSED', version: { increment: 1 }, updatedAt },
+      });
     },
 
     /** 同一个访客会话 + 客户端会话 UUID 是否已经建过。唯一键 (visitorSessionId, clientConversationId)。 */
@@ -196,31 +233,18 @@ export function createChatRepo(db: ChatWriteDb) {
       return seq;
     },
 
-    async findVisitorMessage(
-      tx: ChatTx,
-      conversationId: string,
-      clientMessageId: string,
-    ): Promise<ChatMessageRow | null> {
-      const rows = await tx.$queryRaw<ChatMessageRow[]>`
-        SELECT "id", "conversationId", "seq", "sender"::text AS "sender", "clientMessageId",
-               "payloadHash", "bodyText", "createdAt"
-        FROM "ChatMessage"
-        WHERE "conversationId" = ${conversationId}
-          AND "sender" = ${'VISITOR'}::"ChatSender"
-          AND "clientMessageId" = ${clientMessageId}
-      `;
-      return rows[0] ?? null;
+    findMessage,
+
+    findVisitorMessage(tx: ChatTx, conversationId: string, clientMessageId: string) {
+      return findMessage(tx, { conversationId, sender: 'VISITOR', clientMessageId });
     },
 
-    async insertMessage(tx: ChatTx, row: {
-      id: string;
-      conversationId: string;
-      seq: number;
-      clientMessageId: string;
-      payloadHash: string;
-      bodyText: string;
-      createdAt: Date;
-    }): Promise<void> {
+    async insertMessage(
+      tx: ChatTx,
+      row: Omit<ChatMessageRow, 'sender' | 'authorId'>,
+      authorId: string | null = null,
+    ): Promise<void> {
+      const sender = authorId === null ? 'VISITOR' : 'OPERATOR';
       await tx.$executeRaw`
         INSERT INTO "ChatMessage" (
           "id", "conversationId", "seq", "sender", "authorId", "clientMessageId",
@@ -229,8 +253,8 @@ export function createChatRepo(db: ChatWriteDb) {
           ${row.id},
           ${row.conversationId},
           ${row.seq},
-          ${'VISITOR'}::"ChatSender",
-          ${null},
+          ${sender}::"ChatSender",
+          ${authorId},
           ${row.clientMessageId},
           ${row.payloadHash},
           ${row.bodyText},
@@ -364,7 +388,7 @@ export type ChatConversationViewRow = {
   anonymizedAt: Date | null;
 };
 
-export type ChatMessagePageRow = Pick<ChatMessageRow, 'id' | 'seq' | 'sender' | 'bodyText' | 'createdAt'>;
+export type ChatMessagePageRow = Pick<ChatMessageRow, 'id' | 'seq' | 'sender' | 'authorId' | 'bodyText' | 'createdAt'>;
 
 export function createChatReadRepo(db: ChatReadDb) {
   return {
@@ -402,7 +426,7 @@ export function createChatReadRepo(db: ChatReadDb) {
         where: { conversationId, seq: { gt: afterSeq } },
         orderBy: { seq: 'asc' },
         take,
-        select: { id: true, seq: true, sender: true, bodyText: true, createdAt: true },
+        select: { id: true, seq: true, sender: true, authorId: true, bodyText: true, createdAt: true },
       });
     },
 

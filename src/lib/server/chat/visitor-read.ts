@@ -1,4 +1,5 @@
 import type { ChatConversationDTO, ChatSyncDTO, ReadDTO } from '../../contracts/chat';
+import type { ChatPageAuthors } from './author-ref';
 import { ChatSequenceGap, consecutivePage, nextVisitorReadSeq, pageStartSeq } from './read-cursor';
 import { createChatReadRepo, type ChatConversationViewRow, type ChatReadDb, type ChatReadRepo } from './repo';
 import type { ValidatedSession } from './visitor-session';
@@ -53,7 +54,12 @@ function conversationDto(row: ChatConversationViewRow): ChatConversationDTO {
   };
 }
 
-export function createVisitorReadService(deps: { db?: ChatReadDb; repo?: ChatReadRepo }): VisitorReadService {
+export function createVisitorReadService(deps: {
+  db?: ChatReadDb;
+  repo?: ChatReadRepo;
+  pageAuthors: ChatPageAuthors;
+}): VisitorReadService {
+  const { pageAuthors } = deps;
   const repo = deps.repo ?? (deps.db ? createChatReadRepo(deps.db) : null);
   if (!repo) throw new Error('chat read repo');
 
@@ -80,6 +86,7 @@ export function createVisitorReadService(deps: { db?: ChatReadDb; repo?: ChatRea
             bodyText: message.bodyText,
             createdAt: message.createdAt.toISOString(),
           })),
+          authors: pageAuthors(conversation.id, page.messages),
           lastSeq: conversation.lastSeq,
           nextAfterSeq: page.nextAfterSeq,
           hasMore: page.hasMore,

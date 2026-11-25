@@ -46,28 +46,6 @@ export function createChatWriteTransaction(db: ChatWriteDb) {
   };
 }
 
-type MessageIdentity = {
-  conversationId: string;
-  sender: MessageReceivedDTO['message']['sender'];
-  clientMessageId: string;
-};
-
-function messageRows(tx: ChatTx) {
-  return {
-    find: (identity: MessageIdentity) => tx.chatMessage.findUnique({
-      where: { conversationId_sender_clientMessageId: identity },
-    }),
-    insert: (data: MessageIdentity & {
-      id: string;
-      seq: number;
-      authorId: string | null;
-      payloadHash: string;
-      bodyText: string;
-      createdAt: Date;
-    }) => tx.chatMessage.create({ data }),
-  };
-}
-
 export function assertConversationOpen(conversation: { status: 'OPEN' | 'CLOSED'; anonymizedAt: Date | null }) {
   if (conversation.anonymizedAt) throw new AppError('conversation_anonymized');
   if (conversation.status !== 'OPEN') throw new AppError('conversation_closed');
@@ -85,11 +63,10 @@ export function createMessageAppender(db: ChatWriteDb, clock: () => Date) {
   }): Promise<MessageReceivedDTO> {
     const { conversationId, payload, payloadHash, authorId } = input;
     const sender = authorId === null ? 'VISITOR' : 'OPERATOR';
-    const identity = { conversationId, sender, clientMessageId: payload.clientMessageId } as const;
-    const rows = messageRows(tx);
+    const { clientMessageId, bodyText } = payload;
 
     await arm();
-    const existing = await rows.find(identity);
+    const existing = await repo.findMessage(tx, { conversationId, sender, clientMessageId });
     if (existing) {
       const expected = Buffer.from(payloadHash, 'hex');
       const stored = Buffer.from(existing.payloadHash, 'hex');
@@ -105,9 +82,8 @@ export function createMessageAppender(db: ChatWriteDb, clock: () => Date) {
       await arm();
       const seq = await repo.allocateSeq(tx, { conversationId, now, retainUntil: chatRetainUntil(now) });
       await arm();
-      const message = await rows.insert({
-        ...identity, id: randomUUID(), seq, authorId, payloadHash, bodyText: payload.bodyText, createdAt: now,
-      });
+      const message = { id: randomUUID(), conversationId, seq, clientMessageId, payloadHash, bodyText, createdAt: now };
+      await repo.insertMessage(tx, message, authorId);
       if (sender === 'VISITOR') {
         await arm();
         await repo.insertNotification(tx, {

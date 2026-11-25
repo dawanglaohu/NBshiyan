@@ -71,6 +71,7 @@ export function createInboxRepo(db: QueryDb) {
         id: true,
         seq: true,
         sender: true,
+        authorId: true,
         bodyText: true,
         createdAt: true,
         notification: { select: { status: true } },

@@ -167,7 +167,8 @@ describe('M4-T11 operator write HTTP', { skip: !url && 'no dedicated M4T11_TEST_
     return MessageReceivedDTOSchema.parse(await response.json());
   }
 
-  const operatorGet = (id: string, cookie: string) => detail.GET(request(`${inboxPath}/${id}`, cookie), context(id));
+  const operatorGet = (id: string, cookie: string, query = '') =>
+    detail.GET(request(`${inboxPath}/${id}${query}`, cookie), context(id));
   const visitorGet = (id: string, cookie: string, query = '') =>
     visitorDetail(request(`${visitorPath}/${id}${query}`, cookie), context(id));
   const visitorSend = (id: string, cookie: string, payload: unknown) =>
@@ -223,6 +224,81 @@ describe('M4-T11 operator write HTTP', { skip: !url && 'no dedicated M4T11_TEST_
     await expectError(await reply(id, admin.cookie, { ...adminReply, bodyText: 'Different text' }), 409, 'idempotency_conflict');
     await expectError(await reply(id, sales.cookie, adminReply), 409, 'idempotency_conflict');
     assert.deepEqual(await db.chatConversation.findUniqueOrThrow({ where: { id } }), conversationRow);
+  });
+
+  test('R1: both sync endpoints map this page of replies to conversation-scoped authors', async () => {
+    const first = await conversation();
+    const id = first.conversationId;
+    const [a, b] = await Promise.all([
+      reply(id, admin.cookie, message('Admin reply')).then(receipt),
+      reply(id, sales.cookie, message('Sales reply')).then(receipt),
+    ]);
+    for (const [saved, operator, bodyText] of [[a, admin, 'Admin reply'], [b, sales, 'Sales reply']] as const) {
+      const row = await db.chatMessage.findUniqueOrThrow({ where: { id: saved.message.id } });
+      assert.equal(row.authorId, operator.userId);
+      assert.equal(row.bodyText, bodyText);
+    }
+
+    async function readBoth(conversationId: string, cookie: string, query = '') {
+      const [visitor, operator] = await Promise.all([
+        visitorGet(conversationId, cookie, query),
+        operatorGet(conversationId, sales.cookie, query),
+      ]);
+      assert.equal(visitor.status, 200, await visitor.clone().text());
+      assert.equal(operator.status, 200, await operator.clone().text());
+      const publicBody = await visitor.json();
+      const operatorBody = await operator.json();
+      assert.ok(Array.isArray(publicBody.authors) && Array.isArray(operatorBody.authors),
+        'Both GETs must map saved replies to their authors');
+      const publicPage = ChatSyncDTOSchema.parse(publicBody);
+      const operatorPage = AdminChatSyncDTOSchema.parse(operatorBody);
+      assert.deepEqual(operatorPage.messages, publicPage.messages);
+      assert.deepEqual(operatorPage.authors, publicPage.authors);
+      return publicPage;
+    }
+
+    const firstPage = await readBoth(id, first.cookie);
+    const replies = [a.message, b.message].sort((left, right) => left.seq - right.seq);
+    assert.deepEqual(firstPage.messages, [first.message, ...replies]);
+    assert.deepEqual(firstPage.authors.map(({ messageId }) => messageId), replies.map(({ id }) => id));
+    const adminRef = firstPage.authors.find(({ messageId }) => messageId === a.message.id)?.authorRef;
+    const salesRef = firstPage.authors.find(({ messageId }) => messageId === b.message.id)?.authorRef;
+    assert.ok(adminRef && salesRef);
+    assert.notEqual(adminRef, salesRef);
+    assert.notEqual(adminRef, admin.userId);
+    assert.notEqual(salesRef, sales.userId);
+    assert.deepEqual((await readBoth(id, first.cookie)).authors, firstPage.authors);
+
+    const followUp = await receipt(await reply(id, admin.cookie, message('Admin follow-up')));
+    const salesFollowUp = await receipt(await reply(id, sales.cookie, message('Sales follow-up')));
+    const legacy = await receipt(await reply(id, sales.cookie, message('Historical reply')));
+    await db.chatMessage.update({ where: { id: legacy.message.id }, data: { authorId: null } });
+    const visitorOnly = await readBoth(id, first.cookie, '?limit=1');
+    assert.deepEqual(visitorOnly.messages, [first.message]);
+    assert.deepEqual(visitorOnly.authors, []);
+    const nextPage = await readBoth(id, first.cookie, `?afterSeq=${visitorOnly.nextAfterSeq}&limit=2`);
+    assert.deepEqual(nextPage.messages, replies);
+    assert.deepEqual(nextPage.authors, firstPage.authors);
+    const lastPage = await readBoth(id, first.cookie, `?afterSeq=${nextPage.nextAfterSeq}&limit=3`);
+    assert.deepEqual(lastPage.messages, [followUp.message, salesFollowUp.message, legacy.message]);
+    assert.deepEqual(lastPage.authors, [
+      { messageId: followUp.message.id, authorRef: adminRef },
+      { messageId: salesFollowUp.message.id, authorRef: salesRef },
+      { messageId: legacy.message.id, authorRef: null },
+    ]);
+    const empty = await readBoth(id, first.cookie, `?afterSeq=${lastPage.nextAfterSeq}`);
+    assert.deepEqual(empty.messages, []);
+    assert.deepEqual(empty.authors, []);
+
+    const other = await conversation();
+    const elsewhere = await receipt(await reply(other.conversationId, admin.cookie, message('Admin in a separate consultation')));
+    const otherPage = await readBoth(other.conversationId, other.cookie);
+    assert.deepEqual(otherPage.messages, [other.message, elsewhere.message]);
+    assert.equal(otherPage.authors.length, 1);
+    assert.equal(otherPage.authors[0]?.messageId, elsewhere.message.id);
+    assert.ok(otherPage.authors[0]?.authorRef);
+    assert.notEqual(otherPage.authors[0].authorRef, adminRef);
+    await expectError(await visitorGet(other.conversationId, first.cookie), 404, 'not_found');
   });
 
   test('E-31: a database error rolls back the allocated sequence and same-key retry returns a receipt', async () => {

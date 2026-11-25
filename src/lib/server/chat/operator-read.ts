@@ -10,6 +10,7 @@ import {
 import { decideAdminAccess, type BoundAccess } from '../admin/device-session';
 import { ADMIN_SESSION_POLICY } from '../config';
 import { AppError } from '../http/errors';
+import type { ChatPageAuthors } from './author-ref';
 import { createInboxRepo, type InboxRow } from './inbox-repo';
 import { ChatSequenceGap, consecutivePage, pageStartSeq } from './read-cursor';
 
@@ -34,8 +35,12 @@ function conversationDto(row: Omit<InboxRow, 'lastReadSeq'>): AdminChatConversat
   };
 }
 
-export function createOperatorReadService(deps: { db: Pick<PrismaClient, '$transaction'>; clock: () => Date }) {
-  const { db, clock } = deps;
+export function createOperatorReadService(deps: {
+  db: Pick<PrismaClient, '$transaction'>;
+  clock: () => Date;
+  pageAuthors: ChatPageAuthors;
+}) {
+  const { db, clock, pageAuthors } = deps;
   return {
     async list(userId: string, query: ChatSummaryQuery): Promise<ChatSummaryPageDTO> {
       const cursor = query.cursor
@@ -80,6 +85,7 @@ export function createOperatorReadService(deps: { db: Pick<PrismaClient, '$trans
           messages: page.messages.map(({ id, seq, sender, bodyText, createdAt }) => ({
             id, seq, sender, bodyText, createdAt: createdAt.toISOString(),
           })),
+          authors: pageAuthors(conversation.id, page.messages),
           notifications: page.messages.flatMap(({ id, sender, notification }) =>
             sender === 'VISITOR' && notification ? [{ messageId: id, status: notification.status }] : []),
           lastSeq,

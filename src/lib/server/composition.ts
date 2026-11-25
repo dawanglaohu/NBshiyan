@@ -20,6 +20,7 @@ import { CHAT_VISITOR_POLICY } from './config';
 import { createVisitorSessionRepo, type VisitorSessionStore } from './chat/visitor-session-repo';
 import { createVisitorSessionService, type VisitorSessionService } from './chat/visitor-session';
 import { createConversationService, type ConversationService } from './chat/conversation-service';
+import { createChatPageAuthors } from './chat/author-ref';
 import { createMessageService, type MessageService } from './chat/message-service';
 import { createOperatorReadService, type OperatorReadService } from './chat/operator-read';
 import { createOperatorWriteService, type OperatorWriteService } from './chat/operator-write';
@@ -209,6 +210,8 @@ export function createChatServices(deps: {
   const chatDb = (deps.db ?? prisma) as unknown as ChatWriteDb;
   // 读取面（GET 同步 / read）只碰会话与消息模型，不进入写事务。
   const chatReadDb = (deps.db ?? prisma) as unknown as ChatReadDb;
+  const chatSecret = analyticsConsentSecret();
+  const pageAuthors = createChatPageAuthors(chatSecret);
   return {
     ...http,
     visitorSessions: createVisitorSessionService({
@@ -218,9 +221,9 @@ export function createChatServices(deps: {
     }),
     conversations: createConversationService({ db: chatDb, clock }),
     messages: createMessageService({ db: chatDb, clock }),
-    visitorRead: createVisitorReadService({ repo: createChatReadRepo(chatReadDb) }),
-    operatorRead: createOperatorReadService({ db: chatDb, clock }),
-    operatorWrite: createOperatorWriteService({ db: chatDb, clock, replyHashSecret: analyticsConsentSecret() }),
+    visitorRead: createVisitorReadService({ repo: createChatReadRepo(chatReadDb), pageAuthors }),
+    operatorRead: createOperatorReadService({ db: chatDb, clock, pageAuthors }),
+    operatorWrite: createOperatorWriteService({ db: chatDb, clock, replyHashSecret: chatSecret }),
   };
 }
 
