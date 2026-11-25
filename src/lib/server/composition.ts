@@ -22,6 +22,7 @@ import { createVisitorSessionService, type VisitorSessionService } from './chat/
 import { createConversationService, type ConversationService } from './chat/conversation-service';
 import { createMessageService, type MessageService } from './chat/message-service';
 import { createOperatorReadService, type OperatorReadService } from './chat/operator-read';
+import { createOperatorWriteService, type OperatorWriteService } from './chat/operator-write';
 import { createVisitorReadService, type VisitorReadService } from './chat/visitor-read';
 import { createSelfRebindService, type SelfRebindService } from './admin/self-rebind';
 import { createChatReadRepo, type ChatReadDb, type ChatWriteDb } from './chat/repo';
@@ -191,6 +192,7 @@ export type ChatServices = HttpServices & {
   messages: MessageService;
   visitorRead: VisitorReadService;
   operatorRead: OperatorReadService;
+  operatorWrite: OperatorWriteService;
 };
 
 /** 聊天服务组合点。服务实例不持有请求身份。 */
@@ -218,6 +220,7 @@ export function createChatServices(deps: {
     messages: createMessageService({ db: chatDb, clock }),
     visitorRead: createVisitorReadService({ repo: createChatReadRepo(chatReadDb) }),
     operatorRead: createOperatorReadService({ db: chatDb, clock }),
+    operatorWrite: createOperatorWriteService({ db: chatDb, clock, replyHashSecret: analyticsConsentSecret() }),
   };
 }
 
