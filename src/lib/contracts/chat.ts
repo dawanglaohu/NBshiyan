@@ -149,8 +149,15 @@ const AdminChatConversationObjectSchema = ChatConversationObjectSchema.extend({
 export const AdminChatConversationDTOSchema = AdminChatConversationObjectSchema.superRefine(checkConversationTimes);
 export type AdminChatConversationDTO = z.infer<typeof AdminChatConversationDTOSchema>;
 
+export const ChatAuthorReferenceDTOSchema = z.object({
+  messageId: IdSchema,
+  authorRef: IdSchema.nullable(),
+}).strict();
+export type ChatAuthorReferenceDTO = z.infer<typeof ChatAuthorReferenceDTOSchema>;
+
 const chatSyncShape = {
   messages: z.array(ChatMessageDTOSchema).max(100),
+  authors: z.array(ChatAuthorReferenceDTOSchema).max(100),
   lastSeq: NonNegativeIntSchema,
   nextAfterSeq: NonNegativeIntSchema,
   hasMore: z.boolean(),
@@ -184,6 +191,12 @@ function checkChatSync(
   }
   if (value.hasMore !== (value.nextAfterSeq < value.lastSeq) || (value.hasMore && value.messages.length === 0)) {
     context.addIssue({ code: 'custom', path: ['hasMore'], message: 'Has more requires a nonempty page and must match whether messages remain.' });
+  }
+  const operatorIds = value.messages.filter(({ sender }) => sender === 'OPERATOR').map(({ id }) => id);
+  const authorMessageIds = new Set(value.authors.map(({ messageId }) => messageId));
+  if (value.authors.length !== operatorIds.length || authorMessageIds.size !== operatorIds.length ||
+      value.authors.some(({ messageId }, index) => messageId !== operatorIds[index])) {
+    context.addIssue({ code: 'custom', path: ['authors'], message: 'Authors must match every operator message on this page in sequence order.' });
   }
 }
 

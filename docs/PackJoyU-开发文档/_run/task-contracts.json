@@ -2212,10 +2212,18 @@
         "container"
       ],
       "supportPaths": [
+        ".github/workflows/ci.yml",
         "src/app/api/admin/chat/conversations/",
+        "src/lib/contracts/chat.ts",
+        "src/lib/server/chat/author-ref.ts",
+        "src/lib/server/chat/inbox-repo.ts",
         "src/lib/server/chat/message-service.ts",
+        "src/lib/server/chat/operator-read.ts",
+        "src/lib/server/chat/repo.ts",
+        "src/lib/server/chat/visitor-read.ts",
         "src/lib/server/composition.ts",
-        "tests/chat-operator-write.http.test.ts"
+        "tests/chat-operator-write.http.test.ts",
+        "tests/contracts-foundation.test.ts"
       ],
       "outputPaths": [
         "src/lib/server/chat/operator-write.ts"

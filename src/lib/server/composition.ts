@@ -20,8 +20,10 @@ import { CHAT_VISITOR_POLICY } from './config';
 import { createVisitorSessionRepo, type VisitorSessionStore } from './chat/visitor-session-repo';
 import { createVisitorSessionService, type VisitorSessionService } from './chat/visitor-session';
 import { createConversationService, type ConversationService } from './chat/conversation-service';
+import { createChatPageAuthors } from './chat/author-ref';
 import { createMessageService, type MessageService } from './chat/message-service';
 import { createOperatorReadService, type OperatorReadService } from './chat/operator-read';
+import { createOperatorWriteService, type OperatorWriteService } from './chat/operator-write';
 import { createVisitorReadService, type VisitorReadService } from './chat/visitor-read';
 import { createSelfRebindService, type SelfRebindService } from './admin/self-rebind';
 import { createChatReadRepo, type ChatReadDb, type ChatWriteDb } from './chat/repo';
@@ -191,6 +193,7 @@ export type ChatServices = HttpServices & {
   messages: MessageService;
   visitorRead: VisitorReadService;
   operatorRead: OperatorReadService;
+  operatorWrite: OperatorWriteService;
 };
 
 /** 聊天服务组合点。服务实例不持有请求身份。 */
@@ -207,6 +210,8 @@ export function createChatServices(deps: {
   const chatDb = (deps.db ?? prisma) as unknown as ChatWriteDb;
   // 读取面（GET 同步 / read）只碰会话与消息模型，不进入写事务。
   const chatReadDb = (deps.db ?? prisma) as unknown as ChatReadDb;
+  const chatSecret = analyticsConsentSecret();
+  const pageAuthors = createChatPageAuthors(chatSecret);
   return {
     ...http,
     visitorSessions: createVisitorSessionService({
@@ -216,8 +221,9 @@ export function createChatServices(deps: {
     }),
     conversations: createConversationService({ db: chatDb, clock }),
     messages: createMessageService({ db: chatDb, clock }),
-    visitorRead: createVisitorReadService({ repo: createChatReadRepo(chatReadDb) }),
-    operatorRead: createOperatorReadService({ db: chatDb, clock }),
+    visitorRead: createVisitorReadService({ repo: createChatReadRepo(chatReadDb), pageAuthors }),
+    operatorRead: createOperatorReadService({ db: chatDb, clock, pageAuthors }),
+    operatorWrite: createOperatorWriteService({ db: chatDb, clock, replyHashSecret: chatSecret }),
   };
 }
 

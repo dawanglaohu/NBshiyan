@@ -263,7 +263,7 @@ test('chat pagination validates wire queries, nested privacy and monotonic seque
     id: 'cv_example', locale: 'en', productSlug: null, sourcePath: null, status: 'OPEN', version: 0,
     createdAt: at, updatedAt: at, lastActivityAt: at, retainUntil: '2027-01-17T16:20:00.000Z', anonymizedAt: null,
   };
-  const sync = { conversation, messages: [message], lastSeq: 3, nextAfterSeq: 3, hasMore: false, read: { lastReadSeq: 0 } };
+  const sync = { conversation, messages: [message], authors: [], lastSeq: 3, nextAfterSeq: 3, hasMore: false, read: { lastReadSeq: 0 } };
   assert.deepEqual(contracts.ChatSyncDTOSchema.parse(sync), sync);
   rejects(contracts.ChatSyncDTOSchema, [
     { ...sync, conversation: { ...conversation, email: 'private@example.com' } },
@@ -293,6 +293,7 @@ test('M4-T3 admin notifications are strict, unique and ordered by the current vi
   const notifications = statuses.map((status, index) => ({ messageId: messages[index]!.id, status }));
   const visitor = {
     conversation: syncConversation, messages: [...messages, operatorMessage],
+    authors: [{ messageId: operatorMessage.id, authorRef: null }],
     lastSeq: 11, nextAfterSeq: 10, hasMore: true, read: { lastReadSeq: 0 },
   };
   const admin = { ...visitor, conversation: { ...syncConversation, email: null } };
@@ -315,9 +316,33 @@ test('M4-T3 admin notifications are strict, unique and ordered by the current vi
 });
 
 for (const { audience, schema, conversation, extras } of [
-  { audience: 'visitor', schema: contracts.ChatSyncDTOSchema, conversation: syncConversation, extras: {} },
-  { audience: 'admin', schema: contracts.AdminChatSyncDTOSchema, conversation: { ...syncConversation, email: null }, extras: { notifications: [] } },
+  { audience: 'visitor', schema: contracts.ChatSyncDTOSchema, conversation: syncConversation, extras: { authors: [] } },
+  { audience: 'admin', schema: contracts.AdminChatSyncDTOSchema, conversation: { ...syncConversation, email: null }, extras: { authors: [], notifications: [] } },
 ]) {
+  test(`M4-T11 ${audience} sync requires one ordered author reference per operator message`, () => {
+    const reply = { ...message, id: 'cm_reply', seq: 4, sender: 'OPERATOR' };
+    const legacy = { ...reply, id: 'cm_legacy', seq: 5 };
+    const authors = [{ messageId: reply.id, authorRef: 'ref_example' }, { messageId: legacy.id, authorRef: null }];
+    const page = {
+      ...extras, conversation, messages: [message, reply, legacy],
+      lastSeq: 5, nextAfterSeq: 5, hasMore: false, read: { lastReadSeq: 0 },
+    };
+    assert.deepEqual(schema.parse({ ...page, authors }).authors, authors);
+    rejects(schema, [
+      { ...page, authors: undefined },
+      page,
+      { ...page, authors: [authors[0]] },
+      { ...page, authors: [...authors].reverse() },
+      { ...page, authors: [authors[0], authors[0]] },
+      { ...page, authors: [{ ...authors[0], messageId: 'cm_elsewhere' }, authors[1]] },
+      { ...page, authors: [{ ...authors[0], messageId: message.id }, authors[1]] },
+      { ...page, authors: [{ ...authors[0], authorRef: 'operator@example.com' }, authors[1]] },
+      { ...page, authors: [{ ...authors[0], authorId: 'private_account' }, authors[1]] },
+      { ...page, messages: [message, reply, { ...legacy, id: reply.id }], authors: [authors[0], authors[0]] },
+    ]);
+    rejects(contracts.ChatMessageDTOSchema, [{ ...reply, authorRef: authors[0]?.authorRef }]);
+  });
+
   test(`R1 ${audience} sync rejects a sequence gap within a page`, () => {
     rejects(schema, [{
       ...extras, conversation, messages: [{ ...message, seq: 3 }, { ...message, seq: 5 }],
