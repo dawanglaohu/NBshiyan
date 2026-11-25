@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { pageMetadata } from '@/lib/seo/pageMeta';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import InquiryWizard from '@/components/inquiry/InquiryWizard';
+import ContactChatEntry from '@/components/chat/ContactChatEntry';
 import HumanContactNotice from './HumanContactNotice';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -25,6 +26,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
         </div>
         <aside className="contact-rail">
           <HumanContactNotice />
+          <ContactChatEntry />
         </aside>
       </div>
     </main>
