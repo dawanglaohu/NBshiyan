@@ -14,7 +14,7 @@ import {
   MessageReceivedDTOSchema,
 } from '../src/lib/contracts/chat';
 import { AppErrorDTOSchema } from '../src/lib/contracts/errors';
-import { CHAT_RETENTION_MS } from '../src/lib/chat/rules';
+import { CHAT_RETENTION_MS, CHAT_TX_BUDGET_MS } from '../src/lib/chat/rules';
 import { encrypt, hashSecret } from '../src/lib/server/admin/crypto';
 import { MemoryStore, setRateLimitStore } from '../src/lib/server/ratelimit';
 
@@ -423,5 +423,27 @@ describe('M4-T11 operator write HTTP', { skip: !url && 'no dedicated M4T11_TEST_
     await expectError(await close(id, sales.cookie, closing), 409, 'conversation_anonymized');
     assert.deepEqual(await db.chatConversation.findUniqueOrThrow({ where: { id } }), anonymized);
     assert.equal(await db.chatMessage.count({ where: { conversationId: id } }), 1);
+  });
+
+  test('exhausted write budgets return 503 for replies and closure without persisting changes', async (t) => {
+    const { conversationId: id } = await conversation();
+    const where = { id };
+    const before = await db.chatConversation.findUniqueOrThrow({ where });
+    const payload = message('Reply after capacity returns');
+    const closing = { status: 'CLOSED', expectedVersion: before.version };
+    let elapsed = 0;
+    const clock = t.mock.method(performance, 'now', () => (elapsed += CHAT_TX_BUDGET_MS));
+    try {
+      const attemptedReply = await reply(id, admin.cookie, payload);
+      const attemptedClose = await close(id, sales.cookie, closing);
+      await expectError(attemptedReply, 503, 'service_unavailable');
+      await expectError(attemptedClose, 503, 'service_unavailable');
+    } finally {
+      clock.mock.restore();
+    }
+    assert.deepEqual(await db.chatConversation.findUniqueOrThrow({ where }), before);
+    assert.equal(await db.chatMessage.count({ where: { conversationId: id } }), 1);
+    assert.equal((await receipt(await reply(id, admin.cookie, payload))).duplicate, false);
+    assert.equal((await close(id, sales.cookie, closing)).status, 200);
   });
 });

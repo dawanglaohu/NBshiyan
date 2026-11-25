@@ -41,6 +41,17 @@
         2,
         2
       ]
+    },
+    "reviewerFix": {
+      "originalHead": "0428d384f59b0894ff019453b3546b7cdb70ec64",
+      "discussion": "https://github.com/dawanglaohu/NBshiyan/pull/570#discussion_r4692074094",
+      "entryPoints": [
+        "POST /api/admin/chat/conversations/[id]/messages",
+        "PATCH /api/admin/chat/conversations/[id]"
+      ],
+      "regression": "tests/chat-operator-write.http.test.ts:428",
+      "red": "专用 PG17 上通过测试时钟耗尽真实写事务预算。两个路由均把 ChatTransactionBudgetExceeded 映射为 500 internal_error，断言期待 503。",
+      "green": "同一异常按 service_unavailable 返回 503，咨询和消息无变化；恢复时钟后同键回复及关闭成功。六个聊天与契约套件在测试密钥配置下 111/111、零跳过，lint、tsc 和 49 个后台路由的鉴权扫描通过。"
     }
   },
   "tasks": {

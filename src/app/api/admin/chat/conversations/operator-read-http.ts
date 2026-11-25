@@ -5,7 +5,7 @@ import { ChatConversationParamsSchema } from '@/lib/contracts/chat';
 import { AppErrorCodeSchema } from '@/lib/contracts/errors';
 import { assertSameOrigin, enforceAdminUserRateLimit, requireAdmin } from '@/lib/server/auth';
 import { withClearedSession } from '@/lib/server/admin/guard';
-import { isDatabaseUnavailable } from '@/lib/server/chat/repo';
+import { ChatTransactionBudgetExceeded, isDatabaseUnavailable } from '@/lib/server/chat/repo';
 import { createChatServices } from '@/lib/server/composition';
 import { AppError, isAppError, mapAppError, mapUnknownFailure } from '@/lib/server/http/errors';
 import type { ApiRouteId } from '@/lib/server/http/metrics';
@@ -110,7 +110,7 @@ async function handleOperatorRequest(
     if (isAppError(error)) {
       response = errorResponse(error);
       if (error.code === 'unauthorized' || error.code === 'account_disabled') withClearedSession(response);
-    } else if (isDatabaseUnavailable(error)) {
+    } else if (error instanceof ChatTransactionBudgetExceeded || isDatabaseUnavailable(error)) {
       response = errorResponse(new AppError('service_unavailable'));
     } else {
       const mapped = mapUnknownFailure(error, requestId);
