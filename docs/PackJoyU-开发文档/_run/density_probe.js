@@ -203,6 +203,9 @@ var densityProbe = (function () {
       return false;
     }
     function inBar(el) {
+      // 首屏的一行数据表可能整表落在顶栏几何范围内。度量表内内容，保留导航和工具栏的排除规则。
+      if (el.closest('table, [role="table"], [role="grid"], [role="treegrid"]') &&
+          !el.closest('nav, header, footer, [role="toolbar"], [role="navigation"], [role="banner"], [role="contentinfo"]')) return false;
       for (var k = 0; k < bars.length; k++) if (bars[k].contains(el)) return true;
       return false;
     }

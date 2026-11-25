@@ -7,6 +7,7 @@ import contextlib
 import io
 import json
 import os
+import shutil
 from pathlib import Path
 import subprocess
 import sys
@@ -186,6 +187,34 @@ class DensityReviewTests(unittest.TestCase):
 
 
 class DensityProbeTests(unittest.TestCase):
+    def test_top_band_data_table_counts_but_page_navigation_does_not(self):
+        chrome = shutil.which('google-chrome') or shutil.which('chromium')
+        if not chrome and os.name == 'nt':
+            installed = Path(os.environ.get('ProgramFiles', 'C:/Program Files')) / 'Google/Chrome/Application/chrome.exe'
+            if installed.is_file():
+                chrome = str(installed)
+        if not chrome:
+            self.skipTest('Chromium is required for DOM geometry')
+        with tempfile.TemporaryDirectory() as tmp:
+            page = Path(tmp) / 'table.html'
+            page.write_text('''<!doctype html><style>
+body{margin:0} nav{display:flex;justify-content:space-between;height:36px;background:#eee}
+main{padding:12px} table{border-collapse:collapse;width:100%} td{height:40px;border:1px solid}
+</style><main><nav><button>Previous</button><button>Next</button></nav>
+<section><table><tbody><tr><td>No matching inquiries</td></tr></tbody></table></section></main>
+<script>''' + PROBE.read_text(encoding='utf-8') + '''
+const check = () => densityProbe({main:'main',type:'work'}).verdict;
+const wide = check();
+document.querySelector('table').style.width = '200px';
+const narrow = check();
+document.title = [wide.D2, wide.D6, narrow.D2, narrow.D6].join('-');
+</script>''', encoding='utf-8')
+            run = subprocess.run([chrome, '--headless', '--no-sandbox', '--disable-gpu',
+                                  '--window-size=1920,1080', '--user-data-dir=' + str(Path(tmp) / 'profile'),
+                                  '--dump-dom', page.as_uri()], capture_output=True, timeout=45)
+            self.assertEqual(run.returncode, 0)
+            self.assertIn(b'<title>pass-pass-fail-fail</title>', run.stdout.split(b'</head>')[0])
+
     def node(self, script, env=None, args=()):
         return subprocess.run(['node'] + list(args) + ([] if script is None else ['-e', script]),
                               text=True, encoding='utf-8', capture_output=True, timeout=60,
