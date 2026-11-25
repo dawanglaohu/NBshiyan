@@ -1,504 +1,505 @@
 {
   "ANALYTICS-ROLLUP": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "165d8f9be21169e24088e539639362a5db5de64dc3f95ed92f6bfc36823a1d8d",
+    "contractHash": "cc8f6c42820456de9caf827c90c0d145a59ea02aa70e80a9c8074198268aaa9c",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 aeae79c2a5c989e197adccd8959d4f09e5f4a9d20700b1609910d4892127f3e7。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：.github/workflows/ci.yml。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 165d8f9be21169e24088e539639362a5db5de64dc3f95ed92f6bfc36823a1d8d。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 .github/workflows/ci.yml。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "BACKFILL-MJS": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "2633477f1a12b1be9cbc5773279771820a7eb52c6b1d0eaca9010ec4abccc24b",
+    "contractHash": "e5fd32af9232f4e670f30278493ccf121e7dc02c959df234f0b9c4b7cc56218e",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 d7dfe7f416f61b2dd2ec31b1c1dd45160f2d5fa9fe294d57d9b3577160a831ab。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 2633477f1a12b1be9cbc5773279771820a7eb52c6b1d0eaca9010ec4abccc24b。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "BE-350A": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "66cb07ad49895c1a8467f05023abb55994875e8d9d8ed41ddd34456798af06d7",
+    "contractHash": "4e1f67246a60e287ed068a2a62e1c5c92b4aa87e523f27f2330e2a7f846f3bcf",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 0c848319df2ae3ecc830937a2bee7bcdf608048a30931496c0d5a20bfc741ce8。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 66cb07ad49895c1a8467f05023abb55994875e8d9d8ed41ddd34456798af06d7。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "BE-I18N-P0": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "a29a68bec8398cdac4513cdbad6694bc8819a4d1cfe02b2f09aa5305e8315a7f",
+    "contractHash": "dc0ed91ed37f71a21d703e72d990c551a0a52fc02419c052eac5990d704b727a",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 0f138168a4996384bec1a65d94bcbabfa1ae6f7a22834679a94c0ff5cdffd878。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 a29a68bec8398cdac4513cdbad6694bc8819a4d1cfe02b2f09aa5305e8315a7f。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "BE-RATELIMIT-P3": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "b9c91414ede62b83d6340826eb97a763e04d0619d7f970ce207fdcbbaf7295a6",
+    "contractHash": "7d900db64ff029de65963d580f2417a4a7e6cdf7794ba4ecdb3bc927ac15996d",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 c27cb212bf31c3e3492857fd3a0f35e1843ac5d7e3a93bd6c60488625a97ebca。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 b9c91414ede62b83d6340826eb97a763e04d0619d7f970ce207fdcbbaf7295a6。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "BE-RESET-STDIN-TTY": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "4fd1222d0c8ab704feada019c4b9b8bef168260973cb98dbbfa55de0852206ea",
+    "contractHash": "c49f6c2dd0fee21832353c219880e2bd0f342e8e51140f75dc777cb98992de90",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 b4f2fc95ca8f54d61f442170669ad9ce7486cb01bddd67cb0d91c77f995cdbdc。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 4fd1222d0c8ab704feada019c4b9b8bef168260973cb98dbbfa55de0852206ea。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "BE-RESET-TTY": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "dc499957ff241f326735feacd397bbe16390ef5879e31ed21f3946f3c80591ca",
+    "contractHash": "97356677ba1d265248c309c1664d08a04cd4b04985cb6d8de16547c4d9534fa0",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 9ce3f9b5700b14814e7dacd8404e8e7afb9c672ac3cc9224564ea03c52d97f0f。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 dc499957ff241f326735feacd397bbe16390ef5879e31ed21f3946f3c80591ca。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "CATALOG-MERGE": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "a456371cb4d077cf9aad357f72d5aa7bd883e79f6b329f418bb1d14dbd07b55c",
+    "contractHash": "c88bd5397689559defe98344427c2ca58542a72130324874fe3e474d964225d1",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 110cdc602da02c372de1c31093c220fb7aa92ff0dda9795341ddb371221b9ba2。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 a456371cb4d077cf9aad357f72d5aa7bd883e79f6b329f418bb1d14dbd07b55c。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "CI-DB-TESTS": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "23c83e912473023b3ca020252d9fea70aa24128e0670ed5193ed3c62ee82192b",
+    "contractHash": "f7db4e8dc49e086c5b303c1941e3190c2b227530f4e0b44b2400970908834336",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 9c1b00dea257ec7bc07526aa4b0d2ce66c6d795c394c9bcdb9aba5e646a94b78。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：.github/workflows/ci.yml。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 23c83e912473023b3ca020252d9fea70aa24128e0670ed5193ed3c62ee82192b。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 .github/workflows/ci.yml。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "CI-DEVICE-SERIAL": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "069dd232eb42461558cd19fdb6407c3574564bed6047641d8ef379600bf26cab",
+    "contractHash": "3646793dbd865803cf8c90d85b3a477c8073a5ea43adb3292bb48f27f02e9143",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 4cd0853b23e6d7d901648928fe8020f44005e23b56e8be0c3776380de9ecf5b3。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：.github/workflows/ci.yml。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 069dd232eb42461558cd19fdb6407c3574564bed6047641d8ef379600bf26cab。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 .github/workflows/ci.yml。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "CITY-STILL-WEBP": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "1324a18aa8d2b75a13a86f895e2ed8efa190ed0d0ca7c5c5f68536f9cf9f42b9",
+    "contractHash": "d57997594d6acb9f2e306331e2e4192faef66ad06c1fe3521dfc7ca85e2c64b3",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 9587f77b98006205eaaf355e9d2427cb89c426f38d9c1d6ce1037570fad73aa9。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 1324a18aa8d2b75a13a86f895e2ed8efa190ed0d0ca7c5c5f68536f9cf9f42b9。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "CLIENT-API-DEADLINE": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "44011e5c2e4b0f808cd9f6bbc0444b2456a2f20c99d436cdbdf5fdba6ac40a94",
+    "contractHash": "78c40292d5001373bcc6ba14df7cadd338b0547a73704c6bed981a891a0200e8",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 0316f48a0579119d354512e73ed72bdaf48a22aacf4518546147c95adb02b387。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 44011e5c2e4b0f808cd9f6bbc0444b2456a2f20c99d436cdbdf5fdba6ac40a94。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "DEP-AUDIT-1": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "2b2928758adc8b051855bbad360f049f902adfb8c458e5c3a7bdd29233fcf975",
+    "contractHash": "73dab99f08467d02e1cfcf8bf9e0656609a6b8e132fdecf0f0a29abf7bf49061",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 4e62cf5359d91704e90a49f4cbb821de295fd45acefbb3ef9e27bdd3cd431e8c。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 2b2928758adc8b051855bbad360f049f902adfb8c458e5c3a7bdd29233fcf975。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "DEPLOY-FIX-1": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "f8d16130205e9ab46034a68d2787386e1f28166de22fe05d8a3198579b449378",
+    "contractHash": "7519648d18a099bf2cb263b34590d73bbd5bab48349f9be573e3b64eac14db7c",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 d64f24f91c50c35a15dc06c1e0b79f6524feb99a6c41695ae0ea16f6af84b5ca。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 f8d16130205e9ab46034a68d2787386e1f28166de22fe05d8a3198579b449378。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "DOCKER-UPLOADS-1": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "a5408c44d3f8dafbf1aa9f2b39999024053b02d73a1194cd860defe23767ca10",
+    "contractHash": "ce1ad68602c64943532871d9641c5880f89be944fee7f2a275ef283cec3c7732",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 bb4d689846c17a14db1c7e39b71f907e2a9f83542de365d0c5b18246cb7203f5。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 a5408c44d3f8dafbf1aa9f2b39999024053b02d73a1194cd860defe23767ca10。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "E2E-CONSENT-FIX": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "821f0a7574a6fdbedcaace02cbb7a7ec1877f40d411d81203b05bc5845729ed0",
+    "contractHash": "f0c77ef74f57e00862b16c5d7e4641b4ce8576612b1b25c1ef025c0607ef49b9",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 4697d3468847a86c947b1e4e8a3200279b5b8b7f90c4c703911c9dfee03e6488。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 821f0a7574a6fdbedcaace02cbb7a7ec1877f40d411d81203b05bc5845729ed0。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "FE-404-TITLE": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "dd71fc3deebc09612235ea1eda86ffd33c61f4c2e843bdcb86bf662c21a16a09",
+    "contractHash": "b8751aed8034109071ca3424cc1decdf62ab75fa1050ea326228a35159967674",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 f2de5adce867ec780e61325a23a23e8da456fb72e7610216876d79613c1ae405。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：src/app/api/admin/chat/conversations/[id]/read/route.ts、src/app/api/admin/chat/conversations/[id]/route.ts、src/app/api/admin/chat/conversations/operator-read-http.ts、src/app/api/admin/chat/conversations/route.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 dd71fc3deebc09612235ea1eda86ffd33c61f4c2e843bdcb86bf662c21a16a09。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 src/app/api/admin/chat/conversations/[id]/messages/route.ts, src/app/api/admin/chat/conversations/[id]/route.ts, src/app/api/admin/chat/conversations/operator-read-http.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "FE-FAB-390": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "9a49a9ef9fb86cf7728e65117564ec0078e1d9819bdee9fa4b90655490172f08",
+    "contractHash": "cdcd0fecf0f74faa01007147d0f1c06638bdbd12c0d150feba7a8d024e173fe1",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 c43a41400aec992367ae1ec88ed0558847e0ddd3b2dd55d257f737eb19eef54f。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 9a49a9ef9fb86cf7728e65117564ec0078e1d9819bdee9fa4b90655490172f08。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "GATE-HARDEN": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "9d7bf70e54973d79e509185664016d4c0dee8dc6747ec5778afa22aa1bcb0f3e",
+    "contractHash": "dd3c5d43d378ec2ccdb25f3d00ee4512ea72e752247063c132cfce80959aae0d",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 aa3d71a12f129200cc83cfa7ef868dceeeaf921979964aa95e574cccab1a24d7。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 9d7bf70e54973d79e509185664016d4c0dee8dc6747ec5778afa22aa1bcb0f3e。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "GATE-HARDEN-2": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "15fe0ba8ca295a13a9b5644723b70c7052b31669868cb3d920eaba64cdcd748c",
+    "contractHash": "e1fbced19f3648b01ff7e7ebfbf3631bbb368967b17130656d05b8fdaf5de8bd",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 edb918dba94733bfce24a32a095678b4d700e88bc249611b3846f506a2eff778。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 15fe0ba8ca295a13a9b5644723b70c7052b31669868cb3d920eaba64cdcd748c。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "GATE-PATHS-1": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "84c45198ed5b7ee0db9cc88b6a13bc64ad6d238a945fc28d383380dfe3358e12",
+    "contractHash": "44118272c4985115385bfb3bfb3e740dd505f6e3c989225eb1532d645bb7600a",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 0d00e206b365a6a7a99a3af3975f49592b8e5b5066ccbf7491359adbde6b6663。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 84c45198ed5b7ee0db9cc88b6a13bc64ad6d238a945fc28d383380dfe3358e12。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "GATE-PATHS-2": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "67ced6a2c81beb7157187f183ccfa5b3f9791aafd39e7c283b77fd56db191433",
+    "contractHash": "cb5bd75a1ccd14f9759237f57a3c69fcee06acd51fb225899bc630af749cf2e8",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 c5eb70fb40884fea4a59feaed507ecc040b639b52fa9892f95a197d48e679eca。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 67ced6a2c81beb7157187f183ccfa5b3f9791aafd39e7c283b77fd56db191433。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "GIFT-CARD-ASSETS": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "e1c2c33d74ad25cd3ff2bb501a488a5a08821433177917b3edda9f7f4d28a7a2",
+    "contractHash": "fabd5148b689474de6aed05da6696218a2d46b70413c60d57e999589076b1b66",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 f426c962d522ff2fa462b8a875b46b2ae908c4136d9d110d99390299599c5c36。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 e1c2c33d74ad25cd3ff2bb501a488a5a08821433177917b3edda9f7f4d28a7a2。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "GIFT-CARDS-RENAME": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "f9f04b60a2ee181c8d6568c257725be3f6f1128ee575e9374a98ba3af78482a5",
+    "contractHash": "b70072a490e018a79b9250a0131cc3f2e6bb4791907e66d3a6e3b8607585f024",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 f03ad4445631652b706b9f66e89b6367f7f19854ee4beab8b1924e93cf433bbe。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 f9f04b60a2ee181c8d6568c257725be3f6f1128ee575e9374a98ba3af78482a5。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "GUARD-503": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "7d1ee8c54b671ca7595faf2c2e830a8edbdd86eb3ea0937e42531d1afbd02231",
+    "contractHash": "bf2907d7c9c0d83e048f19a3fa76bd151c475429753e7af2aa2bde829727b877",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 941f278149bb3282097b610a1721174761e6809665f73b5d5d9405771763dd39。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 7d1ee8c54b671ca7595faf2c2e830a8edbdd86eb3ea0937e42531d1afbd02231。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "HOTFIX-LOGIN-EMPTY": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "57fc369a495a2d4a572a358ed0f497ea87c1512b9dc929da679d3748c0e3e354",
+    "contractHash": "d1df1b52c7f0648131432600a5093e1f1a61f8b76bdc0cac3e6806c2b4169af2",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 a3505127cfd8b7a4dd74b1211bfe7fddbaa1cadada0ff3fda0450230b236fd4a。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 57fc369a495a2d4a572a358ed0f497ea87c1512b9dc929da679d3748c0e3e354。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M1-T1": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "9de436386d433ba958f8103d6e0f701d0795bec58c61ec37fab6546981ccc6eb",
+    "contractHash": "983f480e1555d931ca79868e605616be35f989ec283be1ec54cf74db090af819",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 cf38e3ad38fd2a599ed4dfc2e87d246719c1917a0f77304909320cd53b71a51d。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：.github/workflows/ci.yml、src/app/api/admin/chat/conversations/[id]/read/route.ts、src/app/api/admin/chat/conversations/[id]/route.ts、src/app/api/admin/chat/conversations/operator-read-http.ts、src/app/api/admin/chat/conversations/route.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 9de436386d433ba958f8103d6e0f701d0795bec58c61ec37fab6546981ccc6eb。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 .github/workflows/ci.yml, src/app/api/admin/chat/conversations/[id]/messages/route.ts, src/app/api/admin/chat/conversations/[id]/route.ts, src/app/api/admin/chat/conversations/operator-read-http.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M1-T2": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "3676a39791441edd40be106b7807598e9367528680d642b052f52434d30d6984",
+    "contractHash": "d21f269dc6f098f88016bbbaa5ceef85de89a9e8eb9320c3d51ee144de7c82a1",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 19c1b4e2aab552d4aac2f7819f263e737e294b4611e136ca818cab70c26236f9。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：src/lib/contracts/chat.ts、tests/contracts-foundation.test.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 3676a39791441edd40be106b7807598e9367528680d642b052f52434d30d6984。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 src/lib/contracts/chat.ts, tests/contracts-foundation.test.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M1-T3": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "9c7bfa1e9435741006a67f0c50196cbe39350cc5125ce5ab5cbe5a73de553ede",
+    "contractHash": "e623e49631aa672d48e266c70379f0d62edaa9f151fb81cf8ab448d4cdac65f9",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 9f4145cea29199a8c692a799baba94f7a8d58088efc032ee035f61d4d6b1628e。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 9c7bfa1e9435741006a67f0c50196cbe39350cc5125ce5ab5cbe5a73de553ede。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M1-T4": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "feddac9e006614b5a49302ec4b2500c028f1e9a66b06e6df2f248a166f51c418",
+    "contractHash": "a8438d76d5e46a5569eb13e4fbf9d6434fba72859ee9ea62965bc426f23fcfa3",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 c13cde19d8520982c040dbd864870edf16f3423a16318425048f4c519de47bac。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：src/app/api/admin/chat/conversations/[id]/read/route.ts、src/app/api/admin/chat/conversations/[id]/route.ts、src/app/api/admin/chat/conversations/operator-read-http.ts、src/app/api/admin/chat/conversations/route.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 feddac9e006614b5a49302ec4b2500c028f1e9a66b06e6df2f248a166f51c418。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 src/app/api/admin/chat/conversations/[id]/messages/route.ts, src/app/api/admin/chat/conversations/[id]/route.ts, src/app/api/admin/chat/conversations/operator-read-http.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M1-T5": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "3b40b65643041c727ce913de3950d4cbefb4842e5a9c3e3819265a4b8b8283ce",
+    "contractHash": "9c3bfc24eedd00af1641548868a90edcdefd45c38660519ce3a2f1473b4dd57d",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 9db58d2bc9f702fc53e908745b9e5f0b0c9ead8b9c47b5d71ce9884427d1fb1c。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：src/app/api/admin/chat/conversations/[id]/read/route.ts、src/app/api/admin/chat/conversations/[id]/route.ts、src/app/api/admin/chat/conversations/operator-read-http.ts、src/app/api/admin/chat/conversations/route.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 3b40b65643041c727ce913de3950d4cbefb4842e5a9c3e3819265a4b8b8283ce。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 src/app/api/admin/chat/conversations/[id]/messages/route.ts, src/app/api/admin/chat/conversations/[id]/route.ts, src/app/api/admin/chat/conversations/operator-read-http.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M1-T6": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "bedc62fd55d12a3284b2582a3e907fa1f8d8bc6395e19b5a2601ce134439cc86",
+    "contractHash": "7d52562477a0d79bc43a9a5a13d95f1c8417fd128e2a1a4895b658dca0ef67c4",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 c3e3be762b70b757502377b6e8d33bd3279d0401d418c50fb39630465193f2e8。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 bedc62fd55d12a3284b2582a3e907fa1f8d8bc6395e19b5a2601ce134439cc86。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M1-T7": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "29db36211f7739b0ce7935bc04c64831e0e42a0db24c04356200c9d3b25e0949",
+    "contractHash": "fd540a53b8a1c62d2b73bc81a2dc4c2bafeb1f6873c4c32b67d5d26dc66ef591",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 2ea2c954f57bf6b5d092cb35347f5ffb6c43882063a27e7eb148e0d890229c3b。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 29db36211f7739b0ce7935bc04c64831e0e42a0db24c04356200c9d3b25e0949。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M1-T8": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "1140fa096ab0828485c89a951c762cb442c49b083e5d5436f4d2053790d74553",
+    "contractHash": "f7f95a68b6fd510a3715d73adefe9610f1b4bd25538bb06f7e188a15a0246f2e",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 227b50c8057ad978e94f023c69f6ac073c35810d57598cdf3d557e75cc2a474a。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 1140fa096ab0828485c89a951c762cb442c49b083e5d5436f4d2053790d74553。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M1-T9": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "bc05e0396bdddab94a72e7f16f00891fd8fbc1666b4c91813dc985734d2b9d22",
+    "contractHash": "38047112a2bb4d8531eca81335d073ba34230529a0bfa5bf1bcf8ef27eb04665",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 00d01a510b09b4911a936ff470f1777b1882ff963c3a696cc1c0704596ea6b9a。",
-      "本任务条款及三处素材路径均与合并前一致。前置 M1-T1、M1-T3 的共享章节摘要变化导致哈希传播。公司素材和内容测试已验证登记文件、选材及字节哈希。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 bc05e0396bdddab94a72e7f16f00891fd8fbc1666b4c91813dc985734d2b9d22。",
+      "前置 M1-T1、M1-T3 的契约哈希传播，本任务 context 全字段相同。三个图稿交付路径均无文件差异。复跑 company-content 与 company-visuals-selected-input 共 11 项通过，零跳过。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M2-T1": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "dffcb664fd7535abd29d8b3f31ac14c9da78ad2d0f6c9943573c149a9350a3bd",
+    "contractHash": "2e563392c02a1673dff958fd40521b9cf43d37ae2268c3830f99c2f5689950b5",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 7582af656272952ed83e9f3ceeccffae08dfd0d68767ae8e9dc4d99b6a49dacb。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：src/app/api/admin/chat/conversations/[id]/read/route.ts、src/app/api/admin/chat/conversations/[id]/route.ts、src/app/api/admin/chat/conversations/operator-read-http.ts、src/app/api/admin/chat/conversations/route.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 dffcb664fd7535abd29d8b3f31ac14c9da78ad2d0f6c9943573c149a9350a3bd。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 src/app/api/admin/chat/conversations/[id]/messages/route.ts, src/app/api/admin/chat/conversations/[id]/route.ts, src/app/api/admin/chat/conversations/operator-read-http.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M2-T2": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "6db10aa0dbcd0495de622da814bd548f78440c0cdc97f8f2db1243a3298e78d4",
+    "contractHash": "64bb6ccb33fe8acaff1e64bbbd18136fe7cb797b1e2ccc5e3b3fb25a59cf01ec",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 ecad74f45490b529be50559df8e39011fc4a661a344ffe1b616ecbd5bb38c264。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：src/app/api/admin/chat/conversations/[id]/read/route.ts、src/app/api/admin/chat/conversations/[id]/route.ts、src/app/api/admin/chat/conversations/operator-read-http.ts、src/app/api/admin/chat/conversations/route.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 6db10aa0dbcd0495de622da814bd548f78440c0cdc97f8f2db1243a3298e78d4。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 src/app/api/admin/chat/conversations/[id]/messages/route.ts, src/app/api/admin/chat/conversations/[id]/route.ts, src/app/api/admin/chat/conversations/operator-read-http.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M2-T3": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "84450a08492da2e6c05aba365b32e125b435f1dc6ae32499c69ba52f5fc97629",
+    "contractHash": "3b1a60c7f5db5c132b35d1d88b728244fb078ca4805eb3dff03ded9a81ca0e17",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 0a278786d0f4a29336f31bf289329a70ab8d220640bb68f825c9d04804853f46。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：src/app/api/admin/chat/conversations/[id]/read/route.ts、src/app/api/admin/chat/conversations/[id]/route.ts、src/app/api/admin/chat/conversations/operator-read-http.ts、src/app/api/admin/chat/conversations/route.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 84450a08492da2e6c05aba365b32e125b435f1dc6ae32499c69ba52f5fc97629。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 src/app/api/admin/chat/conversations/[id]/messages/route.ts, src/app/api/admin/chat/conversations/[id]/route.ts, src/app/api/admin/chat/conversations/operator-read-http.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M2-T4": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "9e2484ffabf5e74f6b68c746f233322ec411470aa2b48fca86dcaf393eb72359",
+    "contractHash": "58dcf1c89a07203dd682a02f79ccf2969b973ed4c4c55b10a5e595d849454434",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 2411b42f21da4354de58e5f9234ec1c481aa23052577bb5ff0c6cd0eea2011ba。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 9e2484ffabf5e74f6b68c746f233322ec411470aa2b48fca86dcaf393eb72359。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M2-T5": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "77c3e646bb1c6ac4d5effa4f74f3d1616bf0f00f7050f8851b7623bf3846b901",
+    "contractHash": "743b2f8d7d72165017fa74f032aa56f26a27f17e39f2efdcbf2eab1df82158d3",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 fa146e4f3e1f33b240d4733ee4dc84e177a96cf7439808df8b3a17f7055cf3b1。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：.github/workflows/ci.yml、src/app/api/admin/chat/conversations/[id]/read/route.ts、src/app/api/admin/chat/conversations/[id]/route.ts、src/app/api/admin/chat/conversations/operator-read-http.ts、src/app/api/admin/chat/conversations/route.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 77c3e646bb1c6ac4d5effa4f74f3d1616bf0f00f7050f8851b7623bf3846b901。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 .github/workflows/ci.yml, src/app/api/admin/chat/conversations/[id]/messages/route.ts, src/app/api/admin/chat/conversations/[id]/route.ts, src/app/api/admin/chat/conversations/operator-read-http.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M2-T6": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "9ca48b5482d36d4c482688ed1a82ed06cd3d09439fcbaeb354ed19a7db6e9c86",
+    "contractHash": "6192a5015592e00e2f573a082f7ab1d52a59497b6657fc336c5a813f9d4bd21c",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 2ed71063967969ba4901eb1f279a43c60320e64333025c30f73ac7c778b1c975。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：.github/workflows/ci.yml、src/app/api/admin/chat/conversations/[id]/read/route.ts、src/app/api/admin/chat/conversations/[id]/route.ts、src/app/api/admin/chat/conversations/operator-read-http.ts、src/app/api/admin/chat/conversations/route.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 9ca48b5482d36d4c482688ed1a82ed06cd3d09439fcbaeb354ed19a7db6e9c86。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 .github/workflows/ci.yml, src/app/api/admin/chat/conversations/[id]/messages/route.ts, src/app/api/admin/chat/conversations/[id]/route.ts, src/app/api/admin/chat/conversations/operator-read-http.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M2-T7": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "4e9ac2632df54a420b68f950e7a63dd27af718d9d6d6a566b79b0c8224489aa7",
+    "contractHash": "cdb170adb3a098720d444943633c88baf061bf0ecfcb4fcccf6cdbf2b6356df8",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 becb1054b4fd87c1dbc677cae30c7aceb7f339907183e816c3b75762625c23ec。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：.github/workflows/ci.yml、src/app/api/admin/chat/conversations/[id]/read/route.ts、src/app/api/admin/chat/conversations/[id]/route.ts、src/app/api/admin/chat/conversations/operator-read-http.ts、src/app/api/admin/chat/conversations/route.ts、src/lib/contracts/chat.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 4e9ac2632df54a420b68f950e7a63dd27af718d9d6d6a566b79b0c8224489aa7。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 .github/workflows/ci.yml, src/app/api/admin/chat/conversations/[id]/messages/route.ts, src/app/api/admin/chat/conversations/[id]/route.ts, src/app/api/admin/chat/conversations/operator-read-http.ts, src/lib/contracts/chat.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -516,13 +517,13 @@
   },
   "M3-T1": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "589b803f4f914ca11f01413929e83facc2e7908196507f5d4551c3a9502c4d75",
+    "contractHash": "128fcf2923d6be2126de944dc29d94af3b6052a3bc336dc0929d1aa591dbd59d",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 e02041d588f8e9991c2069402436e552631d8a657bcf8bf32976d325221182a4。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：.github/workflows/ci.yml、src/app/api/admin/chat/conversations/[id]/read/route.ts、src/app/api/admin/chat/conversations/[id]/route.ts、src/app/api/admin/chat/conversations/operator-read-http.ts、src/app/api/admin/chat/conversations/route.ts、src/lib/server/composition.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 589b803f4f914ca11f01413929e83facc2e7908196507f5d4551c3a9502c4d75。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 .github/workflows/ci.yml, src/app/api/admin/chat/conversations/[id]/messages/route.ts, src/app/api/admin/chat/conversations/[id]/route.ts, src/app/api/admin/chat/conversations/operator-read-http.ts, src/lib/server/composition.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -576,145 +577,145 @@
   },
   "M3-T14": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "b6dc1db1c209e5c3326dfeb519cc152bb7db6088788f1fe97d949316c7a6865f",
+    "contractHash": "242be411d3de46198033f16e52954b2a4528e497d9794b0c2998bcb4280dc5f0",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 cc936e672466e034cd82f49598bd039c451c123088bb43bf7b6b8abc7b2861a3。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：src/lib/server/composition.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 b6dc1db1c209e5c3326dfeb519cc152bb7db6088788f1fe97d949316c7a6865f。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 src/lib/server/composition.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T15": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "87dd3f066a6e2436b58d412d68bddd38da73313d13ca0070d77ed3b189928b80",
+    "contractHash": "b1fb1c1ee0500e88d9a64b043718358adc7c2ca18304c6bcf2f8a524a4f9f5df",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 e796f93900a9f5297a45297e699f6bbda78a6d49a629fa9627bd0e29c7816a20。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：src/app/api/admin/chat/conversations/[id]/read/route.ts、src/app/api/admin/chat/conversations/[id]/route.ts、src/app/api/admin/chat/conversations/operator-read-http.ts、src/app/api/admin/chat/conversations/route.ts、src/lib/server/composition.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 87dd3f066a6e2436b58d412d68bddd38da73313d13ca0070d77ed3b189928b80。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 src/app/api/admin/chat/conversations/[id]/messages/route.ts, src/app/api/admin/chat/conversations/[id]/route.ts, src/app/api/admin/chat/conversations/operator-read-http.ts, src/lib/server/composition.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T16": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "2b93fd8d319f12b07bb2b1499d5c0b2e8cb9574e7d1d78fc8fe6026757568443",
+    "contractHash": "d9d0a9e2cdc3afe06db8dbf3c96fae9dd80380ce5103a73c45236f142f8f3f65",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 96d3724edbc610a267da8c3876028301e8f54b21d4370111d3190e6a1f83d6f9。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：src/app/api/admin/chat/conversations/[id]/read/route.ts、src/app/api/admin/chat/conversations/[id]/route.ts、src/app/api/admin/chat/conversations/operator-read-http.ts、src/app/api/admin/chat/conversations/route.ts、src/lib/server/composition.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 2b93fd8d319f12b07bb2b1499d5c0b2e8cb9574e7d1d78fc8fe6026757568443。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 src/app/api/admin/chat/conversations/[id]/messages/route.ts, src/app/api/admin/chat/conversations/[id]/route.ts, src/app/api/admin/chat/conversations/operator-read-http.ts, src/lib/server/composition.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T17": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "f544b94511bc006916ff37c31ca74f1b23ee67be2ccd80537930d0e46d5121d3",
+    "contractHash": "801cbb454028d416c7f7e4c1e119ccadf6879485d743ad05609268b0334c772a",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 938acf288bbddfd09a2ca628ae3505caa508e2cb70507a131b098f2174ef939c。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：.github/workflows/ci.yml、src/app/api/admin/chat/conversations/[id]/read/route.ts、src/app/api/admin/chat/conversations/[id]/route.ts、src/app/api/admin/chat/conversations/operator-read-http.ts、src/app/api/admin/chat/conversations/route.ts、src/lib/server/composition.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 f544b94511bc006916ff37c31ca74f1b23ee67be2ccd80537930d0e46d5121d3。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 .github/workflows/ci.yml, src/app/api/admin/chat/conversations/[id]/messages/route.ts, src/app/api/admin/chat/conversations/[id]/route.ts, src/app/api/admin/chat/conversations/operator-read-http.ts, src/lib/server/composition.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T18": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "90bc3a46eb559da044ce7c53509accebf706c52e2974416d680da4b3d286ed03",
+    "contractHash": "38963bfd51cc1c98d87da66bd9729babd13d0b94b98fec928dc48bb497149531",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 fb3ec540ac0a751b994a10dae1cffd894463fc63a711bc18fcb2e97b29bed8d4。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 90bc3a46eb559da044ce7c53509accebf706c52e2974416d680da4b3d286ed03。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T19": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "dfeebb05488e88d58493a1cfe681436bcb87d54a729b01cf90dbe0e96ec48973",
+    "contractHash": "8325f0e43da9409e5815780b72cd2514900220698e4fd617410418d7a787958b",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 091bf8c0b7158a5a94dcc9751cfcd273116937529f2c5ce3f4fb5e3183fe5690。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：src/app/api/admin/chat/conversations/[id]/read/route.ts、src/app/api/admin/chat/conversations/[id]/route.ts、src/app/api/admin/chat/conversations/operator-read-http.ts、src/app/api/admin/chat/conversations/route.ts、src/lib/server/composition.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 dfeebb05488e88d58493a1cfe681436bcb87d54a729b01cf90dbe0e96ec48973。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 src/app/api/admin/chat/conversations/[id]/messages/route.ts, src/app/api/admin/chat/conversations/[id]/route.ts, src/app/api/admin/chat/conversations/operator-read-http.ts, src/lib/server/composition.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T2": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "0bfb7b1ad657f06807f869bcd122aa391406440fdfd43c8735570f333c7c42bc",
+    "contractHash": "fcd47fe70409804ef695fb15ba6324a24e74f4d0898810cc0c0fcd769774b454",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 240e8b2d1ff79f7675d2302aeedb6dbfc1458910cd17f106079a185045777b0b。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：src/app/api/admin/chat/conversations/[id]/read/route.ts、src/app/api/admin/chat/conversations/[id]/route.ts、src/app/api/admin/chat/conversations/operator-read-http.ts、src/app/api/admin/chat/conversations/route.ts、src/lib/server/composition.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 0bfb7b1ad657f06807f869bcd122aa391406440fdfd43c8735570f333c7c42bc。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 src/app/api/admin/chat/conversations/[id]/messages/route.ts, src/app/api/admin/chat/conversations/[id]/route.ts, src/app/api/admin/chat/conversations/operator-read-http.ts, src/lib/server/composition.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T20": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "c996a68da72a0bfde65362cfef58d4eddcca41a7071a9533d900fe737d08a370",
+    "contractHash": "dcd5b906949dc383137ed430de7c442920be8c1f21bb9e05b18f6f0479f65cdf",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 6ff5b1d2b9a2f2a322c0ba8a850b247c2b6045776595eaf0a95caa718962b2d4。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：.github/workflows/ci.yml、src/app/api/admin/chat/conversations/[id]/read/route.ts、src/app/api/admin/chat/conversations/[id]/route.ts、src/app/api/admin/chat/conversations/operator-read-http.ts、src/app/api/admin/chat/conversations/route.ts、src/lib/server/composition.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 c996a68da72a0bfde65362cfef58d4eddcca41a7071a9533d900fe737d08a370。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 .github/workflows/ci.yml, src/app/api/admin/chat/conversations/[id]/messages/route.ts, src/app/api/admin/chat/conversations/[id]/route.ts, src/app/api/admin/chat/conversations/operator-read-http.ts, src/lib/server/composition.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T21": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "3d202ab7048e3ce32d4ffc00e9ce260f190e44539c30f64943dd04b0d07900d8",
+    "contractHash": "1907a76f0c80065c684d2aa76e011363c8faab8380111e6b1b4f82e2d57d05fe",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 f0e3a02e100bb30ec63bbc440c9519db94bc50dca5667a008e788d6afdb7e818。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：.github/workflows/ci.yml。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 3d202ab7048e3ce32d4ffc00e9ce260f190e44539c30f64943dd04b0d07900d8。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 .github/workflows/ci.yml。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T22": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "a86a109cefdd7d7669edb2659ae48cbaee29b477e815a619faf9ce159c834b5d",
+    "contractHash": "e5fb89a00e13c68b0ccb84a7c18d20125f89c13edd3862f24c64b0e6f673d627",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 e03560df3979facf9f5003cd165add9abde7ef64c590e474787491bda9544bc2。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：.github/workflows/ci.yml。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 a86a109cefdd7d7669edb2659ae48cbaee29b477e815a619faf9ce159c834b5d。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 .github/workflows/ci.yml。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T23": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "f6d4b7e5f999e72b2a7e2453a048180703f0ba50d9b36fd2e3895866883d5fb0",
+    "contractHash": "3c812f1aca81d1a893ccdd6f0f0ec98002467b0d1fe43bf64267c9dfec200326",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 ed345ad0f0170ea601229f6a6ff8b04bf087787f1044f0db066716b8bc9afd90。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：.github/workflows/ci.yml。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 f6d4b7e5f999e72b2a7e2453a048180703f0ba50d9b36fd2e3895866883d5fb0。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 .github/workflows/ci.yml。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T24": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "9bf44b550200c368869c658394c5576ce1fa17f3408959b273ca430c0db60212",
+    "contractHash": "cb96a574fa6e22ec7ced9d176c2827798c161ff89e3d2f30593d730efdaee242",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 817989874b8e9086f4c283935f97d6f16e7321eb9dad2063674c8b53ae27be66。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：.github/workflows/ci.yml。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 9bf44b550200c368869c658394c5576ce1fa17f3408959b273ca430c0db60212。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 .github/workflows/ci.yml。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -732,37 +733,37 @@
   },
   "M3-T3": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "1d4c4b6b772d1de46fedfbd3ae98af07e7e4f48447c15940d6012b8032b4f944",
+    "contractHash": "b112537bdefebc324ee0e4630a032763d80e1d7fbb90bbd865c789337dcda30e",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 6d9595da6d90cf5e2a508cf4d76538170b0e9eae303bec13d0df055e2428dd50。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：.github/workflows/ci.yml、src/app/api/admin/chat/conversations/[id]/read/route.ts、src/app/api/admin/chat/conversations/[id]/route.ts、src/app/api/admin/chat/conversations/operator-read-http.ts、src/app/api/admin/chat/conversations/route.ts、src/lib/server/composition.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 1d4c4b6b772d1de46fedfbd3ae98af07e7e4f48447c15940d6012b8032b4f944。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 .github/workflows/ci.yml, src/app/api/admin/chat/conversations/[id]/messages/route.ts, src/app/api/admin/chat/conversations/[id]/route.ts, src/app/api/admin/chat/conversations/operator-read-http.ts, src/lib/server/composition.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T4": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "09a9c1ca6d3b6c6572e4d567614be40715891603fa58ef678d5ab5af22f7bd68",
+    "contractHash": "cb430097765a4100265adfed8622c7789273279925d8a8272482105891b46301",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 d49230a68e4d3a526d3e48f8b2c8040b9f512c94f616af1574e2083f55272fb5。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：src/app/api/admin/chat/conversations/[id]/read/route.ts、src/app/api/admin/chat/conversations/[id]/route.ts、src/app/api/admin/chat/conversations/operator-read-http.ts、src/app/api/admin/chat/conversations/route.ts、src/lib/server/composition.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 09a9c1ca6d3b6c6572e4d567614be40715891603fa58ef678d5ab5af22f7bd68。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 src/app/api/admin/chat/conversations/[id]/messages/route.ts, src/app/api/admin/chat/conversations/[id]/route.ts, src/app/api/admin/chat/conversations/operator-read-http.ts, src/lib/server/composition.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T5": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "72834b55fe1f15dc564927b3beb7404b529b70a2bfce464afb2eaf17030bd8de",
+    "contractHash": "27dfb77aeab3ed0e6055af679fbae268bcd3a1ca730c17e6bc027245b6d876d0",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 209e855a9a3b5261e6c8d6ad0a03e55a4691765156921d20291a228bb0ca771e。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：.github/workflows/ci.yml、src/app/api/admin/chat/conversations/[id]/read/route.ts、src/app/api/admin/chat/conversations/[id]/route.ts、src/app/api/admin/chat/conversations/operator-read-http.ts、src/app/api/admin/chat/conversations/route.ts、src/lib/server/composition.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 72834b55fe1f15dc564927b3beb7404b529b70a2bfce464afb2eaf17030bd8de。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 .github/workflows/ci.yml, src/app/api/admin/chat/conversations/[id]/messages/route.ts, src/app/api/admin/chat/conversations/[id]/route.ts, src/app/api/admin/chat/conversations/operator-read-http.ts, src/lib/server/composition.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -780,13 +781,13 @@
   },
   "M3-T7": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "0a364a9c7baea18024841cb50af425fdadcb2b29170900265f90d80b060fda65",
+    "contractHash": "5d9c83fa8747cf578b6421803150a8c091097523229650424716abb05ce4e6cf",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 059db9e311af892a5b9286732a5325675045bc209b74ef6cd7220bfb3a9c3849。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：src/app/api/admin/chat/conversations/[id]/read/route.ts、src/app/api/admin/chat/conversations/[id]/route.ts、src/app/api/admin/chat/conversations/operator-read-http.ts、src/app/api/admin/chat/conversations/route.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 0a364a9c7baea18024841cb50af425fdadcb2b29170900265f90d80b060fda65。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 src/app/api/admin/chat/conversations/[id]/messages/route.ts, src/app/api/admin/chat/conversations/[id]/route.ts, src/app/api/admin/chat/conversations/operator-read-http.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -816,25 +817,25 @@
   },
   "M4-T1": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "2978ec09f5edfce4f7b10eff74a4eec14a9df95bae617451912049611aa271d7",
+    "contractHash": "9f14bee2c01313ffb610895b367fb4354d7f2771cdcd256762c82aa39ae7216c",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 0e078e69460a585e689c4ece3f3ba96f6d800854f6f82041cddc0b42aabe5111。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：.github/workflows/ci.yml、src/app/api/admin/chat/conversations/[id]/read/route.ts、src/app/api/admin/chat/conversations/[id]/route.ts、src/app/api/admin/chat/conversations/operator-read-http.ts、src/app/api/admin/chat/conversations/route.ts、src/lib/server/composition.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 2978ec09f5edfce4f7b10eff74a4eec14a9df95bae617451912049611aa271d7。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 .github/workflows/ci.yml, src/app/api/admin/chat/conversations/[id]/messages/route.ts, src/app/api/admin/chat/conversations/[id]/route.ts, src/app/api/admin/chat/conversations/operator-read-http.ts, src/lib/server/chat/repo.ts, src/lib/server/composition.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M4-T10": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "41764a1287e334f2135e833098b8b5fc68d01b643dfea6d56f8e1d7a809dd688",
+    "contractHash": "a7aeee15e87571666556fc084e1f63ec7269be92afde0c607069a1fd49f28c1a",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 3a1b36787f007fe4e00cc6b82465fefe51bf4a25e2e37006e20b9fccfd30a889。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：.github/workflows/ci.yml、src/app/api/admin/chat/conversations/[id]/read/route.ts、src/app/api/admin/chat/conversations/[id]/route.ts、src/app/api/admin/chat/conversations/operator-read-http.ts、src/app/api/admin/chat/conversations/route.ts、src/lib/server/composition.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 41764a1287e334f2135e833098b8b5fc68d01b643dfea6d56f8e1d7a809dd688。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 .github/workflows/ci.yml, src/app/api/admin/chat/conversations/[id]/messages/route.ts, src/app/api/admin/chat/conversations/[id]/route.ts, src/app/api/admin/chat/conversations/operator-read-http.ts, src/lib/server/chat/message-service.ts, src/lib/server/chat/repo.ts, src/lib/server/composition.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -842,24 +843,24 @@
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
     "contractHash": "678bfc29914055576bb5b44ac78a6cfb7fa9d37ebc4fd21a7924db9b7ea9681a",
     "evidence": [
-      "任务契约复核，不代表代码验收。19节 M4-T11 仍依赖已落地 M4-T3 的 chat-operator-api 和 M4-T10 的 chat-visitor-append-api；产出为后台回复 POST、关闭 PATCH 与两端按页同步作者。见 task-contracts.json 的 requires、supportPaths、stage=integration。",
-      "13节 E-16/E-31/E-32/E-33/E-78 与19节三条验收对应。10节两个详情 GET 和 authors 字段表约定按本页 OPERATOR 消息的真实持久 authorId 关联；写入回执保持原形，缺失历史 authorId 由 null 表示。存储见 prisma/schema.prisma:698。作者表示的两次审查裁决见 judgments.jsonl 的 M4-T11:review 与 M4-T11:review-author-ref。",
-      "08节 layers/data/tx 规定 service 管事务，共享 chat repo 承担查重、插入、锁和条件更新。第17节要求 PG17 与真实 HTTP 验证。contracts-foundation、chat-operator-write、CI PostgreSQL 清单与实现读取投影均已纳入有效路径。开放草稿 #563 同触 .github/workflows/ci.yml，需保留双方所需检查。chat.ts 由 contracts/index.ts 统一导出。",
-      "对实现提交 9e18b95c，后台 POST/PATCH 分别接入 messages/route.ts:8 和 [id]/route.ts:19，组合点 composition.ts:223；GET 映射 visitor-read.ts:76 和 operator-read.ts:80 仍缺作者，message-service.ts:55 与 operator-write.ts:19 各自内嵌持久层操作，CI PostgreSQL 列表未含本测试。以上为本轮代码返工项，任务尚未落地。"
+      "第 19 节验收 1 至 3、E-16/E-31/E-32/E-33/E-78 对应当前身份、真实持久作者、幂等、关闭 CAS 和两端访问范围。当前 src/lib/server/composition.ts:224 连接两端读服务和写服务。需求和有效路径见第 10/19 节及 M4-T11-author-sync。",
+      "R1：src/lib/contracts/chat.ts:195 校验按本页 OPERATOR 消息排列的 authors，author-ref.ts:8 按咨询与数据库作者派生。真实 Next/Auth.js/PG 本轮同一探针复验两端正文均匹配，各有 2 个作者映射。tests/chat-operator-write.http.test.ts:229 核两名不同作者、稳定重复读、空页、历史缺失作者和跨咨询隔离。",
+      "R2：.github/workflows/ci.yml:437、486、546、592 已配置专库、require、执行、报告与逐文件校验。GitHub PG17 作业 139014262836 的运营写套件 7 项通过，fail/skip/todo/cancelled 均为 0。完整 e2e job 成功。",
+      "R3：repo.ts:95、140、149、242 接管查重、行锁、关闭 CAS 与消息写入，message-service.ts:69/86 和 operator-write.ts:39/83 在原事务调用。首消息、访客追加、人工并发、回滚、关闭后 409 及撤权回归均通过。实现 head 1376fae 的四项 CI 检查均通过。"
     ],
-    "reviewed": "2026-11-25T05:49:38.883466+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M4-T12": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "2b56f3df002e969fd15831189a549a70e0dec111cf6d316431aab1d7494761b7",
+    "contractHash": "f393de54a73d3875c110cad35f8ceb4786d960975ead89977ee5d3add492c429",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 6cc636a903fcac2fa14971403aa52bb3ed69b08db6f9bc9785a5a47e9f3c44c5。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：.github/workflows/ci.yml、src/app/api/admin/chat/conversations/[id]/read/route.ts、src/app/api/admin/chat/conversations/[id]/route.ts、src/app/api/admin/chat/conversations/operator-read-http.ts、src/app/api/admin/chat/conversations/route.ts、src/lib/server/composition.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 2b56f3df002e969fd15831189a549a70e0dec111cf6d316431aab1d7494761b7。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 .github/workflows/ci.yml, src/app/api/admin/chat/conversations/[id]/messages/route.ts, src/app/api/admin/chat/conversations/[id]/route.ts, src/app/api/admin/chat/conversations/operator-read-http.ts, src/lib/server/composition.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -891,51 +892,49 @@
   },
   "M4-T15": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "13a61ec120ed99b6bb0be30afd15fb1d7a19d406dadc18cc185a86e6e0973bf1",
+    "contractHash": "348461bd479080aa917376e6bd8fecdf6e7642be55342325968aead2beea904f",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 e30b73144d22dae6490e2a6aedf3d2190039fdcadc6d868c5227e63d7450e517。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：src/app/api/admin/chat/conversations/[id]/read/route.ts、src/app/api/admin/chat/conversations/[id]/route.ts、src/app/api/admin/chat/conversations/operator-read-http.ts、src/app/api/admin/chat/conversations/route.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 13a61ec120ed99b6bb0be30afd15fb1d7a19d406dadc18cc185a86e6e0973bf1。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 src/app/api/admin/chat/conversations/[id]/messages/route.ts, src/app/api/admin/chat/conversations/[id]/route.ts, src/app/api/admin/chat/conversations/operator-read-http.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M4-T2": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "ba2d2aba2c9c8c13152e0bdfed406c66e82dcd47c616f4e6d34851791855a759",
+    "contractHash": "58e5b5a7f73b6c81ec1de86b7e74813db7e93abef22e20bdf03c76e96ad87f2c",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 c33f99885c0fc11a84d017ab199ba0ef4a06f4210a4798f7a5664bd8c90acce5。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：.github/workflows/ci.yml、src/app/api/admin/chat/conversations/[id]/read/route.ts、src/app/api/admin/chat/conversations/[id]/route.ts、src/app/api/admin/chat/conversations/operator-read-http.ts、src/app/api/admin/chat/conversations/route.ts、src/lib/server/composition.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 ba2d2aba2c9c8c13152e0bdfed406c66e82dcd47c616f4e6d34851791855a759。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 .github/workflows/ci.yml, src/app/api/admin/chat/conversations/[id]/messages/route.ts, src/app/api/admin/chat/conversations/[id]/route.ts, src/app/api/admin/chat/conversations/operator-read-http.ts, src/lib/server/chat/repo.ts, src/lib/server/chat/visitor-read.ts, src/lib/server/composition.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M4-T3": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "45132b347bcdc61f1f800585e7a30aa33c29cbd67179ad620b7781f2bea9086a",
+    "contractHash": "444dcf78715f593cdbb132ea71a2f9cb0f1fff0426e24c4bbf94b8119b1c7bc7",
     "evidence": [
-      "Prerequisites verified on main (284065a4): M4-T2 (chat-visitor-sync-api: read-cursor.ts consecutivePage/pageStartSeq/ChatSequenceGap, visitor read routes) and M3-T1 (current-admin-permissions: requireAdmin, decideAdminAccess, withClearedSession, ADMIN_SESSION_POLICY) are landed; M4-T1/M4-T4/M4-T10 ChatConversation/ChatMessage/ChatReadCursor/ChatNotification schema and outbox are landed.",
-      "DOC_PATCH b11-m4t3-notification-ci-20261124 verified against Jev adjudication (M4-T3:review, jev-1.14.0, pick=detail_sidecar high 0.89, adopt=take(detail_sidecar)): Section 10 (02-设计/10-接口约定.md:39,87) now defines AdminChatSyncDTO.notifications (ChatNotificationSummaryDTO[], max 100, {messageId, status} using Prisma ChatNotificationStatus QUEUED/SENDING/SENT/FAILED/UNKNOWN/DISABLED, ordered ascending by message seq, unique per visitor message in the same snapshot, excluding internal outbox columns, leaving ChatMessageDTO and visitor ChatSyncDTO unchanged).",
-      "Effective paths verified in _run/task-contracts.json: M4-T3.supportPaths now includes src/lib/contracts/chat.ts, tests/contracts-foundation.test.ts, and .github/workflows/ci.yml alongside read-cursor.ts, composition.ts, and tests/chat-operator-read.http.test.ts. All Batch 11 sibling tasks (M4-T10, M6-T1) are already landed; zero parallel file conflicts.",
-      "13/17/19 alignment verified: M4-T3 edges E-19/E-32/E-34/E-35/E-41/E-78/E-79/E-86/E-89 and stage=integration wiring (backendRoutes + container) match the patched Section 10 AdminChatSyncDTO contract and Section 17 isolated PG17 CI requirement.",
-      "Task-contract review only: current PR #567 code (102cd1cb) passes lint, tsc, check-admin-guard, and 68/68 local PG17 tests, but still requires Round 1 code rework R1 (implement AdminChatSyncDTO.notifications in contracts/repo/service/tests) and R2 (wire tests/chat-operator-read.http.test.ts into .github/workflows/ci.yml PG17 gate)."
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 45132b347bcdc61f1f800585e7a30aa33c29cbd67179ad620b7781f2bea9086a。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 .github/workflows/ci.yml, src/app/api/admin/chat/conversations/[id]/messages/route.ts, src/app/api/admin/chat/conversations/[id]/route.ts, src/app/api/admin/chat/conversations/operator-read-http.ts, src/lib/contracts/chat.ts, src/lib/server/chat/inbox-repo.ts, src/lib/server/chat/operator-read.ts, src/lib/server/composition.ts, tests/contracts-foundation.test.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-24T13:29:03.988912+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M4-T4": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "9a43d392c7a5dea61897358bb5a995d8ed883ae91afb661f8eefe1a422044d7a",
+    "contractHash": "cb47f1a83aa14bcb582452d7f8a5e521dd503e2025778644746b5022f67253eb",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 1cb57e9411addd1725c5f4afdfc0030aa95715c3e824fdb6f9f8da7f109b0f2f。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：.github/workflows/ci.yml、src/app/api/admin/chat/conversations/[id]/read/route.ts、src/app/api/admin/chat/conversations/[id]/route.ts、src/app/api/admin/chat/conversations/operator-read-http.ts、src/app/api/admin/chat/conversations/route.ts、src/lib/server/composition.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 9a43d392c7a5dea61897358bb5a995d8ed883ae91afb661f8eefe1a422044d7a。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 .github/workflows/ci.yml, src/app/api/admin/chat/conversations/[id]/messages/route.ts, src/app/api/admin/chat/conversations/[id]/route.ts, src/app/api/admin/chat/conversations/operator-read-http.ts, src/lib/server/composition.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -980,13 +979,13 @@
   },
   "M4-T8": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "e99012085fab5b666e2081b0d0a41e6376fe269c8361e4cbf4c24cecc789aab2",
+    "contractHash": "809cda099a029dfa183e71f9e6666913027b082b122096c79f3972786f6319a0",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 d4db6caf8bf32abd57ad7292ad741ec13e19d94be1a8b661fc2467c619dd3b20。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：src/app/api/admin/chat/conversations/[id]/read/route.ts、src/app/api/admin/chat/conversations/[id]/route.ts、src/app/api/admin/chat/conversations/operator-read-http.ts、src/app/api/admin/chat/conversations/route.ts、src/lib/server/composition.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 e99012085fab5b666e2081b0d0a41e6376fe269c8361e4cbf4c24cecc789aab2。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 src/app/api/admin/chat/conversations/[id]/messages/route.ts, src/app/api/admin/chat/conversations/[id]/route.ts, src/app/api/admin/chat/conversations/operator-read-http.ts, src/lib/server/composition.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -1005,157 +1004,157 @@
   },
   "M5-T1": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "3802803559f4afa5817e65ce7aff9a4fa5bf7f5766b8150659d5ceaaa6f7986a",
+    "contractHash": "07a493e262f4534714210b1997c22b4fe99839011110356d0c9311cfe87c0b3f",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 5406e7b90b31fd1145492df66eba6325a4dfc895ffebd203092c4200cb42289c。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 3802803559f4afa5817e65ce7aff9a4fa5bf7f5766b8150659d5ceaaa6f7986a。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M5-T10": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "493fa2ee8b3862085c871d77d3e605a48af35c529124e6b92960381dc5a0ce7c",
+    "contractHash": "db52f15b03f06863961abbe363e3c39926269d6dc05c40031dc057ae1046cadf",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 907933f9e8d96e3a4e616f6b88ff8d35fe666216c17e5c1460300ecaea06aee8。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：.github/workflows/ci.yml、src/app/api/admin/chat/conversations/[id]/read/route.ts、src/app/api/admin/chat/conversations/[id]/route.ts、src/app/api/admin/chat/conversations/operator-read-http.ts、src/app/api/admin/chat/conversations/route.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 493fa2ee8b3862085c871d77d3e605a48af35c529124e6b92960381dc5a0ce7c。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 .github/workflows/ci.yml, src/app/api/admin/chat/conversations/[id]/messages/route.ts, src/app/api/admin/chat/conversations/[id]/route.ts, src/app/api/admin/chat/conversations/operator-read-http.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M5-T11": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "e3d9c9e10cb9e899375e06d313abe8637f520dd66d276f5b7d99cf35039c7a1f",
+    "contractHash": "3610e039214eed5bac555606e524b05c5a4c5ba3f4dc63c6c18dd5845f56e085",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 d9a3b15579292b83fc48ba1a4597b424b63c3b82aa929cc26e3f6aa5bd258b05。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：.github/workflows/ci.yml、src/lib/server/composition.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 e3d9c9e10cb9e899375e06d313abe8637f520dd66d276f5b7d99cf35039c7a1f。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 .github/workflows/ci.yml, src/lib/server/composition.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M5-T12": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "ca236a210dc8b28c3778203add7e6182e80850043b26e154f99939637c853a14",
+    "contractHash": "c1e15efdde0b87bf3d117682e3659e5c455a6d0532e902a1105bf5a79ceca1dd",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 d724b854f24f40cfdfe4171814fc4191f8cb3e9841214bff0c9f1080940d4087。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：.github/workflows/ci.yml、src/lib/server/composition.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 ca236a210dc8b28c3778203add7e6182e80850043b26e154f99939637c853a14。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 .github/workflows/ci.yml, src/lib/server/composition.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M5-T2": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "f00e31887aa3544cba2a66e74dfc2b75463893b42730f1ba71a414897685c28f",
+    "contractHash": "21cd93940ec070ad0fd6391a3faf92d992a7d5119fc76a85e9213b39d6202709",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 dfd42810168c8da9daf430aef497bc3e99f67e364e496f60cb728233831bb09d。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：src/app/api/admin/chat/conversations/[id]/read/route.ts、src/app/api/admin/chat/conversations/[id]/route.ts、src/app/api/admin/chat/conversations/operator-read-http.ts、src/app/api/admin/chat/conversations/route.ts、src/lib/server/composition.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 f00e31887aa3544cba2a66e74dfc2b75463893b42730f1ba71a414897685c28f。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 src/app/api/admin/chat/conversations/[id]/messages/route.ts, src/app/api/admin/chat/conversations/[id]/route.ts, src/app/api/admin/chat/conversations/operator-read-http.ts, src/lib/server/composition.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M5-T3": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "2619f9054301f6c100b74196d827b680cc87d69ab96398d1e94251e0792597f9",
+    "contractHash": "75ccea1533106bdc9594744aefd3c67fb0889fbe22280870bddc33a84186d082",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 ea3a98c3d3a0e0e7cef49287d01b25189f93473bee88f5d52634ce580f1dccf5。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 2619f9054301f6c100b74196d827b680cc87d69ab96398d1e94251e0792597f9。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M5-T4": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "cb7376adf632041d774bd5e0642914031a42bbd5b53cf0f3ca824a4149f68513",
+    "contractHash": "5a24174e73258d404414de2b6c6346150e3b57790eaa870705fcc15879e8f8ca",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 5a1fa7731ebfb548e63f386801c6f517622a9721076f624d9ac8edc504509d7f。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：.github/workflows/ci.yml、src/app/api/admin/chat/conversations/[id]/read/route.ts、src/app/api/admin/chat/conversations/[id]/route.ts、src/app/api/admin/chat/conversations/operator-read-http.ts、src/app/api/admin/chat/conversations/route.ts、src/lib/server/composition.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 cb7376adf632041d774bd5e0642914031a42bbd5b53cf0f3ca824a4149f68513。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 .github/workflows/ci.yml, src/app/api/admin/chat/conversations/[id]/messages/route.ts, src/app/api/admin/chat/conversations/[id]/route.ts, src/app/api/admin/chat/conversations/operator-read-http.ts, src/lib/server/composition.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M5-T5": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "13c8cb3bf0bc1b1c18e5eac1c8f42a24a37462f34fda31e60c28da58a9615a14",
+    "contractHash": "fd51f288aba79e04fd1afa54ad49adaf5a95d331831fa06eeb42538689f76a72",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 8c5edca68fc4f65ed207eefa4b4751bae7f511b7e68e80a86e9b54362bbccd71。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：.github/workflows/ci.yml。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 13c8cb3bf0bc1b1c18e5eac1c8f42a24a37462f34fda31e60c28da58a9615a14。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 .github/workflows/ci.yml。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M5-T6": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "5bff63aa5dbe84f1b096931b1cc55486e6e01c1b4ad75f06df1504f73d2c4e76",
+    "contractHash": "7ac31240c245c19f7962aad57b05fe52bb7eba39e1d8d666e47f7e8fde29cd29",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 b22971b7c31b2a2f4f15dc72d657018b67370d6936898449a02ccce9382b7cde。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：src/app/api/admin/chat/conversations/[id]/read/route.ts、src/app/api/admin/chat/conversations/[id]/route.ts、src/app/api/admin/chat/conversations/operator-read-http.ts、src/app/api/admin/chat/conversations/route.ts、src/lib/contracts/chat.ts、src/lib/server/composition.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 5bff63aa5dbe84f1b096931b1cc55486e6e01c1b4ad75f06df1504f73d2c4e76。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 src/app/api/admin/chat/conversations/[id]/messages/route.ts, src/app/api/admin/chat/conversations/[id]/route.ts, src/app/api/admin/chat/conversations/operator-read-http.ts, src/lib/contracts/chat.ts, src/lib/server/composition.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M5-T7": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "e244889987cbee990bbb884016f3a85869000f22cfb556cc45540d6c83bb7f21",
+    "contractHash": "653f21695d1fdbc6789681ed3de71293f0d335772e5ca373c69b4fa791f4378d",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 aa169021054862b67fdd55d745c9930bf2eaf41a56fe41eccc636eef8f034317。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：src/app/api/admin/chat/conversations/[id]/read/route.ts、src/app/api/admin/chat/conversations/[id]/route.ts、src/app/api/admin/chat/conversations/operator-read-http.ts、src/app/api/admin/chat/conversations/route.ts、src/lib/contracts/chat.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 e244889987cbee990bbb884016f3a85869000f22cfb556cc45540d6c83bb7f21。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 src/app/api/admin/chat/conversations/[id]/messages/route.ts, src/app/api/admin/chat/conversations/[id]/route.ts, src/app/api/admin/chat/conversations/operator-read-http.ts, src/lib/contracts/chat.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M5-T8": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "5687cec7ce80d0c8a7e8fe61947f250cc251d913aa752dc74dbd7e339249b0e0",
+    "contractHash": "69281ad7af1a7ced734916541297328f9a78c2e6f8a24270d36f448a4c80a8d0",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 00ed0de63a2ba09f8dfead5994a36ae0f996b394fe01eee6401bfba71af5384f。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：.github/workflows/ci.yml、src/app/api/admin/chat/conversations/[id]/read/route.ts、src/app/api/admin/chat/conversations/[id]/route.ts、src/app/api/admin/chat/conversations/operator-read-http.ts、src/app/api/admin/chat/conversations/route.ts、src/lib/server/composition.ts。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 5687cec7ce80d0c8a7e8fe61947f250cc251d913aa752dc74dbd7e339249b0e0。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 .github/workflows/ci.yml, src/app/api/admin/chat/conversations/[id]/messages/route.ts, src/app/api/admin/chat/conversations/[id]/route.ts, src/app/api/admin/chat/conversations/operator-read-http.ts, src/lib/server/composition.ts。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M5-T9": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "40c11ba7707df9beb1ff971823384439c66f9dde7d5a469a283587d0ce8af4bf",
+    "contractHash": "f620ced67064d6c2346d2a80d60e1755ecf37424f2cb1139f14428c8d07950c6",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 c77ebeb7a945b0a4f6330d83c57660d194978148ec43c39c4e7ad7abc7c3bd4b。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 40c11ba7707df9beb1ff971823384439c66f9dde7d5a469a283587d0ce8af4bf。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M6-T1": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "721060775265769a1ff1fe5adb8a981de85b3ccaa3011954f5e1662a9a2b6a74",
+    "contractHash": "3fb2e70b5c94e6407029085ecf12114f29949abdee88679987afadbc9093448f",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 edf33a1b83dbcdff02e5c33a8035c1e784beeb4e4d76d8f2a9877ac5cda4c3bf。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 721060775265769a1ff1fe5adb8a981de85b3ccaa3011954f5e1662a9a2b6a74。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -1359,361 +1358,361 @@
   },
   "MAIN-E2E-FIX": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "c729b05bde2a1cad545a408b08eb54877eca8257eedc71ef52687e82ecc1b784",
+    "contractHash": "aefc81da42332cbf7087fae445aa59bbc1296e012a6de2d50193909a866924c9",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 71588c1986699ef225ca9886513e6b8a4ff8aff0a5c41fa0915c2e17060587ed。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 c729b05bde2a1cad545a408b08eb54877eca8257eedc71ef52687e82ecc1b784。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "POST-LAUNCH-P3": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "67f61d43602f45fb05e25092dc09676d0be8942ad43b5636f68ff20ebe8a17a9",
+    "contractHash": "5eca51e6071027eac71840b2d638433884ed846525e610463671db2780d1fb4a",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 8e1ff7a5729c6217de617adfb92628b3e93d95cabaae414eef883ff8249469e9。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 67f61d43602f45fb05e25092dc09676d0be8942ad43b5636f68ff20ebe8a17a9。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R3-T09233008": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "dbb84fe1b712dae3acb6fb33b3ee6dbabfaaa4c1d1283fc6042f5713dd7e9ccc",
+    "contractHash": "4ae27ca483479a55d1b048eb1b3092ef60c1c681fc3a8f01cae8cdc3fbaea588",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 8ef5df1a1031b8806162c2c113aaf81b864e09c0f15f31979aa4dc2052b8fb1e。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：.github/workflows/ci.yml。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 dbb84fe1b712dae3acb6fb33b3ee6dbabfaaa4c1d1283fc6042f5713dd7e9ccc。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 .github/workflows/ci.yml。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R3-T09598683": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "6e2ae9935ce6844056d381ba2b3a3d22f263b4109555836339dccf62ffeb3207",
+    "contractHash": "36b5836e1057be60034b2f8af1a2c9a407f62b445ea24c42dffba4f77b714b89",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 4cf473e650fd420af6e5c06b97ad0a661d43fe6d0400c28eb97efa7aa81265f1。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 6e2ae9935ce6844056d381ba2b3a3d22f263b4109555836339dccf62ffeb3207。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R3-T12074461": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "51e2b126ad7c5d1eda02a7a077d772dc0c80406264a520d01367ed29b98f39ad",
+    "contractHash": "1a02dd1297f914bd35088be59af65d5c6a7447870fff5eeb49af62202f27204f",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 f19203b8daf0ab41d279ec1e07ab758b2f7290216d15fde96c6ca9ffdbd2f3c4。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 51e2b126ad7c5d1eda02a7a077d772dc0c80406264a520d01367ed29b98f39ad。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R3-T21757567": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "1682a34f8a2541d6a116f6a4c20c5f31c65eda07a0620fd79f84b982ca793f8a",
+    "contractHash": "31cadfc4d606da3699499722555543a36a300bd73fe975d66abd05e0a5c8d6b1",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 733d06237cc491e3f96ee62c5373de65afda55ca6f54d6b08543afbc6af0715f。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 1682a34f8a2541d6a116f6a4c20c5f31c65eda07a0620fd79f84b982ca793f8a。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R3-T22883505": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "39b1f1e5c5e81be576b831a8edc3c45607cf14a860500597cba22c922147736d",
+    "contractHash": "60957ff930631a56274cd7613c2218143bc9ffcb68f0023228a2475c56b159ec",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 11f6b9f87b96cff423c8ce838711566638ed92fa13a8b9ecd8c816f27caca834。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：.github/workflows/ci.yml。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 39b1f1e5c5e81be576b831a8edc3c45607cf14a860500597cba22c922147736d。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 .github/workflows/ci.yml。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R3-T56876634": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "40ce58d1533fb4ada619cc5cddfd58abff4b3264408c5e194dbb68839ef053ed",
+    "contractHash": "3a3157a39dd5515b2ce0e920db7726bc99202360897473c59b9204b5f2c4620b",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 48bc6063fc846a5154e90ed00787eedc83cc014fdfd9bd0bd2e836365eb3ba37。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 40ce58d1533fb4ada619cc5cddfd58abff4b3264408c5e194dbb68839ef053ed。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R3-T71889698": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "ac0f56459f913608ad74ed7709695cbf3aacbbccc9eccfd57c19f9fc2d2e16e9",
+    "contractHash": "44104761e9929b775c1755af90deeb1808b415b87b43570435fb892b68c010cd",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 9b6dc55652409f99b22b9365dfb733d5c1f250a458e80bef368e6af8c2a2c150。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 ac0f56459f913608ad74ed7709695cbf3aacbbccc9eccfd57c19f9fc2d2e16e9。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R3-T75625096": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "fcc95d81c9d5a0971f54a9fd69511762d256c3a56a3b6eed55e8c85f484930ab",
+    "contractHash": "a32c0e0d65029bfcb4a1be03bb5d1e8632004ce6b4a011f8aaccaff53ad04488",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 24618d25c334cbc5fa5be2d1171a94c8e04ce26d1aaf425f90bbdf8d317f06eb。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 fcc95d81c9d5a0971f54a9fd69511762d256c3a56a3b6eed55e8c85f484930ab。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R3-T86511435": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "2ca35082dbf9cee5367a6c96fc3c16f7464a7ad4d39c0cfcb88cec69d6c9e6de",
+    "contractHash": "4ebd78541c0ab964f5956262993bbc835632603fccfd35759819434d77659300",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 a6c029430393ef1270cdd4a143b544a08a3e29bfae35ed5c17c8fa87d5684eca。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 2ca35082dbf9cee5367a6c96fc3c16f7464a7ad4d39c0cfcb88cec69d6c9e6de。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R3-T87287564": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "8676b6a63822e892a9a45ee811d92b278b1865cfd1e8c8243d7fe3dce14a1f14",
+    "contractHash": "e771ed01b2eafb415eab99f5a7b0299ebe3c4b415ce8c0e66105621019afc6c6",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 a38184d419a908728c0483523317444409977a67f067de0f9d031b9c0dda99a2。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 8676b6a63822e892a9a45ee811d92b278b1865cfd1e8c8243d7fe3dce14a1f14。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R3-T92231765": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "6c485330535833b60044e07cb58702879c0cfc294b51091082591cd96d35c852",
+    "contractHash": "c60f648e087e048c8384502059bdeb75bbc7e18770e37b29f9184f2e04c3c6a7",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 36ded88fd096fb3dcabd67157481ec915aae5963c7909365f58fb01f6fcdd04b。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 6c485330535833b60044e07cb58702879c0cfc294b51091082591cd96d35c852。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R4-T16305211": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "e0b738e120a4759d40a425c54665e5df9b3809677598e9e5d81b7af65eeae112",
+    "contractHash": "954ccf35d3f88f5feaebef2d3cf78af902002d1e7a6cdaa7332817346f9a7b35",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 09b5b6920c2815cab37bffb6b6e7e027ed04e1767374eb71832a0f649c11647e。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 e0b738e120a4759d40a425c54665e5df9b3809677598e9e5d81b7af65eeae112。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R4-T64765902": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "c0b12becfb5c9d2afc37e4a473ca5f13779cba525e86b550e962ccb3ffc9fcc6",
+    "contractHash": "91790231feb47b4d70811511cadbab90e7520057a6ec533fa367d983d4927919",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 ad0fb29d55c377186d401e04340a17fc5d959fed54b5deaab665cff3314b147a。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 c0b12becfb5c9d2afc37e4a473ca5f13779cba525e86b550e962ccb3ffc9fcc6。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R4-T76958784": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "e61f67a7f1e57a0f38c90b9b23682451138e20ca5c6993645e8ffcba41db5f47",
+    "contractHash": "a2157ce75a9a8cebf2d7a561e534961f353a6a10461eb58978ef1259e1f94a8b",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 ac0ac6034a7d581d77e06871f388afda2e4ed4e02d59fd294e46b4da62db3865。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 e61f67a7f1e57a0f38c90b9b23682451138e20ca5c6993645e8ffcba41db5f47。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R4-T78812657": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "7f247aa279df86806cc12af0813604d0a8e7d8b25e396eaf02fcf62bfeeccb3e",
+    "contractHash": "2d49077be3e427412cd50dcb7a98136ee30aafb4f95b97d8516000d1166f713b",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 825dfd22bc6cfaac1c9ee079aca504207c28fbd8c7536403f4d6ca80832c71a4。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 7f247aa279df86806cc12af0813604d0a8e7d8b25e396eaf02fcf62bfeeccb3e。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R5-T10248697": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "edd7e0a03ee82b3dfe8c98f11584890d661ce3e579b00b9e462285aac6e2bc95",
+    "contractHash": "de01a76e443e9abf4dd09b92d4a1b7cb4246ab2862e2d291f977b59a165292d5",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 91366ebcccae35e68ed923977e418d2fa25f0e6b7da9770f8b4506bddd50b084。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 edd7e0a03ee82b3dfe8c98f11584890d661ce3e579b00b9e462285aac6e2bc95。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R5-T59021355": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "77e237d0cfb06634a36f3cfc9a593ccf45ab0137c55452a72095817e5b4f36c2",
+    "contractHash": "4bcef02ed34de710e40e4225dbf239ec6e1f265de5c0b98adf2551027aba5271",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 d3a6b73d9824fd668c5bf192eb27055a6b9d99097cff609b79a72a9e8bfd0b4d。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 77e237d0cfb06634a36f3cfc9a593ccf45ab0137c55452a72095817e5b4f36c2。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R7-T14077261": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "d21535fc62ebcab06c967640fbb32f03457078a99f635b05bcc4dcd248b51223",
+    "contractHash": "6d1e39556f9184973030ede0b786381a3093bc38ce2210bf1d8c7106fb6a9d46",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 a8465fab334b8c421e325225e0c4040bc67c865027871f148b5f1d37fac2e2ad。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 d21535fc62ebcab06c967640fbb32f03457078a99f635b05bcc4dcd248b51223。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R7-T21418022": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "9fe3cf54eedbbad2afeb81f5927e558cb237d9e6aa24fe2335fa2cefb9e3586c",
+    "contractHash": "93197d4fdd9fcd32b5e6e456728b73a68117b41aa8130d2348cd9a519b7d0310",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 1702ab45d7f97d7f30cc610e08ff1a4daed089c56ca76bc760a0bec88a0e02a8。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 9fe3cf54eedbbad2afeb81f5927e558cb237d9e6aa24fe2335fa2cefb9e3586c。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R7-T31416198": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "335271370b522db371eee2c871bc2b6c8bcb0d77d7a846f2ca5dda7547941c80",
+    "contractHash": "42bae5b2aa18d537ca0d69a3954d788efe058360c020a171168f91d16a264afa",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 327f391f7bae067186c26b8e42c6a75acd6d23b8a897475ee5b4b047345bd35a。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 335271370b522db371eee2c871bc2b6c8bcb0d77d7a846f2ca5dda7547941c80。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R9-T71605271": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "561bfcaf7573ad3cc35d17cdd9747c946f6f84763cff936acde30469932d5317",
+    "contractHash": "2f342e77f83f426de40efa7b8269460382594d39cde9b338be0d3b556d985df7",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 bccf5ecd1c566fffd448a6cc9f7599d48fa9ab34914251b2577ca7a4f6539aa3。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 561bfcaf7573ad3cc35d17cdd9747c946f6f84763cff936acde30469932d5317。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "RETENTION-CLEANUP": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "32b5c24bff584e0798ce9be065a7a4f880a5731a8e8d2c54c2439476fc9262a8",
+    "contractHash": "1c46506d260eea2c7b6d09d1fad459e405e266cad6831b529eea6e0650c30d6f",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 1000bb4325f2e15ee18bd132f206318a30aaf400f87ae81c9df3e7b4677ffa5c。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "与 PR #567 代码、测试及 CI 差异重叠的有效路径：.github/workflows/ci.yml。验证见本证据 validation 中同树契约、HTTP 真库与 CI 记录。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 32b5c24bff584e0798ce9be065a7a4f880a5731a8e8d2c54c2439476fc9262a8。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照本次生产、测试及 CI 差异，有效路径交集为 .github/workflows/ci.yml。相关共享变更按本证据 validation 核查。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "SEO-1": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "6cf234c6558cc44e3299bcd0bc3a8b3876b5336f4ba612ac88c8eb3183bd9a23",
+    "contractHash": "ead9c4ef421b66a324a34dee235b796dcc294bffd3e9efd40ccd3b3a097e14b2",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 9a12935a5a8975dccecce08795d2f95dbcb07c3f1de36363eadb2aaafeb6942c。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 6cf234c6558cc44e3299bcd0bc3a8b3876b5336f4ba612ac88c8eb3183bd9a23。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "SEO-2": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "a46ac0261c247e9c9fdfe1de68c15a599b083c929a754c31d4cf8ec92496fd5d",
+    "contractHash": "c316777c34f1d87f875842a2a2c927dbc298f658c0a0f6a97f66881adc431649",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 b00b7ded37a29f43876d8fe7073bd67b8e9556f5f1afc7267377eab55879bd18。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 a46ac0261c247e9c9fdfe1de68c15a599b083c929a754c31d4cf8ec92496fd5d。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "SEO-4": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "659c6fce36e6884c30bcb71585f932745ea5472576b3bb52301e7a493ef6300d",
+    "contractHash": "344ead73714ec9a31af1968f9347898fbab7aeb58d401935d4781ab99852ba42",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 f294d880856e5673a59e447364c390abd9d28c3fd9f288585b51832f5ff39e54。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 659c6fce36e6884c30bcb71585f932745ea5472576b3bb52301e7a493ef6300d。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "SEO-5": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "c53a9d53ad86f6a8302cc3af8f8015c61033f66c91d78b8e7f6ab669a054188c",
+    "contractHash": "70009c59d591ce3bbefa7f789e56754772bd11978341afab51a05b09a28bbf53",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 67ad0f2dd586956ec3e461f2b8c18ddd26c3f5b82865466a0614bab88c20756b。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 c53a9d53ad86f6a8302cc3af8f8015c61033f66c91d78b8e7f6ab669a054188c。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "SEO-6": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "655b6df983f787f2bccbdc172bed48d19f0e791628566e8ce99975a04aa7b404",
+    "contractHash": "1c978a2fb38ce03505b09fe0a1f6b6ef79f660c00514017a79d2d0c899a853f8",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 9ceebde434969b51649877e52f07f03e89cf9ed033b57fc160415a6ff8185cba。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 655b6df983f787f2bccbdc172bed48d19f0e791628566e8ce99975a04aa7b404。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "SEO-7": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "4a60a277a89c2bb0b2293102493a4bc83b16e4a2af09e028642a3174b15a5274",
+    "contractHash": "cc5e17f6382af9cb14b1728f0bbc3765936601c737079f17623dab981d0c428a",
     "evidence": [
-      "合并前 284065a4 的任务笔记与交接台均为 done；task-reviews.json 的 pass 对应原契约 8b921e804929f16ee90c850270145e93f977f0b2da8be462ff81acaea0c3467d。",
-      "仅引用的第 10 节两处后台详情通知条款变化。任务验收、范围和边界逐字段一致。",
-      "已逐路径对照 284065a4..11937baa，本任务有效范围与这次产品代码、测试及 CI 差异无交集。"
+      "主干 ff96ab1c 的任务笔记及交接台均已落地，原语义复核通过，原契约 4a60a277a89c2bb0b2293102493a4bc83b16e4a2af09e028642a3174b15a5274。",
+      "仅第 10 节共享引用变化。两端聊天详情新增本页作者映射。本任务自身的验收、边界、有效路径、前置声明与接口产出均逐字段相同。",
+      "对照主干与实现提交，生产代码、测试及 CI 变更均在该任务有效路径之外。"
     ],
-    "reviewed": "2026-11-25T01:40:03.529220+00:00",
+    "reviewed": "2026-11-25T08:08:32.591031+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   }
