@@ -1926,6 +1926,7 @@
         "eventKinds"
       ],
       "supportPaths": [
+        ".github/workflows/ci.yml",
         "src/components/inquiry/InquiryWizard.tsx",
         "src/lib/navigation/routes.ts",
         "messages/en.json",
