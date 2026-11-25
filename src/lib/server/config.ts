@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { CHAT_RETENTION_MS } from '../chat/rules';
 import { isProdEnvFrom } from '../site';
 
 /** 普通会话 2h 滑动、首次登录后 12h 绝对。记住设备 7d 闲置、首次登录后 30d 绝对。真实活动 15min 才续一次。 */
@@ -170,3 +171,47 @@ export const CHAT_VISITOR_POLICY = Object.freeze({
   absoluteMs: 30 * 24 * 60 * 60 * 1000,
 });
 export type ChatVisitorPolicy = typeof CHAT_VISITOR_POLICY;
+
+/** 聊天内容保留策略版本号：保留时长或门禁语义变更时递增，用于作业摘要与事务版本校验。 */
+export const CHAT_RETENTION_POLICY_VERSION = 1 as const;
+
+const ChatRetentionPolicySchema = z.object({
+  retainMs: DurationMsSchema,
+  policyVersion: z.number().int().positive(),
+  defaultDryRun: z.literal(true),
+  cleanupEnabled: z.boolean(),
+}).strict().superRefine((value, context) => {
+  if (value.retainMs <= CHAT_VISITOR_POLICY.absoluteMs) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['retainMs'] });
+  }
+});
+
+export type ChatRetentionPolicy = z.infer<typeof ChatRetentionPolicySchema>;
+
+/** 咨询正文与主动邮箱保留策略：最后成功收发后 90 天，默认 dry-run 且生产真实清理默认关闭。与 7d/30d cookie 独立。 */
+export const CHAT_RETENTION_POLICY: ChatRetentionPolicy = Object.freeze({
+  retainMs: CHAT_RETENTION_MS,
+  policyVersion: CHAT_RETENTION_POLICY_VERSION,
+  defaultDryRun: true,
+  cleanupEnabled: false,
+});
+
+/** 校验聊天保留策略对象。缺字段或期限不合法时拒绝，错误文本不含原始异常和输入值。 */
+export function parseChatRetentionPolicy(input: unknown): ChatRetentionPolicy {
+  try {
+    const parsed = ChatRetentionPolicySchema.safeParse(input);
+    if (!parsed.success) throw new ServerConfigError(problemsFromUnknown(parsed.error));
+    return deepFreeze(parsed.data);
+  } catch (error) {
+    if (error instanceof ServerConfigError) throw error;
+    throw new ServerConfigError(problemsFromUnknown(error));
+  }
+}
+
+/** 生产启动时的聊天保留策略检查：未获另行生产保留授权时默认配置不得开启真实清理（E-88）。 */
+export function chatRetentionPolicyProblems(policy: unknown = CHAT_RETENTION_POLICY): string[] {
+  const parsed = ChatRetentionPolicySchema.safeParse(policy);
+  if (!parsed.success) return problemsFromUnknown(parsed.error);
+  if (parsed.data.cleanupEnabled) return ['chatRetention.cleanupEnabled 未获生产授权不得默认开启'];
+  return [];
+}

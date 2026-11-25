@@ -15,8 +15,7 @@ import { createAnalyticsSettingsService, type AnalyticsSettingsService } from '.
 import { createAnalyticsEventRepo } from './analytics/event-repo';
 import { createAnalyticsDayMarkerSink } from './analytics/aggregate-day-state';
 import { createAnalyticsIngestService, type AnalyticsIngestService } from './analytics/ingest';
-import { analyticsConsentSecret } from './config';
-import { CHAT_VISITOR_POLICY } from './config';
+import { analyticsConsentSecret, CHAT_RETENTION_POLICY, CHAT_VISITOR_POLICY, type ChatRetentionPolicy } from './config';
 import { createVisitorSessionRepo, type VisitorSessionStore } from './chat/visitor-session-repo';
 import { createVisitorSessionService, type VisitorSessionService } from './chat/visitor-session';
 import { createConversationService, type ConversationService } from './chat/conversation-service';
@@ -32,6 +31,7 @@ import { createAnalyticsRetentionJob } from './analytics/retention';
 import { retentionCleanupMode } from './analytics/retention-plan';
 import { createMailQueueJob } from './mail/queue-job';
 import { createChatNotificationJob } from './chat/notification-job';
+import { createChatRetentionJob } from './chat/retention-candidates';
 import type { NotificationMailer } from './chat/notification-mailer';
 import type { NotificationEnv } from './chat/notification-policy';
 import { defaultAdapter } from './mail/http';
@@ -238,12 +238,21 @@ export type JobServices = {
  * 分析保留的删除授权只来自容器已文档化的 `RETENTION_CLEANUP_MODE=delete`
  * （同一开关旧清理链也在用）；未设即无生产保留授权，请求 dryRun:false 也只会
  * 记一次拒绝、删 0 行。测试用 `deleteAuthorized` 显式注入，不读环境。
+ *
+ * 聊天保留与既有 `RETENTION_CLEANUP_MODE` 严格隔离：生产缺省始终为未授权与关闭真实清理
+ * （E-88），测试仅能通过 `chat.retentionDeleteAuthorized` / `chat.retentionPolicy` 显式注入。
  */
 export function createJobServices(deps: {
   db?: PrismaClient;
   clock?: () => Date;
   deleteAuthorized?: boolean;
-  chat?: { getMailer?: () => Promise<NotificationMailer | null>; env?: NotificationEnv; limit?: number };
+  chat?: {
+    getMailer?: () => Promise<NotificationMailer | null>;
+    env?: NotificationEnv;
+    limit?: number;
+    retentionDeleteAuthorized?: boolean;
+    retentionPolicy?: ChatRetentionPolicy;
+  };
   /** 邮件队列测试注入点；生产默认用真实 adapter/告警/审计。 */
   mail?: {
     getAdapter?: () => Promise<MailSendAdapter | null>;
@@ -271,6 +280,12 @@ export function createJobServices(deps: {
       createAnalyticsRetentionJob({ db, clock: deps.clock, deleteAuthorized }),
       mailJob,
       createChatNotificationJob({ db, clock: deps.clock, ...deps.chat }),
+      createChatRetentionJob({
+        db,
+        clock: deps.clock,
+        deleteAuthorized: deps.chat?.retentionDeleteAuthorized ?? false,
+        policy: deps.chat?.retentionPolicy ?? CHAT_RETENTION_POLICY,
+      }),
     ]),
   };
 }

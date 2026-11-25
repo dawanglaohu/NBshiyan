@@ -1,7 +1,7 @@
 import { accessSync, constants as fsConstants, realpathSync, statSync } from 'fs';
 import path from 'path';
 import { isProdEnvFrom } from './src/lib/site';
-import { policyConfigProblems } from './src/lib/server/config';
+import { chatRetentionPolicyProblems, policyConfigProblems } from './src/lib/server/config';
 import { parseRedisUrl } from './src/lib/server/ratelimit/redis';
 import { dailyCapValid, parseMailbox, smtpBaseConfig } from './src/lib/server/mail/config';
 import { CHAT_NOTIFICATION_HOOK_KEYS } from './src/lib/server/chat/notification-policy';
@@ -70,7 +70,14 @@ export function prodEnvProblems(env: Record<string, string | undefined>, phase: 
   }
   if (phase !== 'build') {
     problems.push(...rateLimitProblems(env));
-    problems.push(...mailProblems(env), ...storageProblems(env, deps), ...secretProblems(env), ...runtimeSecretProblems(env), ...policyConfigProblems());
+    problems.push(
+      ...mailProblems(env),
+      ...storageProblems(env, deps),
+      ...secretProblems(env),
+      ...runtimeSecretProblems(env),
+      ...policyConfigProblems(),
+      ...chatRetentionPolicyProblems(),
+    );
   }
   return problems.sort();
 }
