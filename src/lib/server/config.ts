@@ -172,6 +172,8 @@ export const CHAT_VISITOR_POLICY = Object.freeze({
 });
 export type ChatVisitorPolicy = typeof CHAT_VISITOR_POLICY;
 
+export const CHAT_RETENTION_JOB_KEY = 'chat-retention' as const;
+
 /** 聊天内容保留策略版本号：保留时长或门禁语义变更时递增，用于作业摘要与事务版本校验。 */
 export const CHAT_RETENTION_POLICY_VERSION = 1 as const;
 

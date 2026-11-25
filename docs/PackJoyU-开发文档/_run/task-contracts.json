@@ -2037,7 +2037,8 @@
         "src/lib/server/config.ts",
         "prod-env-check.ts",
         "deploy/cron.nbshiyan",
-        "tests/chat-retention-dryrun.http.test.ts"
+        "tests/chat-retention-dryrun.http.test.ts",
+        ".github/workflows/ci.yml"
       ],
       "outputPaths": [
         "src/lib/server/chat/retention-candidates.ts",

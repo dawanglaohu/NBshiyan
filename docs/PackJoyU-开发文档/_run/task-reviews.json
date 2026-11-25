@@ -966,15 +966,15 @@
     "verdict": "pass"
   },
   "M4-T7": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "e05954923c2eaa78c96446283dd918d88671649987560ea52b639a3631230f4a",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "928de3a69f43863bab8639bd8b6f8795c0ce8c72ba7e1bb967798794fbac43e7",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M4-T7《注册聊天保留候选与默认拒绝真实清理》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "契约复核仅确认实施与验收范围。19 节 M4-T7 对照 13 节 E-85/E-86/E-88、17 节隔离库策略与 18 节每日作业，仍要求单独授权、默认 dry-run、删除为零与业务行哈希不变。真实清理属于另一任务。",
+      "前置 M4-T3、M5-T1、M5-T8 已提供运营读游标、作业租约与固定调度。deploy/cron.nbshiyan:25、src/app/api/admin/cron/operations/route.ts:15、src/lib/server/composition.ts:283、src/lib/server/chat/retention-candidates.ts:101 可定位实际调用链。src/lib/contracts/ops.ts:127 提供默认 dryRun，src/lib/server/db.ts:3 复用 Prisma，cron 只校验 Bearer。",
+      "补丁只将 .github/workflows/ci.yml 加入 M4-T7 supportPaths。M4-T13、M7-T4、M7-T8、M7-T9、M7-T10 的 context 和 effectivePaths 在补丁前后一致，仅随上游更新哈希。均未落地，revalidation.json 为空。PR #563 也涉及该 workflow，修改应限定到既有 PG17 聊天回归步骤。",
+      "审查工作树独立 PostgreSQL 17.12 实跑 tests/chat-retention-dryrun.http.test.ts：15 pass，0 fail/skip/cancelled。用例覆盖默认与拒绝操作、过期等号、cookie 与内容期限、咨询活动、无关表哈希及并发。现有 tests/chat-retention-dryrun.http.test.ts:613 手工构造 handler，.github/workflows/ci.yml:485、545、591 的 PG17 清单均缺本文件。PR 仍待补齐生产 POST 回归及托管数据库门禁。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-11-25T17:49:06.978126+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },

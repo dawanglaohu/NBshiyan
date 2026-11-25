@@ -4,6 +4,7 @@ import type { JobCountsDTO, JobResultStatus } from '../../contracts/ops';
 import { CHAT_VISITOR_POLICY, type ChatVisitorPolicy } from '../config';
 import { createJobLeaseRepo } from '../jobs/lease-repo';
 import {
+  CHAT_RETENTION_JOB_KEY,
   createJobBudget,
   isBudgetTimeoutError,
   runWithinBudget,
@@ -14,7 +15,6 @@ import {
 } from '../jobs/registry';
 import { isDatabaseUnavailable } from './repo';
 import {
-  CHAT_RETENTION_JOB_KEY,
   assertRetentionInstant,
   evaluateChatRetentionGate,
   visitorIdleExpiryCutoff,

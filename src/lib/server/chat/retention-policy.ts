@@ -1,4 +1,3 @@
-import type { JobKey } from '../../contracts/ops';
 import {
   CHAT_RETENTION_POLICY,
   CHAT_RETENTION_POLICY_VERSION,
@@ -9,7 +8,7 @@ import {
 import { AppError } from '../http/errors';
 
 /** 聊天保留作业在固定 registry 里的 key（与 src/lib/server/jobs/registry.ts 一致，避免纯策略模块引入运行时注册表/DB）。 */
-export const CHAT_RETENTION_JOB_KEY = 'chat-retention' as const satisfies JobKey;
+export { CHAT_RETENTION_JOB_KEY } from '../config';
 
 export {
   CHAT_RETENTION_POLICY,
