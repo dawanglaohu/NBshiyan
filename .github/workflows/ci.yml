@@ -415,6 +415,7 @@ jobs:
             psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
             -c 'CREATE DATABASE "b9_m4t12_20261109"' \
             -c 'CREATE DATABASE "m6t1_stats_test"' \
+            -c 'CREATE DATABASE "m6t6_route_test"' \
             -c 'CREATE DATABASE "m4t11_operator_write_test"'
       - name: Analytics, chat, and other PostgreSQL regressions
         env:
@@ -438,6 +439,9 @@ jobs:
           M4T11_REQUIRE_DATABASE: 'true'
           M6T1_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/m6t1_stats_test
           M6T1_REQUIRE_DATABASE: 'true'
+          # M6-T6 GET /api/admin/stats 真实 PG/Auth.js 回归：专用库 + schema=m6t6 + require；缺库即失败，不回退通用 DATABASE_URL。
+          M6T6_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/m6t6_route_test?schema=m6t6
+          M6T6_REQUIRE_DATABASE: 'true'
           B10_M4T4_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
           M3T2_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e?schema=m3t2
           M3T2_REQUIRE_DATABASE: 'true'
@@ -489,6 +493,7 @@ jobs:
               'tests/chat-operator-write.http.test.ts',
               'tests/chat-retention-dryrun.http.test.ts',
               'tests/stats-query.db.test.ts',
+              'tests/stats-route.test.ts',
               'tests/chat-visitor-append.db.test.ts',
               'tests/analytics-daily.db.test.ts',
               'tests/analytics-day-state.db.test.ts',
@@ -550,6 +555,7 @@ jobs:
             tests/chat-operator-write.http.test.ts \
             tests/chat-retention-dryrun.http.test.ts \
             tests/stats-query.db.test.ts \
+            tests/stats-route.test.ts \
             tests/chat-visitor-append.db.test.ts \
             tests/analytics-daily.db.test.ts \
             tests/analytics-day-state.db.test.ts \
@@ -597,6 +603,7 @@ jobs:
             'tests/chat-operator-write.http.test.ts',
             'tests/chat-retention-dryrun.http.test.ts',
             'tests/stats-query.db.test.ts',
+            'tests/stats-route.test.ts',
             'tests/chat-visitor-append.db.test.ts',
               'tests/analytics-daily.db.test.ts',
               'tests/analytics-day-state.db.test.ts',
@@ -654,6 +661,9 @@ jobs:
           # M4-T7 精确分母 16（9 纯单测 + 7 隔离 PG 真库用例）；防止真库 suite 级 skip 被 pass>=1 宽门吞掉。
           grep -Fqx $'tests/chat-retention-dryrun.http.test.ts\tpass=16\tfail=0\tskip=0\ttodo=0\tcancelled=0' /tmp/m3t2-file-gate.txt
           grep -Eq '^[[:space:]]*ok [0-9]+ - M4-T7 隔离 PostgreSQL 真实接线、保留期限与拒绝删除验收$' /tmp/pg-regressions.tap
+          # M6-T6 精确分母 9（6 纯契约单测 + 3 PG/Auth.js 真库用例）；防止真库 suite 级 skip 被 pass>=1 宽门吞掉。
+          grep -Fqx $'tests/stats-route.test.ts\tpass=9\tfail=0\tskip=0\ttodo=0\tcancelled=0' /tmp/m3t2-file-gate.txt
+          grep -Eq '^[[:space:]]*ok [0-9]+ - M6-T6 GET /api/admin/stats PostgreSQL \+ Auth\.js integration$' /tmp/pg-regressions.tap
           grep -F 'M4-T4 notification PostgreSQL' /tmp/pg-regressions.tap
           # Named-case evidence. The 26 above is still owned by the exact file gate; this only
           # persists WHICH 26 ran. Nothing captured from the TAP is printed or written: every
@@ -856,7 +866,7 @@ jobs:
           grep -Fqx $'tests/admin-self-rebind.db.test.ts\tpass=17\tfail=0\tskip=0\ttodo=0\tcancelled=0' /tmp/m3t20-http-gate.txt
       # 五段使用同一构建产物与 PG，各自重启 Playwright 管理的应用，隔离 memory 限流。
       # 建单源码预算 5/3/3，认证源码预算 29/7/7；不是服务器请求实测计数。
-      - name: 核对 A3 收集分区并准备执行器（224 + 14 + 14 + 2 + 1 = 255）
+      - name: 核对 A3 收集分区并准备执行器（225 + 14 + 14 + 2 + 1 = 256）
         id: e2e_partition
         shell: bash
         run: |
@@ -891,9 +901,9 @@ jobs:
             groups[name] = rows;
             assert.equal(new Set(rows.map(row => row.key)).size, rows.length, `${name}: duplicate tests`);
           }
-          assert.deepEqual(Object.fromEntries(Object.entries(groups).map(([name, rows]) => [name, rows.length])), { all: 255, main: 224, model: 14, consent: 14, errors: 2, flow: 1 });
+          assert.deepEqual(Object.fromEntries(Object.entries(groups).map(([name, rows]) => [name, rows.length])), { all: 256, main: 225, model: 14, consent: 14, errors: 2, flow: 1 });
           const parts = [...groups.main, ...groups.model, ...groups.consent, ...groups.errors, ...groups.flow].map(row => row.key);
-          assert.equal(new Set(parts).size, 255, 'Partitions overlap');
+          assert.equal(new Set(parts).size, 256, 'Partitions overlap');
           assert.deepEqual(parts.sort(), groups.all.map(row => row.key).sort(), 'Partitions omit or change tests');
           const errors = [
             'E1 真实 400：搜索 101 字符 / 备注 5001 字符错误与纠正恢复',
@@ -903,8 +913,12 @@ jobs:
           assert.deepEqual(groups.errors.map(row => row.title).sort(), errors.sort());
           assert.deepEqual(groups.flow.map(row => row.title), [flow]);
           for (const row of [...groups.errors, ...groups.flow]) assert.equal(row.file, 'admin-legacy-inquiries-visual.spec.ts');
+          const statsCoreApi = groups.main.filter(row => row.file === 'stats-core-api.spec.ts');
+          assert.equal(statsCoreApi.length, 1, 'Missing e2e/stats-core-api.spec.ts in main partition');
+          assert.ok(groups.all.some(row => row.key === statsCoreApi[0].key), 'Missing e2e/stats-core-api.spec.ts in all collection');
           writeFileSync('e2e-evidence/collection/partition.json', JSON.stringify(groups, null, 2) + '\n');
-          console.log('A3_COLLECTION all=255 main=224 model=14 consent=14 errors=2 flow=1 disjoint=true complete=true');
+          console.log('A3_COLLECTION all=256 main=225 model=14 consent=14 errors=2 flow=1 disjoint=true complete=true');
+          console.log('A3_STATS_CORE_API_COLLECTED file=stats-core-api.spec.ts segment=main count=1');
           EOF
           driver_dir=$(mktemp -d "${RUNNER_TEMP:?}/nbshiyan-e2e-a3.XXXXXXXX")
           cat > "$driver_dir/ports.cjs" <<'EOF'
@@ -967,6 +981,7 @@ jobs:
           [[ -s "$evidence/standalone-server.log" ]] || log_status=1
           rum_status=0
           # Check the main application's own archived stdout before another invocation can truncate the default log.
+          stats_core_status=0
           if [[ "$segment" == main ]]; then
             if [[ "$log_status" != 0 ]] || ! grep -c '^{"type":"rum"' "$evidence/standalone-server.log" > "$evidence/rum-count.txt"; then
               rum_status=1
@@ -974,12 +989,32 @@ jobs:
               echo 'RUM 日志出现邮箱样式字段，脱敏白名单被破坏' >&2
               rum_status=1
             fi
+            if ! node --input-type=module - "$evidence/playwright.log" "$evidence/stats-core-api.txt" <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          const [logPath, outPath] = process.argv.slice(2);
+          const stripAnsi = (value) => value.replace(/\u001b\[[0-9;]*m/g, '');
+          const lines = readFileSync(logPath, 'utf8').split(/\r?\n/).map(stripAnsi);
+          const hits = lines.filter(
+            (line) => /^\s*(?:✓|✔|✘|×|-|\bok\b|\bnot ok\b)\s+.*(?:^|\s|[\/\\])e2e[\/\\]stats-core-api\.spec\.ts(?::|\s|$)/i.test(line),
+          );
+          const passed = hits.filter((line) => /^\s*(?:✓|✔|\bok\b)\s+/i.test(line));
+          const other = hits.filter((line) => !/^\s*(?:✓|✔|\bok\b)\s+/i.test(line) || /\bskipped\b/i.test(line));
+          if (passed.length !== 1 || other.length !== 0) {
+            console.error(`STATS_CORE_API_EXECUTION_INVALID passed=${passed.length} other=${other.length} hits=${hits.length}`);
+            process.exit(1);
+          }
+          writeFileSync(outPath, `STATS_CORE_API_PASSED=1\n${passed[0].trim()}\n`);
+          console.log('STATS_CORE_API_EXECUTED passed=1 file=e2e/stats-core-api.spec.ts');
+          NODE
+            then
+              stats_core_status=1
+            fi
           fi
           release_status=0
           node "$A3_DRIVER_DIR/ports.cjs" > "$evidence/port-after.log" 2>&1 || release_status=$?
           if [[ "$release_status" == 0 ]]; then printf 'released=true\n' >> "$GITHUB_OUTPUT"; fi
-          printf 'test_exit=%s\ncapture_exit=%s\nlog_exit=%s\nrum_exit=%s\nrelease_exit=%s\n' "$test_status" "$capture_status" "$log_status" "$rum_status" "$release_status" > "$evidence/result.txt"
-          if (( test_status != 0 || capture_status != 0 || log_status != 0 || rum_status != 0 || release_status != 0 )); then exit 1; fi
+          printf 'test_exit=%s\ncapture_exit=%s\nlog_exit=%s\nrum_exit=%s\nstats_core_exit=%s\nrelease_exit=%s\n' "$test_status" "$capture_status" "$log_status" "$rum_status" "$stats_core_status" "$release_status" > "$evidence/result.txt"
+          if (( test_status != 0 || capture_status != 0 || log_status != 0 || rum_status != 0 || stats_core_status != 0 || release_status != 0 )); then exit 1; fi
           EOF
           {
             printf 'A3_DRIVER_DIR=%s\n' "$driver_dir"
@@ -987,7 +1022,7 @@ jobs:
             printf 'A3_ERROR_PATTERN=%s\n' "$error_pattern"
             printf 'A3_FLOW_PATTERN=%s\n' "$flow_pattern"
           } >> "$GITHUB_ENV"
-      - name: Playwright A3 主段（224例，含同次 RUM 检查）
+      - name: Playwright A3 主段（225例，含同次 RUM 检查）
         id: e2e_main
         shell: bash
         run: bash "$A3_DRIVER_DIR/run.sh" main
@@ -1031,6 +1066,7 @@ jobs:
             released="${segment}_RELEASED"
             [[ ${!outcome} == success && ${!released} == true ]] || { echo "A3_SEGMENT_FAILED_OR_MISSING:$segment" >&2; exit 1; }
           done
+          [[ -s e2e-evidence/main/stats-core-api.txt ]] && grep -qx 'STATS_CORE_API_PASSED=1' e2e-evidence/main/stats-core-api.txt || { echo 'A3_STATS_CORE_API_EVIDENCE_MISSING' >&2; exit 1; }
       - if: always()
         uses: actions/upload-artifact@v4
         with:

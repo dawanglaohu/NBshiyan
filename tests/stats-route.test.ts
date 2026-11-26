@@ -8,7 +8,7 @@ import { PrismaClient, type Role } from '@prisma/client';
 import { authenticator } from 'otplib';
 import { products } from '../src/data/products';
 import { shiftLocalDate } from '../src/lib/analytics/aggregate-plan';
-import { siteLocalDate } from '../src/lib/analytics/day-boundaries';
+import { recomputableFrom as expectedRecomputableFrom, siteLocalDate } from '../src/lib/analytics/day-boundaries';
 import { CONSENT_VERSION } from '../src/lib/consent';
 import { AppErrorDTOSchema } from '../src/lib/contracts/errors';
 import {
@@ -19,7 +19,8 @@ import {
 } from '../src/lib/contracts/ops';
 import { AppError } from '../src/lib/server/http/errors';
 import type { ApiCounter } from '../src/lib/server/http/metrics';
-import { ANALYTICS_TIMEZONE_CHANGE_ACTION } from '../src/lib/server/analytics/settings-repo';
+import { ANALYTICS_RECOMPUTE_KEY, ANALYTICS_TIMEZONE_CHANGE_ACTION } from '../src/lib/server/analytics/settings-repo';
+import { ANALYTICS_SETTINGS_KEY } from '../src/lib/server/jobs/types';
 import {
   createStatsService,
   handleGetStats,
@@ -158,7 +159,8 @@ describe('M6-T6 GET /api/admin/stats pure rules & HTTP contract', () => {
       );
       assert.equal(res.status, 200);
       assert.equal(res.headers.get('cache-control'), 'private, no-store');
-      const body = StatsDTOSchema.parse(await res.json());
+      const rawJson = (await res.json()) as Record<string, unknown>;
+      const body = StatsDTOSchema.parse(rawJson);
       assert.deepEqual(body.sources.map((s) => s.source), ['visitors', 'mean_load_duration_ms', 'inquiries']);
       assert.equal(body.sources[0].state, 'not_connected');
       assert.equal(body.sources[0].value, null);
@@ -166,14 +168,25 @@ describe('M6-T6 GET /api/admin/stats pure rules & HTTP contract', () => {
       assert.equal(body.sources[1].value, null);
       assert.equal(body.sources[1].loadDurationSamples, 0);
       assert.equal(body.sources[2].state, 'not_connected');
+      assert.equal((body as { modelSuccessRate?: unknown }).modelSuccessRate, null);
+      assert.equal((body as { recomputableFrom?: unknown }).recomputableFrom, null);
       assert.equal(records.length, 1);
       assert.equal(records[0].routeId, STATS_ROUTE_ID);
       assert.equal(records[0].status, 200);
+
+      const rateDiscRes = await handleGetStats(
+        new Request(`${ORIGIN}/api/admin/stats?sources=model_starts,model_successes`),
+        { user: { id: 'rl-disconnect-rate-check', role: 'ADMIN' } },
+        { stats, apiCounter: stubCounter([]) },
+      );
+      assert.equal(rateDiscRes.status, 200);
+      const rateDiscJson = (await rateDiscRes.json()) as { modelSuccessRate?: unknown };
+      assert.deepEqual(rateDiscJson.modelSuccessRate, { value: null, coverage: 'unavailable' });
     }
   });
 
   test('corrupt analytics.settings yields 503 service_unavailable; pre-query RBAC forbids sensitive sources; user rate limit is 30/min', async () => {
-    const corruptDb = fakeSettingsDb([{ value: { broken: true } }]);
+    const corruptDb = fakeSettingsDb([{ key: ANALYTICS_SETTINGS_KEY, value: { broken: true } }]);
     const service = createStatsService({
       db: corruptDb,
       clock: () => new Date('2026-11-25T12:00:00.000Z'),
@@ -240,6 +253,195 @@ describe('M6-T6 GET /api/admin/stats pure rules & HTTP contract', () => {
       if (prevStore === undefined) delete process.env.RATE_LIMIT_STORE;
       else process.env.RATE_LIMIT_STORE = prevStore;
     }
+  });
+
+  test('R1/R2 shared StatsDTO validates modelSuccessRate, recomputableFrom, and live pending recompute classification', async () => {
+    const now = new Date('2026-11-25T12:00:00.000Z');
+    const later = new Date('2026-11-26T05:00:00.000Z');
+    const ts = now.toISOString();
+    const baseSource = {
+      source: 'model_starts' as const,
+      state: 'zero' as const,
+      value: 0,
+      timezone: 'UTC',
+      timezoneRevision: 1,
+      dataThrough: ts,
+      queriedAt: ts,
+      lastSucceededAt: ts,
+      coverage: 'full' as const,
+    };
+    const succSource = { ...baseSource, source: 'model_successes' as const };
+    const visitorSource = { ...baseSource, source: 'visitors' as const };
+
+    assert.equal(
+      'modelSuccessRate' in StatsDTOSchema.parse({ sources: [baseSource] }),
+      false,
+      'legacy { sources } parse must stay backward-compatible without extra keys',
+    );
+    const validWithMeta = StatsDTOSchema.parse({
+      sources: [baseSource, succSource],
+      modelSuccessRate: { value: 1 / 3, coverage: 'partial' },
+      recomputableFrom: ts,
+    }) as Record<string, unknown>;
+    assert.deepEqual(validWithMeta.modelSuccessRate, { value: 1 / 3, coverage: 'partial' });
+    assert.equal(validWithMeta.recomputableFrom, ts);
+
+    assert.throws(() =>
+      StatsDTOSchema.parse({
+        sources: [visitorSource],
+        modelSuccessRate: { value: 0.5, coverage: 'full' },
+        recomputableFrom: null,
+      }),
+    );
+    assert.throws(() =>
+      StatsDTOSchema.parse({
+        sources: [baseSource, succSource],
+        modelSuccessRate: null,
+        recomputableFrom: null,
+      }),
+    );
+    assert.throws(() =>
+      StatsDTOSchema.parse({
+        sources: [baseSource, succSource],
+        modelSuccessRate: { value: 0.25, coverage: 'unavailable' },
+        recomputableFrom: null,
+      }),
+    );
+    assert.throws(() =>
+      StatsDTOSchema.parse({
+        sources: [visitorSource],
+        modelSuccessRate: null,
+        recomputableFrom: 'not-a-utc-timestamp',
+      }),
+    );
+
+    // Live recomputableFrom advances with clock when pending backlog matches current revision
+    let currentNow = now;
+    const nySettings = {
+      key: ANALYTICS_SETTINGS_KEY,
+      value: { version: 1, timezone: 'America/New_York', timezoneRevision: 2, changedAt: ts, updatedBy: 'admin-1' },
+    };
+    const plannedBacklog = {
+      key: ANALYTICS_RECOMPUTE_KEY,
+      value: {
+        timezoneRevision: 2,
+        timezone: 'America/New_York',
+        recomputableFrom: expectedRecomputableFrom(now, 'America/New_York'),
+        requestedAt: ts,
+        updatedBy: 'admin-1',
+        status: 'pending',
+      },
+    };
+    const plannedService = createStatsService({
+      db: fakeSettingsDb([nySettings, plannedBacklog]),
+      clock: () => currentNow,
+      analyticsConfigured: () => false,
+      aggregateJobRegistered: () => false,
+    });
+    const first = (await (
+      await handleGetStats(
+        new Request(`${ORIGIN}/api/admin/stats?sources=visitors`),
+        { user: { id: `r2-planned-1-${randomUUID()}`, role: 'EDITOR' } },
+        { stats: plannedService, apiCounter: stubCounter([]) },
+      )
+    ).json()) as { recomputableFrom?: string | null };
+    assert.equal(first.recomputableFrom, expectedRecomputableFrom(now, 'America/New_York'));
+
+    currentNow = later;
+    const second = (await (
+      await handleGetStats(
+        new Request(`${ORIGIN}/api/admin/stats?sources=visitors`),
+        { user: { id: `r2-planned-2-${randomUUID()}`, role: 'ADMIN' } },
+        { stats: plannedService, apiCounter: stubCounter([]) },
+      )
+    ).json()) as { recomputableFrom?: string | null };
+    assert.equal(second.recomputableFrom, expectedRecomputableFrom(later, 'America/New_York'));
+    assert.notEqual(second.recomputableFrom, first.recomputableFrom);
+
+    // Unusable/corrupt/stale/future_floor pending must yield null without throwing 500
+    for (const badBacklog of [
+      { key: ANALYTICS_RECOMPUTE_KEY, value: { timezoneRevision: 2 } },
+      {
+        key: ANALYTICS_RECOMPUTE_KEY,
+        value: { ...plannedBacklog.value, timezoneRevision: 1 },
+      },
+      {
+        key: ANALYTICS_RECOMPUTE_KEY,
+        value: { ...plannedBacklog.value, timezone: 'UTC' },
+      },
+      {
+        key: ANALYTICS_RECOMPUTE_KEY,
+        value: { ...plannedBacklog.value, recomputableFrom: new Date(later.getTime() + 60_000).toISOString() },
+      },
+    ]) {
+      const nullService = createStatsService({
+        db: fakeSettingsDb([nySettings, badBacklog]),
+        clock: () => later,
+        analyticsConfigured: () => false,
+        aggregateJobRegistered: () => false,
+      });
+      const res = await handleGetStats(
+        new Request(`${ORIGIN}/api/admin/stats?sources=visitors`),
+        { user: { id: `r2-null-${randomUUID()}`, role: 'ADMIN' } },
+        { stats: nullService, apiCounter: stubCounter([]) },
+      );
+      assert.equal(res.status, 200);
+      const body = (await res.json()) as { recomputableFrom?: unknown };
+      assert.equal(body.recomputableFrom, null);
+    }
+  });
+
+  test('R3 PG17 CI workflow enforces 256/225 E2E partition, named stats-core-api execution, and dedicated schema=m6t6 gate', () => {
+    const workflow = readFileSync(path.resolve(process.cwd(), '.github/workflows/ci.yml'), 'utf8');
+    assert.ok(workflow.includes('CREATE DATABASE "m6t6_route_test"'), 'CI must provision dedicated m6t6_route_test DB');
+
+    const pgStep = workflow
+      .split('- name: Analytics, chat, and other PostgreSQL regressions')[1]
+      ?.split('\n      - name: Provision Playwright browser')[0];
+    assert.ok(pgStep, 'PG regression step must exist');
+    assert.match(
+      pgStep,
+      /M6T6_TEST_DATABASE_URL:\s*postgresql:\/\/postgres:postgres@localhost:5432\/m6t6_route_test\?schema=m6t6\s/,
+    );
+    assert.match(pgStep, /M6T6_REQUIRE_DATABASE:\s*'true'/);
+    for (const [start, end] of [
+      ['const wanted = [', '];'],
+      ['node --import tsx --test', '|| { status='],
+      ['const files = [', '];'],
+    ]) {
+      const section = pgStep.split(start)[1]?.split(end)[0];
+      assert.ok(section, `missing section ${start}`);
+      assert.equal(section.split('tests/stats-route.test.ts').length - 1, 1, `missing tests/stats-route.test.ts in ${start}`);
+    }
+    assert.ok(
+      pgStep.includes("tests/stats-route.test.ts\\tpass=9\\tfail=0\\tskip=0\\ttodo=0\\tcancelled=0"),
+      'PG regression gate must verify exact pass=9 fail=0 skip=0 todo=0 cancelled=0 for tests/stats-route.test.ts',
+    );
+
+    const e2ePartition = workflow
+      .split('id: e2e_partition')[1]
+      ?.split('- name: Playwright A3 主段')[0];
+    assert.ok(e2ePartition, 'e2e_partition step must exist');
+    assert.ok(
+      e2ePartition.includes('{ all: 256, main: 225, model: 14, consent: 14, errors: 2, flow: 1 }'),
+      'e2e_partition must require all=256 and main=225',
+    );
+    assert.ok(
+      e2ePartition.includes('assert.equal(new Set(parts).size, 256'),
+      'e2e_partition must preserve 256 disjointness assertion',
+    );
+    assert.ok(
+      e2ePartition.includes('stats-core-api.spec.ts'),
+      'e2e_partition must explicitly check stats-core-api.spec.ts collection',
+    );
+    assert.ok(
+      workflow.includes('Playwright A3 主段（225例，含同次 RUM 检查）'),
+      'main segment title must reflect 225 tests',
+    );
+    assert.ok(
+      workflow.includes('stats-core-api.txt'),
+      'CI must verify named execution evidence for stats-core-api.spec.ts',
+    );
   });
 });
 
@@ -663,14 +865,73 @@ describe('M6-T6 GET /api/admin/stats PostgreSQL + Auth.js integration', { concur
     assert.equal(rangeMean.loadDurationSamples, 3);
     assert.ok(Math.abs((rangeMean.value ?? 0) - 15620 / 3) < 1e-6);
 
-    // 5. Verify modelSuccessRate rules directly through production StatsService
-    const services = composition.createAdminServices({ db });
-    const rateZero = await services.stats.query({ role: 'ADMIN', query: { from: yesterday, to: yesterday } });
-    assert.equal(rateZero.modelSuccessRate?.value, 0);
-    const ratePartialDenom = await services.stats.query({ role: 'ADMIN', query: { from: today, to: today } });
-    assert.ok(Math.abs((ratePartialDenom.modelSuccessRate?.value ?? 0) - 1 / 3) < 1e-9);
-    const rateNull = await services.stats.query({ role: 'ADMIN', query: { from: today, to: today, productSlug: REAL_PRODUCT_B } });
-    assert.equal(rateNull.modelSuccessRate?.value, null);
+    // 5. Verify modelSuccessRate rules through real authenticated GET /api/admin/stats responses (R1)
+    assert.equal(todayDto.modelSuccessRate?.coverage, 'full');
+    assert.ok(Math.abs((todayDto.modelSuccessRate?.value ?? -1) - 1 / 3) < 1e-9);
+    assert.equal((todayDto as { recomputableFrom?: unknown }).recomputableFrom, null);
+
+    const yestRes = await route.GET(new Request(`${ORIGIN}/api/admin/stats?from=${yesterday}&to=${yesterday}`, {
+      headers: { cookie: admin.cookie },
+    }));
+    assert.equal(yestRes.status, 200);
+    const yestDto = StatsDTOSchema.parse(await yestRes.json()) as StatsDTO & {
+      modelSuccessRate?: { value: number | null; coverage: string } | null;
+    };
+    assert.deepEqual(yestDto.modelSuccessRate, { value: 0, coverage: 'full' });
+
+    assert.deepEqual(
+      (prodBDto as StatsDTO & { modelSuccessRate?: unknown }).modelSuccessRate,
+      { value: null, coverage: 'full' },
+    );
+
+    // Partial coverage when range includes an uncovered earlier day outside 48h late-arrival window (yesterday: 0/1 + today: 1/3 => 1/4, partial)
+    const uncoveredDay = shiftLocalDate(yesterday, -3);
+    const partialRes = await route.GET(new Request(`${ORIGIN}/api/admin/stats?from=${uncoveredDay}&to=${today}`, {
+      headers: { cookie: admin.cookie },
+    }));
+    assert.equal(partialRes.status, 200);
+    const partialDto = StatsDTOSchema.parse(await partialRes.json()) as StatsDTO & {
+      modelSuccessRate?: { value: number | null; coverage: string } | null;
+    };
+    assert.equal(partialDto.modelSuccessRate?.coverage, 'partial');
+    assert.ok(Math.abs((partialDto.modelSuccessRate?.value ?? -1) - 1 / 4) < 1e-9);
+
+    // When both model_starts and model_successes are NOT simultaneously selected, modelSuccessRate MUST be null
+    for (const qs of ['?sources=model_starts', '?sources=model_successes', '?sources=visitors']) {
+      const singleRes = await route.GET(
+        new Request(`${ORIGIN}/api/admin/stats${qs}&from=${today}&to=${today}`, {
+          headers: { cookie: admin.cookie },
+        }),
+      );
+      assert.equal(singleRes.status, 200);
+      const singleDto = StatsDTOSchema.parse(await singleRes.json()) as StatsDTO & {
+        modelSuccessRate?: unknown;
+      };
+      assert.equal(singleDto.modelSuccessRate, null, `${qs} must return modelSuccessRate: null`);
+    }
+
+    const editor = await loginAs('EDITOR');
+    const editorRateRes = await route.GET(new Request(`${ORIGIN}/api/admin/stats?from=${today}&to=${today}`, {
+      headers: { cookie: editor.cookie },
+    }));
+    assert.equal(editorRateRes.status, 200);
+    const editorRateDto = StatsDTOSchema.parse(await editorRateRes.json()) as StatsDTO & {
+      modelSuccessRate?: { value: number | null; coverage: string } | null;
+    };
+    assert.equal(editorRateDto.modelSuccessRate?.coverage, 'full');
+    assert.ok(Math.abs((editorRateDto.modelSuccessRate?.value ?? -1) - 1 / 3) < 1e-9);
+
+    const editorTrimmedRateRes = await route.GET(
+      new Request(`${ORIGIN}/api/admin/stats?from=${today}&to=${today}&sources=model_starts,inquiries,storage`, {
+        headers: { cookie: editor.cookie },
+      }),
+    );
+    assert.equal(editorTrimmedRateRes.status, 200);
+    const editorTrimmedRateDto = StatsDTOSchema.parse(await editorTrimmedRateRes.json()) as StatsDTO & {
+      modelSuccessRate?: unknown;
+    };
+    assert.deepEqual(editorTrimmedRateDto.sources.map((s) => s.source), ['model_starts']);
+    assert.equal(editorTrimmedRateDto.modelSuccessRate, null);
 
     // 6. Disconnecting PRIVACY_HASH_SECRET switches core sources to not_connected through real route
     const prevSecret = process.env.PRIVACY_HASH_SECRET;
@@ -720,10 +981,102 @@ describe('M6-T6 GET /api/admin/stats PostgreSQL + Auth.js integration', { concur
     assert.equal(patched.timezone, 'America/New_York');
     assert.ok(patched.recomputableFrom, 'timezone change must expose non-null recomputableFrom within 30d retention');
 
+    // R2 Before aggregate cron consumes pending recompute: current revision GET stats exposes live recomputableFrom across roles while keeping role trimming
+    const sales = await loginAs('SALES');
+    const editor = await loginAs('EDITOR');
+    const todayNy = siteLocalDate(new Date(), 'America/New_York');
+    const over30dDay = shiftLocalDate(todayNy, -35);
+
+    const adminPendingRes = await route.GET(
+      new Request(`${ORIGIN}/api/admin/stats?from=${over30dDay}&to=${todayNy}`, {
+        headers: { cookie: admin.cookie },
+      }),
+    );
+    assert.equal(adminPendingRes.status, 200);
+    const adminPendingDto = StatsDTOSchema.parse(await adminPendingRes.json()) as StatsDTO & {
+      recomputableFrom?: string | null;
+    };
+    assert.equal(adminPendingDto.sources.length, 17);
+    assert.equal(findSource(adminPendingDto, 'visitors').timezone, 'America/New_York');
+    assert.equal(findSource(adminPendingDto, 'visitors').timezoneRevision, 2);
+    assert.equal(findSource(adminPendingDto, 'visitors').coverage, 'unavailable');
+    assert.ok(
+      typeof adminPendingDto.recomputableFrom === 'string'
+        && Date.parse(adminPendingDto.recomputableFrom) >= Date.parse(patched.recomputableFrom!),
+      'before job consumption, GET stats must expose live recomputableFrom for current revision',
+    );
+
+    const salesPendingRes = await route.GET(
+      new Request(`${ORIGIN}/api/admin/stats?from=${todayNy}&to=${todayNy}&sources=chat_starts,storage,mail`, {
+        headers: { cookie: sales.cookie },
+      }),
+    );
+    assert.equal(salesPendingRes.status, 200);
+    const salesPendingDto = StatsDTOSchema.parse(await salesPendingRes.json()) as StatsDTO & {
+      recomputableFrom?: string | null;
+    };
+    assert.deepEqual(salesPendingDto.sources.map((s) => s.source), ['chat_starts']);
+    assert.ok(salesPendingDto.recomputableFrom);
+
+    const editorPendingRes = await route.GET(
+      new Request(`${ORIGIN}/api/admin/stats?from=${todayNy}&to=${todayNy}&sources=visitors,chat_starts,storage`, {
+        headers: { cookie: editor.cookie },
+      }),
+    );
+    assert.equal(editorPendingRes.status, 200);
+    const editorPendingDto = StatsDTOSchema.parse(await editorPendingRes.json()) as StatsDTO & {
+      recomputableFrom?: string | null;
+    };
+    assert.deepEqual(editorPendingDto.sources.map((s) => s.source), ['visitors']);
+    assert.ok(editorPendingDto.recomputableFrom);
+    assert.equal(
+      (await route.GET(new Request(`${ORIGIN}/api/admin/stats?sources=storage`, { headers: { cookie: sales.cookie } }))).status,
+      403,
+    );
+    assert.equal(
+      (await route.GET(new Request(`${ORIGIN}/api/admin/stats?sources=inquiries`, { headers: { cookie: editor.cookie } }))).status,
+      403,
+    );
+
+    // Even before job consumption, querying historical revision 1 does NOT inherit rev 2 pending recompute
+    const preJobHistRes = await route.GET(
+      new Request(`${ORIGIN}/api/admin/stats?from=${todayUtc}&to=${todayUtc}&timezoneRevision=1&sources=visitors`, {
+        headers: { cookie: admin.cookie },
+      }),
+    );
+    assert.equal(preJobHistRes.status, 200);
+    const preJobHistDto = StatsDTOSchema.parse(await preJobHistRes.json()) as StatsDTO & {
+      recomputableFrom?: unknown;
+    };
+    assert.equal(findSource(preJobHistDto, 'visitors').timezone, 'UTC');
+    assert.equal(findSource(preJobHistDto, 'visitors').timezoneRevision, 1);
+    assert.equal(preJobHistDto.recomputableFrom, null);
+
     await runAggregateCron();
+    assert.equal(await db.siteSetting.findUnique({ where: { key: ANALYTICS_RECOMPUTE_KEY } }), null);
+
+    // After job consumption: recomputableFrom returns null (null only means no pending, not >30d completion), role trimming stays intact
+    const afterConsumeAdmin = StatsDTOSchema.parse(
+      await (
+        await route.GET(new Request(`${ORIGIN}/api/admin/stats?from=${over30dDay}&to=${todayNy}`, {
+          headers: { cookie: admin.cookie },
+        }))
+      ).json(),
+    ) as StatsDTO & { recomputableFrom?: unknown };
+    assert.equal(afterConsumeAdmin.recomputableFrom, null);
+    assert.equal(findSource(afterConsumeAdmin, 'visitors').coverage, 'partial');
+
+    const afterConsumeEditor = StatsDTOSchema.parse(
+      await (
+        await route.GET(new Request(`${ORIGIN}/api/admin/stats?from=${todayNy}&to=${todayNy}`, {
+          headers: { cookie: editor.cookie },
+        }))
+      ).json(),
+    ) as StatsDTO & { recomputableFrom?: unknown };
+    assert.equal(afterConsumeEditor.sources.length, 7);
+    assert.equal(afterConsumeEditor.recomputableFrom, null);
 
     // Browser TZ independence (E-55): Tokyo vs Los Angeles viewing same NY site day
-    const todayNy = siteLocalDate(new Date(), 'America/New_York');
     const prevTz = process.env.TZ;
     try {
       process.env.TZ = 'Asia/Tokyo';
@@ -774,10 +1127,14 @@ describe('M6-T6 GET /api/admin/stats PostgreSQL + Auth.js integration', { concur
       headers: { cookie: admin.cookie },
     }));
     assert.equal(expiredRev1.status, 200);
-    const expiredDto = StatsDTOSchema.parse(await expiredRev1.json());
+    const expiredDto = StatsDTOSchema.parse(await expiredRev1.json()) as StatsDTO & {
+      recomputableFrom?: unknown;
+    };
     assert.equal(findSource(expiredDto, 'visitors').timezone, 'UTC');
     assert.equal(findSource(expiredDto, 'visitors').timezoneRevision, 1);
     assert.equal(findSource(expiredDto, 'visitors').state, 'no_data');
+    assert.equal(findSource(expiredDto, 'visitors').coverage, 'unavailable');
+    assert.equal(expiredDto.recomputableFrom, null);
 
     // Pre-deployment AnalyticsDailyRollup + AnalyticsRollupDay phased merge without double-counting when trusted legacyBefore is supplied
     const legacyDay1 = shiftLocalDate(todayUtc, -40);

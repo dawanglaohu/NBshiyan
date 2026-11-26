@@ -104,11 +104,44 @@ export const StatsSourceDTOSchema = z.object({
 });
 export type StatsSourceDTO = z.infer<typeof StatsSourceDTOSchema>;
 
+export const StatsModelSuccessRateSchema = z.object({
+  value: z.number().finite().min(0).max(1).nullable(),
+  coverage: StatsCoverageSchema,
+}).strict().superRefine((value, context) => {
+  if (value.coverage === 'unavailable' && value.value !== null) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['value'],
+      message: 'An unavailable model success rate cannot supply a value.',
+    });
+  }
+});
+export type StatsModelSuccessRateDTO = z.infer<typeof StatsModelSuccessRateSchema>;
+
 export const StatsDTOSchema = z.object({
   sources: z.array(StatsSourceDTOSchema).min(1).max(17),
+  modelSuccessRate: StatsModelSuccessRateSchema.nullable().optional(),
+  recomputableFrom: UtcDateTimeSchema.nullable().optional(),
 }).strict().superRefine((value, context) => {
   if (new Set(value.sources.map((source) => source.source)).size !== value.sources.length) {
     context.addIssue({ code: z.ZodIssueCode.custom, path: ['sources'], message: 'Sources must be unique.' });
+  }
+  if (value.modelSuccessRate !== undefined) {
+    const names = new Set(value.sources.map((source) => source.source));
+    const hasPairedModelSources = names.has('model_starts') && names.has('model_successes');
+    if (hasPairedModelSources && value.modelSuccessRate === null) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['modelSuccessRate'],
+        message: 'Paired model sources require a modelSuccessRate reading.',
+      });
+    } else if (!hasPairedModelSources && value.modelSuccessRate !== null) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['modelSuccessRate'],
+        message: 'modelSuccessRate must be null unless both model_starts and model_successes are included.',
+      });
+    }
   }
 });
 export type StatsDTO = z.infer<typeof StatsDTOSchema>;

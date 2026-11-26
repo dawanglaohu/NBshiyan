@@ -204,6 +204,17 @@ test.describe('M6-T6 stats HTTP API', () => {
     expect(meanDto.state).toBe('ok');
     expect(meanDto.loadDurationSamples!).toBeGreaterThanOrEqual(beforeDurationSamples + 1);
     expect(meanDto.value).not.toBeNull();
+    expect(afterDto.modelSuccessRate).toBeTruthy();
+    expect(afterDto.modelSuccessRate?.coverage).toBe('full');
+    expect(afterDto.modelSuccessRate?.value).not.toBeNull();
+    expect(afterDto.modelSuccessRate!.value!).toBeGreaterThan(0);
+    expect(afterDto.modelSuccessRate!.value!).toBeLessThanOrEqual(1);
+    expect(afterDto.recomputableFrom).toBeNull();
+
+    const visitorsOnlyRes = await adminReq.get(`/api/admin/stats?from=${siteToday}&to=${siteToday}&sources=visitors`);
+    expect(visitorsOnlyRes.status()).toBe(200);
+    const visitorsOnlyDto = StatsDTOSchema.parse(await visitorsOnlyRes.json());
+    expect(visitorsOnlyDto.modelSuccessRate).toBeNull();
 
     // Product attribution: product page_views must be no_data (null, never 0)
     const productRes = await adminReq.get(`/api/admin/stats?from=${siteToday}&to=${siteToday}&productSlug=${observedSlug}`);
@@ -256,6 +267,17 @@ test.describe('M6-T6 stats HTTP API', () => {
     expect(switched.recomputableFrom).not.toBeNull();
 
     try {
+      // Before aggregate cron consumes pending recompute, current revision GET stats exposes live recomputableFrom while preserving role trimming
+      const preJobAdminRes = await adminReq.get(`/api/admin/stats?sources=visitors`);
+      expect(preJobAdminRes.status()).toBe(200);
+      const preJobAdminDto = StatsDTOSchema.parse(await preJobAdminRes.json());
+      expect(preJobAdminDto.recomputableFrom).not.toBeNull();
+      const preJobEditorRes = await editorReq.get(`/api/admin/stats?sources=visitors,chat_starts,storage`);
+      expect(preJobEditorRes.status()).toBe(200);
+      const preJobEditorDto = StatsDTOSchema.parse(await preJobEditorRes.json());
+      expect(preJobEditorDto.sources.map((s) => s.source)).toEqual(['visitors']);
+      expect(preJobEditorDto.recomputableFrom).not.toBeNull();
+
       await runAggregateJob(adminReq, cronSecret!);
       const nextSiteToday = siteLocalDate(new Date(), nextTimezone);
 
@@ -276,6 +298,8 @@ test.describe('M6-T6 stats HTTP API', () => {
 
         const tokyoDto = StatsDTOSchema.parse(tokyoRead.json);
         const laDto = StatsDTOSchema.parse(laRead.json);
+        expect(tokyoDto.recomputableFrom).toBeNull();
+        expect(laDto.recomputableFrom).toBeNull();
         for (const source of ['visitors', 'page_views', 'model_starts'] as const) {
           expect(findSource(tokyoDto, source).timezone).toBe(nextTimezone);
           expect(findSource(tokyoDto, source).timezoneRevision).toBe(switched.timezoneRevision);
@@ -286,7 +310,7 @@ test.describe('M6-T6 stats HTTP API', () => {
         await ctxLa.close();
       }
 
-      // Querying prior revision explicitly keeps original timezone and revision label
+      // Querying prior revision explicitly keeps original timezone and revision label, with null recomputableFrom
       const prevRevRes = await adminReq.get(
         `/api/admin/stats?from=${siteToday}&to=${siteToday}&timezoneRevision=${initialSettings.timezoneRevision}&sources=visitors,model_starts`,
       );
@@ -295,6 +319,7 @@ test.describe('M6-T6 stats HTTP API', () => {
       expect(findSource(prevRevDto, 'visitors').timezone).toBe(initialSettings.timezone);
       expect(findSource(prevRevDto, 'visitors').timezoneRevision).toBe(initialSettings.timezoneRevision);
       expect(findSource(prevRevDto, 'visitors').value!).toBeGreaterThanOrEqual(1);
+      expect(prevRevDto.recomputableFrom).toBeNull();
     } finally {
       const restoreRes = await adminReq.patch('/api/admin/settings/analytics', {
         headers: { origin: BASE },

@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { Prisma, type PrismaClient, type Role } from '@prisma/client';
 import { NextResponse } from 'next/server';
 import type { z } from 'zod';
-import { siteLocalDate } from '../../analytics/day-boundaries';
+import { DayBoundaryError, siteLocalDate } from '../../analytics/day-boundaries';
 import { LocalDateSchema, TimezoneSchema } from '../../contracts/common';
 import type { FieldError } from '../../contracts/errors';
 import {
@@ -14,11 +14,19 @@ import {
   type StatsSource,
   type StatsSourceDTO,
 } from '../../contracts/ops';
-import { parseAnalyticsSettingsValue } from '../analytics/settings';
-import { ANALYTICS_TIMEZONE_CHANGE_ACTION } from '../analytics/settings-repo';
+import { rawCoveragePlan } from '../analytics/retention-plan';
+import {
+  classifyRecomputeBacklog,
+  parseAnalyticsSettingsValue,
+  parseRecomputeBacklogStrict,
+} from '../analytics/settings';
+import {
+  ANALYTICS_TIMEZONE_CHANGE_ACTION,
+  readSettingsAndBacklog,
+} from '../analytics/settings-repo';
 import { AppError, classifyThrown, type UnknownFailureLog } from '../http/errors';
 import type { ApiCounter, ApiRouteId } from '../http/metrics';
-import { ANALYTICS_SETTINGS_KEY, INITIAL_TIMEZONE_REVISION } from '../jobs/types';
+import { INITIAL_TIMEZONE_REVISION } from '../jobs/types';
 import { hitRateLimit } from '../security';
 import { toStatsSourceDTO } from './source-dto';
 import { readCoreStats, selectStatsSources } from './stats-query';
@@ -80,6 +88,7 @@ export type StatsHttpServices = {
 type ResolvedRevision = {
   timezone: string;
   timezoneRevision: number;
+  recomputableFrom: string | null;
 };
 
 function isAllowedRole(role: string): role is Role {
@@ -169,25 +178,48 @@ function extractAuditRevisionTimezone(rows: readonly { meta: unknown }[], reques
 }
 
 /**
- * Resolve the target site timezone and revision inside a consistent RepeatableRead snapshot.
- * Historical revisions read persisted daily/state row timezones first, then timezone-change audit logs.
+ * Resolve the target site timezone, revision, and applicable recompute boundary inside one RepeatableRead snapshot.
+ * Current revision reuses settings/pending classification and 30d raw retention bounds; historical revisions return null recomputableFrom.
  */
-export async function resolveStatsRevision(db: StatsDb, requestedRevision?: number): Promise<ResolvedRevision> {
+export async function resolveStatsRevision(
+  db: StatsDb,
+  requestedRevision?: number,
+  now: Date = new Date(),
+): Promise<ResolvedRevision> {
   return db.$transaction(async (tx) => {
-    const settingRows = await tx.$queryRaw<{ value: unknown }[]>`
-      SELECT "value" FROM "SiteSetting" WHERE "key" = ${ANALYTICS_SETTINGS_KEY}
-    `;
+    const raw = await readSettingsAndBacklog(tx);
     let current = { timezone: 'UTC', timezoneRevision: INITIAL_TIMEZONE_REVISION };
-    if (settingRows.length > 0) {
-      const parsed = parseAnalyticsSettingsValue(settingRows[0].value);
+    if (raw.settings !== null) {
+      const parsed = parseAnalyticsSettingsValue(raw.settings);
       if (parsed === 'corrupt') throw new AppError('service_unavailable');
       if (parsed !== null) {
         current = { timezone: parsed.timezone, timezoneRevision: parsed.timezoneRevision };
       }
     }
 
+    const backlog = parseRecomputeBacklogStrict(raw.backlog);
+    const pendingBoundaryFor = (
+      target: { timezone: string; timezoneRevision: number },
+      isCurrentRevision: boolean,
+    ): string | null => {
+      if (!isCurrentRevision) return null;
+      const disposition = classifyRecomputeBacklog({
+        settings: target,
+        backlog,
+        claimRevision: target.timezoneRevision,
+        now,
+      });
+      if (disposition.kind !== 'planned') return null;
+      try {
+        return rawCoveragePlan(now, target.timezone).completeRawCoverageStartUtc;
+      } catch (error) {
+        if (error instanceof DayBoundaryError) throw new AppError('service_unavailable');
+        throw error;
+      }
+    };
+
     if (requestedRevision === undefined || requestedRevision === current.timezoneRevision) {
-      return current;
+      return { ...current, recomputableFrom: pendingBoundaryFor(current, true) };
     }
     if (requestedRevision > current.timezoneRevision) {
       throw new AppError('invalid', { fieldErrors: { timezoneRevision: 'Unknown timezone revision.' } });
@@ -204,7 +236,8 @@ export async function resolveStatsRevision(db: StatsDb, requestedRevision?: numb
     if (rowTimezones.length === 1) {
       const parsed = TimezoneSchema.safeParse(rowTimezones[0].timezone);
       if (!parsed.success) throw new AppError('service_unavailable');
-      return { timezone: parsed.data, timezoneRevision: requestedRevision };
+      const resolved = { timezone: parsed.data, timezoneRevision: requestedRevision };
+      return { ...resolved, recomputableFrom: pendingBoundaryFor(resolved, false) };
     }
 
     const reqText = String(requestedRevision);
@@ -217,7 +250,8 @@ export async function resolveStatsRevision(db: StatsDb, requestedRevision?: numb
     `;
     const auditTimezone = extractAuditRevisionTimezone(auditRows, requestedRevision);
     if (auditTimezone) {
-      return { timezone: auditTimezone, timezoneRevision: requestedRevision };
+      const resolved = { timezone: auditTimezone, timezoneRevision: requestedRevision };
+      return { ...resolved, recomputableFrom: pendingBoundaryFor(resolved, false) };
     }
 
     throw new AppError('invalid', { fieldErrors: { timezoneRevision: 'Unknown timezone revision.' } });
@@ -248,7 +282,7 @@ export function createStatsService(deps: StatsServiceDeps = {}): StatsService {
       // Trim sources by RBAC before checking revisions or querying any table.
       const allowedSources = selectStatsSources(role, query.sources);
       const now = clock();
-      const targetRevision = await resolveStatsRevision(deps.db, query.timezoneRevision);
+      const targetRevision = await resolveStatsRevision(deps.db, query.timezoneRevision, now);
       // Validate IANA timezone bounds at the active query timestamp.
       siteLocalDate(now, targetRevision.timezone);
       const legacyBefore = await resolveTrustedLegacyBefore(deps.resolveLegacyBefore, targetRevision.timezoneRevision);
@@ -292,7 +326,11 @@ export function createStatsService(deps: StatsServiceDeps = {}): StatsService {
         }
       }
 
-      const dto = StatsDTOSchema.parse({ sources });
+      const dto = StatsDTOSchema.parse({
+        sources,
+        modelSuccessRate: coreResult.modelSuccessRate,
+        recomputableFrom: targetRevision.recomputableFrom,
+      });
       return { dto, modelSuccessRate: coreResult.modelSuccessRate, scope: coreResult.scope };
     },
   };
