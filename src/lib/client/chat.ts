@@ -400,18 +400,28 @@ export async function fetchChatConversationUpdates(
 ): Promise<ClientApiResult<ChatUpdatesSnapshot>> {
   const limit = options?.limit ?? 50;
   let cursor = Math.max(0, Math.trunc(afterSeq));
-  let latest: ChatSyncDTO | null = null;
   let mergedMessages: ChatMessageDTO[] = [];
   let mergedAuthors: ChatAuthorReferenceDTO[] = [];
 
-  for (let page = 0; page < CHAT_SYNC_MAX_PAGES; page += 1) {
+  for (let page = 1; ; page += 1) {
     const res = await fetchChatSyncPage(conversationId, { afterSeq: cursor, limit }, locale, options);
     if (!res.ok) return res;
-    latest = res.data;
-    mergedMessages = mergeChatMessages(mergedMessages, res.data.messages);
-    mergedAuthors = mergeChatAuthors(mergedAuthors, res.data.authors);
-
-    if (!res.data.hasMore) {
+    const latest = res.data;
+    if (latest.hasMore && latest.nextAfterSeq <= cursor) {
+      return {
+        ok: false,
+        text: 'Conversation sync cursor did not advance.',
+        action: 'retry',
+        envelope: 'unavailable',
+        retryable: true,
+        attempts: res.attempts,
+        transient: true,
+      };
+    }
+    mergedMessages = mergeChatMessages(mergedMessages, latest.messages);
+    mergedAuthors = mergeChatAuthors(mergedAuthors, latest.authors);
+    // At the request budget, commit the received prefix so the next refresh can resume.
+    if (!latest.hasMore || page === CHAT_SYNC_MAX_PAGES) {
       return {
         ok: true,
         attempts: res.attempts,
@@ -425,30 +435,8 @@ export async function fetchChatConversationUpdates(
         },
       };
     }
-
-    if (res.data.nextAfterSeq <= cursor) {
-      return {
-        ok: false,
-        text: 'Conversation sync cursor did not advance.',
-        action: 'retry',
-        envelope: 'unavailable',
-        retryable: true,
-        attempts: res.attempts,
-        transient: true,
-      };
-    }
-    cursor = res.data.nextAfterSeq;
+    cursor = latest.nextAfterSeq;
   }
-
-  return {
-    ok: false,
-    text: 'Conversation sync exceeded page limit.',
-    action: 'retry',
-    envelope: 'unavailable',
-    retryable: true,
-    attempts: CHAT_SYNC_MAX_PAGES,
-    transient: true,
-  };
 }
 
 export async function markChatRead(
