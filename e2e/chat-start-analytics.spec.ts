@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import type { Locator } from '@playwright/test';
 import { PrismaClient } from '@prisma/client';
 import { E2E_EDGE_AUTH_SECRET } from '../scripts/e2e-edge-auth';
 import { expect, test } from './fixtures';
@@ -34,6 +35,16 @@ async function runAggregateNow(request: import('@playwright/test').APIRequestCon
   expect(res.status(), await res.text()).toBe(200);
   const body = (await res.json()) as { status: string };
   expect(body.status).toBe('SUCCEEDED');
+}
+
+async function chooseConsent(button: Locator): Promise<void> {
+  const [response] = await Promise.all([
+    button.page().waitForResponse(res =>
+      res.url().endsWith('/api/analytics/consent') && res.request().method() === 'POST',
+    ),
+    button.click(),
+  ]);
+  expect(response.ok()).toBe(true);
 }
 
 async function readSiteAndProductChatStarts(productSlug: string): Promise<{ site: number; product: number }> {
@@ -80,10 +91,7 @@ test.describe('M4-T5 consent-gated chat_start analytics producer', () => {
     });
 
     await page.goto('/en/products');
-    await page.getByRole('button', { name: 'Accept all' }).click();
-    await page.waitForResponse(
-      (res) => res.url().endsWith('/api/analytics/consent') && res.request().method() === 'POST',
-    );
+    await chooseConsent(page.getByRole('button', { name: 'Accept all' }));
 
     // Navigate from products page to contact page via visible product inquiry CTA
     await page.locator(`a[href*="/contact?product=${productSlug}"]`).first().click();
@@ -191,10 +199,7 @@ test.describe('M4-T5 consent-gated chat_start analytics producer', () => {
 
     // 1) Decline analytics, complete necessary chat, then grant consent afterwards -> zero backfill
     await page.goto('/en/contact');
-    await page.getByRole('button', { name: 'Reject all' }).click();
-    await page.waitForResponse(
-      (res) => res.url().endsWith('/api/analytics/consent') && res.request().method() === 'POST',
-    );
+    await chooseConsent(page.getByRole('button', { name: 'Reject all' }));
 
     await page.getByTestId('contact-human-chat').click();
     await expect(page.getByTestId('chat-availability-status')).toHaveText('Offline message');
@@ -206,10 +211,7 @@ test.describe('M4-T5 consent-gated chat_start analytics producer', () => {
     // Post-consent after message already received
     await page.getByTestId('chat-close').click();
     await page.getByRole('button', { name: 'Cookie settings' }).click();
-    await page.getByRole('button', { name: 'Accept all' }).click();
-    await page.waitForResponse(
-      (res) => res.url().endsWith('/api/analytics/consent') && res.request().method() === 'POST',
-    );
+    await chooseConsent(page.getByRole('button', { name: 'Accept all' }));
 
     await page.getByTestId('contact-human-chat').click();
     await expect(page.getByTestId('chat-availability-status')).toHaveText('Offline message');
@@ -282,10 +284,7 @@ test.describe('M4-T5 consent-gated chat_start analytics producer', () => {
     });
 
     await page.goto('/en/contact');
-    await page.getByRole('button', { name: 'Reject all' }).click();
-    await page.waitForResponse(
-      (res) => res.url().endsWith('/api/analytics/consent') && res.request().method() === 'POST',
-    );
+    await chooseConsent(page.getByRole('button', { name: 'Reject all' }));
 
     await page.getByTestId('contact-human-chat').click();
     await expect(page.getByTestId('chat-availability-status')).toHaveText('Offline message');
@@ -346,10 +345,7 @@ test.describe('M4-T5 consent-gated chat_start analytics producer', () => {
     await page.keyboard.press('Enter');
     const dialog = page.getByRole('dialog', { name: 'Cookie settings' });
     await expect(dialog).toBeVisible();
-    await dialog.getByRole('button', { name: 'Accept all' }).click();
-    await page.waitForResponse(
-      (res) => res.url().endsWith('/api/analytics/consent') && res.request().method() === 'POST',
-    );
+    await chooseConsent(dialog.getByRole('button', { name: 'Accept all' }));
 
     // Unblock and manually retry with the SAME clientConversationId -> server returns duplicate=true
     dropStage = false;
@@ -396,10 +392,7 @@ test.describe('M4-T5 consent-gated chat_start analytics producer', () => {
     });
 
     await page.goto('/en/products');
-    await page.getByRole('button', { name: 'Accept all' }).click();
-    await page.waitForResponse(
-      (res) => res.url().endsWith('/api/analytics/consent') && res.request().method() === 'POST',
-    );
+    await chooseConsent(page.getByRole('button', { name: 'Accept all' }));
     await page.locator('a[href*="/contact?product=color-boxes"]').first().click();
     await expect(page).toHaveURL(/\/en\/contact\?product=color-boxes/);
 
