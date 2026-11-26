@@ -466,6 +466,9 @@ jobs:
           # M4-T12 队列/预算真实 PG：专属库名 + schema=m4t12；测试自备 schema/表，缺库即失败，不回退 e2e。
           M4T12_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/b9_m4t12_20261109?schema=m4t12
           M4T12_REQUIRE_DATABASE: 'true'
+          # M4-T7 聊天保留候选与默认拒绝真实清理：专属回环地址 + require；缺地址直接失败，不回退通用 DATABASE_URL。
+          M4T7_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
+          M4T7_REQUIRE_DATABASE: 'true'
         run: |
           set -o pipefail
           cat > /tmp/m3t2-file-gate.cjs <<'EOF'
@@ -484,6 +487,7 @@ jobs:
               'tests/chat-visitor-read.http.test.ts',
               'tests/chat-operator-read.http.test.ts',
               'tests/chat-operator-write.http.test.ts',
+              'tests/chat-retention-dryrun.http.test.ts',
               'tests/stats-query.db.test.ts',
               'tests/chat-visitor-append.db.test.ts',
               'tests/analytics-daily.db.test.ts',
@@ -544,6 +548,7 @@ jobs:
             tests/chat-visitor-read.http.test.ts \
             tests/chat-operator-read.http.test.ts \
             tests/chat-operator-write.http.test.ts \
+            tests/chat-retention-dryrun.http.test.ts \
             tests/stats-query.db.test.ts \
             tests/chat-visitor-append.db.test.ts \
             tests/analytics-daily.db.test.ts \
@@ -590,6 +595,7 @@ jobs:
             'tests/chat-visitor-read.http.test.ts',
             'tests/chat-operator-read.http.test.ts',
             'tests/chat-operator-write.http.test.ts',
+            'tests/chat-retention-dryrun.http.test.ts',
             'tests/stats-query.db.test.ts',
             'tests/chat-visitor-append.db.test.ts',
               'tests/analytics-daily.db.test.ts',
@@ -645,6 +651,9 @@ jobs:
           # 精确断言 16：17（HTTP 意外执行）、9（DB skip）、缺文件/取消都不能被 pass>=1 的宽门吞掉。
           grep -Fqx $'tests/admin-self-rebind.db.test.ts\tpass=16\tfail=0\tskip=0\ttodo=0\tcancelled=0' /tmp/m3t2-file-gate.txt
           grep -Fqx $'tests/chat-notification-worker.db.test.ts\tpass=26\tfail=0\tskip=0\ttodo=0\tcancelled=0' /tmp/m3t2-file-gate.txt
+          # M4-T7 精确分母 16（9 纯单测 + 7 隔离 PG 真库用例）；防止真库 suite 级 skip 被 pass>=1 宽门吞掉。
+          grep -Fqx $'tests/chat-retention-dryrun.http.test.ts\tpass=16\tfail=0\tskip=0\ttodo=0\tcancelled=0' /tmp/m3t2-file-gate.txt
+          grep -Eq '^[[:space:]]*ok [0-9]+ - M4-T7 隔离 PostgreSQL 真实接线、保留期限与拒绝删除验收$' /tmp/pg-regressions.tap
           grep -F 'M4-T4 notification PostgreSQL' /tmp/pg-regressions.tap
           # Named-case evidence. The 26 above is still owned by the exact file gate; this only
           # persists WHICH 26 ran. Nothing captured from the TAP is printed or written: every

@@ -1,0 +1,15 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M4-T7": {
+      "contractHash": "928de3a69f43863bab8639bd8b6f8795c0ce8c72ba7e1bb967798794fbac43e7",
+      "verdict": "pass",
+      "evidence": [
+        "PR #572 在 df39ca60b7b8c5f1787ae007d1e7d56d352e6cdb 完成 R1、R2。相对第 1 轮审查提交 4adf87c1 只修改 PG17 workflow 和聊天保留回归文件，原契约、候选查询与生产授权边界一致。",
+        "R1：.github/workflows/ci.yml:470 配置专用回环地址与必需标志，:490、:551、:598 对应报告、执行与校验清单，:655 核对 16 条全过和真实 DB 套件。托管作业 https://github.com/dawanglaohu/NBshiyan/actions/runs/45730107654/job/139609710223 的文件实录为 pass=16 fail=0 skip=0 todo=0 cancelled=0。独立 PG17.12 复跑同样 16/16。保留通用 DATABASE_URL 并移除专用 URL 时，测试以退出码 1 拒绝启动。",
+        "R2：tests/chat-retention-dryrun.http.test.ts:485 在隔离 schema 就绪后导入实际 POST，:594 走默认生产组合点。缺或错 Bearer 返回 401，无 JobState 且哈希不变；默认 SUCCEEDED 与未授权 FAILED/forbidden 各计 2 个候选和 0 个删除，前次成功时间及业务行哈希保持。:691 验证 cookie 与 90 天内容独立；:1020 在相同到期时刻和其后 1ms 验证候选、单开和双开的拒绝路径。实际生产 SQL、cron 与 E-85/E-86/E-88 的第一轮证据在 patches/m4t7-pg17-file-gate.evidence.json。",
+        "前置 M4-T3/M5-T1/M5-T8 已提供运营读状态、持久租约与固定调度。deploy/cron.nbshiyan:25、src/app/api/admin/cron/operations/route.ts:15、src/lib/server/composition.ts:283、src/lib/server/chat/retention-candidates.ts:101 是每日只读统计的生产链。复核 13 节 E-85/E-86/E-88、17 节隔离实测、19 节 M4-T7 范围及 10 节 JobResultDTO，清理授权及真实删除均未扩大。"
+      ]
+    }
+  }
+}

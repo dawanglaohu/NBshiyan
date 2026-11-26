@@ -966,15 +966,15 @@
     "verdict": "pass"
   },
   "M4-T7": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "e05954923c2eaa78c96446283dd918d88671649987560ea52b639a3631230f4a",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "928de3a69f43863bab8639bd8b6f8795c0ce8c72ba7e1bb967798794fbac43e7",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M4-T7《注册聊天保留候选与默认拒绝真实清理》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "PR #572 在 df39ca60b7b8c5f1787ae007d1e7d56d352e6cdb 完成 R1、R2。相对第 1 轮审查提交 4adf87c1 只修改 PG17 workflow 和聊天保留回归文件，原契约、候选查询与生产授权边界一致。",
+      "R1：.github/workflows/ci.yml:470 配置专用回环地址与必需标志，:490、:551、:598 对应报告、执行与校验清单，:655 核对 16 条全过和真实 DB 套件。托管作业 https://github.com/dawanglaohu/NBshiyan/actions/runs/45730107654/job/139609710223 的文件实录为 pass=16 fail=0 skip=0 todo=0 cancelled=0。独立 PG17.12 复跑同样 16/16。保留通用 DATABASE_URL 并移除专用 URL 时，测试以退出码 1 拒绝启动。",
+      "R2：tests/chat-retention-dryrun.http.test.ts:485 在隔离 schema 就绪后导入实际 POST，:594 走默认生产组合点。缺或错 Bearer 返回 401，无 JobState 且哈希不变；默认 SUCCEEDED 与未授权 FAILED/forbidden 各计 2 个候选和 0 个删除，前次成功时间及业务行哈希保持。:691 验证 cookie 与 90 天内容独立；:1020 在相同到期时刻和其后 1ms 验证候选、单开和双开的拒绝路径。实际生产 SQL、cron 与 E-85/E-86/E-88 的第一轮证据在 patches/m4t7-pg17-file-gate.evidence.json。",
+      "前置 M4-T3/M5-T1/M5-T8 已提供运营读状态、持久租约与固定调度。deploy/cron.nbshiyan:25、src/app/api/admin/cron/operations/route.ts:15、src/lib/server/composition.ts:283、src/lib/server/chat/retention-candidates.ts:101 是每日只读统计的生产链。复核 13 节 E-85/E-86/E-88、17 节隔离实测、19 节 M4-T7 范围及 10 节 JobResultDTO，清理授权及真实删除均未扩大。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-11-26T01:23:14.415273+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },

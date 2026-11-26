@@ -47,6 +47,9 @@ const JOB_RESPONSE_RESERVE_MS = 250;
 export const ANALYTICS_AGGREGATE_KEY = 'analytics-aggregate';
 const ANALYTICS_AGGREGATE_OWNER = 'analytics-job-runtime';
 
+/** 聊天保留作业在固定 registry 里的 key。registry 不导入 M4 实现，只提供固定标识。 */
+export { CHAT_RETENTION_JOB_KEY } from '../config';
+
 export type JobRunContext = {
   now: Date;
   deadlineAt: Date;

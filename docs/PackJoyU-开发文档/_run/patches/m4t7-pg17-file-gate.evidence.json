@@ -1,0 +1,40 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M4-T13": {
+      "contractHash": "c737d91d8bb8f033053dbbd98fadd590934cae2fa030f343c49dc2ccca8de78f",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M4-T7": {
+      "contractHash": "928de3a69f43863bab8639bd8b6f8795c0ce8c72ba7e1bb967798794fbac43e7",
+      "evidence": [
+        "契约复核仅确认实施与验收范围。19 节 M4-T7 对照 13 节 E-85/E-86/E-88、17 节隔离库策略与 18 节每日作业，仍要求单独授权、默认 dry-run、删除为零与业务行哈希不变。真实清理属于另一任务。",
+        "前置 M4-T3、M5-T1、M5-T8 已提供运营读游标、作业租约与固定调度。deploy/cron.nbshiyan:25、src/app/api/admin/cron/operations/route.ts:15、src/lib/server/composition.ts:283、src/lib/server/chat/retention-candidates.ts:101 可定位实际调用链。src/lib/contracts/ops.ts:127 提供默认 dryRun，src/lib/server/db.ts:3 复用 Prisma，cron 只校验 Bearer。",
+        "补丁只将 .github/workflows/ci.yml 加入 M4-T7 supportPaths。M4-T13、M7-T4、M7-T8、M7-T9、M7-T10 的 context 和 effectivePaths 在补丁前后一致，仅随上游更新哈希。均未落地，revalidation.json 为空。PR #563 也涉及该 workflow，修改应限定到既有 PG17 聊天回归步骤。",
+        "审查工作树独立 PostgreSQL 17.12 实跑 tests/chat-retention-dryrun.http.test.ts：15 pass，0 fail/skip/cancelled。用例覆盖默认与拒绝操作、过期等号、cookie 与内容期限、咨询活动、无关表哈希及并发。现有 tests/chat-retention-dryrun.http.test.ts:613 手工构造 handler，.github/workflows/ci.yml:485、545、591 的 PG17 清单均缺本文件。PR 仍待补齐生产 POST 回归及托管数据库门禁。"
+      ],
+      "verdict": "pass"
+    },
+    "M7-T10": {
+      "contractHash": "ec602fee30418df333268bc7ff8e2eebae9a69f52b16dede146c724cba0600ac",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T4": {
+      "contractHash": "dab4c96ad262729a11b38ebfdc81f8876d9479237cc68dc219c226c61d55b15d",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T8": {
+      "contractHash": "df308fcaebfcc2d4eba4512708868a4d28e5a452c9cc7b259e6a148cafcf5293",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T9": {
+      "contractHash": "651d2fb6597716290a7f68be160c626d7a02e7a7db864e93ca7af84a15dcb8a7",
+      "evidence": [],
+      "verdict": "pending"
+    }
+  }
+}
