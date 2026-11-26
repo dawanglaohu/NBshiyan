@@ -1209,13 +1209,14 @@
   },
   "M6-T6": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "aeb1572d0c1511926d90ac95dc7890b88dbc2e68ad145e4315d5a1c38ce3d1cd",
+    "contractHash": "8d450411d1e7d60896dbe7105cc52a15d734a24956d209504050128c6be7f9e7",
     "evidence": [
-      "固定对象：L bed4436b7bb26d67583373c24777eb2953f19cc3 / tree ace1e3fc305c882758b406ffb2cd00d5012aea0c / 唯一父 K 81cdb260224d359bb04bb6d35306c2e944a6958f；task/M5-T4 工作树 clean；本登记只写本补丁证据、task-reviews 与正常派生，不改 task-contracts.json、任务状态、源码/测试/CI/包锁/schema 与生成器。",
-      "本键为传播变更：契约对象在 K→L 逐字节相同（对象摘要 21978dda21431bd9 = 21978dda21431bd9）；provides=1/requires=2/sections=12/supportPaths=0/outputPaths=5 全为原值；当前契约 hash aeb1572d0c1511926d90ac95dc7890b88dbc2e68ad145e4315d5a1c38ce3d1cd 变化仅因依赖闭包含 M5-T4（直连 requires 含 M5-T4），能力与接口未变。",
-      "范围限定：本记录只是 L 当前契约语义复核，不证明该任务已实现、不改变其 todo/status；M5-T4 亦不证明真实 PG 用例 15./16. 通过、不证明新 CI 转绿；未重验 P2/O1 或旧 43，未顺手清理既有 stale。"
+      "前置 M6-T1、M5-T4 已落地，M6-T6 的接口与接线按 10、13、17、19 节核对。原 PR #573，补丁 M6-T6-r1-stats-http-paths 已授权共享 DTO 与 CI 工作流。该记录复核任务契约；落地另核同一 head 的 bot 与必过检查。",
+      "R1：src/lib/contracts/ops.ts:107 和 src/lib/server/ops/stats-service.ts:329 使 GET 返回 M6-T1 已计算的配对读数及覆盖。tests/stats-route.test.ts:873 真登录 HTTP 核 1/3、零、无 start、部分覆盖及单选行为。",
+      "R2：src/lib/server/ops/stats-service.ts:190、:283 同快照读设置与待办，查询前按角色裁剪。tests/stats-route.test.ts:989 通过真实设置变更和作业消费核查当前与历史 revision 的 recomputableFrom、UTC 标签和过期数据。WSL PG12 专库 stats-route 9 项通过，0 跳过。",
+      "R3：.github/workflows/ci.yml:442、:666、:905、:995 将 PG17 专库和统计浏览器用例纳入必过检查；A3 分区总计 256、主段 225，仍校验全集与互斥。运行 45805141449 的 PG17 逐文件结果为 9 pass / 0 skip。该轮主段同意写返回 429；统计用例改为主段内独立应用进程，真实 Chrome 单例与具名证据解析均通过，最终整组结果由 PR 检查记录。"
     ],
-    "reviewed": "2026-11-11T05:34:58.660575+00:00",
+    "reviewed": "2026-11-26T11:26:57.969714+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },

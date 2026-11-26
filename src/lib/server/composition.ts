@@ -26,7 +26,8 @@ import { createOperatorWriteService, type OperatorWriteService } from './chat/op
 import { createVisitorReadService, type VisitorReadService } from './chat/visitor-read';
 import { createSelfRebindService, type SelfRebindService } from './admin/self-rebind';
 import { createChatReadRepo, type ChatReadDb, type ChatWriteDb } from './chat/repo';
-import { createAnalyticsAggregateJob, createJobRegistry, type JobRegistry } from './jobs/registry';
+import { ANALYTICS_AGGREGATE_KEY, createAnalyticsAggregateJob, createJobRegistry, type JobRegistry } from './jobs/registry';
+import { createStatsService, type StatsService } from './ops/stats-service';
 import { createAnalyticsRetentionJob } from './analytics/retention';
 import { retentionCleanupMode } from './analytics/retention-plan';
 import { createMailQueueJob } from './mail/queue-job';
@@ -57,6 +58,8 @@ export type AdminServices = HttpServices & {
   deviceManagement: DeviceManagementService;
   /** 站点统计时区设置；M5-T4 的 settings 工厂只在这里接线。 */
   analyticsSettings: AnalyticsSettingsService;
+  /** 受角色限制的核心统计查询与非核心占位适配（M6-T6）。 */
+  stats: StatsService;
   /** 本人换验证器：TOTP_RESET grant → SELF_REAUTH 受限会话（M3-T20）。 */
   selfRebind: SelfRebindService;
 };
@@ -83,10 +86,12 @@ export function createAdminServices(deps: {
   config?: ServerConfig;
   clock?: () => Date;
   log?: (event: CounterLog) => void;
+  jobs?: JobRegistry;
 } = {}): AdminServices {
   const db = deps.db ?? (prisma as PrismaClient);
   const config = deps.config ?? getServerConfig();
   const clock = deps.clock ?? (() => new Date());
+  const jobs = deps.jobs ?? createJobServices({ db, clock }).jobs;
   const actionGrants = createActionGrantService({
     db,
     clock,
@@ -116,6 +121,12 @@ export function createAdminServices(deps: {
     accountSecurity: createAccountSecurityService({ db, clock, actionGrants }),
     deviceManagement: createDeviceManagementService({ db, clock, actionGrants, policy: config.session }),
     analyticsSettings: createAnalyticsSettingsService({ db, clock }),
+    stats: createStatsService({
+      db,
+      clock,
+      analyticsConfigured: () => Boolean(analyticsConsentSecret()),
+      aggregateJobRegistered: () => jobs.has(ANALYTICS_AGGREGATE_KEY),
+    }),
     selfRebind: createSelfRebindService({
       db,
       clock,
