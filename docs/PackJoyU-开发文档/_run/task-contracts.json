@@ -3262,7 +3262,10 @@
         "backendRoutes",
         "container"
       ],
-      "supportPaths": [],
+      "supportPaths": [
+        "src/lib/contracts/ops.ts",
+        ".github/workflows/ci.yml"
+      ],
       "outputPaths": [
         "src/app/api/admin/stats/",
         "src/lib/server/ops/stats-service.ts",

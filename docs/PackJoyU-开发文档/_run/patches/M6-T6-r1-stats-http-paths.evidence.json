@@ -1,0 +1,120 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M3-T10": {
+      "contractHash": "164c12505c45d43bba996e9c0107e6d5d833e16379704333c9c5ae21c003caab",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M3-T11": {
+      "contractHash": "0ad65b9aead3587766afae8c345be04e9c81a4e5daef9472e37d1e8c0827030f",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M3-T12": {
+      "contractHash": "4a1f7cb257da304dc1d27be4e15beed0663d47126f006b6f9721bd4c49b5657a",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M3-T13": {
+      "contractHash": "f484d17780a9a7a37bbb274f2b3f6c05ac52cb219f986d596a1fb647ed307383",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M3-T25": {
+      "contractHash": "6cb55f1bd4b8461a3bb9b776e6ec11ce6bc8b26b89ed7a9e297aea6f67626509",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M3-T6": {
+      "contractHash": "443801f1a64fe77998fdbc834719725d93955d9340692233884d110cf30a4932",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M3-T8": {
+      "contractHash": "fa1f981bca0b1cc0bab03fb648d2749398ff8a1a21c734f004589e9c57eab659",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M3-T9": {
+      "contractHash": "fd913ba0bbcecce1fff146c916d0b59b6399c7ea365fcbb7e602e383b6547d06",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M6-T2": {
+      "contractHash": "db11be7a0a87372d71387cfd7fb2de7451b9053363be8faefa920dab1924dd8a",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M6-T3": {
+      "contractHash": "2cd011d9059f41c6f6272dc1ee7b4d25038be7209a798c908dd45fa1f23e968d",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M6-T4": {
+      "contractHash": "c0badb29a06be89ad4252f957018945e1f95670ec0f93e8e04e24afaba2d053b",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M6-T5": {
+      "contractHash": "59cfec6040223ab07e9d37e8840f84c961f29bb8fa38641076503a3705cf00d4",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M6-T6": {
+      "contractHash": "8d450411d1e7d60896dbe7105cc52a15d734a24956d209504050128c6be7f9e7",
+      "evidence": [
+        "任务定义复核。M6-T1 和 M5-T4 笔记均为 done，stats-query.ts:291 与 analytics/settings.ts:196 提供查询及读时重算信息。13 节 E-55/58/61/63/66、17 节分析与看板测试、19 节 M6-T6 的产出均以实际 HTTP 入口验收。",
+        "10 节 stats 接口与共享 src/lib/contracts/ops.ts:105 对照：统计必须承载配对成功率、coverage 与适用的时区重算信息。2f236cda 的 stats-service.ts:345 仅发送 sources；本记录核对任务契约，代码差异交 REVIEW-ROUND 1 处理。",
+        "第 17 节要求真实浏览器与数据库；PR #573 新增 e2e/stats-core-api.spec.ts:75，运行 45777962247 实际收集 256/225，ci.yml:894 原断言 255/224。仅补共享 DTO 与 .github/workflows/ci.yml 两条 supportPaths，保留第 19 节和所有边界条款。",
+        "比较补丁基线的每一任务：M6-T6 仅 definition 和 effectivePaths 两项变化，21 个 todo 消费者的上下文字段逐一相等，前置哈希传播；已落地复验清单为空。开放 PR #563 与 CI 文件重叠，修改时须保留双方既有门禁。"
+      ],
+      "verdict": "pass"
+    },
+    "M6-T7": {
+      "contractHash": "cb970075ff239d84cb0ed110660900bafcaf9e3c2540deb4669f7db7ba6d2237",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T10": {
+      "contractHash": "e87aa5b0e16f1edb000fb70a206f250be6e9d4db541e84fc1f21ab183cbd078f",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T2": {
+      "contractHash": "682250ed29087daa2a8aa5eafa847188517c38fce292ce9a1d98b14e7c1488d0",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T3": {
+      "contractHash": "831143a79a9b383772debaf660dbcf9dd8c7dc7550564aafa47f79d556456946",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T5": {
+      "contractHash": "8afb5eae1db6532552545693daf5a93bdb19908f96850421550540a80811f1e0",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T6": {
+      "contractHash": "f3afa25a9cad902e5226cd1679cd973361b1815c7549d1a821a9865058fe897b",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T7": {
+      "contractHash": "243a8853e0ae753ed35c7076f92fccfc126fd8859533307c7b34661b94e55c17",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T8": {
+      "contractHash": "08bb79e150a49d4468781274e32d74a86db87d71cc7e41d5f8dfe65b75b55414",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T9": {
+      "contractHash": "bb124338ae625e59a6c40f175cd03ccb4f93c30897e3331d99940824c695114b",
+      "evidence": [],
+      "verdict": "pending"
+    }
+  }
+}
