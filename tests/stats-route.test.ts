@@ -442,6 +442,11 @@ describe('M6-T6 GET /api/admin/stats pure rules & HTTP contract', () => {
       workflow.includes('stats-core-api.txt'),
       'CI must verify named execution evidence for stats-core-api.spec.ts',
     );
+    const runner = e2ePartition.split('segment=${1:?SEGMENT_REQUIRED}')[1];
+    assert.match(runner, /mapfile -t main_files[^\n]*stats-core-api/);
+    assert.match(runner, /main-stats\) args=\(e2e\/stats-core-api\.spec\.ts\)/);
+    assert.match(workflow, /run: bash "\$A3_DRIVER_DIR\/run\.sh" main-stats/);
+    assert.ok(workflow.includes('e2e-evidence/main-stats/stats-core-api.txt'));
   });
 });
 
