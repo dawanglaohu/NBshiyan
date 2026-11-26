@@ -969,12 +969,12 @@
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
     "contractHash": "928de3a69f43863bab8639bd8b6f8795c0ce8c72ba7e1bb967798794fbac43e7",
     "evidence": [
-      "契约复核仅确认实施与验收范围。19 节 M4-T7 对照 13 节 E-85/E-86/E-88、17 节隔离库策略与 18 节每日作业，仍要求单独授权、默认 dry-run、删除为零与业务行哈希不变。真实清理属于另一任务。",
-      "前置 M4-T3、M5-T1、M5-T8 已提供运营读游标、作业租约与固定调度。deploy/cron.nbshiyan:25、src/app/api/admin/cron/operations/route.ts:15、src/lib/server/composition.ts:283、src/lib/server/chat/retention-candidates.ts:101 可定位实际调用链。src/lib/contracts/ops.ts:127 提供默认 dryRun，src/lib/server/db.ts:3 复用 Prisma，cron 只校验 Bearer。",
-      "补丁只将 .github/workflows/ci.yml 加入 M4-T7 supportPaths。M4-T13、M7-T4、M7-T8、M7-T9、M7-T10 的 context 和 effectivePaths 在补丁前后一致，仅随上游更新哈希。均未落地，revalidation.json 为空。PR #563 也涉及该 workflow，修改应限定到既有 PG17 聊天回归步骤。",
-      "审查工作树独立 PostgreSQL 17.12 实跑 tests/chat-retention-dryrun.http.test.ts：15 pass，0 fail/skip/cancelled。用例覆盖默认与拒绝操作、过期等号、cookie 与内容期限、咨询活动、无关表哈希及并发。现有 tests/chat-retention-dryrun.http.test.ts:613 手工构造 handler，.github/workflows/ci.yml:485、545、591 的 PG17 清单均缺本文件。PR 仍待补齐生产 POST 回归及托管数据库门禁。"
+      "PR #572 在 df39ca60b7b8c5f1787ae007d1e7d56d352e6cdb 完成 R1、R2。相对第 1 轮审查提交 4adf87c1 只修改 PG17 workflow 和聊天保留回归文件，原契约、候选查询与生产授权边界一致。",
+      "R1：.github/workflows/ci.yml:470 配置专用回环地址与必需标志，:490、:551、:598 对应报告、执行与校验清单，:655 核对 16 条全过和真实 DB 套件。托管作业 https://github.com/dawanglaohu/NBshiyan/actions/runs/45730107654/job/139609710223 的文件实录为 pass=16 fail=0 skip=0 todo=0 cancelled=0。独立 PG17.12 复跑同样 16/16。保留通用 DATABASE_URL 并移除专用 URL 时，测试以退出码 1 拒绝启动。",
+      "R2：tests/chat-retention-dryrun.http.test.ts:485 在隔离 schema 就绪后导入实际 POST，:594 走默认生产组合点。缺或错 Bearer 返回 401，无 JobState 且哈希不变；默认 SUCCEEDED 与未授权 FAILED/forbidden 各计 2 个候选和 0 个删除，前次成功时间及业务行哈希保持。:691 验证 cookie 与 90 天内容独立；:1020 在相同到期时刻和其后 1ms 验证候选、单开和双开的拒绝路径。实际生产 SQL、cron 与 E-85/E-86/E-88 的第一轮证据在 patches/m4t7-pg17-file-gate.evidence.json。",
+      "前置 M4-T3/M5-T1/M5-T8 已提供运营读状态、持久租约与固定调度。deploy/cron.nbshiyan:25、src/app/api/admin/cron/operations/route.ts:15、src/lib/server/composition.ts:283、src/lib/server/chat/retention-candidates.ts:101 是每日只读统计的生产链。复核 13 节 E-85/E-86/E-88、17 节隔离实测、19 节 M4-T7 范围及 10 节 JobResultDTO，清理授权及真实删除均未扩大。"
     ],
-    "reviewed": "2026-11-25T17:49:06.978126+00:00",
+    "reviewed": "2026-11-26T01:23:14.415273+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
