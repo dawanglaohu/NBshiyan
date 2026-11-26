@@ -2,6 +2,9 @@ import { randomUUID } from 'node:crypto';
 import { PrismaClient } from '@prisma/client';
 import { E2E_EDGE_AUTH_SECRET } from '../scripts/e2e-edge-auth';
 import { createChatConversation, validateVisitorComposer } from '../src/lib/client/chat';
+import { AdminChatSyncDTOSchema, ChatSyncDTOSchema, MessageReceivedDTOSchema } from '../src/lib/contracts/chat';
+import { BASE } from './base-url';
+import { loadRunAuth } from './run-auth';
 import { consent, expect, test } from './fixtures';
 
 const CHAT_COMPOSER_EDGE_IPS: Readonly<Record<string, string>> = {
@@ -51,6 +54,7 @@ test.describe('M4-T5 visitor first-party chat composer & UX boundaries', () => {
 
   test('home -> contact -> lazy session -> send/append/refresh with real DB receipt and no fake online indicators', async ({
     page,
+    playwright,
     external,
   }) => {
     const marker = randomUUID().slice(0, 8);
@@ -60,12 +64,13 @@ test.describe('M4-T5 visitor first-party chat composer & UX boundaries', () => {
     page.on('request', (req) => {
       const url = req.url();
       if (url.includes('/api/chat/session')) sessionRequests.push(req.method());
-      if (url.includes('/api/analytics/')) analyticsRequests.push(url);
+      if (url.includes('/api/analytics/') && new URL(url).pathname !== '/api/analytics/consent') analyticsRequests.push(url);
     });
 
     await page.goto('/en');
-    await consent(page, 'none');
-    await page.goto('/en');
+    const banner = page.getByRole('region', { name: 'Cookie consent' });
+    await banner.getByRole('button', { name: 'Reject all', exact: true }).click();
+    await expect(banner).toBeHidden();
 
     // Home visible entry control -> /en/contact
     const homeQuote = page.locator('.hero a[href*="/contact"]').first();
@@ -156,28 +161,28 @@ test.describe('M4-T5 visitor first-party chat composer & UX boundaries', () => {
     await expect(items.nth(1)).toHaveAttribute('data-seq', '2');
     await expect(items.nth(1)).toContainText(body2);
 
-    // Insert real operator reply in DB and pull via explicit Refresh messages
     const opText = `Operator follow-up [${marker}-3]`;
-    const now = new Date();
-    await prisma().$transaction([
-      prisma().chatMessage.create({
-        data: {
-          id: `opmsg_${marker}`,
-          conversationId: convId1,
-          seq: 3,
-          sender: 'OPERATOR',
-          authorId: null,
-          clientMessageId: randomUUID(),
-          payloadHash: randomUUID().replace(/-/g, ''),
-          bodyText: opText,
-          createdAt: now,
-        },
-      }),
-      prisma().chatConversation.update({
-        where: { id: convId1 },
-        data: { lastSeq: 3, updatedAt: now, lastActivityAt: now },
-      }),
-    ]);
+    const storageState = await loadRunAuth('sales', BASE, playwright.request);
+    const operator = await playwright.request.newContext({ baseURL: BASE, storageState });
+    const detailPath = `/api/admin/chat/conversations/${convId1}`;
+    let operatorMessageId: string;
+    try {
+      const incoming = await operator.get(detailPath);
+      expect(incoming.status()).toBe(200);
+      const detail = AdminChatSyncDTOSchema.parse(await incoming.json());
+      expect(detail.messages.map(m => [m.id, m.bodyText])).toEqual([[msg1Id, body1], [msg2Id, body2]]);
+
+      const reply = await operator.post(`${detailPath}/messages`, {
+        headers: { Origin: BASE },
+        data: { clientMessageId: randomUUID(), bodyText: opText },
+      });
+      expect(reply.ok()).toBe(true);
+      const saved = MessageReceivedDTOSchema.parse(await reply.json());
+      expect(saved.message).toMatchObject({ sender: 'OPERATOR', bodyText: opText, seq: 3 });
+      operatorMessageId = saved.message.id;
+    } finally {
+      await operator.dispose();
+    }
 
     const syncResPromise = page.waitForResponse(
       (res) =>
@@ -187,6 +192,10 @@ test.describe('M4-T5 visitor first-party chat composer & UX boundaries', () => {
     await page.getByTestId('chat-refresh').click();
     const syncRes = await syncResPromise;
     expect(syncRes.status()).toBe(200);
+    const sync = ChatSyncDTOSchema.parse(await syncRes.json());
+    expect(sync.messages.map(m => m.id)).toEqual([operatorMessageId]);
+    expect(sync.authors).toEqual([{ messageId: operatorMessageId, authorRef: expect.any(String) }]);
+    expect((await page.context().cookies()).some(cookie => cookie.name === 'pj_analytics')).toBe(false);
     await expect(items).toHaveCount(3);
     await expect(items.nth(2)).toHaveAttribute('data-sender', 'OPERATOR');
     await expect(items.nth(2)).toHaveAttribute('data-seq', '3');
