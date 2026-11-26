@@ -330,6 +330,7 @@ describe('M4-T7 隔离 PostgreSQL 真实接线、保留期限与拒绝删除验�
   let hashChatToken: (token: string) => string;
 
   let auth: typeof import('../src/app/api/auth/[...nextauth]/route');
+  let operationsPostRoute: typeof import('../src/app/api/admin/cron/operations/route').POST;
   let chatSessionRoute: typeof import('../src/app/api/chat/session/route').POST;
   let chatCreateRoute: typeof import('../src/app/api/chat/conversations/route').POST;
   let visitorSyncRoute: typeof import('../src/app/api/chat/conversations/[id]/route').GET;
@@ -481,6 +482,7 @@ describe('M4-T7 隔离 PostgreSQL 真实接线、保留期限与拒绝删除验�
     setRateLimitStore(new MemoryStore());
 
     auth = await import('../src/app/api/auth/[...nextauth]/route');
+    ({ POST: operationsPostRoute } = await import('../src/app/api/admin/cron/operations/route'));
     ({ POST: chatSessionRoute } = await import('../src/app/api/chat/session/route'));
     ({ POST: chatCreateRoute } = await import('../src/app/api/chat/conversations/route'));
     ({ GET: visitorSyncRoute } = await import('../src/app/api/chat/conversations/[id]/route'));
@@ -589,17 +591,19 @@ describe('M4-T7 隔离 PostgreSQL 真实接线、保留期限与拒绝删除验�
     return { sessionId, token, conversationId, messageId };
   }
 
-  test('1) E-88 接线闭环：operations→registry→候选查询，默认 dry-run、未授权/旧开关拒绝删除、前后行 hash 不变且无 PII 外泄', async () => {
+  test('1) E-88 真实 route.POST + 默认生产组合点：缺 Bearer 401、默认 dry-run、未授权 dryRun:false 拒绝且哈希不变', async () => {
+    const wallNow = new Date();
     const secretBody = 'TOP-SECRET-CUSTOMER-CONTENT-991';
     const secretEmail = 'confidential-buyer@example.test';
-    await seedSessionWithConversation({ retainUntil: NOW, bodyText: secretBody, email: secretEmail });
-    await seedSessionWithConversation({ retainUntil: new Date(NOW.getTime() - 1_000), bodyText: `${secretBody}-2`, email: `2-${secretEmail}` });
-    await seedSessionWithConversation({ retainUntil: new Date(NOW.getTime() + 1), bodyText: `${secretBody}-active`, email: `active-${secretEmail}` });
+    await seedSessionWithConversation({ retainUntil: new Date(wallNow.getTime() - 60_000), bodyText: secretBody, email: secretEmail });
+    await seedSessionWithConversation({ retainUntil: new Date(wallNow.getTime() - 5_000), bodyText: `${secretBody}-2`, email: `2-${secretEmail}` });
+    await seedSessionWithConversation({ retainUntil: new Date(wallNow.getTime() + 10 * DAY_MS), bodyText: `${secretBody}-active`, email: `active-${secretEmail}` });
 
     const beforeHashes = await tableContentHashes();
 
-    const { createJobServices } = await import('../src/lib/server/composition');
+    const prevCronSecret = process.env.CRON_SECRET;
     const prevMode = process.env.RETENTION_CLEANUP_MODE;
+    process.env.CRON_SECRET = SECRET;
     process.env.RETENTION_CLEANUP_MODE = 'delete';
 
     const logs: string[] = [];
@@ -609,17 +613,34 @@ describe('M4-T7 隔离 PostgreSQL 真实接线、保留期限与拒绝删除验�
     console.warn = (...args: unknown[]) => { logs.push(args.map((a) => (typeof a === 'string' ? a : JSON.stringify(a))).join(' ')); };
 
     try {
-      const services = createJobServices({ db, clock: () => new Date(NOW) });
-      const handler = createOperationsHandler({ services: services.jobs, clock: () => new Date(NOW), secret: SECRET });
-      const postOps = (body: unknown) =>
-        handler(new Request(`${origin}/api/admin/cron/operations`, {
+      // 缺 Bearer / 错 Bearer 经真实 operations route.POST 拒绝 401，不触发默认组合点也不写库
+      const noBearerRes = await operationsPostRoute(new Request(`${origin}/api/admin/cron/operations`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ jobKey: 'chat-retention' }),
+      }));
+      assert.equal(noBearerRes.status, 401);
+      assert.equal(noBearerRes.headers.get('cache-control'), 'private, no-store');
+      assert.deepEqual(await noBearerRes.json(), { error: 'unauthorized' });
+
+      const wrongBearerRes = await operationsPostRoute(new Request(`${origin}/api/admin/cron/operations`, {
+        method: 'POST',
+        headers: { authorization: `Bearer ${SECRET}-wrong`, 'content-type': 'application/json' },
+        body: JSON.stringify({ jobKey: 'chat-retention' }),
+      }));
+      assert.equal(wrongBearerRes.status, 401);
+      assert.equal(await db.jobState.findUnique({ where: { key: 'chat-retention' } }), null);
+      assert.deepEqual(await tableContentHashes(), beforeHashes);
+
+      const postViaRealRoute = (body: unknown) =>
+        operationsPostRoute(new Request(`${origin}/api/admin/cron/operations`, {
           method: 'POST',
           headers: { authorization: `Bearer ${SECRET}`, 'content-type': 'application/json' },
           body: JSON.stringify(body),
         }));
 
-      // 默认 dryRun：SUCCEEDED、candidateCount=2、deletedCount=0
-      const dryRes = await postOps({ jobKey: 'chat-retention' });
+      // 默认 dryRun 经真实 POST 与默认生产组合点：SUCCEEDED、candidateCount=2、deletedCount=0
+      const dryRes = await postViaRealRoute({ jobKey: 'chat-retention' });
       assert.equal(dryRes.status, 200);
       const dryBody = JobResultDTOSchema.parse(await dryRes.json());
       assert.equal(dryBody.jobKey, 'chat-retention');
@@ -630,12 +651,13 @@ describe('M4-T7 隔离 PostgreSQL 真实接线、保留期限与拒绝删除验�
       assert.equal(afterDryState.lastStatus, 'SUCCEEDED');
       assert.equal(afterDryState.lastErrorCode, null);
       assert.ok(afterDryState.lastSucceededAt !== null);
+      assert.deepEqual((afterDryState.summary as { counts?: unknown }).counts, { candidateCount: 2, deletedCount: 0 });
       assert.equal((afterDryState.summary as { versions?: { policyVersion?: number } }).versions?.policyVersion, CHAT_RETENTION_POLICY_VERSION);
       const drySucceededAt = afterDryState.lastSucceededAt!.toISOString();
       const afterFirstRunSiteSettings = await db.siteSetting.findMany({ orderBy: { key: 'asc' } });
 
-      // 即使容器设了 RETENTION_CLEANUP_MODE=delete，显式 dryRun:false 仍必须拒绝（FAILED/forbidden）且 deletedCount=0
-      const deleteRes = await postOps({ jobKey: 'chat-retention', dryRun: false });
+      // 即使容器设了 RETENTION_CLEANUP_MODE=delete，显式 dryRun:false 经真实 POST 仍拒绝（FAILED/forbidden）且 deletedCount=0
+      const deleteRes = await postViaRealRoute({ jobKey: 'chat-retention', dryRun: false });
       assert.equal(deleteRes.status, 200);
       const deleteBody = JobResultDTOSchema.parse(await deleteRes.json());
       assert.equal(deleteBody.jobKey, 'chat-retention');
@@ -646,34 +668,21 @@ describe('M4-T7 隔离 PostgreSQL 真实接线、保留期限与拒绝删除验�
       assert.equal(afterRejectState.lastStatus, 'FAILED');
       assert.equal(afterRejectState.lastErrorCode, 'forbidden');
       assert.equal(afterRejectState.lastSucceededAt?.toISOString(), drySucceededAt, '拒绝轮不得覆盖上一次成功时间');
-
-      // 隔离测试仅注入 deleteAuthorized=true 而策略未开，仍拒绝
-      const partialServices = createJobServices({
-        db,
-        clock: () => new Date(NOW),
-        chat: { retentionDeleteAuthorized: true },
-      });
-      const partialHandler = createOperationsHandler({ services: partialServices.jobs, clock: () => new Date(NOW), secret: SECRET });
-      const partialRes = await partialHandler(new Request(`${origin}/api/admin/cron/operations`, {
-        method: 'POST',
-        headers: { authorization: `Bearer ${SECRET}`, 'content-type': 'application/json' },
-        body: JSON.stringify({ jobKey: 'chat-retention', dryRun: false }),
-      }));
-      const partialBody = JobResultDTOSchema.parse(await partialRes.json());
-      assert.equal(partialBody.status, 'FAILED');
-      assert.equal(partialBody.counts.deletedCount, 0);
+      assert.deepEqual((afterRejectState.summary as { counts?: unknown }).counts, { candidateCount: 2, deletedCount: 0 });
 
       // 隔离库前后所有业务行内容哈希完全一致（且首次运行后含 analytics.settings 在内的 SiteSetting 也不再变化）
       assert.deepEqual(await tableContentHashes(), beforeHashes);
       assert.deepEqual(await db.siteSetting.findMany({ orderBy: { key: 'asc' } }), afterFirstRunSiteSettings);
 
       // 日志、HTTP 响应与 JobState 摘要均不含正文或 email
-      const combinedArtifacts = JSON.stringify({ dryBody, deleteBody, partialBody, summary: afterRejectState.summary, logs });
+      const combinedArtifacts = JSON.stringify({ dryBody, deleteBody, summary: afterRejectState.summary, logs });
       assert.equal(combinedArtifacts.includes(secretBody), false, '正文不得泄露进返回或日志');
       assert.equal(combinedArtifacts.includes(secretEmail), false, 'email 不得泄露进返回或日志');
     } finally {
       console.info = origInfo;
       console.warn = origWarn;
+      if (prevCronSecret === undefined) delete process.env.CRON_SECRET;
+      else process.env.CRON_SECRET = prevCronSecret;
       if (prevMode === undefined) delete process.env.RETENTION_CLEANUP_MODE;
       else process.env.RETENTION_CLEANUP_MODE = prevMode;
     }
@@ -1006,5 +1015,57 @@ describe('M4-T7 隔离 PostgreSQL 真实接线、保留期限与拒绝删除验�
     } finally {
       await owner.$executeRawUnsafe(`DROP SCHEMA IF EXISTS "${sentinel}" CASCADE`);
     }
+  });
+
+  test('7) 隔离库注入组合对照：仅授权、仅开策略或双开阶段下均拒绝删除，deletedCount=0 且前后哈希不变', async () => {
+    await seedSessionWithConversation({ retainUntil: NOW });
+    await seedSessionWithConversation({ retainUntil: new Date(NOW.getTime() + 1) });
+    const beforeHashes = await tableContentHashes();
+
+    const { createJobServices } = await import('../src/lib/server/composition');
+    const postInjected = async (chatOpts?: {
+      retentionDeleteAuthorized?: boolean;
+      retentionPolicy?: typeof CHAT_RETENTION_POLICY;
+    }, body: Record<string, unknown> = { jobKey: 'chat-retention', dryRun: false }) => {
+      const services = createJobServices({
+        db,
+        clock: () => new Date(NOW),
+        ...(chatOpts ? { chat: chatOpts } : {}),
+      });
+      const handler = createOperationsHandler({ services: services.jobs, clock: () => new Date(NOW), secret: SECRET });
+      const res = await handler(new Request(`${origin}/api/admin/cron/operations`, {
+        method: 'POST',
+        headers: { authorization: `Bearer ${SECRET}`, 'content-type': 'application/json' },
+        body: JSON.stringify(body),
+      }));
+      assert.equal(res.status, 200);
+      return JobResultDTOSchema.parse(await res.json());
+    };
+
+    const baseDry = await postInjected(undefined, { jobKey: 'chat-retention' });
+    assert.equal(baseDry.status, 'SUCCEEDED');
+    assert.deepEqual(baseDry.counts, { candidateCount: 1, deletedCount: 0 });
+    const dryState = await db.jobState.findUniqueOrThrow({ where: { key: 'chat-retention' } });
+    const drySucceededAt = dryState.lastSucceededAt?.toISOString();
+    assert.ok(drySucceededAt);
+    const afterDrySettings = await db.siteSetting.findMany({ orderBy: { key: 'asc' } });
+
+    const cases = [
+      { retentionDeleteAuthorized: true },
+      { retentionPolicy: { ...CHAT_RETENTION_POLICY, cleanupEnabled: true } },
+      { retentionDeleteAuthorized: true, retentionPolicy: { ...CHAT_RETENTION_POLICY, cleanupEnabled: true } },
+    ];
+    for (const chatOpts of cases) {
+      const body = await postInjected(chatOpts);
+      assert.equal(body.status, 'FAILED');
+      assert.deepEqual(body.counts, { candidateCount: 1, deletedCount: 0 });
+      const state = await db.jobState.findUniqueOrThrow({ where: { key: 'chat-retention' } });
+      assert.equal(state.lastStatus, 'FAILED');
+      assert.equal(state.lastErrorCode, 'forbidden');
+      assert.equal(state.lastSucceededAt?.toISOString(), drySucceededAt);
+    }
+
+    assert.deepEqual(await tableContentHashes(), beforeHashes);
+    assert.deepEqual(await db.siteSetting.findMany({ orderBy: { key: 'asc' } }), afterDrySettings);
   });
 });
