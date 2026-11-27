@@ -2127,7 +2127,9 @@
         "src/lib/client/chat.ts",
         "messages/en.json",
         "messages/ru.json",
-        "e2e/chat-polling-network.spec.ts"
+        "e2e/chat-polling-network.spec.ts",
+        ".github/workflows/ci.yml",
+        "tests/chat-polling-retry.test.ts"
       ],
       "outputPaths": [
         "src/lib/client/chat-poller.ts",

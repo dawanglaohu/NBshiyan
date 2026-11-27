@@ -1,0 +1,60 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M2-T8": {
+      "contractHash": "dd6e5ef52e3675e1159c6a3b8da5cb95537fc6cc04b10fa3fce5c525d4099975",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M4-T13": {
+      "contractHash": "6b1d33737f3449d361167c0fe30e5cc5772c14a463359e60ec4e912a1016a309",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M4-T14": {
+      "contractHash": "b9a13b82208cc8a3941c27f6d7296dec44be01769945084e5c19785f11e25b87",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M4-T6": {
+      "contractHash": "e309eda40bb1e226add49b9ab6bee46f35689b5875cb39c0aadaf7464f93b578",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M4-T9": {
+      "contractHash": "ac87c8980c7d4518ccfba2b3dd2b4cffd7fa9b472442b8e06160497342506a72",
+      "evidence": [
+        "核对第19节、第13节边界 E-18/E-37/E-38/E-76/E-77/E-78/E-85 与第09/10节 seq 连续游标及 1/2/4/8/16/30s 退避协议：M4-T9 负责把 chat-poller.ts 与 chat-retry.ts 装配进 ChatContainer.tsx，不提前实现下游 M4-T6 的 /admin/chat 后台页，而是在公共轮询/重试模块支持 audience='admin'|'visitor' 鉴权终止分支，后台撤权通过真实 SALES 降级 EDITOR 后的 HTTP 拒绝与共用状态机验证。",
+        "对比补丁 m4-t9-ci-support.json 的 changes 差异：M4-T9 仅在 task-contracts.json 的 supportPaths 增补 .github/workflows/ci.yml 与 tests/chat-polling-retry.test.ts（effectivePaths 从 20 项增至 22 项），其余 9 项下游待办任务（M2-T8、M4-T6、M4-T13、M4-T14、M7-T1、M7-T4、M7-T8、M7-T9、M7-T10）仅因上游 M4-T9 契约哈希传播而重算，其自身职责、验收、边界与路径均未改变。",
+        "经 Jev 裁决（_run/judgments.jsonl 1085-1086 行：M4-T9:impl，pick=A high 0.92/0.94，spec_change=unsure），因 e2e/chat-polling-network.spec.ts 新增 5 条 E2E 用例（全集 256->261、主段 225->230、其余 224->229），同步更新 .github/workflows/ci.yml 第 869、904、906、920、941、1028、1032 行的 A3 收集分区断言计数，并将单元测试 tests/chat-polling-retry.test.ts 纳入有效范围。",
+        "已在本地真实构建与独立测试库 m4t9_e2e 实测通过：e2e/chat-polling-network.spec.ts（5/5 pass）与 4 个既有聊天 E2E 回归（共 23/23 pass），及 tests/chat-polling-retry.test.ts + chat-refresh-pagination.test.ts（7/7 pass）。"
+      ],
+      "verdict": "pass"
+    },
+    "M7-T1": {
+      "contractHash": "ec6d64b12bd2da7036fec9cc4c07aab8c210b7c5f068d82244a1458314fbd14d",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T10": {
+      "contractHash": "66b9de334fee6f25afc68171dbb7154015169366edc06500d03b16211e47cb30",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T4": {
+      "contractHash": "e22bf6b0e878a5d8747d47b54d236a3cbd5d9ce1abe0a9b99b2b335392ddd95b",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T8": {
+      "contractHash": "8295006427c539f0d072b4c2eb92efcc6139b9dde372614a6e099df815b55316",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T9": {
+      "contractHash": "28510df0f29bf2e3f0aa1edc4f95d05d7084815fe5a17ff8827545f56fc92132",
+      "evidence": [],
+      "verdict": "pending"
+    }
+  }
+}
