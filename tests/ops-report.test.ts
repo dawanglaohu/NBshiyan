@@ -1429,13 +1429,13 @@ describe('M6-T3 ops-report & ops-sample PostgreSQL + Auth.js integration', {
     }
   });
 
-  test('AC2/E-65/R5：由安装后的 deploy/cron.nbshiyan 真实 */15 计划驱动隔离 HTTP 服务，验证重启前后不同 OS 进程、触发时间、同库递增 JobState 与对应真实 stats GET', async () => {
+  test('AC2/E-65/R5：执行 */15 模板命令，验证隔离 HTTP 服务重启前后的 JobState 与 stats GET', async () => {
     const dataDir = makeTempDir('nbshiyan-m6t3-r5-');
     const uploadDir = path.join(dataDir, 'uploads');
     mkdirSync(uploadDir, { recursive: true });
     writeFileSync(path.join(uploadDir, 'file-1.bin'), Buffer.alloc(1024, 1));
 
-    // 安装 deploy/cron.nbshiyan（按安装约定替换 @DATA_DIR@），校验真实 */15 表达式并提取原样触发命令
+    // 按部署约定渲染模板，校验 */15 表达式并提取命令。用例直接执行该命令。
     const rawCron = readFileSync(path.resolve(process.cwd(), 'deploy/cron.nbshiyan'), 'utf8');
     const installedCronPath = path.join(dataDir, 'cron.nbshiyan');
     writeFileSync(installedCronPath, rawCron.replaceAll('@DATA_DIR@', dataDir));
@@ -1584,7 +1584,7 @@ describe('M6-T3 ops-report & ops-sample PostgreSQL + Auth.js integration', {
     let proc1: SpawnedServer | null = null;
     let proc2: SpawnedServer | null = null;
     try {
-      // 1) 重启前进程 1：安装后 cron 触发 → 同库 JobState=1 → 真实 HTTP GET /api/admin/stats
+      // 1) 重启前进程 1：执行模板命令 → 同库 JobState=1 → 真实 HTTP GET /api/admin/stats
       proc1 = await startIsolatedServer();
       const tick1 = await runInstalledCronTick(proc1.port);
       assert.equal(tick1.status, 200);
@@ -1631,7 +1631,7 @@ describe('M6-T3 ops-report & ops-sample PostgreSQL + Auth.js integration', {
       proc2 = await startIsolatedServer();
       assert.notEqual(proc2.pid, pid1, 'restarted isolated service must run in a distinct OS process');
 
-      // 3) 重启后进程 2：再次由安装后 cron 命令触发 → 同库 JobState 递增 → 真实 HTTP GET /api/admin/stats 反映新值与新时间
+      // 3) 重启后进程 2：再次执行模板命令 → 同库 JobState 递增 → 真实 HTTP GET /api/admin/stats 反映新值与新时间
       const tick2 = await runInstalledCronTick(proc2.port);
       assert.equal(tick2.status, 200);
       assert.ok(Date.parse(tick2.triggeredAt) > Date.parse(tick1.triggeredAt));
