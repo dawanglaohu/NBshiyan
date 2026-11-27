@@ -50,6 +50,9 @@ const ANALYTICS_AGGREGATE_OWNER = 'analytics-job-runtime';
 /** 聊天保留作业在固定 registry 里的 key。registry 不导入 M4 实现，只提供固定标识。 */
 export { CHAT_RETENTION_JOB_KEY } from '../config';
 
+/** 运维采样作业在固定 registry 里的 key。registry 不导入 M6 实现，只提供固定标识。 */
+export const OPS_SAMPLE_JOB_KEY = 'ops-sample' as const;
+
 export type JobRunContext = {
   now: Date;
   deadlineAt: Date;

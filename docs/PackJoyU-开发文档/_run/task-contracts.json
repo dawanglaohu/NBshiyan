@@ -3143,7 +3143,11 @@
         "container",
         "jobs"
       ],
-      "supportPaths": [],
+      "supportPaths": [
+        ".github/workflows/ci.yml",
+        "prisma/schema.prisma",
+        "tests/jobs-runtime.http.test.ts"
+      ],
       "outputPaths": [
         "src/lib/server/ops/ops-report.ts",
         "src/lib/server/ops/ops-sample.ts",

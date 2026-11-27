@@ -28,6 +28,12 @@ import { createSelfRebindService, type SelfRebindService } from './admin/self-re
 import { createChatReadRepo, type ChatReadDb, type ChatWriteDb } from './chat/repo';
 import { ANALYTICS_AGGREGATE_KEY, createAnalyticsAggregateJob, createJobRegistry, type JobRegistry } from './jobs/registry';
 import { createBusinessSourceReaders } from './ops/business-source';
+import {
+  createOpsReportService,
+  createOpsSourceReaders,
+  type OpsReportService,
+} from './ops/ops-report';
+import { createOpsSampleJob, type OpsSampleDeps } from './ops/ops-sample';
 import { createStatsService, type StatsService } from './ops/stats-service';
 import { createAnalyticsRetentionJob } from './analytics/retention';
 import { retentionCleanupMode } from './analytics/retention-plan';
@@ -127,8 +133,8 @@ export function createAdminServices(deps: {
       clock,
       analyticsConfigured: () => Boolean(analyticsConsentSecret()),
       aggregateJobRegistered: () => jobs.has(ANALYTICS_AGGREGATE_KEY),
-      // 询盘与聊天只读计数（M6-T2）；M6-T3/T5 的运维与可靠性来源在此继续合并。
-      nonCoreReaders: { ...createBusinessSourceReaders(db) },
+      // 询盘与聊天只读计数（M6-T2）+ 存储/备份运维快照（M6-T3）；M6-T5 可靠性来源在此继续合并。
+      nonCoreReaders: { ...createBusinessSourceReaders(db), ...createOpsSourceReaders(db) },
     }),
     selfRebind: createSelfRebindService({
       db,
@@ -241,6 +247,24 @@ export function createChatServices(deps: {
   };
 }
 
+export type OpsReportServices = HttpServices & {
+  opsReport: OpsReportService;
+};
+
+/** 内部存储/备份运维报告入口的组装点（M6-T3）。 */
+export function createOpsReportServices(deps: {
+  db?: PrismaClient;
+  config?: ServerConfig;
+  clock?: () => Date;
+  log?: (event: CounterLog) => void;
+} = {}): OpsReportServices {
+  const db = deps.db ?? (prisma as PrismaClient);
+  return {
+    ...createHttpServices({ db, config: deps.config, clock: deps.clock, log: deps.log }),
+    opsReport: createOpsReportService({ db }),
+  };
+}
+
 export type JobServices = {
   jobs: JobRegistry;
 };
@@ -275,6 +299,8 @@ export function createJobServices(deps: {
     auditInTx?: AuditInTxFn;
     limit?: number;
   };
+  /** 运维采样作业测试注入点；生产默认使用受控环境采样器，不伪造备份。 */
+  ops?: Pick<OpsSampleDeps, 'env' | 'sampleStorage' | 'sampleBackup'>;
 } = {}): JobServices {
   const db = deps.db ?? (prisma as PrismaClient);
   const deleteAuthorized = deps.deleteAuthorized ?? retentionCleanupMode() === 'delete';
@@ -300,6 +326,7 @@ export function createJobServices(deps: {
         deleteAuthorized: deps.chat?.retentionDeleteAuthorized ?? false,
         policy: deps.chat?.retentionPolicy ?? CHAT_RETENTION_POLICY,
       }),
+      createOpsSampleJob({ db, clock: deps.clock, ...deps.ops }),
     ]),
   };
 }

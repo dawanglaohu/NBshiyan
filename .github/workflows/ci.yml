@@ -416,6 +416,7 @@ jobs:
             -c 'CREATE DATABASE "b9_m4t12_20261109"' \
             -c 'CREATE DATABASE "m6t1_stats_test"' \
             -c 'CREATE DATABASE "m6t2_business_test"' \
+            -c 'CREATE DATABASE "m6t3_ops_report_test"' \
             -c 'CREATE DATABASE "m6t6_route_test"' \
             -c 'CREATE DATABASE "m4t11_operator_write_test"'
       - name: Analytics, chat, and other PostgreSQL regressions
@@ -446,6 +447,9 @@ jobs:
           # M6-T2 询盘与聊天只读业务计数真实 PG/Auth.js 回归：专用库 + require；缺库即失败，不回退通用 DATABASE_URL。
           M6T2_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/m6t2_business_test
           M6T2_REQUIRE_DATABASE: 'true'
+          # M6-T3 存储/备份运维报告与 ops-sample 真实 PG/Auth.js 回归：专用库 + require；缺库即失败，不回退通用 DATABASE_URL。
+          M6T3_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/m6t3_ops_report_test
+          M6T3_REQUIRE_DATABASE: 'true'
           B10_M4T4_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
           M3T2_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e?schema=m3t2
           M3T2_REQUIRE_DATABASE: 'true'
@@ -499,6 +503,7 @@ jobs:
               'tests/stats-query.db.test.ts',
               'tests/stats-route.test.ts',
               'tests/stats-business.test.ts',
+              'tests/ops-report.test.ts',
               'tests/chat-visitor-append.db.test.ts',
               'tests/analytics-daily.db.test.ts',
               'tests/analytics-day-state.db.test.ts',
@@ -562,6 +567,7 @@ jobs:
             tests/stats-query.db.test.ts \
             tests/stats-route.test.ts \
             tests/stats-business.test.ts \
+            tests/ops-report.test.ts \
             tests/chat-visitor-append.db.test.ts \
             tests/analytics-daily.db.test.ts \
             tests/analytics-day-state.db.test.ts \
@@ -611,6 +617,7 @@ jobs:
             'tests/stats-query.db.test.ts',
             'tests/stats-route.test.ts',
             'tests/stats-business.test.ts',
+            'tests/ops-report.test.ts',
             'tests/chat-visitor-append.db.test.ts',
               'tests/analytics-daily.db.test.ts',
               'tests/analytics-day-state.db.test.ts',
@@ -674,6 +681,9 @@ jobs:
           # M6-T2 精确分母 14（8 纯契约/边界单测 + 6 PG/Auth.js 真库用例）；防止真库 suite 级 skip 被 pass>=1 宽门吞掉。
           grep -Fqx $'tests/stats-business.test.ts\tpass=14\tfail=0\tskip=0\ttodo=0\tcancelled=0' /tmp/m3t2-file-gate.txt
           grep -Eq '^[[:space:]]*ok [0-9]+ - M6-T2 business counts over real HTTP routes \(PostgreSQL \+ Auth\.js\)$' /tmp/pg-regressions.tap
+          # M6-T3 精确分母 14（8 纯契约/脚本单测 + 6 PG/Auth.js 真库用例）；防止真库 suite 级 skip 被 pass>=1 宽门吞掉。
+          grep -Fqx $'tests/ops-report.test.ts\tpass=17\tfail=0\tskip=0\ttodo=0\tcancelled=0' /tmp/m3t2-file-gate.txt
+          grep -Eq '^[[:space:]]*ok [0-9]+ - M6-T3 ops-report & ops-sample PostgreSQL \+ Auth\.js integration$' /tmp/pg-regressions.tap
           grep -F 'M4-T4 notification PostgreSQL' /tmp/pg-regressions.tap
           # Named-case evidence. The 26 above is still owned by the exact file gate; this only
           # persists WHICH 26 ran. Nothing captured from the TAP is printed or written: every

@@ -1,0 +1,15 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M6-T3": {
+      "contractHash": "832188de158a12d800579012760f29eb372dfe14d4090faed44fd8f3d943aca9",
+      "evidence": [
+        "PR #577 实施提交 4f87c075。09、10、13、17、18、19 节及 M5-T1、M5-T8、M6-T6 的职责与上一轮已登记的契约一致。正式报告、固定作业、stats 均经原生产装配。PG17 工作流 46012115343 的专库步骤通过，tests/ops-report.test.ts 精确门禁为 17 pass / 0 fail / 0 skip。",
+        "R1：deploy/ops-report.py:456 比较完成时间并把验证绑定到同名归档。tests/ops-report.test.ts:1022 从正式脚本经 HTTP 到 ADMIN stats GET，新归档显示今日完成时间和 partial。R2：src/lib/server/ops/ops-sample.ts:253 在同一受预算事务内写快照并完成租约；tests/ops-report.test.ts:1229 验证接管后旧轮对空库或已存快照均无影响，正常代次、独立报告幂等与 409 通过。",
+        "R3：脚本 NoRedirectHandler 禁止携凭据重定向；tests/ops-report.test.ts:469 对 301/302/303/307/308 各仅一次请求，并验证原地址 5xx 有界重试。R4：deploy/deploy.sh:19 写入 compose.env；deploy/ops-report.py:155 解析所选应用文件。tests/ops-report.test.ts:565、1022 覆盖默认 .env 缺失时自定义应用文件及真实 POST。",
+        "R5：tests/ops-report.test.ts:1432 校验 */15 表达式并直接执行其模板命令，重启两个独立服务进程。独立 WSL cron 验证在 2026-11-27T13:45:09.712Z 与 14:00:03.967Z 自动触发；进程 43572 → 43348，同库 generation 1 → 2，均为 SUCCEEDED，两次 ADMIN stats GET 均为 200，storage 1024 → 3072 字节，backup 均为 not_connected。WSL 守护进程经隔离 docker exec 适配器执行真实模板命令，HTTP 服务挂载生产处理器。"
+      ],
+      "verdict": "pass"
+    }
+  }
+}

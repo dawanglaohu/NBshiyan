@@ -808,3 +808,28 @@ model AnalyticsDayChange {
   version   BigInt   @default(0)
   updatedAt DateTime @updatedAt
 }
+
+enum OpsSource {
+  STORAGE
+  BACKUP
+}
+
+enum OpsReportStatus {
+  OK
+  FAILED
+  NOT_CONNECTED
+}
+
+// 存储与备份运维来源的受控脱敏快照（M6-T3）。
+// 仅由 M6 交付的受鉴权 /api/internal/ops-report 或 ops-sample 写入；M3/M4/M5 不调用。
+// 不存文件路径、文件名、主机地址、dump 内容或密钥；按 source+measuredAt 单调 CAS 更新。
+model OpsSourceSnapshot {
+  source          OpsSource       @id
+  status          OpsReportStatus
+  measuredAt      DateTime
+  lastSucceededAt DateTime?
+  values          Json?
+  safeErrorCode   String?
+  payloadHash     String
+  updatedAt       DateTime        @updatedAt
+}
