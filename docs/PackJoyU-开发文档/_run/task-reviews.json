@@ -1176,13 +1176,13 @@
   },
   "M6-T3": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "d8de224731ca936c0a87eb5f873bf342ba34bef4b2103b61429cde6da7fd47f3",
+    "contractHash": "832188de158a12d800579012760f29eb372dfe14d4090faed44fd8f3d943aca9",
     "evidence": [
-      "固定对象：L bed4436b7bb26d67583373c24777eb2953f19cc3 / tree ace1e3fc305c882758b406ffb2cd00d5012aea0c / 唯一父 K 81cdb260224d359bb04bb6d35306c2e944a6958f；task/M5-T4 工作树 clean；本登记只写本补丁证据、task-reviews 与正常派生，不改 task-contracts.json、任务状态、源码/测试/CI/包锁/schema 与生成器。",
-      "本键为传播变更：契约对象在 K→L 逐字节相同（对象摘要 a34206606828d391 = a34206606828d391）；provides=1/requires=2/sections=12/supportPaths=0/outputPaths=7 全为原值；当前契约 hash d8de224731ca936c0a87eb5f873bf342ba34bef4b2103b61429cde6da7fd47f3 变化仅因依赖闭包含 M5-T4（经 M6-T6 → M5-T4），能力与接口未变。",
-      "范围限定：本记录只是 L 当前契约语义复核，不证明该任务已实现、不改变其 todo/status；M5-T4 亦不证明真实 PG 用例 15./16. 通过、不证明新 CI 转绿；未重验 P2/O1 或旧 43，未顺手清理既有 stale。"
+      "第19节 M6-T3 的两条验收与第13节 E-65/66/67、第10节报告接口、第17节真实来源/权限及第18节每15分钟计划一致。M6-T6 提供 stats-core，M5-T1/T8 提供租约与固定作业入口；registry、composition 与受控报告均有生产消费者。",
+      "本补丁仅登记 prisma/schema.prisma（09节快照实体）、tests/jobs-runtime.http.test.ts（既有注册断言）、.github/workflows/ci.yml（PG17 专库、三个文件清单及精确门禁）。第19节、10节 DTO 与统计授权矩阵均未变。PR #563 与本层共享 CI 文件，两个 PR 都以 main 为基，单独合并时核对共享门禁。",
+      "代码验收独立记录在 PR #577 的 REVIEW-ROUND 1。PG12 定向 39/39、lint 通过。报告来源选择、作业提交及重启调度等实现证据仍需返工；本记录只确认契约可执行。"
     ],
-    "reviewed": "2026-11-11T05:34:58.660575+00:00",
+    "reviewed": "2026-11-27T11:12:37.907236+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },

@@ -1,4 +1,4 @@
-import { createHash, randomUUID, timingSafeEqual } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { Prisma, type PrismaClient } from '@prisma/client';
 import { NextResponse } from 'next/server';
 import type { z } from 'zod';
@@ -16,6 +16,7 @@ import {
   type OpsSource,
   type StatsSource,
 } from '../../contracts/ops';
+import { constantTimeEqual } from '../../edge/client-ip';
 import { AppError, classifyThrown, type UnknownFailureLog } from '../http/errors';
 import type { ApiCounter, ApiRouteId } from '../http/metrics';
 import { readBody } from '../security';
@@ -75,20 +76,6 @@ function utcSql(date: Date): Prisma.Sql {
 
 function isoColumn(column: Prisma.Sql): Prisma.Sql {
   return Prisma.sql`to_char(${column}, ${ISO_FORMAT})`;
-}
-
-function hashesEqual(a: string, b: string): boolean {
-  const left = Buffer.from(a, 'utf8');
-  const right = Buffer.from(b, 'utf8');
-  return left.length === right.length && timingSafeEqual(left, right);
-}
-
-/** 常量时间比较 Bearer 密钥；未配置或缺失令牌一律拒绝。 */
-function bearerSecretMatches(given: string | null, expected: string | undefined): boolean {
-  if (!expected || !given) return false;
-  const left = Buffer.from(given, 'utf8');
-  const right = Buffer.from(expected, 'utf8');
-  return left.length === right.length && timingSafeEqual(left, right);
 }
 
 function normalizeIsoTimestamp(value: string): string {
@@ -245,7 +232,7 @@ export function createOpsReportService(deps: { db: OpsReportDb }): OpsReportServ
           return false;
         }
         if (incomingMs === existingMs) {
-          if (hashesEqual(payloadHash, existing.payloadHash)) {
+          if (constantTimeEqual(payloadHash, existing.payloadHash)) {
             return true;
           }
           throw new AppError('idempotency_conflict', {
@@ -479,7 +466,7 @@ export async function handlePostOpsReport(
   try {
     const auth = request.headers.get('authorization');
     const token = auth?.startsWith('Bearer ') ? auth.slice(7) : null;
-    if (!bearerSecretMatches(token, opts.secret)) {
+    if (!opts.secret || !token || !constantTimeEqual(token, opts.secret)) {
       throw new AppError('unauthorized');
     }
 
