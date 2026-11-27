@@ -331,16 +331,10 @@ export default function ChatContainer({
       signal: controller.signal,
     });
 
-    if (!mountedRef.current || controller.signal.aborted || attemptEpoch !== epochRef.current) {
-      if (readSyncInFlightRef.current === targetReadSeq) {
-        readSyncInFlightRef.current = 0;
-      }
-      return;
-    }
-
-    if (readSyncInFlightRef.current === targetReadSeq) {
-      readSyncInFlightRef.current = 0;
-    }
+    if (readSyncAbortRef.current !== controller) return;
+    readSyncAbortRef.current = null;
+    readSyncInFlightRef.current = 0;
+    if (!mountedRef.current || controller.signal.aborted || attemptEpoch !== epochRef.current) return;
 
     const latestSnap = threadRef.current;
     if (!latestSnap.conversation || latestSnap.conversation.id !== targetConversationId) return;
@@ -587,9 +581,13 @@ export default function ChatContainer({
   useEffect(() => {
     if (typeof document === 'undefined') return;
     const onVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        scheduleVisibleReadSync();
+      if (document.visibilityState === 'hidden') {
+        readSyncAbortRef.current?.abort();
+        readSyncAbortRef.current = null;
+        readSyncInFlightRef.current = 0;
+        return;
       }
+      scheduleVisibleReadSync();
     };
     document.addEventListener('visibilitychange', onVisibilityChange);
     return () => document.removeEventListener('visibilitychange', onVisibilityChange);

@@ -198,6 +198,17 @@ test.describe('M4-T9 chat polling, offline retry, and revocation stop', () => {
       }),
     ]);
 
+    const readUrl = `**/api/chat/conversations/${conversationId}/read`;
+    const readAttempts: number[] = [];
+    const firstReadFailed = page.waitForEvent('requestfailed', {
+      predicate: req => req.url().endsWith(`/conversations/${conversationId}/read`),
+    });
+    await page.route(readUrl, async route => {
+      readAttempts.push(route.request().postDataJSON().lastReadSeq);
+      if (readAttempts.length === 1) await route.abort('failed');
+      else await route.continue();
+    });
+
     await page.clock.runFor(2_500);
     expect(syncGetTimes).toHaveLength(0);
 
@@ -206,7 +217,9 @@ test.describe('M4-T9 chat polling, offline retry, and revocation stop', () => {
     await expect(page.getByTestId('chat-message-item').nth(1)).toContainText(`Auto-polled reply [${marker}]`);
     expect(syncGetTimes.map((x) => x.afterSeq)).toEqual(['1']);
 
-    // Hide tab -> zero polling even across 20s; operator inserts seq=3 while hidden
+    await page.clock.runFor(32);
+    await firstReadFailed;
+    // The failed read is in transport backoff when the tab becomes hidden.
     await page.evaluate(() => {
       (document as unknown as { __testVisibility: 'visible' | 'hidden' }).__testVisibility = 'hidden';
       document.dispatchEvent(new Event('visibilitychange'));
@@ -234,6 +247,9 @@ test.describe('M4-T9 chat polling, offline retry, and revocation stop', () => {
 
     await page.clock.runFor(20_000);
     expect(syncGetTimes).toHaveLength(1);
+    expect(readAttempts).toEqual([2]);
+    const hidden = await prisma().chatConversation.findUniqueOrThrow({ where: { id: conversationId } });
+    expect(hidden.visitorReadSeq).toBe(1);
 
     // Restore visibility -> immediate catch-up from confirmed afterSeq=2
     await page.evaluate(() => {
@@ -244,6 +260,12 @@ test.describe('M4-T9 chat polling, offline retry, and revocation stop', () => {
     await expect(page.getByTestId('chat-message-item')).toHaveCount(3);
     await expect(page.getByTestId('chat-message-item').nth(2)).toContainText(`Hidden-gap reply [${marker}]`);
     expect(syncGetTimes.map((x) => x.afterSeq)).toEqual(['1', '2']);
+    await page.clock.runFor(32);
+    await expect.poll(async () => {
+      const restored = await prisma().chatConversation.findUniqueOrThrow({ where: { id: conversationId } });
+      return restored.visitorReadSeq;
+    }).toBeGreaterThanOrEqual(2);
+    await page.unroute(readUrl);
 
     // Test single in-flight while slow poll hangs + bounded 1/2/4/8/16/30s failure backoff
     let activeSyncGets = 0;
@@ -754,6 +776,7 @@ test.describe('M4-T9 chat polling, offline retry, and revocation stop', () => {
 
     // Let real server commit the first conversation, then drop the HTTP response before client sees it
     const createPayloads: string[] = [];
+    let savedFirstMessageId: string | undefined;
     let dropCreateResponse = true;
     await page.route('**/api/chat/conversations', async (route) => {
       if (route.request().method() !== 'POST') {
@@ -765,6 +788,8 @@ test.describe('M4-T9 chat polling, offline retry, and revocation stop', () => {
         if (createPayloads.length === 1) {
           const saved = await route.fetch();
           expect([200, 201]).toContain(saved.status());
+          savedFirstMessageId = ConversationReceivedDTOSchema.parse(await saved.json()).message.id;
+          await page.context().setOffline(true);
         }
         await route.abort('failed');
         return;
@@ -785,7 +810,9 @@ test.describe('M4-T9 chat polling, offline retry, and revocation stop', () => {
     await expect(msgInput).not.toBeEditable();
 
     // Retry via dedicated chat-retry button -> exact same payload returns original receipt
+    await expect(emailInput).not.toBeEditable();
     dropCreateResponse = false;
+    await page.context().setOffline(false);
     const retryBtn = page.getByTestId('chat-retry');
     await expect(retryBtn).toBeVisible();
     await retryBtn.click();
@@ -795,6 +822,7 @@ test.describe('M4-T9 chat polling, offline retry, and revocation stop', () => {
     await expect(receipt).toHaveAttribute('data-seq', '1');
     const convId = (await receipt.getAttribute('data-conversation-id'))!;
     const msg1Id = (await receipt.getAttribute('data-message-id'))!;
+    expect(msg1Id).toBe(savedFirstMessageId);
     expect(new Set(createPayloads).size).toBe(1);
     await page.unroute('**/api/chat/conversations');
 

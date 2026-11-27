@@ -1,0 +1,16 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M4-T9": {
+      "contractHash": "baf92ef761f4e88beebe1292ced924c7929202402a68ef9711f27c803244de77",
+      "verdict": "pass",
+      "evidence": [
+        "第 2 轮仅复核 PR #575 的 R1、R2 与随返工更新的两项 CI 夹具。前置任务与数据契约均沿用第 1 轮证据。原分支 cf1d689f 的四项 GitHub 作业均成功，本地轮询、重试和分页单测 8 项通过、零跳过。",
+        "R1：ChatContainer 在发送前判断离线，未发包时 attempts=0，可编辑草稿仅在当前标签页内存；在线发起后丢失回执且随后掉线时，chat-retry 保留原载荷。cf1d689f 的真实服务 Playwright 专项验证原 UUID 重试、duplicate 回执、运营读取及通知出箱；本轮增强首消息在途断网场景的邮箱只读及原服务端消息 ID 断言。",
+        "R2：隐藏使旧轮询代次失效并取消正在拉取的分页。fetchChatConversationUpdates 在请求前后检查中止信号，恢复后从连续游标补到 seq=55。GitHub 作业 140340188971 的 5 条聊天专项均通过。独立 Chromium 组件复验发现 /read 首次失败后可能在隐藏期间发送第二个 POST：修正前请求可见性为 visible、hidden；修正后为 visible、visible，隐藏期间为零，恢复时读目标可补报。真实服务回归现同时检查隐藏期间的 GET、POST /read 与持久读游标。",
+        "GitHub run 45948988345：A3 收集 261，五段合计 251 passed、10 skipped；5 项 M4-T9 均实际通过。PR 中三个 cf1d689f 录屏按资产提交 8f4bf38f 核对 HTTP 200、image/gif、文件大小和 SHA-256。",
+        "复核 m4-t9-analytics-e2e-race、m4-t9-composer-e2e-sync：等待真实落库行或记录真实 route.fetch() 响应。均保留生产轮询节奏。两次 Jev 裁决均采纳 A。"
+      ]
+    }
+  }
+}

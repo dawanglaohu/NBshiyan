@@ -994,13 +994,13 @@
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
     "contractHash": "baf92ef761f4e88beebe1292ced924c7929202402a68ef9711f27c803244de77",
     "evidence": [
-      "第19节 M4-T9 行及 M4-T5、M4-T11 的已落地能力把访客面板、已有消息 HTTP 与共用轮询控制器接在同一层。第19节 M4-T6 行单独拥有运营页面、导航及 D1–D6。M4-T9 通过现有运营 HTTP 核对权限。",
-      "第13节 E-18/E-37/E-38/E-76/E-77/E-78/E-85、第09/10节的 ChatSyncDTO、MessageReceivedDTO、ReadDTO 和第17节的真实链路测试相符。落库状态未知须重发同一载荷，隐藏期间暂停并中止跨页取页，已读回执失败须在恢复同步后补报，失权后旧会话停止读取和发送。",
-      "补丁 m4-t9-ci-support（254130b4）、m4-t9-a3-regression（527081ef）与 m4-t9-analytics-e2e-race（61870b12）已将 .github/workflows/ci.yml、tests/chat-polling-retry.test.ts、tests/stats-route.test.ts、e2e/chat-start-analytics.spec.ts 纳入 supportPaths，CI Run 45938302282 中 A3 260/261 例与全部非 E2E 作业均通过。",
-      "补丁 m4-t9-composer-e2e-sync 按 Jev 裁决（jev-1.14.0，adjudicate pick=A high 0.94）仅新增 e2e/chat-visitor-composer.spec.ts 支持路径，通过 page.route(route.fetch()) 在 Node 侧捕获真实同步 JSON 载荷并协调 R1/R2 后台 3s 轮询重叠，消除 Chromium CDP Network.getResponseBody 缓冲区回收异常，保持严格 DTO 与作者断言且不改变生产 3s 轮询行为。",
-      "核对全部生产与测试文件：e2e/chat-visitor-composer.spec.ts 实测 7/7 通过，全套聊天 E2E 23/23、单测与 A3 分区（all=261, main=230）均通过，落地任务复验表为空。"
+      "第 2 轮仅复核 PR #575 的 R1、R2 与随返工更新的两项 CI 夹具。前置任务与数据契约均沿用第 1 轮证据。原分支 cf1d689f 的四项 GitHub 作业均成功，本地轮询、重试和分页单测 8 项通过、零跳过。",
+      "R1：ChatContainer 在发送前判断离线，未发包时 attempts=0，可编辑草稿仅在当前标签页内存；在线发起后丢失回执且随后掉线时，chat-retry 保留原载荷。cf1d689f 的真实服务 Playwright 专项验证原 UUID 重试、duplicate 回执、运营读取及通知出箱；本轮增强首消息在途断网场景的邮箱只读及原服务端消息 ID 断言。",
+      "R2：隐藏使旧轮询代次失效并取消正在拉取的分页。fetchChatConversationUpdates 在请求前后检查中止信号，恢复后从连续游标补到 seq=55。GitHub 作业 140340188971 的 5 条聊天专项均通过。独立 Chromium 组件复验发现 /read 首次失败后可能在隐藏期间发送第二个 POST：修正前请求可见性为 visible、hidden；修正后为 visible、visible，隐藏期间为零，恢复时读目标可补报。真实服务回归现同时检查隐藏期间的 GET、POST /read 与持久读游标。",
+      "GitHub run 45948988345：A3 收集 261，五段合计 251 passed、10 skipped；5 项 M4-T9 均实际通过。PR 中三个 cf1d689f 录屏按资产提交 8f4bf38f 核对 HTTP 200、image/gif、文件大小和 SHA-256。",
+      "复核 m4-t9-analytics-e2e-race、m4-t9-composer-e2e-sync：等待真实落库行或记录真实 route.fetch() 响应。均保留生产轮询节奏。两次 Jev 裁决均采纳 A。"
     ],
-    "reviewed": "2026-11-27T05:17:44.197820+00:00",
+    "reviewed": "2026-11-27T06:54:30.188382+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
