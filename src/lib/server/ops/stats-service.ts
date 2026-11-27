@@ -46,6 +46,8 @@ type CoreStatsResult = Awaited<ReturnType<typeof readCoreStats>>;
 
 export type NonCoreSourceReader = (input: {
   role: Role;
+  /** 当前请求的后台用户；按人分配的来源（如 SALES 询盘）据此取 scope。 */
+  userId?: string;
   scope: CoreStatsResult['scope'];
   context: { timezone: string; timezoneRevision: number; queriedAt: string };
   now: Date;
@@ -63,6 +65,7 @@ export type StatsServiceDeps = {
 
 export type StatsQueryInput = {
   role: Role;
+  userId?: string;
   query: StatsQueryDTO;
 };
 
@@ -275,7 +278,7 @@ export function createStatsService(deps: StatsServiceDeps = {}): StatsService {
   const nonCoreReaders = deps.nonCoreReaders ?? {};
 
   return {
-    async query({ role, query }) {
+    async query({ role, userId, query }) {
       if (!deps.db) throw new Error('StatsService requires db');
       if (!isAllowedRole(role)) throw new AppError('forbidden');
 
@@ -320,7 +323,7 @@ export function createStatsService(deps: StatsServiceDeps = {}): StatsService {
         }
         const reader = nonCoreReaders[source];
         if (reader) {
-          sources.push(await reader({ role, scope: coreResult.scope, context, now, connected }));
+          sources.push(await reader({ role, userId, scope: coreResult.scope, context, now, connected }));
         } else {
           sources.push(toStatsSourceDTO(context, source, { unavailableState: 'not_connected' }));
         }
@@ -379,7 +382,7 @@ export async function handleGetStats(
     if (!allowed) throw new AppError('rate_limited', { retryAfterSeconds: 60 });
 
     const query = parseStatsSearchParams(request.url);
-    const result = await services.stats.query({ role: gate.user.role, query });
+    const result = await services.stats.query({ role: gate.user.role, userId: gate.user.id, query });
     return finishStatsResponse(services.apiCounter, 200, result.dto);
   } catch (error) {
     return statsFailureResponse(error, requestId, services.apiCounter, opts.log);
