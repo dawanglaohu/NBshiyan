@@ -27,6 +27,7 @@ import { createVisitorReadService, type VisitorReadService } from './chat/visito
 import { createSelfRebindService, type SelfRebindService } from './admin/self-rebind';
 import { createChatReadRepo, type ChatReadDb, type ChatWriteDb } from './chat/repo';
 import { ANALYTICS_AGGREGATE_KEY, createAnalyticsAggregateJob, createJobRegistry, type JobRegistry } from './jobs/registry';
+import { createBusinessSourceReaders } from './ops/business-source';
 import { createStatsService, type StatsService } from './ops/stats-service';
 import { createAnalyticsRetentionJob } from './analytics/retention';
 import { retentionCleanupMode } from './analytics/retention-plan';
@@ -126,6 +127,8 @@ export function createAdminServices(deps: {
       clock,
       analyticsConfigured: () => Boolean(analyticsConsentSecret()),
       aggregateJobRegistered: () => jobs.has(ANALYTICS_AGGREGATE_KEY),
+      // 询盘与聊天只读计数（M6-T2）；M6-T3/T5 的运维与可靠性来源在此继续合并。
+      nonCoreReaders: { ...createBusinessSourceReaders(db) },
     }),
     selfRebind: createSelfRebindService({
       db,
