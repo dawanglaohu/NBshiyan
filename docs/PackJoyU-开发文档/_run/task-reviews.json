@@ -1162,13 +1162,15 @@
   },
   "M6-T2": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "aec34640efe96b766107da1485f5a5b2281dac8518c48f60719270b5c3d66f37",
+    "contractHash": "d7243dbe4b2928c23c14b2186b189035d79f2a0d5938b9b8364d412636cc7f83",
     "evidence": [
-      "固定对象：L bed4436b7bb26d67583373c24777eb2953f19cc3 / tree ace1e3fc305c882758b406ffb2cd00d5012aea0c / 唯一父 K 81cdb260224d359bb04bb6d35306c2e944a6958f；task/M5-T4 工作树 clean；本登记只写本补丁证据、task-reviews 与正常派生，不改 task-contracts.json、任务状态、源码/测试/CI/包锁/schema 与生成器。",
-      "本键为传播变更：契约对象在 K→L 逐字节相同（对象摘要 ab8c1c9701b8acac = ab8c1c9701b8acac）；provides=1/requires=2/sections=12/supportPaths=0/outputPaths=4 全为原值；当前契约 hash aec34640efe96b766107da1485f5a5b2281dac8518c48f60719270b5c3d66f37 变化仅因依赖闭包含 M5-T4（经 M6-T6 → M5-T4），能力与接口未变。",
-      "范围限定：本记录只是 L 当前契约语义复核，不证明该任务已实现、不改变其 todo/status；M5-T4 亦不证明真实 PG 用例 15./16. 通过、不证明新 CI 转绿；未重验 P2/O1 或旧 43，未顺手清理既有 stale。"
+      "第19节 M6-T2 与第13节 E-62/E-66、第17节真实 HTTP/数据库测试相符。已落地 M6-T6 提供角色统计入口，M4-T4 提供持久聊天链路。生产入口 src/app/api/admin/stats/route.ts:9 经 src/lib/server/admin/guard.ts:53、src/auth.ts:215 与 src/lib/server/db.ts:3 取得会话及数据库；src/lib/server/composition.ts:131 注入三项业务读取器。",
+      "AC1、E-62：src/lib/server/ops/business-source.ts:31 按持久化行计数，仅投影数量。tests/stats-business.test.ts:474 通过真实路由与 PostgreSQL 核幂等、垃圾和个人字段，:571 核产品过滤与多明细去重。e2e/stats-business-api.spec.ts:38 经真实 HTTP 核增量为询盘 1、会话 1、消息 2，拒绝或重试均不增加计数。",
+      "AC2、E-66：src/lib/server/ops/stats-service.ts:286 在查询前裁剪来源，:385 透传当前用户 ID。business-source.ts:36 复用 inquiryScope，:72 启动只读事务，:79 将异常隔离在单来源。tests/stats-business.test.ts:542 对照两名 SALES 的询盘范围，:616 核匿名/EDITOR 与混合来源，:648 实测 transaction_read_only=on、失败后保存与恢复计数。",
+      "PR 576 实施提交 79c63438。本机 PostgreSQL 17.5 强制专库执行两个测试文件，14+9 通过，0 失败、0 跳过；corepack pnpm@10 lint 通过。GitHub Actions run 45967918496/e2e job 140400976243 同样通过 14+9 和 Chromium 具名用例 stats-business-api.spec.ts:38。",
+      "补丁仅将 stats-service.ts、stats-route.test.ts、.github/workflows/ci.yml 加入 M6-T2 支持路径。PR 563 也修改 CI，双方各自基于 main、没有 PR 叠在 M6-T2 上。其他六个未落地任务仅继承新的上游哈希，本身条款与路径逐字段相同。复核裁决见 judgments.jsonl:1096、1097。"
     ],
-    "reviewed": "2026-11-11T05:34:58.660575+00:00",
+    "reviewed": "2026-11-27T09:22:11.904785+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
