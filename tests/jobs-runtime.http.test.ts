@@ -175,7 +175,14 @@ describe('M5-T8 jobs runtime + cron operations route', { concurrency: false, ski
     assert.equal(state.lastStatus, 'SUCCEEDED');
     assert.equal(state.leaseOwner, null);
     assert.equal(state.lastErrorCode, null);
-    assert.equal((await handle(post({ jobKey: 'ops-sample' }))).status, 400);
+    const opsSample = await handle(post({ jobKey: 'ops-sample' }));
+    assert.equal(opsSample.status, 200);
+    assert.equal((await opsSample.json()).jobKey, 'ops-sample');
+    const opsState = await requireDb().jobState.findUniqueOrThrow({ where: { key: 'ops-sample' } });
+    assert.equal(opsState.generation, 1);
+    assert.equal(opsState.lastStatus, 'SUCCEEDED');
+    assert.equal(opsState.leaseOwner, null);
+    assert.equal(opsState.lastErrorCode, null);
     assert.equal((await handle(post({ jobKey: 'arbitrary-script' }))).status, 400);
     assert.equal((await handle(post({ jobKey: 'analytics-aggregate', extra: 1 }))).status, 400);
     const route = await import('../src/app/api/admin/cron/operations/route');
