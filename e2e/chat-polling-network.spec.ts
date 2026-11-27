@@ -965,6 +965,10 @@ test.describe('M4-T9 chat polling, offline retry, and revocation stop', () => {
     expect([200, 201]).toContain(c1Res.status());
     const c1Id = (await page.getByTestId('chat-panel').getAttribute('data-conversation-id'))!;
     const c1Conv = await prisma().chatConversation.findUniqueOrThrow({ where: { id: c1Id } });
+    await expect.poll(async () => {
+      const conv = await prisma().chatConversation.findUnique({ where: { id: c1Id } });
+      return conv?.visitorReadSeq ?? 0;
+    }).toBe(1);
 
     // Create an unsent draft in the composer before visitor session expires
     const unsentDraft = `Keep my unsent draft [${marker}]`;
