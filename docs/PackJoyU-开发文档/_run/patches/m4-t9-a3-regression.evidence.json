@@ -1,0 +1,63 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M2-T8": {
+      "contractHash": "b4b4934980eb2d8e9150e5c51f619cb171c92c0e35e2e9180bfe8063b9b6e856",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M4-T13": {
+      "contractHash": "8cc4062bc86ac40ac6ea2d15d122675c76cb13ed6168ef82e40fbf00764bd89e",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M4-T14": {
+      "contractHash": "2c9fe8134c43e8793ec32c9ca8a65f5baf36e71ee40fe32d39863478104e6ea1",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M4-T6": {
+      "contractHash": "e8bbb37060f538a897b6a5aae697805a43fe3958e96de4b1b9e72cd5b8a5ae98",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M4-T9": {
+      "contractHash": "5c7ef8744434893e8b1b2cf5218a2cf152ca9a54cfd5963c98b45b36f4d61922",
+      "evidence": [
+        "第19节 M4-T9 行及 M4-T5、M4-T11 的已落地能力把访客面板、已有消息 HTTP 与共用轮询控制器接在同一层。第19节 M4-T6 行单独拥有运营页面、导航及 D1–D6。M4-T9 通过现有运营 HTTP 核对权限。",
+        "第13节 E-18/E-37/E-38/E-76/E-77/E-78/E-85、第09/10节的 ChatSyncDTO、MessageReceivedDTO、ReadDTO 和第17节的真实链路测试相符。落库状态未知须重发同一载荷，隐藏期间暂停取页，失权后旧会话停止读取和发送。",
+        "补丁 m4-t9-ci-support 已在 254130b4 把 .github/workflows/ci.yml、tests/chat-polling-retry.test.ts 纳入 supportPaths。五个新增用例进入 A3 的全集和主段，原有互斥及集合相等断言保留。核对补丁所列的九个下游任务仅因前置契约哈希传播而变化。",
+        "核对 src/lib/client/chat-poller.ts、chat-retry.ts、chat.ts、ChatContainer.tsx 与既有请求适配器、服务层和路由入口；本层变更无客户端引用服务端或新增事务。原始证据绑定实现 697f6759 和补丁 254130b4。",
+        "真实客户端验收在 PR #575 的 REVIEW-ROUND 1 单列。请求已写入后失去网络时会解锁旧载荷，跨页请求在隐藏信号后仍然继续。契约语义登记不改变任务落地状态。",
+        "m4-t9-a3-regression 仅新增 tests/stats-route.test.ts 支持路径。源补丁保留 M6-T6 的 PostgreSQL 17 具名计数、零跳过、统计 E2E 收集和独立执行门禁。检查 GitHub PR #575 的 build-and-audit 作业 140265849188，Unit tests 仅该守卫的旧计数失败；定点用例在原断言失败，更新数字后 1/1 通过。",
+        "补丁记录列出的 9 个下游任务仍由各自原任务验收。当前任务的验收、边界、路由责任、数据模型和生产代码没有随新增测试路径改变，落地任务复验表为空。"
+      ],
+      "verdict": "pass"
+    },
+    "M7-T1": {
+      "contractHash": "6b6f663f5417403325e2e38fd5da8832e1715ef63431067ee13c2798ca409572",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T10": {
+      "contractHash": "6535765a8c20bd27d049c908027b884e95e0c4b41ee41839bf6a6af7b4ccc75b",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T4": {
+      "contractHash": "66087ff97415f4876d9ee8b6e837dd14d56b45437eaeac9a3728b541cf09bc0f",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T8": {
+      "contractHash": "dc9020d3a4656b74d544c06f6224206da12be764c008d12b8da0dc60e0f4dad2",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T9": {
+      "contractHash": "9ab2e65318c599303796b10bf3a8b51ed3aa01641d9136e98ec0444fab69f758",
+      "evidence": [],
+      "verdict": "pending"
+    }
+  }
+}

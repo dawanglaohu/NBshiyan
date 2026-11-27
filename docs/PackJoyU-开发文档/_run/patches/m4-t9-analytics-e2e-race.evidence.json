@@ -1,0 +1,61 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M2-T8": {
+      "contractHash": "b24700176fde3055a6cc0f2f6da0e41a4e39d92e54d6541283e560b61a8f655a",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M4-T13": {
+      "contractHash": "315762af1be8d8f95b12301d06fe758eb15584867d80fcbf1d004b1755f3ca61",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M4-T14": {
+      "contractHash": "6908f1af588cc6e1d63b78e6e3f8dd384876e054be0185ee2be43f0e55d527d3",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M4-T6": {
+      "contractHash": "019b96db18e0c7eb5330bbcd1980a1ad2225c038f2d60da0dd972806ca220615",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M4-T9": {
+      "contractHash": "c8628c197d84019c9c90cf29a7c904614c5f714b0313f0d93fd0d8897bd12520",
+      "evidence": [
+        "第19节 M4-T9 行及 M4-T5、M4-T11 的已落地能力把访客面板、已有消息 HTTP 与共用轮询控制器接在同一层。第19节 M4-T6 行单独拥有运营页面、导航及 D1–D6。M4-T9 通过现有运营 HTTP 核对权限。",
+        "第13节 E-18/E-37/E-38/E-76/E-77/E-78/E-85、第09/10节的 ChatSyncDTO、MessageReceivedDTO、ReadDTO 和第17节的真实链路测试相符。落库状态未知须重发同一载荷，隐藏期间暂停并中止跨页取页，已读回执失败须在恢复同步后补报，失权后旧会话停止读取和发送。",
+        "补丁 m4-t9-ci-support（254130b4）与 m4-t9-a3-regression（527081ef）把 .github/workflows/ci.yml、tests/chat-polling-retry.test.ts、tests/stats-route.test.ts 纳入 supportPaths，保持 A3 五段互斥及 all=261/main=230 分区门禁。",
+        "补丁 m4-t9-analytics-e2e-race 按 Jev 裁决（jev-1.14.0，adjudicate pick=A high 0.86）仅新增 e2e/chat-start-analytics.spec.ts 支持路径，修正第450行在 page.on('request') 后 0ms 裸查 PostgreSQL 抢先于 /api/analytics/events 事务提交的时序竞态，不改变生产逻辑与断言语义。",
+        "核对 src/lib/client/chat-poller.ts、chat-retry.ts、chat.ts、ChatContainer.tsx：发送前离线标记 startedOffline 区分未发包草稿与在途断网锁定，hidden 立即中止在途跨页同步，pendingReadTargetRef 保留失败读游标并在轮询恢复后补报；单测 8/8 与聊天 E2E 23/23 通过，落地任务复验表为空。"
+      ],
+      "verdict": "pass"
+    },
+    "M7-T1": {
+      "contractHash": "0b5f8e81c45afed9bfd569236b428fde11cdee0436321a9bc3e5da27af174cba",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T10": {
+      "contractHash": "3328dafd437b63e6645d04dbe6677b678a1834ae66eebb7e0c7f74eb45a8cd8a",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T4": {
+      "contractHash": "b2f6f0bd9903ac174785c97d720c9d431394afb2bc9223e5a63894a8ed7089f2",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T8": {
+      "contractHash": "1d47ac80e3d260f68248aa67505bfcd842bc8cedfc247465cab48b0e761a6673",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T9": {
+      "contractHash": "147dc36de9b327d7f37e57436bcde89f959c1e0f8abd9da7e76065eea1cd865d",
+      "evidence": [],
+      "verdict": "pending"
+    }
+  }
+}

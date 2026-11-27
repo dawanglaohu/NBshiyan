@@ -39,9 +39,11 @@ import {
   sitePath,
 } from './analytics';
 import {
+  adaptApiError,
   requestApi,
   type ClientApiFailure,
   type ClientApiResult,
+  type ClientAudience,
   type ClientTransport,
 } from './api';
 import type { ClientLocale } from './api-errors';
@@ -69,7 +71,7 @@ export type ChatComposerValidationResult =
   | { valid: true; bodyText: string; email?: string }
   | { valid: false; errors: ChatComposerValidationErrors };
 
-export type ChatTerminalReason = 'expired' | 'not_found' | 'closed' | 'anonymized';
+export type ChatTerminalReason = 'expired' | 'forbidden' | 'not_found' | 'closed' | 'anonymized';
 
 export type ChatRequestOptions = {
   signal?: AbortSignal;
@@ -99,6 +101,7 @@ export type ChatUpdatesSnapshot = {
   authors: ChatAuthorReferenceDTO[];
   lastSeq: number;
   nextAfterSeq: number;
+  hasMore: boolean;
   read: ReadDTO;
 };
 
@@ -219,11 +222,17 @@ export function validateVisitorComposer(input: {
     : { valid: true, bodyText: validBody };
 }
 
-export function classifyChatFailureTerminal(failure: ClientApiFailure): ChatTerminalReason | null {
+export function classifyChatFailureTerminal(
+  failure: Pick<ClientApiFailure, 'status' | 'code'>,
+  options?: { audience?: ClientAudience },
+): ChatTerminalReason | null {
   if (failure.status === 401 || failure.code === 'unauthorized') return 'expired';
+  if (failure.code === 'account_disabled' || failure.code === 'forbidden') return 'forbidden';
+  if (failure.status === 403 && failure.code !== 'forbidden_origin') return 'forbidden';
   if (failure.status === 404 || failure.code === 'not_found') return 'not_found';
   if (failure.code === 'conversation_anonymized') return 'anonymized';
   if (failure.code === 'conversation_closed') return 'closed';
+  void options;
   return null;
 }
 
@@ -268,11 +277,16 @@ export function mergeChatMessages(
   incoming: readonly ChatMessageDTO[],
 ): ChatMessageDTO[] {
   const bySeq = new Map<number, ChatMessageDTO>();
+  const seqById = new Map<string, number>();
   for (const item of existing) {
+    if (seqById.has(item.id) || bySeq.has(item.seq)) continue;
     bySeq.set(item.seq, item);
+    seqById.set(item.id, item.seq);
   }
   for (const item of incoming) {
+    if (seqById.has(item.id) || bySeq.has(item.seq)) continue;
     bySeq.set(item.seq, item);
+    seqById.set(item.id, item.seq);
   }
   return Array.from(bySeq.values()).sort((a, b) => a.seq - b.seq);
 }
@@ -404,8 +418,14 @@ export async function fetchChatConversationUpdates(
   let mergedAuthors: ChatAuthorReferenceDTO[] = [];
 
   for (let page = 1; ; page += 1) {
+    if (options?.signal?.aborted) {
+      return adaptApiError({ kind: 'cancelled', locale, audience: 'visitor', attempts: page - 1 });
+    }
     const res = await fetchChatSyncPage(conversationId, { afterSeq: cursor, limit }, locale, options);
     if (!res.ok) return res;
+    if (options?.signal?.aborted) {
+      return adaptApiError({ kind: 'cancelled', locale, audience: 'visitor', attempts: page });
+    }
     const latest = res.data;
     if (latest.hasMore && latest.nextAfterSeq <= cursor) {
       return {
@@ -431,6 +451,7 @@ export async function fetchChatConversationUpdates(
           authors: mergedAuthors,
           lastSeq: latest.lastSeq,
           nextAfterSeq: latest.nextAfterSeq,
+          hasMore: latest.hasMore,
           read: latest.read,
         },
       };
@@ -560,3 +581,59 @@ export function createChatStartTracker(deps: ChatStartDeps = DEFAULT_ANALYTICS_D
 }
 
 export const chatStartTracker = createChatStartTracker();
+
+export type VisibleChatMessageRect = {
+  seq: number;
+  top: number;
+  bottom: number;
+};
+
+/**
+ * 计算当前滚动容器可视范围内、且未超过连续完整游标的最大消息序号（E-34、E-79）。
+ * 页面隐藏、容器不可见或存在前置缺号时，只返回已实际看到且连续完整的最大值，不越号推进已读。
+ */
+export function selectMaxVisibleContiguousSeq(input: {
+  contiguousSeq: number;
+  visibilityState: 'visible' | 'hidden';
+  containerTop: number;
+  containerBottom: number;
+  items: readonly VisibleChatMessageRect[];
+}): number {
+  if (input.visibilityState !== 'visible' || input.contiguousSeq <= 0) return 0;
+  if (input.containerBottom <= input.containerTop) return 0;
+
+  let maxVisible = 0;
+  for (const item of input.items) {
+    if (!Number.isInteger(item.seq) || item.seq <= 0 || item.seq > input.contiguousSeq) continue;
+    const itemHeight = item.bottom - item.top;
+    if (itemHeight <= 0) continue;
+    const visibleHeight =
+      Math.min(item.bottom, input.containerBottom) - Math.max(item.top, input.containerTop);
+    const minRequired = Math.min(16, itemHeight * 0.5);
+    if (visibleHeight >= minRequired && item.seq > maxVisible) {
+      maxVisible = item.seq;
+    }
+  }
+  return maxVisible;
+}
+
+/**
+ * 结合当前视口已看清的最大连续序号与先前因网络异常尚未确认的已读目标，
+ * 返回页面可见时应继续尝试补报的读游标（页面隐藏、倒退或已超出连续游标时不推进）。
+ */
+export function resolveReadAckTargetSeq(input: {
+  visibilityState: 'visible' | 'hidden';
+  contiguousSeq: number;
+  maxVisibleSeq: number;
+  pendingReadSeq: number;
+  confirmedReadSeq: number;
+  inFlightReadSeq: number;
+}): number {
+  if (input.visibilityState !== 'visible' || input.contiguousSeq <= 0) return 0;
+  const candidate = Math.min(
+    input.contiguousSeq,
+    Math.max(input.maxVisibleSeq, input.pendingReadSeq),
+  );
+  const highWater = Math.max(input.confirmedReadSeq, input.inFlightReadSeq);
+  return candidate > highWater ? candidate : 0;
+}

@@ -1,0 +1,16 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M4-T9": {
+      "contractHash": "ac87c8980c7d4518ccfba2b3dd2b4cffd7fa9b472442b8e06160497342506a72",
+      "verdict": "pass",
+      "evidence": [
+        "第19节 M4-T9 行及 M4-T5、M4-T11 的已落地能力把访客面板、已有消息 HTTP 与共用轮询控制器接在同一层。第19节 M4-T6 行单独拥有运营页面、导航及 D1–D6。M4-T9 通过现有运营 HTTP 核对权限。",
+        "第13节 E-18/E-37/E-38/E-76/E-77/E-78/E-85、第09/10节的 ChatSyncDTO、MessageReceivedDTO、ReadDTO 和第17节的真实链路测试相符。落库状态未知须重发同一载荷，隐藏期间暂停取页，失权后旧会话停止读取和发送。",
+        "补丁 m4-t9-ci-support 已在 254130b4 把 .github/workflows/ci.yml、tests/chat-polling-retry.test.ts 纳入 supportPaths。五个新增用例进入 A3 的全集和主段，原有互斥及集合相等断言保留。核对补丁所列的九个下游任务仅因前置契约哈希传播而变化。",
+        "核对 src/lib/client/chat-poller.ts、chat-retry.ts、chat.ts、ChatContainer.tsx 与既有请求适配器、服务层和路由入口；本层变更无客户端引用服务端或新增事务。原始证据绑定实现 697f6759 和补丁 254130b4。",
+        "真实客户端验收在 PR #575 的 REVIEW-ROUND 1 单列。请求已写入后失去网络时会解锁旧载荷，跨页请求在隐藏信号后仍然继续。契约语义登记不改变任务落地状态。"
+      ]
+    }
+  }
+}
