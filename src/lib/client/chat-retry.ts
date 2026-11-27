@@ -55,9 +55,11 @@ export function resolveChatSendFailure(input: {
   hadPendingRetry: boolean;
   audience?: ClientAudience;
   offline?: boolean;
+  startedOffline?: boolean;
 }): ChatSendFailureResolution {
   const { failure, submission, hadPendingRetry, audience = 'visitor' } = input;
   const offline = input.offline ?? isNavigatorOffline();
+  const startedOffline = input.startedOffline ?? offline;
 
   const terminalReason = classifyChatFailureTerminal(failure, { audience });
   if (terminalReason !== null) {
@@ -97,7 +99,7 @@ export function resolveChatSendFailure(input: {
   }
 
   const status = failure.status;
-  if (!hadPendingRetry && offline && status === undefined) {
+  if (!hadPendingRetry && startedOffline && offline && status === undefined && failure.attempts === 0) {
     return {
       kind: 'retry_pending',
       notice: 'offline_retryable',

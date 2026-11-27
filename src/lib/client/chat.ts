@@ -39,6 +39,7 @@ import {
   sitePath,
 } from './analytics';
 import {
+  adaptApiError,
   requestApi,
   type ClientApiFailure,
   type ClientApiResult,
@@ -417,8 +418,14 @@ export async function fetchChatConversationUpdates(
   let mergedAuthors: ChatAuthorReferenceDTO[] = [];
 
   for (let page = 1; ; page += 1) {
+    if (options?.signal?.aborted) {
+      return adaptApiError({ kind: 'cancelled', locale, audience: 'visitor', attempts: page - 1 });
+    }
     const res = await fetchChatSyncPage(conversationId, { afterSeq: cursor, limit }, locale, options);
     if (!res.ok) return res;
+    if (options?.signal?.aborted) {
+      return adaptApiError({ kind: 'cancelled', locale, audience: 'visitor', attempts: page });
+    }
     const latest = res.data;
     if (latest.hasMore && latest.nextAfterSeq <= cursor) {
       return {

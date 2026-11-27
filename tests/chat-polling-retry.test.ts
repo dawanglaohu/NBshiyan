@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import type { ClientApiResult } from '../src/lib/client/api';
 import {
   contiguousMessageSeq,
+  fetchChatConversationUpdates,
   mergeChatMessages,
   mergeConversationSnapshot,
   selectMaxVisibleContiguousSeq,
@@ -387,6 +388,127 @@ test('poller stops timers permanently on visitor 401/404/CLOSED and operator 403
   }
 });
 
+test('fetchChatConversationUpdates aborts in-flight multi-page loop when tab hides and catches up cleanly on restore', async () => {
+  const origFetch = globalThis.fetch;
+  try {
+    const requestedAfterSeqs: string[] = [];
+    const controller = new AbortController();
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+      const parsed = new URL(url, 'http://localhost');
+      requestedAfterSeqs.push(parsed.searchParams.get('afterSeq') ?? '0');
+      const snapshot = makeSyncSnapshot([makeMessage(1), makeMessage(2)], {
+        authors: [{ messageId: 'msg-2', authorRef: 'op-1' }],
+        lastSeq: 3,
+        nextAfterSeq: 2,
+        hasMore: true,
+      });
+      controller.abort();
+      return new Response(JSON.stringify(snapshot), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
+    }) as typeof fetch;
+
+    const abortedResult = await fetchChatConversationUpdates('conv-1', 0, 'en', {
+      signal: controller.signal,
+    });
+    assert.equal(abortedResult.ok, false);
+    assert.deepEqual(requestedAfterSeqs, ['0']);
+
+    const clock = createFakeScheduler('visible');
+    const pollerRequests: string[] = [];
+    let releaseFirstPoll!: () => void;
+    const firstPollWaiting = new Promise<void>((resolve) => {
+      releaseFirstPoll = resolve;
+    });
+    let markFirstPollEntered!: () => void;
+    const firstPollEntered = new Promise<void>((resolve) => {
+      markFirstPollEntered = resolve;
+    });
+    const deliveredSeqs: number[][] = [];
+    let pollRound = 0;
+
+    globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+      const parsed = new URL(url, 'http://localhost');
+      const afterSeq = parsed.searchParams.get('afterSeq') ?? '0';
+      pollerRequests.push(afterSeq);
+      const round = ++pollRound;
+
+      if (round === 1) {
+        markFirstPollEntered();
+        await firstPollWaiting;
+        if (init?.signal?.aborted) {
+          throw new DOMException('Aborted', 'AbortError');
+        }
+      }
+
+      const payload =
+        afterSeq === '0'
+          ? makeSyncSnapshot([makeMessage(1), makeMessage(2)], {
+              authors: [{ messageId: 'msg-2', authorRef: 'op-1' }],
+              lastSeq: 3,
+              nextAfterSeq: 2,
+              hasMore: true,
+            })
+          : makeSyncSnapshot([makeMessage(3)], {
+              lastSeq: 3,
+              nextAfterSeq: 3,
+              hasMore: false,
+            });
+      return new Response(JSON.stringify(payload), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
+    }) as typeof fetch;
+
+    let markCaughtUp!: () => void;
+    const caughtUp = new Promise<void>((resolve) => {
+      markCaughtUp = resolve;
+    });
+
+    const poller = createChatPoller({
+      audience: 'visitor',
+      scheduler: clock.scheduler,
+      getTarget: () => ({ conversationId: 'conv-1', afterSeq: 0 }),
+      fetchUpdates: (target, signal) =>
+        fetchChatConversationUpdates(target.conversationId, target.afterSeq, 'en', { signal }),
+      onUpdates: (updates) => {
+        deliveredSeqs.push(updates.messages.map((m) => m.seq));
+        markCaughtUp();
+      },
+      onTerminal: () => {
+        assert.fail('onTerminal should not run for visibility abort');
+      },
+    });
+
+    poller.start();
+    await clock.advanceBy(CHAT_POLL_INTERVAL_MS);
+    await Promise.race([
+      firstPollEntered,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Timed out waiting for first poll')), 2000)),
+    ]);
+    await clock.setVisibility('hidden');
+    releaseFirstPoll();
+    await clock.advanceBy(10_000);
+    assert.deepEqual(pollerRequests, ['0']);
+    assert.deepEqual(deliveredSeqs, []);
+
+    await clock.setVisibility('visible');
+    await clock.advanceBy(0);
+    await Promise.race([
+      caughtUp,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Timed out waiting for visible catch-up')), 2000)),
+    ]);
+    assert.deepEqual(pollerRequests, ['0', '0', '2']);
+    assert.deepEqual(deliveredSeqs, [[1, 2, 3]]);
+    poller.dispose();
+  } finally {
+    globalThis.fetch = origFetch;
+  }
+});
+
 test('mergeChatMessages deduplicates strictly per ID and seq while contiguous seq and visible read never skip gaps', () => {
   const m1 = makeMessage(1, 'id-1', 'first');
   const m2 = makeMessage(2, 'id-2', 'second');
@@ -496,25 +618,48 @@ test('chat-retry state machine freezes unconfirmed payload, keeps offline draft 
   });
   assert.deepEqual(reused, baseSubmission);
 
-  // Offline before commit -> keeps draft editable & keys intact without locking
+  // Offline before sending (no network dispatch attempted) -> keeps draft editable & keys intact without locking
   const offline = resolveChatSendFailure({
+    failure: {
+      ok: false,
+      text: 'Offline.',
+      action: 'retry',
+      envelope: 'unavailable',
+      retryable: true,
+      attempts: 0,
+      transient: true,
+    },
+    submission: baseSubmission,
+    hadPendingRetry: false,
+    offline: true,
+    startedOffline: true,
+  });
+  assert.equal(offline.kind, 'retry_pending');
+  assert.equal(offline.notice, 'offline_retryable');
+  assert.equal(offline.lockInputs, false);
+  assert.equal(offline.preserveKeys, true);
+
+  // Dropped offline mid-flight after dispatching online -> must still freeze pending submission & lock editor
+  const midFlightOffline = resolveChatSendFailure({
     failure: {
       ok: false,
       text: "The result couldn't be confirmed.",
       action: 'unconfirmed',
       envelope: 'unavailable',
       retryable: false,
-      attempts: 4,
+      attempts: 1,
       transient: true,
     },
     submission: baseSubmission,
     hadPendingRetry: false,
     offline: true,
+    startedOffline: false,
   });
-  assert.equal(offline.kind, 'retry_pending');
-  assert.equal(offline.notice, 'offline_retryable');
-  assert.equal(offline.lockInputs, false);
-  assert.equal(offline.preserveKeys, true);
+  assert.equal(midFlightOffline.kind, 'retry_pending');
+  assert.equal(midFlightOffline.notice, 'unconfirmed');
+  assert.equal(midFlightOffline.lockInputs, true);
+  assert.equal(midFlightOffline.preserveKeys, true);
+  assert.deepEqual(midFlightOffline.pendingSubmission, baseSubmission);
 
   // 409 conflict -> stops blind frozen retry and refuses UUID auto-swap
   const conflict = resolveChatSendFailure({

@@ -36,6 +36,7 @@ import {
 } from '@/lib/client/chat';
 import { createChatPoller, type ChatPoller } from '@/lib/client/chat-poller';
 import {
+  isNavigatorOffline,
   resolveChatSendFailure,
   selectChatSubmissionPayload,
   type ChatRetryNoticeKind,
@@ -737,12 +738,16 @@ export default function ChatContainer({
     sendAbortRef.current = controller;
     const attemptEpoch = epochRef.current;
 
-    const handleFailure = (failure: Parameters<typeof resolveChatSendFailure>[0]['failure']) => {
+    const handleFailure = (
+      failure: Parameters<typeof resolveChatSendFailure>[0]['failure'],
+      startedOfflineOnAttempt: boolean,
+    ) => {
       const resolution = resolveChatSendFailure({
         failure,
         submission,
         hadPendingRetry: pendingRetry !== null,
         audience: 'visitor',
+        startedOffline: startedOfflineOnAttempt,
       });
       if (resolution.kind === 'terminal') {
         handleTerminalStop(resolution.terminalReason);
@@ -762,6 +767,25 @@ export default function ChatContainer({
       setSubmitError(translateFailureNotice(resolution.notice));
     };
 
+    const startedOffline = isNavigatorOffline();
+    if (pendingRetry === null && startedOffline) {
+      submittingRef.current = false;
+      setSubmitting(false);
+      handleFailure(
+        {
+          ok: false,
+          text: '',
+          action: 'retry',
+          envelope: 'unavailable',
+          retryable: true,
+          attempts: 0,
+          transient: true,
+        },
+        true,
+      );
+      return;
+    }
+
     if ('clientConversationId' in submission) {
       const attemptConversationId = submission.clientConversationId;
       const analyticsContext = chatStartTracker.bindAttemptContext(attemptConversationId);
@@ -774,7 +798,7 @@ export default function ChatContainer({
       setSubmitting(false);
 
       if (!res.ok) {
-        handleFailure(res);
+        handleFailure(res, startedOffline);
         return;
       }
 
@@ -845,7 +869,7 @@ export default function ChatContainer({
     setSubmitting(false);
 
     if (!res.ok) {
-      handleFailure(res);
+      handleFailure(res, startedOffline);
       return;
     }
 

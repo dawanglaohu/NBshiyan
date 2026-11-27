@@ -99,7 +99,7 @@ test.describe('M4-T9 chat polling, offline retry, and revocation stop', () => {
   test('3s visible polling, zero polling when hidden, immediate catch-up on restore, single in-flight, and 1/2/4/8/16/30s backoff', async ({
     page,
   }) => {
-    test.setTimeout(60_000);
+    test.setTimeout(90_000);
     await page.addInitScript(() => {
       const origFetch = window.fetch.bind(window);
       const timestamps: number[] = [];
@@ -333,6 +333,89 @@ test.describe('M4-T9 chat polling, offline retry, and revocation stop', () => {
     await page.unroute(`**/api/chat/conversations/${conversationId}?*`);
     await page.clock.runFor(30_000);
     await expect(page.getByTestId('chat-sync-status')).toHaveCount(0);
+
+    // Seed multi-page backlog (seq=4..55 > default page limit 50), hide tab during in-flight page 1, verify zero page-2 requests while hidden, then resume catch-up
+    const pageBaseTime = Date.now();
+    await prisma().$transaction([
+      prisma().chatMessage.createMany({
+        data: Array.from({ length: 52 }, (_, idx) => {
+          const seq = idx + 4;
+          return {
+            id: `poll_page_${seq}_${marker}`,
+            conversationId,
+            seq,
+            sender: seq % 2 === 0 ? 'OPERATOR' : 'VISITOR',
+            clientMessageId: randomUUID(),
+            payloadHash: randomUUID().replace(/-/g, ''),
+            bodyText: `Backlog msg #${seq} [${marker}]`,
+            createdAt: new Date(pageBaseTime + seq * 1_000),
+          };
+        }),
+      }),
+      prisma().chatConversation.update({
+        where: { id: conversationId },
+        data: {
+          lastSeq: 55,
+          updatedAt: new Date(pageBaseTime + 55_000),
+          lastActivityAt: new Date(pageBaseTime + 55_000),
+        },
+      }),
+    ]);
+
+    const pagedAfterSeqs: string[] = [];
+    let markPage1Fetched!: () => void;
+    const page1Fetched = new Promise<void>((resolve) => {
+      markPage1Fetched = resolve;
+    });
+    let releasePage1Response!: () => void;
+    const allowPage1Response = new Promise<void>((resolve) => {
+      releasePage1Response = resolve;
+    });
+
+    await page.route(`**/api/chat/conversations/${conversationId}?*`, async (route) => {
+      if (route.request().method() !== 'GET') {
+        await route.continue();
+        return;
+      }
+      const afterSeq = new URL(route.request().url()).searchParams.get('afterSeq') ?? '0';
+      pagedAfterSeqs.push(afterSeq);
+      if (pagedAfterSeqs.length === 1) {
+        const res = await route.fetch();
+        expect(res.status()).toBe(200);
+        const json = await res.json();
+        expect(json.hasMore).toBe(true);
+        markPage1Fetched();
+        await allowPage1Response;
+        await route.fulfill({ response: res }).catch(() => {});
+        return;
+      }
+      await route.continue();
+    });
+
+    await page.clock.runFor(3_050);
+    await page1Fetched;
+    await page.evaluate(() => {
+      (document as unknown as { __testVisibility: 'visible' | 'hidden' }).__testVisibility = 'hidden';
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    releasePage1Response();
+    await page.clock.runFor(10_000);
+    expect(pagedAfterSeqs).toEqual(['3']);
+
+    await page.unroute(`**/api/chat/conversations/${conversationId}?*`);
+    const page2CaughtUp = page.waitForResponse(
+      (res) =>
+        res.url().includes(`/api/chat/conversations/${conversationId}?`) &&
+        res.url().includes('afterSeq=53') &&
+        res.status() === 200,
+    );
+    await page.evaluate(() => {
+      (document as unknown as { __testVisibility: 'visible' | 'hidden' }).__testVisibility = 'visible';
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    await page.clock.runFor(50);
+    await page2CaughtUp;
+    await expect(page.getByTestId('chat-message-item')).toHaveCount(55);
   });
 
   test('out-of-order and cross-page inserts keep each ID once, never regress seq, keep scroll/focus on New messages, and report read only for visible contiguous seq', async ({
@@ -589,7 +672,7 @@ test.describe('M4-T9 chat polling, offline retry, and revocation stop', () => {
     page,
     playwright,
   }) => {
-    test.setTimeout(60_000);
+    test.setTimeout(90_000);
     const marker = randomUUID().slice(0, 8);
     await page.goto('/en/contact');
     await consent(page, 'none');
@@ -707,6 +790,54 @@ test.describe('M4-T9 chat polling, offline retry, and revocation stop', () => {
       orderBy: { createdAt: 'asc' },
     });
     expect(dbNotifications.map((n) => n.messageId)).toEqual([msg1Id, msg2Id]);
+
+    // Going offline mid-flight after dispatch must keep pending payload locked for identical retry
+    const midOfflineMsg = `Mid-flight-offline [${marker}]`;
+    const midPayloads: string[] = [];
+    let simulateMidFlightDrop = true;
+    await page.route(`**/api/chat/conversations/${convId}/messages`, async (route) => {
+      if (route.request().method() !== 'POST') {
+        await route.continue();
+        return;
+      }
+      midPayloads.push(route.request().postData()!);
+      if (simulateMidFlightDrop) {
+        if (midPayloads.length === 1) {
+          const saved = await route.fetch();
+          expect([200, 201]).toContain(saved.status());
+          await page.context().setOffline(true);
+        }
+        await route.abort('failed');
+        return;
+      }
+      const res = await route.fetch();
+      const json = MessageReceivedDTOSchema.parse(await res.json());
+      expect(json.duplicate).toBe(true);
+      await route.fulfill({ response: res });
+    });
+
+    await msgInput.fill(midOfflineMsg);
+    await page.getByTestId('chat-send').click();
+    await expect(errBox).toBeVisible({ timeout: 20_000 });
+    await expect(errBox).toContainText(/Pending confirmation/);
+    await expect(msgInput).not.toBeEditable();
+    await expect(msgInput).toHaveValue(midOfflineMsg);
+    await expect(page.getByTestId('chat-retry')).toBeVisible();
+
+    simulateMidFlightDrop = false;
+    await page.context().setOffline(false);
+    await page.getByTestId('chat-retry').click();
+    await expect(receipt).toHaveAttribute('data-seq', '3');
+    const msg3Id = (await receipt.getAttribute('data-message-id'))!;
+    expect(midPayloads.length).toBeGreaterThanOrEqual(2);
+    expect(new Set(midPayloads).size).toBe(1);
+    await page.unroute(`**/api/chat/conversations/${convId}/messages`);
+
+    const dbNotificationsAfterMid = await prisma().chatNotification.findMany({
+      where: { conversationId: convId },
+      orderBy: { createdAt: 'asc' },
+    });
+    expect(dbNotificationsAfterMid.map((n) => n.messageId)).toEqual([msg1Id, msg2Id, msg3Id]);
 
     // Verify unsaved offline draft stays only in tab memory, never web storage, and is not promised after reload
     await page.goto('/en/contact');

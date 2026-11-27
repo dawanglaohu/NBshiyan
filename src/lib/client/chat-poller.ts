@@ -406,10 +406,9 @@ export function createChatPoller<TUpdates>(options: ChatPollerOptions<TUpdates>)
       pendingCatchUp = null;
       clearScheduledTimer();
       nextDelayMs = null;
-      if (inFlightController === null) {
-        phase = terminalReason !== null ? 'stopped' : activeConversationId ? 'paused_hidden' : 'idle';
-        emitSnapshot();
-      }
+      abortInFlight();
+      phase = terminalReason !== null ? 'stopped' : activeConversationId ? 'paused_hidden' : 'idle';
+      emitSnapshot();
       return;
     }
 
