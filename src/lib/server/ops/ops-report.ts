@@ -49,6 +49,7 @@ const MAPPED_FIELD_ERRORS = new Set<keyof FieldError>([
 ]);
 
 export type OpsReportDb = Pick<PrismaClient, '$transaction'>;
+export type OpsReportTx = Pick<Prisma.TransactionClient, '$queryRaw' | '$executeRaw'>;
 
 export type OpsSnapshotRecord = {
   source: OpsSource;
@@ -163,6 +164,162 @@ export type OpsReportService = {
   readSnapshots(): Promise<Partial<Record<OpsSource, OpsSnapshotRecord>>>;
 };
 
+type ParsedOpsReportWrite = {
+  report: OpsReportRequestDTO;
+  measuredAtIso: string;
+  measuredAt: Date;
+  normalizedValues: Record<string, unknown> | null;
+  safeErrorCode: string | null;
+  payloadHash: string;
+};
+
+function parseOpsReportWrite(rawInput: unknown): ParsedOpsReportWrite {
+  const parsed = OpsReportRequestSchema.safeParse(rawInput);
+  if (!parsed.success) {
+    const fieldErrors = mapValidationIssues(parsed.error.issues);
+    throw new AppError('invalid', fieldErrors ? { fieldErrors } : undefined);
+  }
+  const report = parsed.data;
+  const measuredAtIso = normalizeIsoTimestamp(report.measuredAt);
+  return {
+    report,
+    measuredAtIso,
+    measuredAt: new Date(measuredAtIso),
+    normalizedValues: report.status === 'OK' ? normalizeValues(report) : null,
+    safeErrorCode: report.status === 'OK' ? null : (report.safeErrorCode ?? null),
+    payloadHash: canonicalOpsReportHash(report),
+  };
+}
+
+async function writeParsedOpsReportInTx(tx: OpsReportTx, parsed: ParsedOpsReportWrite): Promise<boolean> {
+  const { report, measuredAt, normalizedValues, safeErrorCode, payloadHash } = parsed;
+  const valuesSql = normalizedValues === null
+    ? Prisma.sql`NULL`
+    : Prisma.sql`${JSON.stringify(normalizedValues)}::jsonb`;
+  const succeededSql = report.status === 'OK' ? utcSql(measuredAt) : Prisma.sql`NULL`;
+
+  // 并发首次插入采用 ON CONFLICT DO NOTHING；命中冲突后回退到 FOR UPDATE 串行判定。
+  const inserted = await tx.$queryRaw<{ source: string }[]>`
+    INSERT INTO "OpsSourceSnapshot" (
+      "source", "status", "measuredAt", "lastSucceededAt", "values", "safeErrorCode", "payloadHash", "updatedAt"
+    ) VALUES (
+      ${report.source}::"OpsSource",
+      ${report.status}::"OpsReportStatus",
+      ${utcSql(measuredAt)},
+      ${succeededSql},
+      ${valuesSql},
+      ${safeErrorCode},
+      ${payloadHash},
+      CURRENT_TIMESTAMP
+    )
+    ON CONFLICT ("source") DO NOTHING
+    RETURNING "source"::text AS "source"
+  `;
+  if (inserted.length === 1) return true;
+
+  const rows = await tx.$queryRaw<StoredSnapshotRow[]>`
+    SELECT
+      "source"::text AS "source",
+      "status"::text AS "status",
+      ${isoColumn(Prisma.sql`"measuredAt"`)} AS "measuredAt",
+      ${isoColumn(Prisma.sql`"lastSucceededAt"`)} AS "lastSucceededAt",
+      "values",
+      "safeErrorCode",
+      "payloadHash"
+    FROM "OpsSourceSnapshot"
+    WHERE "source" = ${report.source}::"OpsSource"
+    FOR UPDATE
+  `;
+  const existing = rows[0] ? decodeSnapshotRow(rows[0]) : null;
+  if (!existing) throw new AppError('service_unavailable');
+
+  const incomingMs = measuredAt.getTime();
+  const existingMs = existing.measuredAt.getTime();
+
+  if (incomingMs < existingMs) {
+    return false;
+  }
+  if (incomingMs === existingMs) {
+    if (constantTimeEqual(payloadHash, existing.payloadHash)) {
+      return true;
+    }
+    throw new AppError('idempotency_conflict', {
+      fieldErrors: { measuredAt: 'Conflicting payload for the same source and measuredAt.' },
+    });
+  }
+
+  if (report.status === 'OK') {
+    await tx.$executeRaw`
+      UPDATE "OpsSourceSnapshot"
+      SET
+        "status" = 'OK'::"OpsReportStatus",
+        "measuredAt" = ${utcSql(measuredAt)},
+        "lastSucceededAt" = ${utcSql(measuredAt)},
+        "values" = ${valuesSql},
+        "safeErrorCode" = NULL,
+        "payloadHash" = ${payloadHash},
+        "updatedAt" = CURRENT_TIMESTAMP
+      WHERE "source" = ${report.source}::"OpsSource"
+    `;
+  } else if (report.status === 'FAILED') {
+    // 失败报告保留此前成功 values 与 lastSucceededAt，供看板标明旧值。
+    await tx.$executeRaw`
+      UPDATE "OpsSourceSnapshot"
+      SET
+        "status" = 'FAILED'::"OpsReportStatus",
+        "measuredAt" = ${utcSql(measuredAt)},
+        "safeErrorCode" = ${safeErrorCode},
+        "payloadHash" = ${payloadHash},
+        "updatedAt" = CURRENT_TIMESTAMP
+      WHERE "source" = ${report.source}::"OpsSource"
+    `;
+  } else {
+    // NOT_CONNECTED：明确未接入，清空旧值与成功时间，不造虚假成功时间。
+    await tx.$executeRaw`
+      UPDATE "OpsSourceSnapshot"
+      SET
+        "status" = 'NOT_CONNECTED'::"OpsReportStatus",
+        "measuredAt" = ${utcSql(measuredAt)},
+        "lastSucceededAt" = NULL,
+        "values" = NULL,
+        "safeErrorCode" = ${safeErrorCode},
+        "payloadHash" = ${payloadHash},
+        "updatedAt" = CURRENT_TIMESTAMP
+      WHERE "source" = ${report.source}::"OpsSource"
+    `;
+  }
+  return true;
+}
+
+/** 在上层事务内按单调 CAS 写入运维快照，供独立 POST 入口与受租约代次保护的采样作业共用。 */
+export async function submitOpsReportInTx(tx: OpsReportTx, rawInput: unknown): Promise<OpsReportReceiptDTO> {
+  const parsed = parseOpsReportWrite(rawInput);
+  const accepted = await writeParsedOpsReportInTx(tx, parsed);
+  return OpsReportReceiptDTOSchema.parse({ accepted, measuredAt: parsed.measuredAtIso });
+}
+
+/** 在上层事务内读取当前 STORAGE/BACKUP 快照（不改写事务只读属性，便于读写事务复用）。 */
+export async function readOpsSnapshotsInTx(tx: OpsReportTx): Promise<Partial<Record<OpsSource, OpsSnapshotRecord>>> {
+  const rows = await tx.$queryRaw<StoredSnapshotRow[]>`
+    SELECT
+      "source"::text AS "source",
+      "status"::text AS "status",
+      ${isoColumn(Prisma.sql`"measuredAt"`)} AS "measuredAt",
+      ${isoColumn(Prisma.sql`"lastSucceededAt"`)} AS "lastSucceededAt",
+      "values",
+      "safeErrorCode",
+      "payloadHash"
+    FROM "OpsSourceSnapshot"
+    WHERE "source" IN ('STORAGE'::"OpsSource", 'BACKUP'::"OpsSource")
+  `;
+  const result: Partial<Record<OpsSource, OpsSnapshotRecord>> = {};
+  for (const row of rows) {
+    const decoded = decodeSnapshotRow(row);
+    if (decoded) result[decoded.source] = decoded;
+  }
+  return result;
+}
+
 /**
  * 存储/备份运维快照服务（M6-T3）：
  * - 按 source + measuredAt 单调 CAS 更新：同时间同载荷幂等返回原 accepted，同时间异载荷 409，旧时间 accepted=false 忽略；
@@ -172,143 +329,16 @@ export type OpsReportService = {
 export function createOpsReportService(deps: { db: OpsReportDb }): OpsReportService {
   return {
     async submit(rawInput) {
-      const parsed = OpsReportRequestSchema.safeParse(rawInput);
-      if (!parsed.success) {
-        const fieldErrors = mapValidationIssues(parsed.error.issues);
-        throw new AppError('invalid', fieldErrors ? { fieldErrors } : undefined);
-      }
-      const report = parsed.data;
-      const measuredAtIso = normalizeIsoTimestamp(report.measuredAt);
-      const measuredAt = new Date(measuredAtIso);
-      const normalizedValues = report.status === 'OK' ? normalizeValues(report) : null;
-      const safeErrorCode = report.status === 'OK' ? null : (report.safeErrorCode ?? null);
-      const payloadHash = canonicalOpsReportHash(report);
-
-      const accepted = await deps.db.$transaction(async (tx) => {
-        const valuesSql = normalizedValues === null
-          ? Prisma.sql`NULL`
-          : Prisma.sql`${JSON.stringify(normalizedValues)}::jsonb`;
-        const succeededSql = report.status === 'OK' ? utcSql(measuredAt) : Prisma.sql`NULL`;
-
-        // 并发首次插入采用 ON CONFLICT DO NOTHING；命中冲突后回退到 FOR UPDATE 串行判定。
-        const inserted = await tx.$queryRaw<{ source: string }[]>`
-          INSERT INTO "OpsSourceSnapshot" (
-            "source", "status", "measuredAt", "lastSucceededAt", "values", "safeErrorCode", "payloadHash", "updatedAt"
-          ) VALUES (
-            ${report.source}::"OpsSource",
-            ${report.status}::"OpsReportStatus",
-            ${utcSql(measuredAt)},
-            ${succeededSql},
-            ${valuesSql},
-            ${safeErrorCode},
-            ${payloadHash},
-            CURRENT_TIMESTAMP
-          )
-          ON CONFLICT ("source") DO NOTHING
-          RETURNING "source"::text AS "source"
-        `;
-        if (inserted.length === 1) return true;
-
-        const rows = await tx.$queryRaw<StoredSnapshotRow[]>`
-          SELECT
-            "source"::text AS "source",
-            "status"::text AS "status",
-            ${isoColumn(Prisma.sql`"measuredAt"`)} AS "measuredAt",
-            ${isoColumn(Prisma.sql`"lastSucceededAt"`)} AS "lastSucceededAt",
-            "values",
-            "safeErrorCode",
-            "payloadHash"
-          FROM "OpsSourceSnapshot"
-          WHERE "source" = ${report.source}::"OpsSource"
-          FOR UPDATE
-        `;
-        const existing = rows[0] ? decodeSnapshotRow(rows[0]) : null;
-        if (!existing) throw new AppError('service_unavailable');
-
-        const incomingMs = measuredAt.getTime();
-        const existingMs = existing.measuredAt.getTime();
-
-        if (incomingMs < existingMs) {
-          return false;
-        }
-        if (incomingMs === existingMs) {
-          if (constantTimeEqual(payloadHash, existing.payloadHash)) {
-            return true;
-          }
-          throw new AppError('idempotency_conflict', {
-            fieldErrors: { measuredAt: 'Conflicting payload for the same source and measuredAt.' },
-          });
-        }
-
-        if (report.status === 'OK') {
-          await tx.$executeRaw`
-            UPDATE "OpsSourceSnapshot"
-            SET
-              "status" = 'OK'::"OpsReportStatus",
-              "measuredAt" = ${utcSql(measuredAt)},
-              "lastSucceededAt" = ${utcSql(measuredAt)},
-              "values" = ${valuesSql},
-              "safeErrorCode" = NULL,
-              "payloadHash" = ${payloadHash},
-              "updatedAt" = CURRENT_TIMESTAMP
-            WHERE "source" = ${report.source}::"OpsSource"
-          `;
-        } else if (report.status === 'FAILED') {
-          // 失败报告保留此前成功 values 与 lastSucceededAt，供看板标明旧值。
-          await tx.$executeRaw`
-            UPDATE "OpsSourceSnapshot"
-            SET
-              "status" = 'FAILED'::"OpsReportStatus",
-              "measuredAt" = ${utcSql(measuredAt)},
-              "safeErrorCode" = ${safeErrorCode},
-              "payloadHash" = ${payloadHash},
-              "updatedAt" = CURRENT_TIMESTAMP
-            WHERE "source" = ${report.source}::"OpsSource"
-          `;
-        } else {
-          // NOT_CONNECTED：明确未接入，清空旧值与成功时间，不造虚假成功时间。
-          await tx.$executeRaw`
-            UPDATE "OpsSourceSnapshot"
-            SET
-              "status" = 'NOT_CONNECTED'::"OpsReportStatus",
-              "measuredAt" = ${utcSql(measuredAt)},
-              "lastSucceededAt" = NULL,
-              "values" = NULL,
-              "safeErrorCode" = ${safeErrorCode},
-              "payloadHash" = ${payloadHash},
-              "updatedAt" = CURRENT_TIMESTAMP
-            WHERE "source" = ${report.source}::"OpsSource"
-          `;
-        }
-        return true;
-      }, TX_OPTIONS);
-
-      return OpsReportReceiptDTOSchema.parse({ accepted, measuredAt: measuredAtIso });
+      const parsed = parseOpsReportWrite(rawInput);
+      const accepted = await deps.db.$transaction((tx) => writeParsedOpsReportInTx(tx, parsed), TX_OPTIONS);
+      return OpsReportReceiptDTOSchema.parse({ accepted, measuredAt: parsed.measuredAtIso });
     },
 
     async readSnapshots() {
-      const rows = await deps.db.$transaction(async (tx) => {
+      return deps.db.$transaction(async (tx) => {
         await tx.$executeRaw`SET TRANSACTION READ ONLY`;
-        return tx.$queryRaw<StoredSnapshotRow[]>`
-          SELECT
-            "source"::text AS "source",
-            "status"::text AS "status",
-            ${isoColumn(Prisma.sql`"measuredAt"`)} AS "measuredAt",
-            ${isoColumn(Prisma.sql`"lastSucceededAt"`)} AS "lastSucceededAt",
-            "values",
-            "safeErrorCode",
-            "payloadHash"
-          FROM "OpsSourceSnapshot"
-          WHERE "source" IN ('STORAGE'::"OpsSource", 'BACKUP'::"OpsSource")
-        `;
+        return readOpsSnapshotsInTx(tx);
       }, TX_OPTIONS);
-
-      const result: Partial<Record<OpsSource, OpsSnapshotRecord>> = {};
-      for (const row of rows) {
-        const decoded = decodeSnapshotRow(row);
-        if (decoded) result[decoded.source] = decoded;
-      }
-      return result;
     },
   };
 }

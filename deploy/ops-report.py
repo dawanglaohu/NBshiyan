@@ -104,55 +104,83 @@ def resolve_data_dir(env: dict[str, str]) -> Path:
     return Path(os.path.realpath(target))
 
 
-def read_cron_secret(env: dict[str, str]) -> str:
-    direct = env.get('CRON_SECRET', '').strip()
-    if direct:
-        return direct
-    env_file = env.get('NBSHIYAN_APP_ENV_FILE', '').strip()
-    if not env_file:
-        raise ConfigError('missing_cron_secret')
-    if '\x00' in env_file or not os.path.isabs(env_file):
-        raise ConfigError('invalid_env_file')
-    try:
-        st = os.lstat(env_file)
-    except OSError as exc:
-        raise ConfigError('env_file_unreadable') from exc
-    if stat.S_ISLNK(st.st_mode) or not stat.S_ISREG(st.st_mode):
-        raise ConfigError('env_file_not_regular')
-    if os.name == 'posix':
-        mode = stat.S_IMODE(st.st_mode)
-        if mode & 0o077:
-            raise ConfigError('env_file_insecure_perms')
-        if st.st_uid not in (0, os.getuid()):
-            raise ConfigError('env_file_wrong_owner')
-    try:
-        flags = os.O_RDONLY | getattr(os, 'O_NOFOLLOW', 0)
-        fd = os.open(env_file, flags)
-        try:
-            with os.fdopen(fd, 'r', encoding='utf-8', errors='strict') as handle:
-                content = handle.read(256 * 1024)
-        except Exception:
-            try:
-                os.close(fd)
-            except OSError:
-                pass
-            raise
-    except OSError as exc:
-        raise ConfigError('env_file_read_failed') from exc
-
+def parse_env_values(content: str, target_key: str) -> list[str]:
     found: list[str] = []
     for raw_line in content.splitlines():
         line = raw_line.strip()
         if not line or line.startswith('#') or '=' not in line:
             continue
         key, value = line.split('=', 1)
-        if key.strip() != 'CRON_SECRET':
+        if key.strip() != target_key:
             continue
         val = value.strip()
         if len(val) >= 2 and val[0] == val[-1] and val[0] in ('"', "'"):
             val = val[1:-1]
         if val:
             found.append(val)
+    return found
+
+
+def read_controlled_env_file(file_path: str, prefix: str) -> str:
+    if not file_path or '\x00' in file_path or not os.path.isabs(file_path):
+        raise ConfigError(f'invalid_{prefix}')
+    try:
+        st = os.lstat(file_path)
+    except OSError as exc:
+        raise ConfigError(f'{prefix}_unreadable') from exc
+    if stat.S_ISLNK(st.st_mode) or not stat.S_ISREG(st.st_mode):
+        raise ConfigError(f'{prefix}_not_regular')
+    if os.name == 'posix':
+        mode = stat.S_IMODE(st.st_mode)
+        if mode & 0o077:
+            raise ConfigError(f'{prefix}_insecure_perms')
+        if st.st_uid not in (0, os.getuid()):
+            raise ConfigError(f'{prefix}_wrong_owner')
+    try:
+        flags = os.O_RDONLY | getattr(os, 'O_NOFOLLOW', 0)
+        fd = os.open(file_path, flags)
+        try:
+            with os.fdopen(fd, 'r', encoding='utf-8', errors='strict') as handle:
+                return handle.read(256 * 1024)
+        except Exception:
+            try:
+                os.close(fd)
+            except OSError:
+                pass
+            raise
+    except (OSError, UnicodeDecodeError) as exc:
+        raise ConfigError(f'{prefix}_read_failed') from exc
+
+
+def resolve_deployed_app_env_file(env: dict[str, str], data_dir: Path) -> str:
+    explicit = env.get('NBSHIYAN_APP_ENV_FILE', '').strip()
+    if explicit:
+        return explicit
+
+    compose_env = data_dir / 'compose.env'
+    try:
+        os.lstat(compose_env)
+    except FileNotFoundError:
+        return str(data_dir / '.env')
+    except OSError as exc:
+        raise ConfigError('compose_env_unreadable') from exc
+
+    compose_content = read_controlled_env_file(str(compose_env), 'compose_env')
+    configured = parse_env_values(compose_content, 'NBSHIYAN_APP_ENV_FILE')
+    if len(configured) > 1:
+        raise ConfigError('invalid_compose_env')
+    if len(configured) == 1:
+        return configured[0]
+    return str(data_dir / '.env')
+
+
+def read_cron_secret(env: dict[str, str], data_dir: Path) -> str:
+    direct = env.get('CRON_SECRET', '').strip()
+    if direct:
+        return direct
+    env_file = resolve_deployed_app_env_file(env, data_dir)
+    content = read_controlled_env_file(env_file, 'env_file')
+    found = parse_env_values(content, 'CRON_SECRET')
     if len(found) != 1:
         raise ConfigError('missing_cron_secret')
     return found[0]
@@ -315,7 +343,9 @@ def collect_backup(data_dir: Path, measured_dt: datetime) -> dict[str, object]:
             'safeErrorCode': 'source_unavailable',
         }
 
-    # Source 1: explicit structured metadata file (only source allowed to attest restoreVerified=true).
+    # Source 1: explicit structured metadata file (only source allowed to attest restoreVerified=true,
+    # strictly bound to its matching archiveName).
+    meta_candidate: tuple[str, datetime, bool] | None = None
     meta_path = backup_dir / 'backup-meta.json'
     try:
         meta_raw = read_regular_text_bounded(meta_path, MAX_META_BYTES, tail=False)
@@ -381,21 +411,12 @@ def collect_backup(data_dir: Path, measured_dt: datetime) -> dict[str, object]:
                 }
             verified = True
 
-        age_seconds = min(MAX_SAFE_INTEGER, max(0, int((measured_dt - completed_dt).total_seconds())))
-        return {
-            'source': 'BACKUP',
-            'measuredAt': measured_at,
-            'status': 'OK',
-            'values': {
-                'backupCompletedAt': format_utc(completed_dt),
-                'backupAgeSeconds': age_seconds,
-                'verified': verified,
-            },
-        }
+        meta_candidate = (archive_name, completed_dt, verified)
 
     # Source 2: existing deploy/backup-postgres.sh completion log paired with the real archive stat.
     # backup-postgres.sh only runs `pg_restore --list`, which is NOT a restore verification,
-    # so `verified` MUST always remain False here.
+    # so `verified` MUST always remain False for log-only archives.
+    log_candidate: tuple[str, datetime, bool] | None = None
     log_path = backup_dir / 'backup.log'
     try:
         log_raw = read_regular_text_bounded(log_path, MAX_LOG_TAIL_BYTES, tail=True)
@@ -408,7 +429,8 @@ def collect_backup(data_dir: Path, measured_dt: datetime) -> dict[str, object]:
         }
 
     if log_raw is not None:
-        for line in reversed(log_raw.splitlines()):
+        best_order: tuple[datetime, int] | None = None
+        for idx, line in enumerate(log_raw.splitlines()):
             match = BACKUP_LOG_LINE_RE.match(line.strip())
             if not match:
                 continue
@@ -424,17 +446,39 @@ def collect_backup(data_dir: Path, measured_dt: datetime) -> dict[str, object]:
                     'status': 'FAILED',
                     'safeErrorCode': 'service_unavailable',
                 }
-            age_seconds = min(MAX_SAFE_INTEGER, max(0, int((measured_dt - completed_dt).total_seconds())))
-            return {
-                'source': 'BACKUP',
-                'measuredAt': measured_at,
-                'status': 'OK',
-                'values': {
-                    'backupCompletedAt': format_utc(completed_dt),
-                    'backupAgeSeconds': age_seconds,
-                    'verified': False,
-                },
-            }
+            order = (completed_dt, idx)
+            if best_order is None or order >= best_order:
+                best_order = order
+                log_candidate = (archive_name, completed_dt, False)
+
+    # Select the archive with the latest trustworthy completion time.
+    # Restore verification (verified=True) strictly belongs to meta_candidate's archiveName only.
+    chosen: tuple[str, datetime, bool] | None = None
+    if meta_candidate is not None and log_candidate is not None:
+        if log_candidate[0] == meta_candidate[0]:
+            chosen = meta_candidate
+        elif log_candidate[1] > meta_candidate[1]:
+            chosen = log_candidate
+        else:
+            chosen = meta_candidate
+    elif meta_candidate is not None:
+        chosen = meta_candidate
+    elif log_candidate is not None:
+        chosen = log_candidate
+
+    if chosen is not None:
+        _, chosen_completed_dt, chosen_verified = chosen
+        age_seconds = min(MAX_SAFE_INTEGER, max(0, int((measured_dt - chosen_completed_dt).total_seconds())))
+        return {
+            'source': 'BACKUP',
+            'measuredAt': measured_at,
+            'status': 'OK',
+            'values': {
+                'backupCompletedAt': format_utc(chosen_completed_dt),
+                'backupAgeSeconds': age_seconds,
+                'verified': chosen_verified,
+            },
+        }
 
     # No verifiable backup completion record (isolated files or .dump.part never count as completion).
     return {
@@ -445,27 +489,44 @@ def collect_backup(data_dir: Path, measured_dt: datetime) -> dict[str, object]:
     }
 
 
+class NoRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """Reject all 3xx responses so Bearer credentials are never forwarded on redirects."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+    def http_error_302(self, req, fp, code, msg, headers):
+        raise urllib.error.HTTPError(req.full_url, code, 'redirect_rejected', headers, fp)
+
+    http_error_301 = http_error_302
+    http_error_303 = http_error_302
+    http_error_307 = http_error_302
+    http_error_308 = http_error_302
+
+
 def post_report(url: str, secret: str, payload: dict[str, object]) -> tuple[int, bool]:
-    """Post one strictly whitelisted report with at most 1 retry on transient network/5xx failure."""
+    """Post one strictly whitelisted report, rejecting 3xx and retrying 5xx/network at most once."""
     body = json.dumps(payload, separators=(',', ':'), sort_keys=True).encode('utf-8')
     headers = {
         'Authorization': f'Bearer {secret}',
         'Content-Type': 'application/json',
         'Accept': 'application/json',
     }
-    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirectHandler())
     last_status = 0
     for attempt in range(2):
         req = urllib.request.Request(url, data=body, headers=headers, method='POST')
         try:
             with opener.open(req, timeout=HTTP_TIMEOUT_SECONDS) as resp:
+                if 300 <= resp.status < 400:
+                    return (resp.status, False)
                 raw = resp.read(4096).decode('utf-8', errors='replace')
                 parsed = json.loads(raw) if raw else {}
                 accepted = bool(isinstance(parsed, dict) and parsed.get('accepted') is True)
                 return (resp.status, accepted)
         except urllib.error.HTTPError as err:
             last_status = err.code
-            if err.code >= 500 and attempt == 0:
+            if 500 <= err.code < 600 and attempt == 0:
                 continue
             return (err.code, False)
         except (urllib.error.URLError, TimeoutError, OSError, ValueError):
@@ -498,7 +559,7 @@ def main(argv: list[str] | None = None, env: dict[str, str] | None = None) -> in
     try:
         data_dir = resolve_data_dir(dict(effective_env))
         report_url = resolve_report_url(dict(effective_env))
-        secret = '' if args.dry_run else read_cron_secret(dict(effective_env))
+        secret = '' if args.dry_run else read_cron_secret(dict(effective_env), data_dir)
     except ConfigError as exc:
         print(f'ops-report config_error code={exc.code}', file=sys.stderr)
         return 2

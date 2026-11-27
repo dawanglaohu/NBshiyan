@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
-import { execFile, execFileSync } from 'node:child_process';
+import { execFile, execFileSync, spawn, type ChildProcess } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
+import { once } from 'node:events';
 import {
   chmodSync,
   mkdtempSync,
@@ -390,7 +391,41 @@ describe('M6-T3 ops-report, deploy script, ops-sample wiring & pure rules (no da
       assert.equal(logRes.stdout.includes('nbshiyan-daily-20261127-0430.dump'), false, 'output must never leak archive filename');
       assert.equal(logRes.stdout.includes('PGDMP-SYNTHETIC'), false, 'output must never leak dump content');
 
-      // 4) 显式 restoreVerified=true 且 restoreVerifiedAt >= backupCompletedAt 的 backup-meta.json → verified=true
+      // 4) R1：昨日已验证 backup-meta.json 不能遮蔽今日 backup.log 新归档；按最新可信完成时间选归档且验证只属对应归档
+      const yesterdayCompleted = new Date(Date.now() - 24 * 3600_000);
+      const yesterdayVerified = new Date(Date.now() - 23 * 3600_000);
+      const yesterdayDump = path.join(backupDir, 'nbshiyan-daily-20261126-0430.dump');
+      writeFileSync(yesterdayDump, 'PGDMP-YESTERDAY');
+      utimesSync(yesterdayDump, yesterdayCompleted, yesterdayCompleted);
+      writeFileSync(
+        path.join(backupDir, 'backup-meta.json'),
+        JSON.stringify({
+          archiveName: 'nbshiyan-daily-20261126-0430.dump',
+          backupCompletedAt: yesterdayCompleted.toISOString(),
+          restoreVerified: true,
+          restoreVerifiedAt: yesterdayVerified.toISOString(),
+        }),
+      );
+      writeFileSync(
+        path.join(backupDir, 'backup.log'),
+        [
+          '[backup] nbshiyan-daily-20261126-0430.dump 16K; dir total 1 MB',
+          '[backup] nbshiyan-daily-20261127-0430.dump 16K; dir total 2 MB',
+        ].join('\n') + '\n',
+      );
+      const newerUnverifiedRes = await runOpsReportScript(['--source', 'backup', '--dry-run'], { NBSHIYAN_DATA_DIR: dir });
+      assert.equal(newerUnverifiedRes.code, 0, newerUnverifiedRes.stderr);
+      const newerUnverified = (JSON.parse(newerUnverifiedRes.stdout) as OpsReportRequestDTO[])[0]!;
+      assert.equal(newerUnverified.source, 'BACKUP');
+      assert.equal(newerUnverified.status, 'OK');
+      assert.equal(newerUnverified.values?.verified, false, 'yesterday verification must never apply to today archive');
+      const reportedTodayMs = Date.parse(newerUnverified.values?.backupCompletedAt ?? '');
+      assert.ok(
+        Math.abs(reportedTodayMs - past.getTime()) <= 2_000,
+        `expected today completion time ~${past.toISOString()}, got ${newerUnverified.values?.backupCompletedAt}`,
+      );
+
+      // 5) 显式对今日同一归档写入 restoreVerified=true 且 restoreVerifiedAt >= backupCompletedAt 的 backup-meta.json → verified=true
       const completedIso = new Date(Date.now() - 300_000).toISOString();
       const verifiedIso = new Date(Date.now() - 60_000).toISOString();
       writeFileSync(
@@ -410,7 +445,7 @@ describe('M6-T3 ops-report, deploy script, ops-sample wiring & pure rules (no da
       assert.equal(verifiedBackup.status, 'OK');
       assert.equal(verifiedBackup.values?.verified, true);
 
-      // 5) 损坏或引用缺失归档的 backup-meta.json → FAILED（绝不假报 OK）
+      // 6) 损坏或引用缺失归档的 backup-meta.json → FAILED（绝不假报 OK）
       writeFileSync(
         path.join(backupDir, 'backup-meta.json'),
         JSON.stringify({
@@ -431,7 +466,196 @@ describe('M6-T3 ops-report, deploy script, ops-sample wiring & pure rules (no da
     }
   });
 
-  test('ops-sample 注册与单向架构边界：registry 导出 key 不导入 ops、composition 构造期不读库、deploy/cron.nbshiyan 每 15 分钟双条目无硬编码密钥', async () => {
+  test('R3：deploy/ops-report.py 拒绝 3xx 自动重定向且无第二次请求，原地址 5xx 至多重试一次', async () => {
+    const dir = makeTempDir('nbshiyan-ops-r3-');
+    const fakeSecret = 'fake-r3-bearer-credential-must-not-redirect-0123456789';
+    let mode: { kind: 'redirect'; status: number } | { kind: 'always503' } | { kind: 'flaky503' } = {
+      kind: 'redirect',
+      status: 302,
+    };
+    let hits: Array<{ method: string; url: string; auth: string | undefined; body: string }> = [];
+
+    const server = http.createServer((req, res) => {
+      const chunks: Buffer[] = [];
+      req.on('data', (chunk: Buffer) => chunks.push(chunk));
+      req.on('end', () => {
+        const body = Buffer.concat(chunks).toString('utf8');
+        hits.push({
+          method: req.method ?? '',
+          url: req.url ?? '',
+          auth: typeof req.headers.authorization === 'string' ? req.headers.authorization : undefined,
+          body,
+        });
+        if (req.url === '/redirect-sink') {
+          res.writeHead(200, { 'content-type': 'application/json' });
+          res.end(JSON.stringify({ accepted: true, measuredAt: new Date().toISOString() }));
+          return;
+        }
+        if (mode.kind === 'redirect') {
+          const { port } = server.address() as AddressInfo;
+          res.writeHead(mode.status, { Location: `http://127.0.0.1:${port}/redirect-sink` });
+          res.end();
+          return;
+        }
+        if (mode.kind === 'always503' || (mode.kind === 'flaky503' && hits.length === 1)) {
+          res.writeHead(503, { 'content-type': 'application/json' });
+          res.end(JSON.stringify({ error: 'service_unavailable' }));
+          return;
+        }
+        const parsed = JSON.parse(body) as { measuredAt: string };
+        res.writeHead(200, { 'content-type': 'application/json' });
+        res.end(JSON.stringify({ accepted: true, measuredAt: parsed.measuredAt }));
+      });
+    });
+
+    await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', () => resolve()));
+    try {
+      const { port } = server.address() as AddressInfo;
+      const reportUrl = `http://127.0.0.1:${port}/api/internal/ops-report`;
+
+      for (const status of [301, 302, 303, 307, 308]) {
+        hits = [];
+        mode = { kind: 'redirect', status };
+        const res = await runOpsReportScript(['--source', 'storage'], {
+          NBSHIYAN_DATA_DIR: dir,
+          CRON_SECRET: fakeSecret,
+          OPS_REPORT_URL: reportUrl,
+        });
+        assert.notEqual(res.code, 0, `3xx status ${status} must fail closed`);
+        assert.equal(hits.length, 1, `status ${status} must not issue a second request`);
+        assert.equal(hits[0]!.url, '/api/internal/ops-report');
+        assert.equal(hits.some((hit) => hit.url === '/redirect-sink'), false);
+        assert.equal(res.stdout.includes(fakeSecret), false);
+        assert.equal(res.stderr.includes(fakeSecret), false);
+        assert.equal(res.stdout.includes('/redirect-sink'), false);
+        assert.equal(res.stderr.includes('/redirect-sink'), false);
+      }
+
+      // 原地址持续 503：至多重试一次（总请求严格等于 2）
+      hits = [];
+      mode = { kind: 'always503' };
+      const alwaysFail = await runOpsReportScript(['--source', 'storage'], {
+        NBSHIYAN_DATA_DIR: dir,
+        CRON_SECRET: fakeSecret,
+        OPS_REPORT_URL: reportUrl,
+      });
+      assert.notEqual(alwaysFail.code, 0);
+      assert.equal(hits.length, 2, '5xx must retry at most once');
+      assert.equal(hits[0]!.body, hits[1]!.body);
+
+      // 原地址首请 503、次请 200：精确重试一次成功
+      hits = [];
+      mode = { kind: 'flaky503' };
+      const recovered = await runOpsReportScript(['--source', 'storage'], {
+        NBSHIYAN_DATA_DIR: dir,
+        CRON_SECRET: fakeSecret,
+        OPS_REPORT_URL: reportUrl,
+      });
+      assert.equal(recovered.code, 0, `${recovered.stdout}\n${recovered.stderr}`);
+      assert.equal(hits.length, 2);
+      assert.equal(hits[0]!.auth, `Bearer ${fakeSecret}`);
+      assert.equal(hits[1]!.auth, `Bearer ${fakeSecret}`);
+      assert.equal(hits[0]!.body, hits[1]!.body);
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  test('R4：deploy/ops-report.py 按部署 compose.env 解析自定义 0600 应用环境文件，默认 .env 缺失仍成功且参数日志不含凭据', async () => {
+    const dataDir = makeTempDir('nbshiyan-ops-r4-data-');
+    const customDir = makeTempDir('nbshiyan-ops-r4-custom-');
+    const customSecret = 'fake-r4-custom-env-file-secret-abcdef0123456789';
+    const customEnvFile = path.join(customDir, 'prod-custom.env');
+    const composeEnvFile = path.join(dataDir, 'compose.env');
+    const receivedAuth: Array<string | undefined> = [];
+
+    const server = http.createServer((req, res) => {
+      const chunks: Buffer[] = [];
+      req.on('data', (chunk: Buffer) => chunks.push(chunk));
+      req.on('end', () => {
+        receivedAuth.push(typeof req.headers.authorization === 'string' ? req.headers.authorization : undefined);
+        const parsed = JSON.parse(Buffer.concat(chunks).toString('utf8')) as { measuredAt: string };
+        res.writeHead(200, { 'content-type': 'application/json' });
+        res.end(JSON.stringify({ accepted: true, measuredAt: parsed.measuredAt }));
+      });
+    });
+
+    await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', () => resolve()));
+    try {
+      const { port } = server.address() as AddressInfo;
+      const reportUrl = `http://127.0.0.1:${port}/api/internal/ops-report`;
+
+      // 默认 dataDir/.env 不存在；部署生成的 compose.env 指向自定义 0600 环境文件
+      writeFileSync(customEnvFile, `APP_ENV=production\nCRON_SECRET="${customSecret}"\n`);
+      writeFileSync(
+        composeEnvFile,
+        `NBSHIYAN_DATA_DIR=${dataDir}\nNBSHIYAN_APP_ENV_FILE=${customEnvFile}\nAPP_TAG=current\n`,
+      );
+      if (process.platform !== 'win32') {
+        chmodSync(customEnvFile, 0o600);
+        chmodSync(composeEnvFile, 0o600);
+      }
+
+      // 模拟 deploy/cron.nbshiyan:29：仅传 NBSHIYAN_DATA_DIR（不传 CRON_SECRET / NBSHIYAN_APP_ENV_FILE）
+      const okRes = await runOpsReportScript(['--source', 'storage'], {
+        NBSHIYAN_DATA_DIR: dataDir,
+        OPS_REPORT_URL: reportUrl,
+      });
+      assert.equal(okRes.code, 0, `${okRes.stdout}\n${okRes.stderr}`);
+      assert.deepEqual(receivedAuth, [`Bearer ${customSecret}`]);
+      assert.equal(okRes.stdout.includes(customSecret), false);
+      assert.equal(okRes.stderr.includes(customSecret), false);
+      assert.equal(okRes.stdout.includes(customEnvFile), false);
+      assert.equal(okRes.stderr.includes(customEnvFile), false);
+      assert.equal(okRes.stdout.includes(dataDir), false);
+
+      // POSIX 下自定义环境文件非 0600 时必须 fail closed
+      if (process.platform !== 'win32') {
+        chmodSync(customEnvFile, 0o644);
+        const badModeRes = await runOpsReportScript(['--source', 'storage'], {
+          NBSHIYAN_DATA_DIR: dataDir,
+          OPS_REPORT_URL: reportUrl,
+        });
+        assert.equal(badModeRes.code, 2);
+        assert.match(badModeRes.stderr, /code=env_file_insecure_perms/);
+        assert.equal(badModeRes.stderr.includes(customEnvFile), false);
+        chmodSync(customEnvFile, 0o600);
+      }
+
+      // compose.env 指向不存在的自定义环境文件时，即使默认 .env 存在也绝不静默回退
+      const defaultEnvFile = path.join(dataDir, '.env');
+      writeFileSync(defaultEnvFile, 'CRON_SECRET=fallback-default-secret-should-not-be-used\n');
+      if (process.platform !== 'win32') chmodSync(defaultEnvFile, 0o600);
+      writeFileSync(
+        composeEnvFile,
+        `NBSHIYAN_DATA_DIR=${dataDir}\nNBSHIYAN_APP_ENV_FILE=${path.join(customDir, 'missing.env')}\nAPP_TAG=current\n`,
+      );
+      if (process.platform !== 'win32') chmodSync(composeEnvFile, 0o600);
+      const missingCustomRes = await runOpsReportScript(['--source', 'storage'], {
+        NBSHIYAN_DATA_DIR: dataDir,
+        OPS_REPORT_URL: reportUrl,
+      });
+      assert.equal(missingCustomRes.code, 2);
+      assert.match(missingCustomRes.stderr, /code=env_file_unreadable/);
+      assert.equal(receivedAuth.length, 1, 'must not fall back to default .env when compose.env points elsewhere');
+
+      // 无 compose.env 时回退默认 0600 .env 仍可用
+      rmSync(composeEnvFile, { force: true });
+      const fallbackRes = await runOpsReportScript(['--source', 'storage'], {
+        NBSHIYAN_DATA_DIR: dataDir,
+        OPS_REPORT_URL: reportUrl,
+      });
+      assert.equal(fallbackRes.code, 0, `${fallbackRes.stdout}\n${fallbackRes.stderr}`);
+      assert.equal(receivedAuth[1], 'Bearer fallback-default-secret-should-not-be-used');
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+      rmSync(dataDir, { recursive: true, force: true });
+      rmSync(customDir, { recursive: true, force: true });
+    }
+  });
+
+  test('ops-sample 注册与单向架构边界：registry 导出 key 不导入 ops、composition 构造期不读库、deploy/cron.nbshiyan 每 15 分钟双条目无硬编码密钥与默认 .env', async () => {
     const registrySrc = readFileSync(path.resolve(process.cwd(), 'src/lib/server/jobs/registry.ts'), 'utf8');
     assert.doesNotMatch(registrySrc, /\.\.\/ops\//, 'registry.ts must never import M6 ops implementation');
 
@@ -478,7 +702,11 @@ describe('M6-T3 ops-report, deploy script, ops-sample wiring & pure rules (no da
     const reportLine = reportLines[0]!;
     assert.match(reportLine, /^\*\/15 \* \* \* \* /);
     assert.match(reportLine, /NBSHIYAN_DATA_DIR=@DATA_DIR@/);
-    assert.match(reportLine, /NBSHIYAN_APP_ENV_FILE=@DATA_DIR@\/\.env/);
+    assert.equal(
+      reportLine.includes('NBSHIYAN_APP_ENV_FILE='),
+      false,
+      'host cron line must not hardcode NBSHIYAN_APP_ENV_FILE=@DATA_DIR@/.env; script resolves compose.env',
+    );
     assert.equal(reportLine.includes('CRON_SECRET'), false, 'host cron line must never pass CRON_SECRET on argv');
     assert.doesNotMatch(reportLine, /--(path|dir|file|secret|token|url)\b/);
     assert.match(reportLine, />> @DATA_DIR@\/cron-ops-report\.log 2>&1$/);
@@ -643,8 +871,9 @@ describe('M6-T3 ops-report & ops-sample PostgreSQL + Auth.js integration', {
   let statsRoute: typeof import('../src/app/api/admin/stats/route');
   let opsReportRoute: typeof import('../src/app/api/internal/ops-report/route');
   let composition: typeof import('../src/lib/server/composition');
-  let registry: typeof import('../src/lib/server/jobs/registry');
   let opsReportMod: typeof import('../src/lib/server/ops/ops-report');
+  let opsSampleMod: typeof import('../src/lib/server/ops/ops-sample');
+  let leaseRepoMod: typeof import('../src/lib/server/jobs/lease-repo');
   let statsServiceMod: typeof import('../src/lib/server/ops/stats-service');
   let hashSecret: typeof import('../src/lib/server/admin/crypto').hashSecret;
   let encrypt: typeof import('../src/lib/server/admin/crypto').encrypt;
@@ -750,8 +979,9 @@ describe('M6-T3 ops-report & ops-sample PostgreSQL + Auth.js integration', {
     statsRoute = await import('../src/app/api/admin/stats/route');
     opsReportRoute = await import('../src/app/api/internal/ops-report/route');
     composition = await import('../src/lib/server/composition');
-    registry = await import('../src/lib/server/jobs/registry');
     opsReportMod = await import('../src/lib/server/ops/ops-report');
+    opsSampleMod = await import('../src/lib/server/ops/ops-sample');
+    leaseRepoMod = await import('../src/lib/server/jobs/lease-repo');
     statsServiceMod = await import('../src/lib/server/ops/stats-service');
     ({ hashSecret, encrypt } = await import('../src/lib/server/admin/crypto'));
     const limiter = await import('../src/lib/server/ratelimit');
@@ -789,22 +1019,52 @@ describe('M6-T3 ops-report & ops-sample PostgreSQL + Auth.js integration', {
     }
   });
 
-  test('AC1/E-65：受控 deploy/ops-report.py → 真实 HTTP POST /api/internal/ops-report 落库 OpsSourceSnapshot 与 ApiDailyCounter，并验证 5xx 单次幂等重试', async () => {
+  test('AC1/E-65/R1/R4：受控 deploy/ops-report.py 从 compose.env 自定义 0600 文件真实 POST 上报，昨日已验证不遮蔽今日未验证并在 stats 显示今日时间与 partial，验证 5xx 单次重试', async () => {
     const dataDir = makeTempDir('nbshiyan-m6t3-http-');
+    const customEnvDir = makeTempDir('nbshiyan-m6t3-custom-env-');
     mkdirSync(path.join(dataDir, 'uploads'), { recursive: true });
     mkdirSync(path.join(dataDir, 'backup'), { recursive: true });
     writeFileSync(path.join(dataDir, 'uploads', 'asset.webp'), Buffer.alloc(1536, 5));
-    const dumpFile = path.join(dataDir, 'backup', 'nbshiyan-daily-20261127-0430.dump');
-    writeFileSync(dumpFile, 'SYNTHETIC-DUMP-PAYLOAD-MUST-NOT-BE-SENT');
-    const dumpTime = new Date(Date.now() - 180_000);
-    utimesSync(dumpFile, dumpTime, dumpTime);
+
+    // R1：昨日归档已恢复验证（backup-meta.json restoreVerified=true），今日归档由 backup.log 完成但未恢复验证
+    const yesterdayCompleted = new Date(Date.now() - 24 * 3600_000);
+    const yesterdayVerified = new Date(Date.now() - 23 * 3600_000);
+    const todayCompleted = new Date(Date.now() - 180_000);
+    const yesterdayDump = path.join(dataDir, 'backup', 'nbshiyan-daily-20261126-0430.dump');
+    const todayDump = path.join(dataDir, 'backup', 'nbshiyan-daily-20261127-0430.dump');
+    writeFileSync(yesterdayDump, 'SYNTHETIC-YESTERDAY-DUMP');
+    utimesSync(yesterdayDump, yesterdayCompleted, yesterdayCompleted);
+    writeFileSync(todayDump, 'SYNTHETIC-DUMP-PAYLOAD-MUST-NOT-BE-SENT');
+    utimesSync(todayDump, todayCompleted, todayCompleted);
+    writeFileSync(
+      path.join(dataDir, 'backup', 'backup-meta.json'),
+      JSON.stringify({
+        archiveName: 'nbshiyan-daily-20261126-0430.dump',
+        backupCompletedAt: yesterdayCompleted.toISOString(),
+        restoreVerified: true,
+        restoreVerifiedAt: yesterdayVerified.toISOString(),
+      }),
+    );
     writeFileSync(
       path.join(dataDir, 'backup', 'backup.log'),
-      '[backup] nbshiyan-daily-20261127-0430.dump 1K; dir total 1 MB\n',
+      [
+        '[backup] nbshiyan-daily-20261126-0430.dump 1K; dir total 1 MB',
+        '[backup] nbshiyan-daily-20261127-0430.dump 1K; dir total 2 MB',
+      ].join('\n') + '\n',
     );
-    const envFile = path.join(dataDir, 'app.env');
-    writeFileSync(envFile, `OTHER_KEY=1\nCRON_SECRET=${SECRET}\n`);
-    if (process.platform !== 'win32') chmodSync(envFile, 0o600);
+
+    // R4：默认 dataDir/.env 不存在；deploy.sh 生成的 compose.env 指向独立自定义 0600 文件
+    const customEnvFile = path.join(customEnvDir, 'app-custom.env');
+    const composeEnvFile = path.join(dataDir, 'compose.env');
+    writeFileSync(customEnvFile, `OTHER_KEY=1\nCRON_SECRET=${SECRET}\n`);
+    writeFileSync(
+      composeEnvFile,
+      `NBSHIYAN_DATA_DIR=${dataDir}\nNBSHIYAN_APP_ENV_FILE=${customEnvFile}\nAPP_TAG=current\n`,
+    );
+    if (process.platform !== 'win32') {
+      chmodSync(customEnvFile, 0o600);
+      chmodSync(composeEnvFile, 0o600);
+    }
 
     let storageHits = 0;
     const server = http.createServer((req, res) => {
@@ -843,9 +1103,9 @@ describe('M6-T3 ops-report & ops-sample PostgreSQL + Auth.js integration', {
     await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', () => resolve()));
     try {
       const { port } = server.address() as AddressInfo;
+      // 与 deploy/cron.nbshiyan:29 一致：不传 CRON_SECRET / NBSHIYAN_APP_ENV_FILE，仅传 NBSHIYAN_DATA_DIR
       const result = await runOpsReportScript([], {
         NBSHIYAN_DATA_DIR: dataDir,
-        NBSHIYAN_APP_ENV_FILE: envFile,
         OPS_REPORT_URL: `http://127.0.0.1:${port}/api/internal/ops-report`,
       });
       assert.equal(result.code, 0, `${result.stdout}\n${result.stderr}`);
@@ -853,6 +1113,8 @@ describe('M6-T3 ops-report & ops-sample PostgreSQL + Auth.js integration', {
       assert.match(result.stdout, /source=STORAGE status=OK http=200 accepted=true/);
       assert.match(result.stdout, /source=BACKUP status=OK http=200 accepted=true/);
       assert.equal(result.stdout.includes(SECRET), false);
+      assert.equal(result.stderr.includes(SECRET), false);
+      assert.equal(result.stdout.includes(customEnvFile), false);
       assert.equal(result.stdout.includes(dataDir), false);
       assert.equal(result.stdout.includes('SYNTHETIC-DUMP-PAYLOAD'), false);
 
@@ -864,8 +1126,25 @@ describe('M6-T3 ops-report & ops-sample PostgreSQL + Auth.js integration', {
       assert.equal((storageRow.values as { bytesUsed: number }).bytesUsed, 1536);
       assert.ok(storageRow.lastSucceededAt !== null);
       assert.equal(backupRow.status, 'OK');
-      assert.equal((backupRow.values as { verified: boolean }).verified, false);
+      const backupValues = backupRow.values as { backupCompletedAt: string; verified: boolean };
+      assert.equal(backupValues.verified, false, 'today archive must remain unverified despite yesterday backup-meta.json');
+      assert.ok(
+        Math.abs(Date.parse(backupValues.backupCompletedAt) - todayCompleted.getTime()) <= 2_000,
+        `expected today completion time ~${todayCompleted.toISOString()}, got ${backupValues.backupCompletedAt}`,
+      );
       assert.ok(backupRow.lastSucceededAt !== null);
+
+      // R1：真实 ADMIN GET /api/admin/stats 同样反映今日完成时间与未验证状态（coverage=partial）
+      const statsRes = await statsRoute.GET(new Request(`${ORIGIN}/api/admin/stats?sources=storage,backup`, {
+        headers: { cookie: admin.cookie },
+      }));
+      assert.equal(statsRes.status, 200);
+      const statsDto = StatsDTOSchema.parse(await statsRes.json());
+      const backupCard = findSource(statsDto, 'backup');
+      assert.equal(backupCard.state, 'ok');
+      assert.equal(backupCard.coverage, 'partial');
+      assert.equal(backupCard.dataThrough, backupValues.backupCompletedAt);
+      assert.ok(Math.abs(Date.parse(backupCard.dataThrough ?? '') - todayCompleted.getTime()) <= 2_000);
 
       const counterRows = await db.apiDailyCounter.findMany({ where: { routeId: OPS_REPORT_ROUTE_ID } });
       const totalRecorded = counterRows.reduce((sum, row) => sum + row.requestCount, 0);
@@ -873,6 +1152,7 @@ describe('M6-T3 ops-report & ops-sample PostgreSQL + Auth.js integration', {
     } finally {
       await new Promise<void>((resolve) => server.close(() => resolve()));
       rmSync(dataDir, { recursive: true, force: true });
+      rmSync(customEnvDir, { recursive: true, force: true });
     }
   });
 
@@ -946,6 +1226,141 @@ describe('M6-T3 ops-report & ops-sample PostgreSQL + Auth.js integration', {
     );
   });
 
+  test('R2：ops-sample 作业内快照写入与 JobState 租约结算共享受预算与代次保护的事务——失效代次不改快照与成功时间，正常代次写入，独立 POST 保持幂等与 409', async () => {
+    let nowMs = Date.parse('2026-11-27T12:00:00.000Z');
+    const clock = () => new Date(nowMs);
+    const makeCtx = () => ({
+      now: new Date(nowMs),
+      deadlineAt: new Date(Date.now() + 55_000),
+      signal: new AbortController().signal,
+    });
+
+    // 1) 空库：第 1 代取得租约后暂停，95s 后第 2 代取得租约；第 1 代恢复返回 finish_failed，库内 0 快照残留
+    let releaseGen1!: () => void;
+    const gen1Paused = new Promise<void>((resolve) => { releaseGen1 = resolve; });
+    let gen1Entered!: () => void;
+    const gen1EnteredPromise = new Promise<void>((resolve) => { gen1Entered = resolve; });
+
+    const gen1Job = opsSampleMod.createOpsSampleJob({
+      db,
+      clock,
+      sampleStorage: async () => {
+        gen1Entered();
+        await gen1Paused;
+        return { kind: 'ok', values: { bytesUsed: 37, bytesFree: 1000 } };
+      },
+    });
+    const gen1Run = gen1Job.run(makeCtx());
+    await gen1EnteredPromise;
+
+    nowMs += 95_000;
+    const claim2 = await leaseRepoMod.createJobLeaseRepo({ db, clock }).claim({
+      key: 'ops-sample',
+      owner: 'ops-sample-runtime',
+    });
+    assert.equal(claim2.acquired, true);
+    if (!claim2.acquired) throw new Error('expected generation 2 claim');
+    assert.equal(claim2.generation, 2);
+
+    releaseGen1();
+    const outcome1 = await gen1Run;
+    assert.deepEqual(outcome1, { kind: 'finish_failed' });
+    assert.equal(await db.opsSourceSnapshot.count(), 0, 'stale generation 1 must roll back 37-byte snapshot');
+    const stateAfterGen1 = await db.jobState.findUniqueOrThrow({ where: { key: 'ops-sample' } });
+    assert.equal(stateAfterGen1.generation, 2);
+    assert.equal(stateAfterGen1.lastSucceededAt, null);
+
+    // 2) 释放第 2 代租约后，正常第 3 代写入 512 字节快照成功
+    await db.jobState.update({ where: { key: 'ops-sample' }, data: { leaseOwner: null, lockedUntil: null } });
+    nowMs += 5_000;
+    const t3Iso = new Date(nowMs).toISOString();
+    const gen3Job = opsSampleMod.createOpsSampleJob({
+      db,
+      clock,
+      sampleStorage: async () => ({ kind: 'ok', values: { bytesUsed: 512, bytesFree: 4096 } }),
+    });
+    const outcome3 = await gen3Job.run(makeCtx());
+    assert.equal(outcome3.kind, 'ran');
+    assert.equal(outcome3.status, 'SUCCEEDED');
+    const snap3 = await db.opsSourceSnapshot.findUniqueOrThrow({ where: { source: 'STORAGE' } });
+    assert.deepEqual(snap3.values, { bytesUsed: 512, bytesFree: 4096 });
+    assert.equal(snap3.lastSucceededAt?.toISOString(), t3Iso);
+    const state3 = await db.jobState.findUniqueOrThrow({ where: { key: 'ops-sample' } });
+    assert.equal(state3.generation, 3);
+    assert.equal(state3.lastSucceededAt?.toISOString(), t3Iso);
+
+    // 3) 已有 512 字节快照时，第 4 代被第 5 代抢占：第 4 代返回 finish_failed 且不改变 512 字节快照或 lastSucceededAt
+    nowMs += 60_000;
+    let releaseGen4!: () => void;
+    const gen4Paused = new Promise<void>((resolve) => { releaseGen4 = resolve; });
+    let gen4Entered!: () => void;
+    const gen4EnteredPromise = new Promise<void>((resolve) => { gen4Entered = resolve; });
+    const gen4Job = opsSampleMod.createOpsSampleJob({
+      db,
+      clock,
+      sampleStorage: async () => {
+        gen4Entered();
+        await gen4Paused;
+        return { kind: 'ok', values: { bytesUsed: 9999, bytesFree: 1 } };
+      },
+    });
+    const gen4Run = gen4Job.run(makeCtx());
+    await gen4EnteredPromise;
+
+    nowMs += 95_000;
+    const claim5 = await leaseRepoMod.createJobLeaseRepo({ db, clock }).claim({
+      key: 'ops-sample',
+      owner: 'ops-sample-runtime',
+    });
+    assert.equal(claim5.acquired, true);
+    if (!claim5.acquired) throw new Error('expected generation 5 claim');
+    assert.equal(claim5.generation, 5);
+
+    releaseGen4();
+    assert.deepEqual(await gen4Run, { kind: 'finish_failed' });
+    const snapAfterGen4 = await db.opsSourceSnapshot.findUniqueOrThrow({ where: { source: 'STORAGE' } });
+    assert.deepEqual(snapAfterGen4.values, { bytesUsed: 512, bytesFree: 4096 });
+    assert.equal(snapAfterGen4.measuredAt.toISOString(), t3Iso);
+    assert.equal(snapAfterGen4.lastSucceededAt?.toISOString(), t3Iso);
+    const stateAfterGen4 = await db.jobState.findUniqueOrThrow({ where: { key: 'ops-sample' } });
+    assert.equal(stateAfterGen4.generation, 5);
+    assert.equal(stateAfterGen4.lastSucceededAt?.toISOString(), t3Iso);
+
+    // 4) 释放租约后正常第 6 代写入 768 字节，且独立 POST 保持同时间同载荷幂等 200 与异载荷 409
+    await db.jobState.update({ where: { key: 'ops-sample' }, data: { leaseOwner: null, lockedUntil: null } });
+    nowMs += 5_000;
+    const t6Iso = new Date(nowMs).toISOString();
+    const gen6Job = opsSampleMod.createOpsSampleJob({
+      db,
+      clock,
+      sampleStorage: async () => ({ kind: 'ok', values: { bytesUsed: 768, bytesFree: 8192 } }),
+    });
+    const outcome6 = await gen6Job.run(makeCtx());
+    assert.equal(outcome6.kind, 'ran');
+    assert.equal(outcome6.status, 'SUCCEEDED');
+    const snap6 = await db.opsSourceSnapshot.findUniqueOrThrow({ where: { source: 'STORAGE' } });
+    assert.deepEqual(snap6.values, { bytesUsed: 768, bytesFree: 8192 });
+    assert.equal(snap6.lastSucceededAt?.toISOString(), t6Iso);
+
+    const idemRes = await postOpsReport({
+      source: 'STORAGE',
+      measuredAt: t6Iso,
+      status: 'OK',
+      values: { bytesUsed: 768, bytesFree: 8192 },
+    });
+    assert.equal(idemRes.status, 200);
+    assert.deepEqual(OpsReportReceiptDTOSchema.parse(await idemRes.json()), { accepted: true, measuredAt: t6Iso });
+
+    const conflictRes = await postOpsReport({
+      source: 'STORAGE',
+      measuredAt: t6Iso,
+      status: 'OK',
+      values: { bytesUsed: 769, bytesFree: 8192 },
+    });
+    assert.equal(conflictRes.status, 409);
+    assert.equal(((await conflictRes.json()) as { error: string }).error, 'idempotency_conflict');
+  });
+
   test('AC1/E-66：后台 ADMIN Auth.js session 不能替代 Bearer 调 ops-report（401）；SALES/EDITOR 直接 GET stats 的 storage/backup 403、混合来源裁剪、空库 not_connected', async () => {
     // 1) 真登录 ADMIN session cookie 无 Bearer 调 POST /api/internal/ops-report -> 401
     const sessionAttempt = await postOpsReport(
@@ -1014,81 +1429,236 @@ describe('M6-T3 ops-report & ops-sample PostgreSQL + Auth.js integration', {
     }
   });
 
-  test('AC2/E-65：ops-sample 经 POST /api/admin/cron/operations 实际执行、409 忙租约跳过、进程重启新建组合实例按 15 分钟推进并写入 stats', async () => {
-    const uploadDir = makeTempDir('nbshiyan-m6t3-sample-');
-    try {
-      writeFileSync(path.join(uploadDir, 'file-1.bin'), Buffer.alloc(1024, 1));
-      let currentNow = new Date('2026-11-27T12:00:00.000Z');
-      const clock = () => new Date(currentNow);
+  test('AC2/E-65/R5：由安装后的 deploy/cron.nbshiyan 真实 */15 计划驱动隔离 HTTP 服务，验证重启前后不同 OS 进程、触发时间、同库递增 JobState 与对应真实 stats GET', async () => {
+    const dataDir = makeTempDir('nbshiyan-m6t3-r5-');
+    const uploadDir = path.join(dataDir, 'uploads');
+    mkdirSync(uploadDir, { recursive: true });
+    writeFileSync(path.join(uploadDir, 'file-1.bin'), Buffer.alloc(1024, 1));
 
-      const postOp = (handler: (req: Request) => Promise<Response>) => handler(
-        new Request(`${ORIGIN}/api/admin/cron/operations`, {
-          method: 'POST',
-          headers: { authorization: `Bearer ${SECRET}`, 'content-type': 'application/json' },
-          body: JSON.stringify({ jobKey: 'ops-sample' }),
-        }),
-      );
+    // 安装 deploy/cron.nbshiyan（按安装约定替换 @DATA_DIR@），校验真实 */15 表达式并提取原样触发命令
+    const rawCron = readFileSync(path.resolve(process.cwd(), 'deploy/cron.nbshiyan'), 'utf8');
+    const installedCronPath = path.join(dataDir, 'cron.nbshiyan');
+    writeFileSync(installedCronPath, rawCron.replaceAll('@DATA_DIR@', dataDir));
+    const installedOpsSampleLine = readFileSync(installedCronPath, 'utf8')
+      .split(/\r?\n/)
+      .find((line) => !line.trimStart().startsWith('#') && line.includes("jobKey:'ops-sample'"));
+    assert.ok(installedOpsSampleLine, 'installed cron must contain ops-sample entry');
+    assert.match(installedOpsSampleLine, /^\*\/15 \* \* \* \* root /);
+    const nodeExprMatch = /node -e "([^"]+)"/.exec(installedOpsSampleLine);
+    assert.ok(nodeExprMatch, 'installed ops-sample cron line must contain node -e expression');
+    const installedCronNodeExpr = nodeExprMatch[1]!;
 
-      // 第 1 轮：经真实 operations 入口运行 ops-sample
-      const boot1 = registry.createOperationsHandler({
-        services: composition.createJobServices({
-          db,
-          clock,
-          ops: { env: { STORAGE_DRIVER: 'local', UPLOAD_DIR: uploadDir } },
-        }).jobs,
-        clock,
-        secret: SECRET,
+    // 独立隔离 HTTP 服务入口：挂载生产 route.ts（operations + stats + ops-report + health），以真实 OS 子进程启停
+    const operationsRouteFile = JSON.stringify(path.resolve(process.cwd(), 'src/app/api/admin/cron/operations/route.ts'));
+    const statsRouteFile = JSON.stringify(path.resolve(process.cwd(), 'src/app/api/admin/stats/route.ts'));
+    const opsReportRouteFile = JSON.stringify(path.resolve(process.cwd(), 'src/app/api/internal/ops-report/route.ts'));
+    const serverEntryPath = path.join(dataDir, 'isolated-ops-server.ts');
+    writeFileSync(
+      serverEntryPath,
+      [
+        "import http from 'node:http';",
+        `import { POST as operationsPost } from ${operationsRouteFile};`,
+        `import { GET as statsGet } from ${statsRouteFile};`,
+        `import { POST as opsReportPost } from ${opsReportRouteFile};`,
+        '',
+        'const port = Number(process.env.ISOLATED_PORT || 0);',
+        'const server = http.createServer((req, res) => {',
+        '  const chunks: Buffer[] = [];',
+        '  req.on("data", (chunk: Buffer) => chunks.push(chunk));',
+        '  req.on("end", async () => {',
+        '    try {',
+        '      const addr = server.address();',
+        '      const listenPort = typeof addr === "object" && addr ? addr.port : port;',
+        '      const url = `http://127.0.0.1:${listenPort}${req.url ?? "/"}`;',
+        '      if (req.method === "GET" && req.url === "/api/health") {',
+        '        res.writeHead(200, { "content-type": "application/json" });',
+        '        res.end(JSON.stringify({ ok: true, pid: process.pid }));',
+        '        return;',
+        '      }',
+        '      const headers = new Headers();',
+        '      for (const [key, value] of Object.entries(req.headers)) {',
+        '        if (typeof value === "string") headers.set(key, value);',
+        '        else if (Array.isArray(value)) headers.set(key, value.join(", "));',
+        '      }',
+        '      const body = chunks.length > 0 ? Buffer.concat(chunks) : undefined;',
+        '      let response: Response;',
+        '      if (req.method === "POST" && req.url === "/api/admin/cron/operations") {',
+        '        response = await operationsPost(new Request(url, { method: "POST", headers, body }));',
+        '      } else if (req.method === "POST" && req.url === "/api/internal/ops-report") {',
+        '        response = await opsReportPost(new Request(url, { method: "POST", headers, body }));',
+        '      } else if (req.method === "GET" && (req.url ?? "").startsWith("/api/admin/stats")) {',
+        '        response = await statsGet(new Request(url, { method: "GET", headers }));',
+        '      } else {',
+        '        res.writeHead(404, { "content-type": "application/json" });',
+        '        res.end(JSON.stringify({ error: "not_found" }));',
+        '        return;',
+        '      }',
+        '      const outHeaders: Record<string, string> = {};',
+        '      response.headers.forEach((v, k) => { outHeaders[k] = v; });',
+        '      const text = await response.text();',
+        '      res.writeHead(response.status, outHeaders);',
+        '      res.end(text);',
+        '    } catch {',
+        '      res.writeHead(500, { "content-type": "application/json" });',
+        '      res.end(JSON.stringify({ error: "internal_error" }));',
+        '    }',
+        '  });',
+        '});',
+        'server.listen(port, "127.0.0.1", () => {',
+        '  const addr = server.address();',
+        '  const listenPort = typeof addr === "object" && addr ? addr.port : port;',
+        '  process.stdout.write(`READY ${JSON.stringify({ port: listenPort, pid: process.pid })}\\n`);',
+        '});',
+        'const shutdown = () => { server.closeAllConnections?.(); server.close(() => process.exit(0)); };',
+        'process.on("SIGTERM", shutdown);',
+        'process.on("SIGINT", shutdown);',
+      ].join('\n'),
+    );
+
+    type SpawnedServer = { child: ChildProcess; port: number; pid: number };
+    const startIsolatedServer = async (): Promise<SpawnedServer> => {
+      const child = spawn(process.execPath, ['--import', 'tsx', serverEntryPath], {
+        cwd: process.cwd(),
+        env: {
+          ...process.env,
+          STORAGE_DRIVER: 'local',
+          UPLOAD_DIR: uploadDir,
+          ISOLATED_PORT: '0',
+        },
+        stdio: ['ignore', 'pipe', 'pipe'],
       });
-      const r1 = await postOp(boot1);
-      assert.equal(r1.status, 200);
-      const body1 = (await r1.json()) as { jobKey: string; status: string; counts: { candidateCount?: number } };
-      assert.equal(body1.jobKey, 'ops-sample');
-      assert.equal(body1.status, 'SUCCEEDED');
-      assert.equal(body1.counts.candidateCount, 1);
+      let stdoutBuf = '';
+      let stderrBuf = '';
+      child.stderr?.on('data', (chunk: Buffer) => { stderrBuf += chunk.toString('utf8'); });
+      const ready = await new Promise<{ port: number; pid: number }>((resolve, reject) => {
+        const timer = setTimeout(() => {
+          reject(new Error(`isolated server startup timeout; stderr=${stderrBuf}`));
+        }, 45_000);
+        child.once('exit', (code, signal) => {
+          clearTimeout(timer);
+          reject(new Error(`isolated server exited early code=${code} signal=${signal} stderr=${stderrBuf}`));
+        });
+        child.stdout?.on('data', (chunk: Buffer) => {
+          stdoutBuf += chunk.toString('utf8');
+          const match = /READY (\{[^\n]+\})/.exec(stdoutBuf);
+          if (match) {
+            clearTimeout(timer);
+            resolve(JSON.parse(match[1]!) as { port: number; pid: number });
+          }
+        });
+      });
+      const health = await fetch(`http://127.0.0.1:${ready.port}/api/health`);
+      assert.equal(health.status, 200);
+      const healthBody = (await health.json()) as { ok: boolean; pid: number };
+      assert.equal(healthBody.ok, true);
+      assert.equal(healthBody.pid, ready.pid);
+      return { child, port: ready.port, pid: ready.pid };
+    };
+
+    const stopIsolatedServer = async (srv: SpawnedServer | null) => {
+      if (!srv) return;
+      if (srv.child.exitCode !== null || srv.child.signalCode !== null) return;
+      const exited = once(srv.child, 'exit');
+      srv.child.kill('SIGTERM');
+      await Promise.race([
+        exited,
+        new Promise<void>((_, reject) => setTimeout(() => reject(new Error('stop timeout')), 8_000)),
+      ]).catch(() => {
+        srv.child.kill('SIGKILL');
+      });
+    };
+
+    const runInstalledCronTick = async (port: number) => {
+      const expr = installedCronNodeExpr.replace('http://127.0.0.1:3000', `http://127.0.0.1:${port}`);
+      const { stdout, stderr } = await execFileAsync(process.execPath, ['-e', expr], {
+        env: { ...process.env, CRON_SECRET: SECRET },
+        timeout: 30_000,
+      });
+      assert.equal(stderr.includes(SECRET), false);
+      assert.equal(stdout.includes(SECRET), false);
+      const match = /^(\S+)\s+ops-sample\s+(\d+)$/.exec(stdout.trim());
+      assert.ok(match, `unexpected cron log line: ${stdout}`);
+      return { triggeredAt: match[1]!, status: Number(match[2]!) };
+    };
+
+    let proc1: SpawnedServer | null = null;
+    let proc2: SpawnedServer | null = null;
+    try {
+      // 1) 重启前进程 1：安装后 cron 触发 → 同库 JobState=1 → 真实 HTTP GET /api/admin/stats
+      proc1 = await startIsolatedServer();
+      const tick1 = await runInstalledCronTick(proc1.port);
+      assert.equal(tick1.status, 200);
+      assert.ok(Number.isFinite(Date.parse(tick1.triggeredAt)));
 
       const state1 = await db.jobState.findUniqueOrThrow({ where: { key: 'ops-sample' } });
+      const snap1 = await db.opsSourceSnapshot.findUniqueOrThrow({ where: { source: 'STORAGE' } });
       assert.equal(state1.generation, 1);
       assert.equal(state1.lastStatus, 'SUCCEEDED');
-      assert.equal(state1.lastSucceededAt?.toISOString(), '2026-11-27T12:00:00.000Z');
+      assert.ok(state1.lastSucceededAt !== null);
+      assert.ok(snap1.lastSucceededAt !== null);
+      assert.ok(snap1.lastSucceededAt.getTime() <= state1.lastSucceededAt.getTime());
 
-      // 租约被占用时返回 409 job_busy，不推进代次
+      const stats1Res = await fetch(`http://127.0.0.1:${proc1.port}/api/admin/stats?sources=storage,backup`, {
+        headers: { cookie: admin.cookie },
+      });
+      assert.equal(stats1Res.status, 200);
+      const stats1Dto = StatsDTOSchema.parse(await stats1Res.json());
+      assert.equal(findSource(stats1Dto, 'storage').state, 'ok');
+      assert.equal(findSource(stats1Dto, 'storage').value, 1024);
+      assert.equal(findSource(stats1Dto, 'storage').lastSucceededAt, snap1.lastSucceededAt.toISOString());
+      assert.equal(findSource(stats1Dto, 'backup').state, 'not_connected');
+
+      // 租约被占用时，安装后 cron 脚本收到 409 正常跳过（exit 0，不推进代次）
       await db.jobState.update({
         where: { key: 'ops-sample' },
-        data: { leaseOwner: 'other-worker', lockedUntil: new Date(currentNow.getTime() + 60_000) },
+        data: { leaseOwner: 'other-worker', lockedUntil: new Date(Date.now() + 60_000) },
       });
-      assert.equal((await postOp(boot1)).status, 409);
+      const busyTick = await runInstalledCronTick(proc1.port);
+      assert.equal(busyTick.status, 409);
+      assert.equal((await db.jobState.findUniqueOrThrow({ where: { key: 'ops-sample' } })).generation, 1);
       await db.jobState.update({
         where: { key: 'ops-sample' },
         data: { leaseOwner: null, lockedUntil: null },
       });
 
-      // 模拟进程重启：推进 15 分钟、写入新上传文件、构造全新组合服务实例再次按计划执行
-      currentNow = new Date('2026-11-27T12:15:00.000Z');
+      // 2) 终止进程 1，新增上传文件，启动独立新 OS 进程 2（断言 PID 不同）
+      await stopIsolatedServer(proc1);
+      const pid1 = proc1.pid;
+      proc1 = null;
       writeFileSync(path.join(uploadDir, 'file-2.bin'), Buffer.alloc(2048, 2));
-      const boot2 = registry.createOperationsHandler({
-        services: composition.createJobServices({
-          db,
-          clock,
-          ops: { env: { STORAGE_DRIVER: 'local', UPLOAD_DIR: uploadDir } },
-        }).jobs,
-        clock,
-        secret: SECRET,
-      });
-      const r2 = await postOp(boot2);
-      assert.equal(r2.status, 200);
-      const state2 = await db.jobState.findUniqueOrThrow({ where: { key: 'ops-sample' } });
-      assert.equal(state2.generation, 2);
-      assert.equal(state2.lastSucceededAt?.toISOString(), '2026-11-27T12:15:00.000Z');
+      await new Promise((resolve) => setTimeout(resolve, 25));
 
-      // 全新 AdminServices 读取 stats 反映第 2 轮真实值与真实时间戳，且未伪造 BACKUP
-      const adminServices = composition.createAdminServices({ db, clock });
-      const statsRes = await adminServices.stats.query({ role: 'ADMIN', userId: admin.userId, query: { sources: ['storage', 'backup'] } });
-      assert.equal(findSource(statsRes.dto, 'storage').state, 'ok');
-      assert.equal(findSource(statsRes.dto, 'storage').value, 3072);
-      assert.equal(findSource(statsRes.dto, 'storage').lastSucceededAt, '2026-11-27T12:15:00.000Z');
-      assert.equal(findSource(statsRes.dto, 'backup').state, 'not_connected');
+      proc2 = await startIsolatedServer();
+      assert.notEqual(proc2.pid, pid1, 'restarted isolated service must run in a distinct OS process');
+
+      // 3) 重启后进程 2：再次由安装后 cron 命令触发 → 同库 JobState 递增 → 真实 HTTP GET /api/admin/stats 反映新值与新时间
+      const tick2 = await runInstalledCronTick(proc2.port);
+      assert.equal(tick2.status, 200);
+      assert.ok(Date.parse(tick2.triggeredAt) > Date.parse(tick1.triggeredAt));
+
+      const state2 = await db.jobState.findUniqueOrThrow({ where: { key: 'ops-sample' } });
+      const snap2 = await db.opsSourceSnapshot.findUniqueOrThrow({ where: { source: 'STORAGE' } });
+      assert.equal(state2.generation, 2);
+      assert.equal(state2.lastStatus, 'SUCCEEDED');
+      assert.ok(state2.lastSucceededAt !== null);
+      assert.ok(snap2.lastSucceededAt !== null);
+      assert.ok(state2.lastSucceededAt.getTime() > state1.lastSucceededAt.getTime());
+      assert.ok(snap2.lastSucceededAt.getTime() > snap1.lastSucceededAt.getTime());
+      assert.ok(snap2.lastSucceededAt.getTime() <= state2.lastSucceededAt.getTime());
+
+      const stats2Res = await fetch(`http://127.0.0.1:${proc2.port}/api/admin/stats?sources=storage,backup`, {
+        headers: { cookie: admin.cookie },
+      });
+      assert.equal(stats2Res.status, 200);
+      const stats2Dto = StatsDTOSchema.parse(await stats2Res.json());
+      assert.equal(findSource(stats2Dto, 'storage').state, 'ok');
+      assert.equal(findSource(stats2Dto, 'storage').value, 3072);
+      assert.equal(findSource(stats2Dto, 'storage').lastSucceededAt, snap2.lastSucceededAt.toISOString());
+      assert.equal(findSource(stats2Dto, 'backup').state, 'not_connected');
     } finally {
-      rmSync(uploadDir, { recursive: true, force: true });
+      await stopIsolatedServer(proc1);
+      await stopIsolatedServer(proc2);
+      rmSync(dataDir, { recursive: true, force: true });
     }
   });
 

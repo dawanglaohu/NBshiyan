@@ -2,7 +2,15 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import type { PrismaClient } from '@prisma/client';
 import type { AppErrorCode } from '../../contracts/errors';
-import type { BackupValuesDTO, JobCountsDTO, JobResultStatus, StorageValuesDTO } from '../../contracts/ops';
+import type {
+  BackupValuesDTO,
+  JobCountsDTO,
+  JobResultStatus,
+  OpsReportRequestDTO,
+  OpsSource,
+  StorageValuesDTO,
+} from '../../contracts/ops';
+import { AppError } from '../http/errors';
 import { createJobLeaseRepo } from '../jobs/lease-repo';
 import {
   budgetExhausted,
@@ -15,8 +23,9 @@ import {
 } from '../jobs/registry';
 import {
   BACKUP_FRESHNESS_MS,
-  createOpsReportService,
+  readOpsSnapshotsInTx,
   STORAGE_FRESHNESS_MS,
+  submitOpsReportInTx,
   type OpsSnapshotRecord,
 } from './ops-report';
 
@@ -157,7 +166,6 @@ export function createOpsSampleJob(deps: OpsSampleDeps): RegisteredJob {
       const now = context.now;
       const budget = createJobBudget(context);
       const repo = createJobLeaseRepo({ db: deps.db, clock });
-      const opsReport = createOpsReportService({ db: deps.db });
 
       const claimed = await runWithinBudget(deps.db, budget, (tx) =>
         createJobLeaseRepo({ db: tx, clock }).claim({ key: OPS_SAMPLE_JOB_KEY, owner: OPS_SAMPLE_OWNER }));
@@ -173,6 +181,8 @@ export function createOpsSampleJob(deps: OpsSampleDeps): RegisteredJob {
       let attemptedSamples = 0;
       let failedSamples = 0;
       let sampleErrorCode: AppErrorCode | null = null;
+      const pendingReports: OpsReportRequestDTO[] = [];
+      const writeNotConnectedIfMissing = new Set<OpsSource>();
 
       try {
         if (budgetExhausted(budget)) return { kind: 'timeout' };
@@ -181,7 +191,7 @@ export function createOpsSampleJob(deps: OpsSampleDeps): RegisteredJob {
 
         if (storageOutcome.kind === 'ok') {
           attemptedSamples += 1;
-          await opsReport.submit({
+          pendingReports.push({
             source: 'STORAGE',
             measuredAt,
             status: 'OK',
@@ -191,22 +201,14 @@ export function createOpsSampleJob(deps: OpsSampleDeps): RegisteredJob {
           attemptedSamples += 1;
           failedSamples += 1;
           sampleErrorCode = storageOutcome.errorCode;
-          await opsReport.submit({
+          pendingReports.push({
             source: 'STORAGE',
             measuredAt,
             status: 'FAILED',
             safeErrorCode: storageOutcome.errorCode,
           });
         } else if (storageOutcome.kind === 'not_connected') {
-          const existing = await opsReport.readSnapshots();
-          if (!existing.STORAGE) {
-            await opsReport.submit({
-              source: 'STORAGE',
-              measuredAt,
-              status: 'NOT_CONNECTED',
-              safeErrorCode: 'source_unavailable',
-            });
-          }
+          writeNotConnectedIfMissing.add('STORAGE');
         }
 
         if (sampleBackup) {
@@ -216,7 +218,7 @@ export function createOpsSampleJob(deps: OpsSampleDeps): RegisteredJob {
 
           if (backupOutcome.kind === 'ok') {
             attemptedSamples += 1;
-            await opsReport.submit({
+            pendingReports.push({
               source: 'BACKUP',
               measuredAt,
               status: 'OK',
@@ -226,36 +228,19 @@ export function createOpsSampleJob(deps: OpsSampleDeps): RegisteredJob {
             attemptedSamples += 1;
             failedSamples += 1;
             sampleErrorCode = sampleErrorCode ?? backupOutcome.errorCode;
-            await opsReport.submit({
+            pendingReports.push({
               source: 'BACKUP',
               measuredAt,
               status: 'FAILED',
               safeErrorCode: backupOutcome.errorCode,
             });
           } else if (backupOutcome.kind === 'not_connected') {
-            const existing = await opsReport.readSnapshots();
-            if (!existing.BACKUP) {
-              await opsReport.submit({
-                source: 'BACKUP',
-                measuredAt,
-                status: 'NOT_CONNECTED',
-                safeErrorCode: 'source_unavailable',
-              });
-            }
+            writeNotConnectedIfMissing.add('BACKUP');
           }
         }
 
         if (budgetExhausted(budget)) return { kind: 'timeout' };
-        const snapshots = await opsReport.readSnapshots();
-        const observed = Object.values(snapshots).filter((item): item is OpsSnapshotRecord => Boolean(item));
-        const staleCount = observed.filter((item) => isSnapshotStale(item, now)).length;
-        const snapshotFailedCount = observed.filter((item) => item.status === 'FAILED').length;
 
-        const counts: JobCountsDTO = {
-          candidateCount: observed.length,
-          stale: staleCount,
-          failed: Math.max(failedSamples, snapshotFailedCount),
-        };
         const status: JobResultStatus = failedSamples === 0
           ? 'SUCCEEDED'
           : (failedSamples < attemptedSamples ? 'PARTIAL' : 'FAILED');
@@ -263,7 +248,37 @@ export function createOpsSampleJob(deps: OpsSampleDeps): RegisteredJob {
           ? null
           : (sampleErrorCode ?? 'source_unavailable');
 
+        // 快照写入与 JobState 租约结算共享同一受预算与代次保护的事务：
+        // 若租约过期、被新代次接管或时区版本冲突，repo.complete 抛 JobLeaseAbort 回滚整笔事务，绝不遗留脏快照。
         const finished = await runWithinBudget(deps.db, budget, async (tx) => {
+          if (writeNotConnectedIfMissing.size > 0) {
+            const existing = await readOpsSnapshotsInTx(tx);
+            for (const source of writeNotConnectedIfMissing) {
+              if (!existing[source]) {
+                await submitOpsReportInTx(tx, {
+                  source,
+                  measuredAt,
+                  status: 'NOT_CONNECTED',
+                  safeErrorCode: 'source_unavailable',
+                });
+              }
+            }
+          }
+
+          for (const report of pendingReports) {
+            await submitOpsReportInTx(tx, report);
+          }
+
+          const snapshots = await readOpsSnapshotsInTx(tx);
+          const observed = Object.values(snapshots).filter((item): item is OpsSnapshotRecord => Boolean(item));
+          const staleCount = observed.filter((item) => isSnapshotStale(item, now)).length;
+          const snapshotFailedCount = observed.filter((item) => item.status === 'FAILED').length;
+          const counts: JobCountsDTO = {
+            candidateCount: observed.length,
+            stale: staleCount,
+            failed: Math.max(failedSamples, snapshotFailedCount),
+          };
+
           await repo.complete({
             key: OPS_SAMPLE_JOB_KEY,
             owner: OPS_SAMPLE_OWNER,
@@ -277,10 +292,15 @@ export function createOpsSampleJob(deps: OpsSampleDeps): RegisteredJob {
             errorCode,
             timezoneRevision: claim.timezoneRevision,
           }, tx);
+
+          return { status, counts };
         });
         if (finished.kind === 'budget') return { kind: 'timeout' };
-        if (finished.kind === 'error') return { kind: 'finish_failed' };
-        return { kind: 'ran', status, counts };
+        if (finished.kind === 'error') {
+          if (finished.error instanceof AppError) throw finished.error;
+          return { kind: 'finish_failed' };
+        }
+        return { kind: 'ran', status: finished.value.status, counts: finished.value.counts };
       } catch {
         if (budgetExhausted(budget)) return { kind: 'timeout' };
         const counts: JobCountsDTO = { candidateCount: 0, stale: 0, failed: Math.max(1, failedSamples) };
