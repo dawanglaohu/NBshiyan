@@ -616,3 +616,24 @@ export function selectMaxVisibleContiguousSeq(input: {
   }
   return maxVisible;
 }
+
+/**
+ * 结合当前视口已看清的最大连续序号与先前因网络异常尚未确认的已读目标，
+ * 返回页面可见时应继续尝试补报的读游标（页面隐藏、倒退或已超出连续游标时不推进）。
+ */
+export function resolveReadAckTargetSeq(input: {
+  visibilityState: 'visible' | 'hidden';
+  contiguousSeq: number;
+  maxVisibleSeq: number;
+  pendingReadSeq: number;
+  confirmedReadSeq: number;
+  inFlightReadSeq: number;
+}): number {
+  if (input.visibilityState !== 'visible' || input.contiguousSeq <= 0) return 0;
+  const candidate = Math.min(
+    input.contiguousSeq,
+    Math.max(input.maxVisibleSeq, input.pendingReadSeq),
+  );
+  const highWater = Math.max(input.confirmedReadSeq, input.inFlightReadSeq);
+  return candidate > highWater ? candidate : 0;
+}

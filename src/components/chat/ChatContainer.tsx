@@ -28,6 +28,7 @@ import {
   mergeConversationSnapshot,
   openChatSession,
   randomChatUuid,
+  resolveReadAckTargetSeq,
   selectMaxVisibleContiguousSeq,
   validateVisitorComposer,
   type ChatFieldErrorCode,
@@ -166,6 +167,7 @@ export default function ChatContainer({
   const refreshingRef = useRef(false);
   const startingNewRef = useRef(false);
   const confirmedReadSeqRef = useRef(persistedThread?.lastReadSeq ?? 0);
+  const pendingReadTargetRef = useRef<{ conversationId: string; seq: number } | null>(null);
   const readSyncInFlightRef = useRef(0);
   const scrolledUpRef = useRef(false);
   const scrollToBottomPendingRef = useRef(false);
@@ -239,6 +241,7 @@ export default function ChatContainer({
       submittingRef.current = false;
       refreshingRef.current = false;
       readSyncInFlightRef.current = 0;
+      pendingReadTargetRef.current = null;
       setSubmitting(false);
       setRefreshing(false);
       setPendingRetry(null);
@@ -296,26 +299,46 @@ export default function ChatContainer({
       items,
     });
 
-    const highWater = Math.max(confirmedReadSeqRef.current, readSyncInFlightRef.current);
-    if (maxVisibleSeq <= highWater) return;
+    const existingPending = pendingReadTargetRef.current;
+    const pendingReadSeq =
+      existingPending && existingPending.conversationId === targetConversationId
+        ? existingPending.seq
+        : 0;
+    if (visibilityState === 'visible' && pendingReadSeq > 0 && confirmedReadSeqRef.current >= pendingReadSeq) {
+      pendingReadTargetRef.current = null;
+    }
 
-    readSyncInFlightRef.current = maxVisibleSeq;
+    const targetReadSeq = resolveReadAckTargetSeq({
+      visibilityState,
+      contiguousSeq,
+      maxVisibleSeq,
+      pendingReadSeq,
+      confirmedReadSeq: confirmedReadSeqRef.current,
+      inFlightReadSeq: readSyncInFlightRef.current,
+    });
+    if (targetReadSeq <= 0) return;
+
+    pendingReadTargetRef.current = {
+      conversationId: targetConversationId,
+      seq: Math.max(pendingReadSeq, targetReadSeq),
+    };
+    readSyncInFlightRef.current = targetReadSeq;
     readSyncAbortRef.current?.abort();
     const controller = new AbortController();
     readSyncAbortRef.current = controller;
 
-    const res = await markChatRead(targetConversationId, maxVisibleSeq, localeRef.current, {
+    const res = await markChatRead(targetConversationId, targetReadSeq, localeRef.current, {
       signal: controller.signal,
     });
 
     if (!mountedRef.current || controller.signal.aborted || attemptEpoch !== epochRef.current) {
-      if (readSyncInFlightRef.current === maxVisibleSeq) {
+      if (readSyncInFlightRef.current === targetReadSeq) {
         readSyncInFlightRef.current = 0;
       }
       return;
     }
 
-    if (readSyncInFlightRef.current === maxVisibleSeq) {
+    if (readSyncInFlightRef.current === targetReadSeq) {
       readSyncInFlightRef.current = 0;
     }
 
@@ -332,6 +355,12 @@ export default function ChatContainer({
 
     const nextConfirmed = Math.max(confirmedReadSeqRef.current, res.data.lastReadSeq);
     confirmedReadSeqRef.current = nextConfirmed;
+    if (
+      pendingReadTargetRef.current?.conversationId === targetConversationId &&
+      nextConfirmed >= pendingReadTargetRef.current.seq
+    ) {
+      pendingReadTargetRef.current = null;
+    }
     if (nextConfirmed > latestSnap.lastReadSeq) {
       commitThread((prev) => {
         if (!prev.conversation || prev.conversation.id !== targetConversationId) return prev;
@@ -357,6 +386,9 @@ export default function ChatContainer({
     });
   }, [syncVisibleReadNow]);
 
+  const scheduleVisibleReadRef = useRef(scheduleVisibleReadSync);
+  scheduleVisibleReadRef.current = scheduleVisibleReadSync;
+
   const applyUpdatesSnapshot = useCallback(
     (targetConversationId: string, snapshot: ChatUpdatesSnapshot) => {
       const prevMaxSeq = threadRef.current.messages.reduce((max, item) => Math.max(max, item.seq), 0);
@@ -366,6 +398,12 @@ export default function ChatContainer({
 
       const nextConfirmedRead = Math.max(confirmedReadSeqRef.current, snapshot.read.lastReadSeq);
       confirmedReadSeqRef.current = nextConfirmedRead;
+      if (
+        pendingReadTargetRef.current?.conversationId === targetConversationId &&
+        nextConfirmedRead >= pendingReadTargetRef.current.seq
+      ) {
+        pendingReadTargetRef.current = null;
+      }
 
       const nextSnapshot = commitThread((prev) => {
         if (!prev.conversation || prev.conversation.id !== targetConversationId) return prev;
@@ -483,6 +521,14 @@ export default function ChatContainer({
         setSyncNotice(null);
         setSyncFailures(0);
         applyUpdatesRef.current(ctx.conversationId, updates);
+        const pendingRead = pendingReadTargetRef.current;
+        if (
+          pendingRead &&
+          pendingRead.conversationId === ctx.conversationId &&
+          pendingRead.seq > confirmedReadSeqRef.current
+        ) {
+          scheduleVisibleReadRef.current();
+        }
       },
       onTerminal: (reason) => {
         if (!mountedRef.current) return;
@@ -624,6 +670,7 @@ export default function ChatContainer({
     refreshingRef.current = false;
     readSyncInFlightRef.current = 0;
     confirmedReadSeqRef.current = 0;
+    pendingReadTargetRef.current = null;
     scrolledUpRef.current = false;
     scrollToBottomPendingRef.current = false;
     setSubmitting(false);

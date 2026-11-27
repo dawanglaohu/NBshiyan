@@ -421,6 +421,7 @@ test.describe('M4-T9 chat polling, offline retry, and revocation stop', () => {
   test('out-of-order and cross-page inserts keep each ID once, never regress seq, keep scroll/focus on New messages, and report read only for visible contiguous seq', async ({
     page,
   }) => {
+    test.setTimeout(90_000);
     const marker = randomUUID().slice(0, 8);
     await page.goto('/en/contact');
     await consent(page, 'none');
@@ -639,7 +640,34 @@ test.describe('M4-T9 chat polling, offline retry, and revocation stop', () => {
       return conv?.visitorReadSeq ?? 0;
     }).toBe(16);
 
-    // Insert gap seq=17 then append seq=18 -> contiguous lastSeq stays 16 and read NEVER advances past 16
+    // Insert gap seq=17 while holding background sync GET so seq=18 deterministically lands ahead of seq=17
+    let holdGapSync = true;
+    let releaseGapSync!: () => void;
+    const gapSyncReleased = new Promise<void>((resolve) => {
+      releaseGapSync = resolve;
+    });
+    await page.route(`**/api/chat/conversations/${conversationId}?*`, async (route) => {
+      if (holdGapSync && route.request().method() === 'GET') {
+        await gapSyncReleased;
+      }
+      await route.continue();
+    });
+
+    let readFailedEvents = 0;
+    const onReadFailed = (req: import('@playwright/test').Request) => {
+      if (req.method() === 'POST' && req.url().includes(`/api/chat/conversations/${conversationId}/read`)) {
+        readFailedEvents += 1;
+      }
+    };
+    page.on('requestfailed', onReadFailed);
+    await page.route(`**/api/chat/conversations/${conversationId}/read`, async (route) => {
+      if (route.request().method() === 'POST') {
+        await route.abort('failed');
+        return;
+      }
+      await route.continue();
+    });
+
     const t17 = new Date(baseTime + 17_000);
     await prisma().$transaction([
       prisma().chatMessage.create({
@@ -666,6 +694,43 @@ test.describe('M4-T9 chat polling, offline retry, and revocation stop', () => {
     await expect(page.getByTestId('chat-panel')).toHaveAttribute('data-last-seq', '16');
     const dbWhileGap = await prisma().chatConversation.findUnique({ where: { id: conversationId } });
     expect(dbWhileGap?.visitorReadSeq).toBe(16);
+
+    // Release sync so seq=17 closes gap to 18 while POST /read exhausts all transport retries, then recover on next empty poll
+    holdGapSync = false;
+    releaseGapSync();
+    await page.unroute(`**/api/chat/conversations/${conversationId}?*`);
+    await page.getByTestId('chat-refresh').click();
+    await expect(page.getByTestId('chat-panel')).toHaveAttribute('data-last-seq', '18', { timeout: 10_000 });
+    await page.evaluate(() => {
+      const body = document.querySelector('.pj-chat-body');
+      if (body) {
+        body.scrollTop = body.scrollHeight;
+        body.dispatchEvent(new Event('scroll'));
+      }
+    });
+    await expect.poll(() => readFailedEvents, { timeout: 15_000 }).toBeGreaterThanOrEqual(4);
+    await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 250)));
+
+    const dbWhileReadFailed = await prisma().chatConversation.findUnique({ where: { id: conversationId } });
+    expect(dbWhileReadFailed?.visitorReadSeq).toBe(16);
+
+    // Unblock network and observe next automatic 3s poll (zero new messages, zero scrolling) retry POST /read to 18
+    page.off('requestfailed', onReadFailed);
+    await page.unroute(`**/api/chat/conversations/${conversationId}/read`);
+    const nextPollEmpty = page.waitForResponse(
+      (res) =>
+        res.url().includes(`/api/chat/conversations/${conversationId}?`) &&
+        res.url().includes('afterSeq=18') &&
+        res.status() === 200,
+    );
+    await nextPollEmpty;
+    await expect.poll(
+      async () => {
+        const conv = await prisma().chatConversation.findUnique({ where: { id: conversationId } });
+        return conv?.visitorReadSeq ?? 0;
+      },
+      { timeout: 10_000 },
+    ).toBe(18);
   });
 
   test('truncated server-saved responses retry via chat-retry with identical payload returning original receipt (single admin msg + outbox), and offline drafts stay tab-memory only', async ({
@@ -906,24 +971,26 @@ test.describe('M4-T9 chat polling, offline retry, and revocation stop', () => {
     await page.getByLabel('Message').fill(unsentDraft);
 
     // Expire & revoke visitor session in DB (7-day idle & 30-day hard ceiling / revokedAt)
-    const past = new Date(Date.now() - 60_000);
-    await prisma().chatVisitorSession.update({
-      where: { id: c1Conv.visitorSessionId },
-      data: { lastActivityAt: past, absoluteExpiresAt: past, revokedAt: past },
-    });
-
     const getStatuses: number[] = [];
     const postStatuses: number[] = [];
+    let trackingRevoked = false;
     page.on('response', (res) => {
+      if (!trackingRevoked) return;
       if (res.url().includes(`/api/chat/conversations/${c1Id}`)) {
         if (res.request().method() === 'GET') getStatuses.push(res.status());
         if (res.request().method() === 'POST' && res.url().endsWith('/messages')) postStatuses.push(res.status());
       }
     });
 
-    // Next poll detects 401 -> stops timers, keeps draft, shows Start a new conversation
-    await page.getByTestId('chat-refresh').click();
-    await expect(page.getByTestId('chat-terminal-banner')).toBeVisible();
+    trackingRevoked = true;
+    const past = new Date(Date.now() - 60_000);
+    await prisma().chatVisitorSession.update({
+      where: { id: c1Conv.visitorSessionId },
+      data: { lastActivityAt: past, absoluteExpiresAt: past, revokedAt: past },
+    });
+
+    // Next automatic 3s poll detects 401 -> stops timers, keeps draft, shows Start a new conversation (no click race)
+    await expect(page.getByTestId('chat-terminal-banner')).toBeVisible({ timeout: 10_000 });
     await expect(page.getByTestId('chat-start-new')).toHaveText('Start a new conversation');
     await expect(page.getByTestId('chat-send')).toBeDisabled();
     await expect(page.getByLabel('Message')).toHaveValue(unsentDraft);

@@ -6,6 +6,7 @@ import {
   fetchChatConversationUpdates,
   mergeChatMessages,
   mergeConversationSnapshot,
+  resolveReadAckTargetSeq,
   selectMaxVisibleContiguousSeq,
   type ChatUpdatesSnapshot,
 } from '../src/lib/client/chat';
@@ -573,6 +574,41 @@ test('mergeChatMessages deduplicates strictly per ID and seq while contiguous se
       ],
     }),
     3,
+  );
+
+  // Retained unconfirmed read target retries when visible & unconfirmed, never while hidden or past contiguous cursor
+  assert.equal(
+    resolveReadAckTargetSeq({
+      visibilityState: 'visible',
+      contiguousSeq: 5,
+      maxVisibleSeq: 2,
+      pendingReadSeq: 5,
+      confirmedReadSeq: 2,
+      inFlightReadSeq: 0,
+    }),
+    5,
+  );
+  assert.equal(
+    resolveReadAckTargetSeq({
+      visibilityState: 'hidden',
+      contiguousSeq: 5,
+      maxVisibleSeq: 0,
+      pendingReadSeq: 5,
+      confirmedReadSeq: 2,
+      inFlightReadSeq: 0,
+    }),
+    0,
+  );
+  assert.equal(
+    resolveReadAckTargetSeq({
+      visibilityState: 'visible',
+      contiguousSeq: 4,
+      maxVisibleSeq: 3,
+      pendingReadSeq: 6,
+      confirmedReadSeq: 4,
+      inFlightReadSeq: 0,
+    }),
+    0,
   );
 });
 

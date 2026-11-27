@@ -447,10 +447,14 @@ test.describe('M4-T5 consent-gated chat_start analytics producer', () => {
     expect(retryJson?.duplicate).toBe(true);
 
     await expect.poll(() => postedEvents.filter((e) => e.kind === 'chat_start').length).toBe(1);
-    const dbEvents = await prisma().analyticsEvent.findMany({
-      where: { navigationId, kind: 'chat_start' },
-    });
-    expect(dbEvents).toHaveLength(1);
+    await expect
+      .poll(async () => {
+        const rows = await prisma().analyticsEvent.findMany({
+          where: { navigationId, kind: 'chat_start' },
+        });
+        return rows.length;
+      })
+      .toBe(1);
 
     await runAggregateNow(request);
     const afterCounts = await readSiteAndProductChatStarts('color-boxes');
