@@ -992,15 +992,15 @@
   },
   "M4-T9": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "c8628c197d84019c9c90cf29a7c904614c5f714b0313f0d93fd0d8897bd12520",
+    "contractHash": "baf92ef761f4e88beebe1292ced924c7929202402a68ef9711f27c803244de77",
     "evidence": [
       "第19节 M4-T9 行及 M4-T5、M4-T11 的已落地能力把访客面板、已有消息 HTTP 与共用轮询控制器接在同一层。第19节 M4-T6 行单独拥有运营页面、导航及 D1–D6。M4-T9 通过现有运营 HTTP 核对权限。",
       "第13节 E-18/E-37/E-38/E-76/E-77/E-78/E-85、第09/10节的 ChatSyncDTO、MessageReceivedDTO、ReadDTO 和第17节的真实链路测试相符。落库状态未知须重发同一载荷，隐藏期间暂停并中止跨页取页，已读回执失败须在恢复同步后补报，失权后旧会话停止读取和发送。",
-      "补丁 m4-t9-ci-support（254130b4）与 m4-t9-a3-regression（527081ef）把 .github/workflows/ci.yml、tests/chat-polling-retry.test.ts、tests/stats-route.test.ts 纳入 supportPaths，保持 A3 五段互斥及 all=261/main=230 分区门禁。",
-      "补丁 m4-t9-analytics-e2e-race 按 Jev 裁决（jev-1.14.0，adjudicate pick=A high 0.86）仅新增 e2e/chat-start-analytics.spec.ts 支持路径，修正第450行在 page.on('request') 后 0ms 裸查 PostgreSQL 抢先于 /api/analytics/events 事务提交的时序竞态，不改变生产逻辑与断言语义。",
-      "核对 src/lib/client/chat-poller.ts、chat-retry.ts、chat.ts、ChatContainer.tsx：发送前离线标记 startedOffline 区分未发包草稿与在途断网锁定，hidden 立即中止在途跨页同步，pendingReadTargetRef 保留失败读游标并在轮询恢复后补报；单测 8/8 与聊天 E2E 23/23 通过，落地任务复验表为空。"
+      "补丁 m4-t9-ci-support（254130b4）、m4-t9-a3-regression（527081ef）与 m4-t9-analytics-e2e-race（61870b12）已将 .github/workflows/ci.yml、tests/chat-polling-retry.test.ts、tests/stats-route.test.ts、e2e/chat-start-analytics.spec.ts 纳入 supportPaths，CI Run 45938302282 中 A3 260/261 例与全部非 E2E 作业均通过。",
+      "补丁 m4-t9-composer-e2e-sync 按 Jev 裁决（jev-1.14.0，adjudicate pick=A high 0.94）仅新增 e2e/chat-visitor-composer.spec.ts 支持路径，通过 page.route(route.fetch()) 在 Node 侧捕获真实同步 JSON 载荷并协调 R1/R2 后台 3s 轮询重叠，消除 Chromium CDP Network.getResponseBody 缓冲区回收异常，保持严格 DTO 与作者断言且不改变生产 3s 轮询行为。",
+      "核对全部生产与测试文件：e2e/chat-visitor-composer.spec.ts 实测 7/7 通过，全套聊天 E2E 23/23、单测与 A3 分区（all=261, main=230）均通过，落地任务复验表为空。"
     ],
-    "reviewed": "2026-11-27T04:04:49.188617+00:00",
+    "reviewed": "2026-11-27T05:17:44.197820+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },

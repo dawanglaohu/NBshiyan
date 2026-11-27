@@ -2129,6 +2129,7 @@
         "messages/ru.json",
         "e2e/chat-polling-network.spec.ts",
         "e2e/chat-start-analytics.spec.ts",
+        "e2e/chat-visitor-composer.spec.ts",
         ".github/workflows/ci.yml",
         "tests/chat-polling-retry.test.ts",
         "tests/stats-route.test.ts"

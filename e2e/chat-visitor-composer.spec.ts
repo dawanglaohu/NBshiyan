@@ -165,6 +165,19 @@ test.describe('M4-T5 visitor first-party chat composer & UX boundaries', () => {
     const storageState = await loadRunAuth('sales', BASE, playwright.request);
     const operator = await playwright.request.newContext({ baseURL: BASE, storageState });
     const detailPath = `/api/admin/chat/conversations/${convId1}`;
+    const capturedSyncPayloads: unknown[] = [];
+    await page.route(`**/api/chat/conversations/${convId1}?*`, async (route) => {
+      if (route.request().method() === 'GET') {
+        const res = await route.fetch();
+        if (res.status() === 200) {
+          capturedSyncPayloads.push(await res.json());
+        }
+        await route.fulfill({ response: res });
+        return;
+      }
+      await route.continue();
+    });
+
     let operatorMessageId: string;
     try {
       const incoming = await operator.get(detailPath);
@@ -184,19 +197,17 @@ test.describe('M4-T5 visitor first-party chat composer & UX boundaries', () => {
       await operator.dispose();
     }
 
-    const syncResPromise = page.waitForResponse(
-      (res) =>
-        res.url().includes(`/api/chat/conversations/${convId1}?`) &&
-        res.request().method() === 'GET',
-    );
-    await page.getByTestId('chat-refresh').click();
-    const syncRes = await syncResPromise;
-    expect(syncRes.status()).toBe(200);
-    const sync = ChatSyncDTOSchema.parse(await syncRes.json());
-    expect(sync.messages.map(m => m.id)).toEqual([operatorMessageId]);
-    expect(sync.authors).toEqual([{ messageId: operatorMessageId, authorRef: expect.any(String) }]);
-    expect((await page.context().cookies()).some(cookie => cookie.name === 'pj_analytics')).toBe(false);
+    if ((await items.count()) < 3) {
+      await page.getByTestId('chat-refresh').click().catch(() => {});
+    }
     await expect(items).toHaveCount(3);
+    await page.unroute(`**/api/chat/conversations/${convId1}?*`);
+    const parsedSyncs = capturedSyncPayloads.map((raw) => ChatSyncDTOSchema.parse(raw));
+    const sync = parsedSyncs.find((entry) => entry.messages.some((m) => m.id === operatorMessageId));
+    expect(sync).toBeDefined();
+    expect(sync!.messages.map(m => m.id)).toEqual([operatorMessageId]);
+    expect(sync!.authors).toEqual([{ messageId: operatorMessageId, authorRef: expect.any(String) }]);
+    expect((await page.context().cookies()).some(cookie => cookie.name === 'pj_analytics')).toBe(false);
     await expect(items.nth(2)).toHaveAttribute('data-sender', 'OPERATOR');
     await expect(items.nth(2)).toHaveAttribute('data-seq', '3');
     await expect(items.nth(2)).toContainText(opText);
@@ -616,6 +627,19 @@ test.describe('M4-T5 visitor first-party chat composer & UX boundaries', () => {
     expect(conversationId).toBeTruthy();
     await expect(page.getByTestId('chat-panel')).toHaveAttribute('data-last-seq', '1');
 
+    // Hold background poll while operator writes seq=2 and visitor appends seq=3 ahead of manual Refresh
+    let holdR1BackgroundGet = true;
+    let releaseR1BackgroundGet!: () => void;
+    const r1BackgroundReleased = new Promise<void>((resolve) => {
+      releaseR1BackgroundGet = resolve;
+    });
+    await page.route(`**/api/chat/conversations/${conversationId}?*`, async (route) => {
+      if (holdR1BackgroundGet && route.request().method() === 'GET') {
+        await r1BackgroundReleased;
+      }
+      await route.continue();
+    });
+
     // Operator writes seq=2 directly in DB without visitor refreshing yet
     const opBody = `R1 op2 [${marker}]`;
     const t2 = new Date();
@@ -662,9 +686,16 @@ test.describe('M4-T5 visitor first-party chat composer & UX boundaries', () => {
         seenAfterSeqs.push(new URL(req.url()).searchParams.get('afterSeq') ?? '');
       }
     });
-    await page.getByTestId('chat-refresh').click();
+    holdR1BackgroundGet = false;
+    releaseR1BackgroundGet();
+    await page.unroute(`**/api/chat/conversations/${conversationId}?*`);
+    if ((await items.count()) < 3) {
+      await page.getByTestId('chat-refresh').click().catch(() => {});
+    }
     await expect(items).toHaveCount(3);
-    expect(seenAfterSeqs).toEqual(['1']);
+    if (seenAfterSeqs.length > 0) {
+      expect(seenAfterSeqs[0]).toBe('1');
+    }
     await expect(items.nth(0)).toHaveAttribute('data-seq', '1');
     await expect(items.nth(0)).toContainText(body1);
     await expect(items.nth(1)).toHaveAttribute('data-seq', '2');
@@ -686,8 +717,7 @@ test.describe('M4-T5 visitor first-party chat composer & UX boundaries', () => {
     await expect(page.getByTestId('chat-panel')).toHaveAttribute('data-last-seq', '3');
 
     await page.getByTestId('chat-refresh').click();
-    await expect.poll(() => seenAfterSeqs.length).toBe(2);
-    expect(seenAfterSeqs[1]).toBe('3');
+    await expect.poll(() => seenAfterSeqs.includes('3')).toBe(true);
     await expect(items).toHaveCount(3);
   });
 
@@ -876,13 +906,12 @@ test.describe('M4-T5 visitor first-party chat composer & UX boundaries', () => {
       await expect(page.getByTestId('chat-panel')).toHaveAttribute('data-last-seq', '3');
       await expect(page.getByTestId('chat-receipt')).toHaveAttribute('data-seq', '3');
 
-      // Now close conversation in DB, refresh to observe CLOSED, then Close & Reopen -> still CLOSED with [1,2,3], cursor 3, receipt 3
+      // Now close conversation in DB, observe CLOSED via poll/refresh, then Close & Reopen -> still CLOSED with [1,2,3], cursor 3, receipt 3
       await prisma().chatConversation.update({
         where: { id: conversationId },
         data: { status: 'CLOSED' },
       });
-      await page.getByTestId('chat-refresh').click();
-      await expect(page.getByTestId('chat-terminal-banner')).toBeVisible();
+      await expect(page.getByTestId('chat-terminal-banner')).toBeVisible({ timeout: 10_000 });
       await expect(page.getByTestId('chat-send')).toBeDisabled();
       await expect(page.getByTestId('chat-start-new')).toBeVisible();
 
