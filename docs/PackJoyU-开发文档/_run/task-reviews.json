@@ -992,14 +992,17 @@
   },
   "M4-T9": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "ac87c8980c7d4518ccfba2b3dd2b4cffd7fa9b472442b8e06160497342506a72",
+    "contractHash": "5c7ef8744434893e8b1b2cf5218a2cf152ca9a54cfd5963c98b45b36f4d61922",
     "evidence": [
-      "核对第19节、第13节边界 E-18/E-37/E-38/E-76/E-77/E-78/E-85 与第09/10节 seq 连续游标及 1/2/4/8/16/30s 退避协议：M4-T9 负责把 chat-poller.ts 与 chat-retry.ts 装配进 ChatContainer.tsx，不提前实现下游 M4-T6 的 /admin/chat 后台页，而是在公共轮询/重试模块支持 audience='admin'|'visitor' 鉴权终止分支，后台撤权通过真实 SALES 降级 EDITOR 后的 HTTP 拒绝与共用状态机验证。",
-      "对比补丁 m4-t9-ci-support.json 的 changes 差异：M4-T9 仅在 task-contracts.json 的 supportPaths 增补 .github/workflows/ci.yml 与 tests/chat-polling-retry.test.ts（effectivePaths 从 20 项增至 22 项），其余 9 项下游待办任务（M2-T8、M4-T6、M4-T13、M4-T14、M7-T1、M7-T4、M7-T8、M7-T9、M7-T10）仅因上游 M4-T9 契约哈希传播而重算，其自身职责、验收、边界与路径均未改变。",
-      "经 Jev 裁决（_run/judgments.jsonl 1085-1086 行：M4-T9:impl，pick=A high 0.92/0.94，spec_change=unsure），因 e2e/chat-polling-network.spec.ts 新增 5 条 E2E 用例（全集 256->261、主段 225->230、其余 224->229），同步更新 .github/workflows/ci.yml 第 869、904、906、920、941、1028、1032 行的 A3 收集分区断言计数，并将单元测试 tests/chat-polling-retry.test.ts 纳入有效范围。",
-      "已在本地真实构建与独立测试库 m4t9_e2e 实测通过：e2e/chat-polling-network.spec.ts（5/5 pass）与 4 个既有聊天 E2E 回归（共 23/23 pass），及 tests/chat-polling-retry.test.ts + chat-refresh-pagination.test.ts（7/7 pass）。"
+      "第19节 M4-T9 行及 M4-T5、M4-T11 的已落地能力把访客面板、已有消息 HTTP 与共用轮询控制器接在同一层。第19节 M4-T6 行单独拥有运营页面、导航及 D1–D6。M4-T9 通过现有运营 HTTP 核对权限。",
+      "第13节 E-18/E-37/E-38/E-76/E-77/E-78/E-85、第09/10节的 ChatSyncDTO、MessageReceivedDTO、ReadDTO 和第17节的真实链路测试相符。落库状态未知须重发同一载荷，隐藏期间暂停取页，失权后旧会话停止读取和发送。",
+      "补丁 m4-t9-ci-support 已在 254130b4 把 .github/workflows/ci.yml、tests/chat-polling-retry.test.ts 纳入 supportPaths。五个新增用例进入 A3 的全集和主段，原有互斥及集合相等断言保留。核对补丁所列的九个下游任务仅因前置契约哈希传播而变化。",
+      "核对 src/lib/client/chat-poller.ts、chat-retry.ts、chat.ts、ChatContainer.tsx 与既有请求适配器、服务层和路由入口；本层变更无客户端引用服务端或新增事务。原始证据绑定实现 697f6759 和补丁 254130b4。",
+      "真实客户端验收在 PR #575 的 REVIEW-ROUND 1 单列。请求已写入后失去网络时会解锁旧载荷，跨页请求在隐藏信号后仍然继续。契约语义登记不改变任务落地状态。",
+      "m4-t9-a3-regression 仅新增 tests/stats-route.test.ts 支持路径。源补丁保留 M6-T6 的 PostgreSQL 17 具名计数、零跳过、统计 E2E 收集和独立执行门禁。检查 GitHub PR #575 的 build-and-audit 作业 140265849188，Unit tests 仅该守卫的旧计数失败；定点用例在原断言失败，更新数字后 1/1 通过。",
+      "补丁记录列出的 9 个下游任务仍由各自原任务验收。当前任务的验收、边界、路由责任、数据模型和生产代码没有随新增测试路径改变，落地任务复验表为空。"
     ],
-    "reviewed": "2026-11-27T01:52:10.956328+00:00",
+    "reviewed": "2026-11-27T02:07:13.255670+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },

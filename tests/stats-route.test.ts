@@ -391,7 +391,7 @@ describe('M6-T6 GET /api/admin/stats pure rules & HTTP contract', () => {
     }
   });
 
-  test('R3 PG17 CI workflow enforces 256/225 E2E partition, named stats-core-api execution, and dedicated schema=m6t6 gate', () => {
+  test('R3 PG17 CI workflow enforces 261/230 E2E partition, named stats-core-api execution, and dedicated schema=m6t6 gate', () => {
     const workflow = readFileSync(path.resolve(process.cwd(), '.github/workflows/ci.yml'), 'utf8');
     assert.ok(workflow.includes('CREATE DATABASE "m6t6_route_test"'), 'CI must provision dedicated m6t6_route_test DB');
 
@@ -423,20 +423,20 @@ describe('M6-T6 GET /api/admin/stats pure rules & HTTP contract', () => {
       ?.split('- name: Playwright A3 主段')[0];
     assert.ok(e2ePartition, 'e2e_partition step must exist');
     assert.ok(
-      e2ePartition.includes('{ all: 256, main: 225, model: 14, consent: 14, errors: 2, flow: 1 }'),
-      'e2e_partition must require all=256 and main=225',
+      e2ePartition.includes('{ all: 261, main: 230, model: 14, consent: 14, errors: 2, flow: 1 }'),
+      'e2e_partition must require all=261 and main=230',
     );
     assert.ok(
-      e2ePartition.includes('assert.equal(new Set(parts).size, 256'),
-      'e2e_partition must preserve 256 disjointness assertion',
+      e2ePartition.includes('assert.equal(new Set(parts).size, 261'),
+      'e2e_partition must preserve 261 disjointness assertion',
     );
     assert.ok(
       e2ePartition.includes('stats-core-api.spec.ts'),
       'e2e_partition must explicitly check stats-core-api.spec.ts collection',
     );
     assert.ok(
-      workflow.includes('Playwright A3 主段（225例，含同次 RUM 检查）'),
-      'main segment title must reflect 225 tests',
+      workflow.includes('Playwright A3 主段（230例，含同次 RUM 检查）'),
+      'main segment title must reflect 230 tests',
     );
     assert.ok(
       workflow.includes('stats-core-api.txt'),
