@@ -1201,13 +1201,13 @@
   },
   "M6-T5": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "f6c1a7d33d4bfbdaf87ea85d06f76ae99e72644e379f36a55c4c0d22327e1f42",
+    "contractHash": "f71208e6f8991e6353506751477014356eda20b83f1f1e5797d5578e9c0f5697",
     "evidence": [
-      "固定对象：L bed4436b7bb26d67583373c24777eb2953f19cc3 / tree ace1e3fc305c882758b406ffb2cd00d5012aea0c / 唯一父 K 81cdb260224d359bb04bb6d35306c2e944a6958f；task/M5-T4 工作树 clean；本登记只写本补丁证据、task-reviews 与正常派生，不改 task-contracts.json、任务状态、源码/测试/CI/包锁/schema 与生成器。",
-      "本键为传播变更：契约对象在 K→L 逐字节相同（对象摘要 e3e579a5746dae17 = e3e579a5746dae17）；provides=1/requires=2/sections=12/supportPaths=0/outputPaths=4 全为原值；当前契约 hash f6c1a7d33d4bfbdaf87ea85d06f76ae99e72644e379f36a55c4c0d22327e1f42 变化仅因依赖闭包含 M5-T4（经 M6-T6 → M5-T4），能力与接口未变。",
-      "范围限定：本记录只是 L 当前契约语义复核，不证明该任务已实现、不改变其 todo/status；M5-T4 亦不证明真实 PG 用例 15./16. 通过、不证明新 CI 转绿；未重验 P2/O1 或旧 43，未顺手清理既有 stale。"
+      "第19节 M6-T5 从 M6-T6 复用已鉴权 GET /api/admin/stats，M4-T4 提供 chat-notifications。第13节 E-51/52/53/64/67 与第17节真实 HTTP/通知作业验收相符。composition.ts:134 组合可靠性读取器，db.ts:3 与 auth.ts:116 复用现有生产入口。",
+      "第10节统计 DTO 与服务、PG17 专库及 A3 分区计数需要四个支持文件。补丁仅增补 src/lib/contracts/ops.ts、src/lib/server/ops/stats-service.ts、tests/stats-route.test.ts、.github/workflows/ci.yml。PR #563 同改 CI，合并时核实各自门禁。下游未落地任务只有上游契约哈希传播，无新增已落地待复验任务。",
+      "此记录确认契约可执行。实现验收为 rework。PR #578 的 PG17 和本地 PG12 在 tests/stats-reliability.test.ts:1154 有同一 ReferenceError；HTTP 成对查询、接通探针、邮件归属日期和同键快照的实现仍有缺口。"
     ],
-    "reviewed": "2026-11-11T05:34:58.660575+00:00",
+    "reviewed": "2026-11-28T01:44:28.789311+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },

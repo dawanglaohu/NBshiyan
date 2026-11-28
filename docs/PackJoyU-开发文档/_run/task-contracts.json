@@ -3234,7 +3234,12 @@
       "wiring": [
         "container"
       ],
-      "supportPaths": [],
+      "supportPaths": [
+        ".github/workflows/ci.yml",
+        "src/lib/contracts/ops.ts",
+        "src/lib/server/ops/stats-service.ts",
+        "tests/stats-route.test.ts"
+      ],
       "outputPaths": [
         "src/lib/server/ops/reliability-source.ts",
         "src/lib/server/composition.ts",
