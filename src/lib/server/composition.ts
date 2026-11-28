@@ -96,11 +96,14 @@ export function createAdminServices(deps: {
   clock?: () => Date;
   log?: (event: CounterLog) => void;
   jobs?: JobRegistry;
+  apiCounter?: ApiCounter | null;
 } = {}): AdminServices {
   const db = deps.db ?? (prisma as PrismaClient);
   const config = deps.config ?? getServerConfig();
   const clock = deps.clock ?? (() => new Date());
   const jobs = deps.jobs ?? createJobServices({ db, clock }).jobs;
+  const httpServices = createHttpServices({ db, config, clock, log: deps.log });
+  const wiredApiCounter = deps.apiCounter === undefined ? httpServices.apiCounter : deps.apiCounter;
   const actionGrants = createActionGrantService({
     db,
     clock,
@@ -108,7 +111,12 @@ export function createAdminServices(deps: {
     sessionPolicy: config.session,
   });
   return {
-    ...createHttpServices({ db, config, clock, log: deps.log }),
+    ...httpServices,
+    apiCounter: wiredApiCounter ?? {
+      async recordFinalResponse(response) {
+        return { status: response.status, body: response.body, recorded: false };
+      },
+    },
     devices: deviceServiceFor(db, clock, config.session),
     actionGrants,
     recoveryAuthorizations: createRecoveryAuthorizationService({
@@ -133,7 +141,7 @@ export function createAdminServices(deps: {
     stats: (() => {
       const reliability = createReliabilitySourceBundle({
         db,
-        httpConnected: () => true,
+        apiCounter: wiredApiCounter,
         chatNotificationConfigured: () => notificationMailConfig() !== null,
         chatNotificationJobRegistered: () => jobs.has(CHAT_NOTIFICATION_JOB_KEY),
         mailConfigured: () => sendingEnabled(),

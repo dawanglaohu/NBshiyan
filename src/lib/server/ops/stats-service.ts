@@ -63,6 +63,8 @@ export type NonCoreSourceReadInput = {
   /** 可选：调用方显式提供的同查询键上次成功单源快照（无全局状态，用于 E-51 失败回退）。 */
   previousSource?: StatsSourceDTO;
   previousBreakdown?: StatsNotificationBreakdownDTO | null;
+  /** 单次 query() 请求栈内的临时快照备忘（禁止跨请求共享，仅用于同一次 GET 配对源共享数据库快照）。 */
+  requestMemo?: Map<symbol, unknown>;
 };
 
 export type NonCoreSourceReader = (input: NonCoreSourceReadInput) => Promise<StatsSourceDTO> | StatsSourceDTO;
@@ -89,10 +91,10 @@ export type StatsQueryInput = {
   role: Role;
   userId?: string;
   query: StatsQueryDTO;
-  /** 可选：单次请求显式传入的上次同键成功快照（严禁进程级全局缓存，仅同查询范围失败时保留原时间与旧值）。 */
+  /** 可选：单次请求显式传入的上次同键成功快照（严禁进程级全局缓存；必须携带完整旧 query 且同有效范围才允许回退）。 */
   previousSnapshot?: {
     dto: StatsDTO;
-    query?: StatsQueryDTO;
+    query: StatsQueryDTO;
   };
 };
 
@@ -343,13 +345,22 @@ export function createStatsService(deps: StatsServiceDeps = {}): StatsService {
         queriedAt: now.toISOString(),
       };
 
+      const prevQuery = previousSnapshot?.query;
+      const prevRevision = prevQuery?.timezoneRevision
+        ?? previousSnapshot?.dto.sources[0]?.timezoneRevision;
       const canUsePrevious = Boolean(
-        previousSnapshot && sameStatsQueryScope(query, previousSnapshot.query),
+        previousSnapshot
+        && prevQuery
+        && sameStatsQueryScope(
+          { ...query, timezoneRevision: coreResult.scope.timezoneRevision },
+          prevRevision !== undefined ? { ...prevQuery, timezoneRevision: prevRevision } : prevQuery,
+        ),
       );
       const prevSources = canUsePrevious
         ? new Map(previousSnapshot!.dto.sources.map((item) => [item.source, item]))
         : new Map<StatsSource, StatsSourceDTO>();
       const prevNotificationCounts = canUsePrevious ? previousSnapshot!.dto.notificationCounts : null;
+      const requestMemo = new Map<symbol, unknown>();
 
       const sources: StatsSourceDTO[] = [];
       const notificationBreakdowns: Partial<Record<'chat_notifications' | 'mail', StatsNotificationBreakdownDTO | null>> = {};
@@ -371,6 +382,7 @@ export function createStatsService(deps: StatsServiceDeps = {}): StatsService {
           context,
           now,
           connected,
+          requestMemo,
           ...(previousSource ? { previousSource } : {}),
           ...(previousBreakdown !== undefined ? { previousBreakdown } : {}),
         };

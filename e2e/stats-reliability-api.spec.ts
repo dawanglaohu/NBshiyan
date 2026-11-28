@@ -122,18 +122,17 @@ test.describe('M6-T5 HTTP and mail reliability statistics sources', () => {
       const { ref } = (await inqRes.json()) as { ref: string };
       expect((await anon.post('/api/rum', { data: {} })).status()).toBeLessThan(500);
 
-      // 若环境提供 CRON_SECRET，触发真实 chat-notifications 作业；因 E2E 默认未配 SMTP，通知出箱置 DISABLED 且来源仍保持 not_connected（不把咨询 received 或空跑伪报为已投递）
-      let extraCronInstrumented = 0;
+      // 若环境提供 CRON_SECRET，触发真实 chat-notifications 作业（当前 /api/admin/cron/operations 未接入 ApiDailyCounter）；
+      // 因 E2E 默认未配 SMTP，通知出箱置 DISABLED 且来源仍保持 not_connected（不把咨询 received 或空跑伪报为已投递）
       if (process.env.CRON_SECRET) {
         const cronRes = await anon.post('/api/admin/cron/operations', {
           headers: { authorization: `Bearer ${process.env.CRON_SECRET}` },
           data: { jobKey: 'chat-notifications' },
         });
         expect([200, 409]).toContain(cronRes.status());
-        extraCronInstrumented = 1;
       }
 
-      // 5. 再次读取可靠性来源：baselineRes(+1) + 4 次已接线请求 + 可选 cron(+1)；未接线 /api/inquiries 与 /api/rum 不计入
+      // 5. 再次读取可靠性来源：baselineRes(+1) + 4 次实际已接线路由请求；未写 ApiDailyCounter 的 /api/inquiries、/api/rum 与 /api/admin/cron/operations 均不计入
       const afterRes = await admin.get(
         `/api/admin/stats?from=${today}&to=${today}&sources=inquiries,${RELIABILITY_SOURCES.join(',')}`,
       );
@@ -145,7 +144,7 @@ test.describe('M6-T5 HTTP and mail reliability statistics sources', () => {
       const afterErr = findSource(afterDto, 'api_errors');
       expect(afterReq.state).toBe('ok');
       expect(afterReq.coverage).toBe('partial');
-      expect(afterReq.value).toBe(beforeReq + 1 + 4 + extraCronInstrumented);
+      expect(afterReq.value).toBe(beforeReq + 1 + 4);
       expect(afterErr.coverage).toBe('partial');
       expect(afterErr.value).toBe(beforeErr);
       expect(afterDto.apiErrorRate).toEqual({

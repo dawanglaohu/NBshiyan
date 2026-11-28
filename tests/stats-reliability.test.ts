@@ -1,11 +1,15 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { randomBytes, randomUUID } from 'node:crypto';
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { mkdtempSync, readdirSync, readFileSync, rmSync, statSync } from 'node:fs';
 import { createRequire } from 'node:module';
+import net from 'node:net';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { after, before, beforeEach, describe, test } from 'node:test';
+import tls from 'node:tls';
 import { PrismaClient, type Role } from '@prisma/client';
+import nodemailer from 'nodemailer';
 import { authenticator } from 'otplib';
 import { products } from '../src/data/products';
 import { shiftLocalDate } from '../src/lib/analytics/aggregate-plan';
@@ -15,16 +19,18 @@ import {
   StatsApiErrorRateSchema,
   StatsDTOSchema,
   StatsSourceDTOSchema,
+  type JobKey,
   type StatsDTO,
   type StatsNotificationBreakdownDTO,
   type StatsSource,
   type StatsSourceDTO,
 } from '../src/lib/contracts/ops';
+import { createNotificationMailer, notificationMailConfig } from '../src/lib/server/chat/notification-mailer';
 import { CHAT_NOTIFICATION_JOB_KEY } from '../src/lib/server/chat/notification-policy';
 import { AppError } from '../src/lib/server/http/errors';
-import { API_ROUTE_IDS } from '../src/lib/server/http/metrics';
-import type { MailSendAdapter, OutboundMail, SendOutcome } from '../src/lib/server/mail/adapter';
-import type { JobKey } from '../src/lib/contracts/ops';
+import { API_ROUTE_IDS, type ApiCounter } from '../src/lib/server/http/metrics';
+import { smtpConfig } from '../src/lib/server/mail/config';
+import { createSmtpAdapter } from '../src/lib/server/mail/smtp';
 
 const MAIL_QUEUE_KEY: JobKey = 'mail-queue';
 import {
@@ -36,6 +42,7 @@ import {
   preserveSourceSnapshotOnFailure,
   preserveStatsSnapshotOnFailure,
   RELIABILITY_SOURCES,
+  sameStatsQueryScope,
   type ReliabilityDb,
 } from '../src/lib/server/ops/reliability-source';
 import { toStatsSourceDTO } from '../src/lib/server/ops/source-dto';
@@ -43,6 +50,12 @@ import type {
   NonCoreSourceReadInput,
   StatsDb,
 } from '../src/lib/server/ops/stats-service';
+
+const CONNECTED_COUNTER: Pick<ApiCounter, 'recordFinalResponse'> = {
+  async recordFinalResponse(response) {
+    return { status: response.status, body: response.body, recorded: true };
+  },
+};
 
 const ORIGIN = 'http://localhost:3000';
 const REAL_PRODUCT_A = products[0].slug;
@@ -230,9 +243,17 @@ describe('M6-T5 reliability source adapters & pure contracts (no database)', () 
     });
   });
 
-  test('HTTP readers enforce ADMIN role, not_connected, productSlug/future no_data, READ ONLY tx, and exact 9-key StatsSourceDTO (AC1, E-64, E-66)', async () => {
+  test('HTTP readers enforce ADMIN role, fail-closed connection gate, single-snapshot pairing, and exact 9-key StatsSourceDTO (AC1, R2, R3, E-64, E-66)', async () => {
     const { db: untouchedDb, capture: untouchedCapture } = makeFakeReliabilityDb();
-    const guardReaders = createReliabilitySourceReaders({ db: untouchedDb });
+    // Missing apiCounter / httpConnected fails closed to not_connected without querying DB (R3)
+    const missingDepsReaders = createReliabilitySourceReaders({ db: untouchedDb });
+    assert.deepEqual(
+      [(await missingDepsReaders.api_requests(readerInput('ADMIN'))).state, (await missingDepsReaders.api_errors(readerInput('ADMIN'))).state],
+      ['not_connected', 'not_connected'],
+    );
+    assert.equal(untouchedCapture.queries.length, 0);
+
+    const guardReaders = createReliabilitySourceReaders({ db: untouchedDb, apiCounter: CONNECTED_COUNTER });
 
     for (const role of ['SALES', 'EDITOR'] as const) {
       for (const source of ['api_requests', 'api_errors'] as const) {
@@ -244,10 +265,10 @@ describe('M6-T5 reliability source adapters & pure contracts (no database)', () 
     }
     assert.equal(untouchedCapture.queries.length, 0);
 
-    // Disconnected HTTP producer -> not_connected
+    // Explicit disconnected HTTP producer -> not_connected
     const disconnectedReaders = createReliabilitySourceReaders({
       db: untouchedDb,
-      httpConnected: () => false,
+      apiCounter: null,
     });
     const discReq = await disconnectedReaders.api_requests(readerInput('ADMIN'));
     const discErr = await disconnectedReaders.api_errors(readerInput('ADMIN'));
@@ -270,13 +291,13 @@ describe('M6-T5 reliability source adapters & pure contracts (no database)', () 
     }));
     assert.deepEqual([futureDto.state, futureDto.value, futureDto.coverage], ['no_data', null, 'unavailable']);
 
-    // Zero counter rows -> no_data (absent denominator yields null, not fake 0)
+    // Connected with zero counter rows -> no_data (absent denominator yields null, not fake 0)
     const emptyReq = await guardReaders.api_requests(readerInput('ADMIN'));
     const emptyErr = await guardReaders.api_errors(readerInput('ADMIN'));
     assert.deepEqual([emptyReq.state, emptyReq.value, emptyReq.lastSucceededAt], ['no_data', null, null]);
     assert.deepEqual([emptyErr.state, emptyErr.value, emptyErr.lastSucceededAt], ['no_data', null, null]);
 
-    // Real observed counts -> partial coverage (instrumented routes only), READ ONLY tx, exact 9 keys
+    // Real observed counts -> partial coverage (instrumented routes only), REPEATABLE READ READ ONLY tx, exact 9 keys
     const { db: activeDb, capture } = makeFakeReliabilityDb({
       apiSummary: {
         requestCount: 12n,
@@ -285,20 +306,74 @@ describe('M6-T5 reliability source adapters & pure contracts (no database)', () 
         lastObservedAt: '2026-11-27T11:42:00.000Z',
       },
     });
-    const activeReaders = createReliabilitySourceReaders({ db: activeDb });
+    const activeReaders = createReliabilitySourceReaders({ db: activeDb, apiCounter: CONNECTED_COUNTER });
     const reqDto = await activeReaders.api_requests(readerInput('ADMIN'));
     const errDto = await activeReaders.api_errors(readerInput('ADMIN'));
     assert.deepEqual([reqDto.state, reqDto.value, reqDto.coverage], ['ok', 12, 'partial']);
     assert.deepEqual([errDto.state, errDto.value, errDto.coverage], ['ok', 3, 'partial']);
     assert.equal(reqDto.lastSucceededAt, '2026-11-27T11:42:00.000Z');
     assert.equal(reqDto.dataThrough, '2026-11-27T11:42:00.000Z');
-    assert.ok(capture.statements.every((stmt) => stmt.includes('SET TRANSACTION READ ONLY')));
+    assert.ok(capture.statements.every((stmt) => stmt.includes('REPEATABLE READ READ ONLY')));
     for (const dto of [reqDto, errDto]) {
       assert.deepEqual(StatsSourceDTOSchema.parse(dto), dto);
       assert.deepEqual(Object.keys(dto).sort(), [
         'coverage', 'dataThrough', 'lastSucceededAt', 'queriedAt', 'source', 'state', 'timezone', 'timezoneRevision', 'value',
       ]);
     }
+
+    // R2: Single-snapshot consistency when 5 5xx errors arrive after the first read (10 req / 0 err -> 15 req / 5 err);
+    // must NEVER produce 5/10, and single-source queries continue to work independently.
+    let txCalls = 0;
+    const interleavedDb: ReliabilityDb = {
+      async $transaction<T>(fn: (tx: unknown) => Promise<T>): Promise<T> {
+        txCalls += 1;
+        const rows = txCalls === 1
+          ? [{ requestCount: 10n, errorCount: 0n, rowCount: 1, corrupt: false, lastObservedAt: '2026-11-27T11:50:00.000Z' }]
+          : [{ requestCount: 15n, errorCount: 5n, rowCount: 1, corrupt: false, lastObservedAt: '2026-11-27T11:50:05.000Z' }];
+        return fn({ $executeRaw: async () => 0, $queryRaw: async () => rows });
+      },
+    } as unknown as ReliabilityDb;
+    const settingsDb = {
+      async $transaction<T>(fn: (tx: { $queryRaw: () => Promise<unknown[]> }) => Promise<T>): Promise<T> {
+        return fn({ $queryRaw: async () => [] });
+      },
+    } as unknown as StatsDb;
+    const { createStatsService } = await import('../src/lib/server/ops/stats-service');
+    const interleavedBundle = createReliabilitySourceBundle({ db: interleavedDb, apiCounter: CONNECTED_COUNTER });
+    const interleavedService = createStatsService({
+      db: settingsDb,
+      clock: () => NOW,
+      nonCoreReaders: interleavedBundle.readers,
+      detailedNonCoreReaders: interleavedBundle.detailedReaders,
+    });
+    const pairedSnap = await interleavedService.query({
+      role: 'ADMIN',
+      userId: 'admin-1',
+      query: { from: '2026-11-27', to: '2026-11-27', sources: ['api_requests', 'api_errors'] },
+    });
+    assert.equal(txCalls, 1, 'paired HTTP sources must share one database snapshot per GET');
+    assert.equal(findSource(pairedSnap.dto, 'api_requests').value, 10);
+    assert.equal(findSource(pairedSnap.dto, 'api_errors').value, 0);
+    assert.equal(pairedSnap.dto.apiErrorRate?.value, 0);
+    assert.equal(
+      findSource(pairedSnap.dto, 'api_requests').lastSucceededAt,
+      findSource(pairedSnap.dto, 'api_errors').lastSucceededAt,
+    );
+    // Single-source queries remain functional and see the post-write snapshot (15 and 5)
+    const singleReq = await interleavedService.query({
+      role: 'ADMIN',
+      userId: 'admin-1',
+      query: { from: '2026-11-27', to: '2026-11-27', sources: ['api_requests'] },
+    });
+    assert.equal(findSource(singleReq.dto, 'api_requests').value, 15);
+    assert.equal(singleReq.dto.apiErrorRate, null);
+    const singleErr = await interleavedService.query({
+      role: 'ADMIN',
+      userId: 'admin-1',
+      query: { from: '2026-11-27', to: '2026-11-27', sources: ['api_errors'] },
+    });
+    assert.equal(findSource(singleErr.dto, 'api_errors').value, 5);
+    assert.equal(singleErr.dto.apiErrorRate, null);
 
     // Corrupt row (errorCount > requestCount) -> fails closed to query_failed
     const { db: corruptDb } = makeFakeReliabilityDb({
@@ -310,36 +385,60 @@ describe('M6-T5 reliability source adapters & pure contracts (no database)', () 
         lastObservedAt: '2026-11-27T11:42:00.000Z',
       },
     });
-    const corruptDto = await createReliabilitySourceReaders({ db: corruptDb }).api_errors(readerInput('ADMIN'));
+    const corruptDto = await createReliabilitySourceReaders({
+      db: corruptDb,
+      apiCounter: CONNECTED_COUNTER,
+    }).api_errors(readerInput('ADMIN'));
     assert.deepEqual([corruptDto.state, corruptDto.value], ['query_failed', null]);
   });
 
-  test('mail and chat_notifications readers enforce role matrix, connection/JobState gates, and 5-minute freshness (AC2, E-64, E-66)', async () => {
+  test('mail and chat_notifications readers enforce role matrix, fail-closed connection/JobState gates, and 5-minute freshness (AC2, R3, E-64, E-66)', async () => {
     const { db: emptyDb, capture } = makeFakeReliabilityDb();
-    const emptyReaders = createReliabilitySourceReaders({
+    // R3: Omitting job registration / configuration fails closed to not_connected without querying DB
+    const missingDepsReaders = createReliabilitySourceReaders({ db: emptyDb });
+    assert.equal((await missingDepsReaders.chat_notifications(readerInput('SALES'))).state, 'not_connected');
+    assert.equal((await missingDepsReaders.mail(readerInput('ADMIN'))).state, 'not_connected');
+    assert.equal(capture.queries.length, 0);
+
+    const connectedEmptyReaders = createReliabilitySourceReaders({
       db: emptyDb,
       chatNotificationConfigured: () => true,
+      chatNotificationJobRegistered: () => true,
       mailConfigured: () => true,
+      mailQueueJobRegistered: () => true,
     });
 
     // Role checks happen before DB queries
     await assert.rejects(
-      () => Promise.resolve(emptyReaders.mail(readerInput('SALES'))),
+      () => Promise.resolve(connectedEmptyReaders.mail(readerInput('SALES'))),
       (err) => err instanceof AppError && err.code === 'forbidden',
     );
     await assert.rejects(
-      () => Promise.resolve(emptyReaders.mail(readerInput('EDITOR'))),
+      () => Promise.resolve(connectedEmptyReaders.mail(readerInput('EDITOR'))),
       (err) => err instanceof AppError && err.code === 'forbidden',
     );
     await assert.rejects(
-      () => Promise.resolve(emptyReaders.chat_notifications(readerInput('EDITOR'))),
+      () => Promise.resolve(connectedEmptyReaders.chat_notifications(readerInput('EDITOR'))),
       (err) => err instanceof AppError && err.code === 'forbidden',
     );
     assert.equal(capture.queries.length, 0);
 
-    // Missing JobState or NEVER status -> not_connected even if env is configured
-    assert.equal((await emptyReaders.chat_notifications(readerInput('SALES'))).state, 'not_connected');
-    assert.equal((await emptyReaders.mail(readerInput('ADMIN'))).state, 'not_connected');
+    // R3: Connected (configured + job registered) with no JobState samples yet -> no_data / null
+    const emptyChat = await connectedEmptyReaders.chat_notifications(readerInput('SALES'));
+    const emptyMail = await connectedEmptyReaders.mail(readerInput('ADMIN'));
+    assert.deepEqual([emptyChat.state, emptyChat.value], ['no_data', null]);
+    assert.deepEqual([emptyMail.state, emptyMail.value], ['no_data', null]);
+
+    // Unregistered job OR unconfigured SMTP with no real attempts -> not_connected
+    const unregReaders = createReliabilitySourceReaders({
+      db: emptyDb,
+      chatNotificationConfigured: () => true,
+      chatNotificationJobRegistered: () => false,
+      mailConfigured: () => false,
+      mailQueueJobRegistered: () => true,
+    });
+    assert.equal((await unregReaders.chat_notifications(readerInput('SALES'))).state, 'not_connected');
+    assert.equal((await unregReaders.mail(readerInput('ADMIN'))).state, 'not_connected');
 
     // Job ran SUCCEEDED on empty config with 0 real attempts -> remains not_connected (no fake healthy 0)
     const { db: unconfiguredCronDb } = makeFakeReliabilityDb({
@@ -353,7 +452,9 @@ describe('M6-T5 reliability source adapters & pure contracts (no database)', () 
     const unconfiguredReaders = createReliabilitySourceReaders({
       db: unconfiguredCronDb,
       chatNotificationConfigured: () => false,
+      chatNotificationJobRegistered: () => true,
       mailConfigured: () => false,
+      mailQueueJobRegistered: () => true,
     });
     assert.equal((await unconfiguredReaders.chat_notifications(readerInput('ADMIN'))).state, 'not_connected');
     assert.equal((await unconfiguredReaders.mail(readerInput('ADMIN'))).state, 'not_connected');
@@ -369,7 +470,9 @@ describe('M6-T5 reliability source adapters & pure contracts (no database)', () 
     const failReaders = createReliabilitySourceReaders({
       db: neverSucceededFailDb,
       chatNotificationConfigured: () => true,
+      chatNotificationJobRegistered: () => true,
       mailConfigured: () => true,
+      mailQueueJobRegistered: () => true,
     });
     const failedMail = await failReaders.mail(readerInput('ADMIN'));
     assert.deepEqual([failedMail.state, failedMail.value, failedMail.lastSucceededAt], ['query_failed', null, null]);
@@ -383,7 +486,9 @@ describe('M6-T5 reliability source adapters & pure contracts (no database)', () 
     const freshBundle = createReliabilitySourceBundle({
       db: freshDb,
       chatNotificationConfigured: () => true,
+      chatNotificationJobRegistered: () => true,
       mailConfigured: () => true,
+      mailQueueJobRegistered: () => true,
     });
     const freshOut = await freshBundle.detailedReaders.chat_notifications(readerInput('SALES'));
     assert.deepEqual([freshOut.dto.state, freshOut.dto.value, freshOut.dto.coverage], ['ok', 2, 'full']);
@@ -399,13 +504,14 @@ describe('M6-T5 reliability source adapters & pure contracts (no database)', () 
     const staleDto = await createReliabilitySourceReaders({
       db: staleDb,
       mailConfigured: () => true,
+      mailQueueJobRegistered: () => true,
     }).mail(readerInput('ADMIN'));
     assert.deepEqual([staleDto.state, staleDto.value, staleDto.coverage], ['stale', 4, 'partial']);
     assert.equal(staleDto.lastSucceededAt, staleAtBoundary);
     assert.notEqual(staleDto.lastSucceededAt, CONTEXT.queriedAt);
   });
 
-  test('mail and chat_notifications SQL filters count only real SMTP-accepted deliveries and real attempt outcomes, excluding queued/received (AC2, E-64)', async () => {
+  test('mail and chat_notifications SQL filters count only real SMTP-accepted deliveries and bucket by stable attempt timestamps rather than mutable updatedAt (AC2, R4, E-64)', async () => {
     const { db, capture } = makeFakeReliabilityDb({
       jobState: {
         lastStatus: 'SUCCEEDED',
@@ -417,7 +523,9 @@ describe('M6-T5 reliability source adapters & pure contracts (no database)', () 
     const bundle = createReliabilitySourceBundle({
       db,
       chatNotificationConfigured: () => true,
+      chatNotificationJobRegistered: () => true,
       mailConfigured: () => true,
+      mailQueueJobRegistered: () => true,
     });
 
     const chatRes = await bundle.detailedReaders.chat_notifications(
@@ -436,12 +544,15 @@ describe('M6-T5 reliability source adapters & pure contracts (no database)', () 
     assert.match(chatSql, /"attempts" > 0/);
     assert.match(chatSql, /"requestStartedAt" IS NOT NULL/);
     assert.match(chatSql, /INNER JOIN "ChatConversation"/);
+    assert.equal(chatSql.includes('"updatedAt"'), false, 'ChatNotification SQL must not bucket by mutable updatedAt');
 
     const mailSql = capture.queries.find((q) => q.includes('FROM "MailMessage"')) ?? '';
     assert.match(mailSql, /"direction" = 'OUTBOUND'::"MailDirection"/);
     assert.match(mailSql, /"errorCode" = 'unknown_delivery'/);
     assert.match(mailSql, /"errorCode" <> 'unknown_delivery'/);
+    assert.match(mailSql, /COALESCE\(m\."requestStartedAt", m\."createdAt"\)/);
     assert.match(mailSql, /EXISTS \(\s*SELECT 1 FROM "InquiryItem"/);
+    assert.equal(mailSql.includes('"updatedAt"'), false, 'MailMessage SQL must not bucket by mutable updatedAt');
     // Must never select personal columns
     for (const forbiddenCol of ['fromAddr', 'toAddr', 'bodyText', 'bodyHtml', 'subject', 'stableMessageId']) {
       assert.equal(mailSql.includes(forbiddenCol), false);
@@ -449,7 +560,7 @@ describe('M6-T5 reliability source adapters & pure contracts (no database)', () 
     }
   });
 
-  test('E-51 / E-52 / E-53 / E-67: query failure preserves prior value & lastSucceededAt when same-key snapshot exists, or sanitized null failure without snapshot, isolating healthy sources', async () => {
+  test('E-51 / E-52 / E-53 / E-67 / R5: query failure preserves prior value, breakdown, dataThrough, and lastSucceededAt ONLY when proven same valid query scope', async () => {
     const settingsDb = {
       async $transaction<T>(fn: (tx: { $queryRaw: () => Promise<unknown[]> }) => Promise<T>): Promise<T> {
         return fn({ $queryRaw: async () => [] });
@@ -497,9 +608,17 @@ describe('M6-T5 reliability source adapters & pure contracts (no database)', () 
       },
     });
 
-    const httpBundle = createReliabilitySourceBundle({ db: healthyHttpDb });
-    const chatBundle = createReliabilitySourceBundle({ db: healthyChatDb, chatNotificationConfigured: () => true });
-    const mailBundle = createReliabilitySourceBundle({ db: dynamicMailDb, mailConfigured: () => true });
+    const httpBundle = createReliabilitySourceBundle({ db: healthyHttpDb, apiCounter: CONNECTED_COUNTER });
+    const chatBundle = createReliabilitySourceBundle({
+      db: healthyChatDb,
+      chatNotificationConfigured: () => true,
+      chatNotificationJobRegistered: () => true,
+    });
+    const mailBundle = createReliabilitySourceBundle({
+      db: dynamicMailDb,
+      mailConfigured: () => true,
+      mailQueueJobRegistered: () => true,
+    });
 
     const { createStatsService } = await import('../src/lib/server/ops/stats-service');
     const service = createStatsService({
@@ -523,6 +642,7 @@ describe('M6-T5 reliability source adapters & pure contracts (no database)', () 
     const first = await service.query({ role: 'ADMIN', userId: 'admin-1', query });
     assert.equal(findSource(first.dto, 'mail').state, 'ok');
     assert.equal(findSource(first.dto, 'mail').value, 2);
+    assert.equal(findSource(first.dto, 'mail').dataThrough, '2026-11-27T11:57:00.000Z');
     assert.equal(findSource(first.dto, 'mail').lastSucceededAt, '2026-11-27T11:57:00.000Z');
 
     // E-52: Mail fails WITHOUT prior snapshot -> value=null, no leaked credentials, other sources succeed
@@ -531,18 +651,17 @@ describe('M6-T5 reliability source adapters & pure contracts (no database)', () 
     const failedNoSnap = await service.query({ role: 'ADMIN', userId: 'admin-1', query });
     const mailNoSnap = findSource(failedNoSnap.dto, 'mail');
     assert.deepEqual(
-      [mailNoSnap.state, mailNoSnap.value, mailNoSnap.lastSucceededAt, mailNoSnap.coverage],
-      ['query_failed', null, null, 'unavailable'],
+      [mailNoSnap.state, mailNoSnap.value, mailNoSnap.dataThrough, mailNoSnap.lastSucceededAt, mailNoSnap.coverage],
+      ['query_failed', null, null, null, 'unavailable'],
     );
     assert.equal(failedNoSnap.dto.notificationCounts?.mail, null);
     assert.equal(JSON.stringify(failedNoSnap.dto).includes('super-secret-pw'), false);
     assert.equal(JSON.stringify(failedNoSnap.dto).includes('10.9.8.7'), false);
-    // Sibling sources remain healthy with their own independent timestamps (E-53, E-67)
     assert.equal(findSource(failedNoSnap.dto, 'api_requests').value, 10);
     assert.equal(findSource(failedNoSnap.dto, 'chat_notifications').value, 3);
     assert.deepEqual(failedNoSnap.dto.apiErrorRate, { value: 0.1, coverage: 'partial', scope: 'instrumented_routes' });
 
-    // E-51: Mail fails WITH same-query-key prior snapshot -> retains prior value (2) & original lastSucceededAt
+    // E-51 & R5: Mail fails WITH proven same valid query scope -> retains value (2), breakdown, dataThrough & lastSucceededAt
     const failedWithSnap = await service.query({
       role: 'ADMIN',
       userId: 'admin-1',
@@ -551,8 +670,8 @@ describe('M6-T5 reliability source adapters & pure contracts (no database)', () 
     });
     const mailWithSnap = findSource(failedWithSnap.dto, 'mail');
     assert.deepEqual(
-      [mailWithSnap.state, mailWithSnap.value, mailWithSnap.lastSucceededAt, mailWithSnap.coverage],
-      ['query_failed', 2, '2026-11-27T11:57:00.000Z', 'partial'],
+      [mailWithSnap.state, mailWithSnap.value, mailWithSnap.dataThrough, mailWithSnap.lastSucceededAt, mailWithSnap.coverage],
+      ['query_failed', 2, '2026-11-27T11:57:00.000Z', '2026-11-27T11:57:00.000Z', 'partial'],
     );
     assert.equal(mailWithSnap.queriedAt, t2.toISOString());
     assert.notEqual(mailWithSnap.lastSucceededAt, mailWithSnap.queriedAt);
@@ -564,16 +683,82 @@ describe('M6-T5 reliability source adapters & pure contracts (no database)', () 
       unknown: 1,
     });
 
-    // Different query scope must NOT reuse stale snapshot from another date range
-    const differentScope = await service.query({
+    // R5 negative controls: missing query, missing from/to keys, different dates, different productSlug, and omitted proof flag must ALL stay query_failed/null!
+    assert.equal(sameStatsQueryScope(undefined, undefined), false);
+    assert.equal(sameStatsQueryScope({}, {}), false);
+    assert.equal(sameStatsQueryScope({ from: '2026-11-27' }, { from: '2026-11-27' }), false);
+    assert.equal(sameStatsQueryScope({ from: '2026-11-28', to: '2026-11-27' }, { from: '2026-11-28', to: '2026-11-27' }), false);
+
+    const missingPrevQuery = await service.query({
+      role: 'ADMIN',
+      userId: 'admin-1',
+      query,
+      previousSnapshot: { dto: first.dto } as unknown as { dto: StatsDTO; query: typeof query },
+    });
+    assert.deepEqual(
+      [findSource(missingPrevQuery.dto, 'mail').state, findSource(missingPrevQuery.dto, 'mail').value, missingPrevQuery.dto.notificationCounts?.mail],
+      ['query_failed', null, null],
+    );
+
+    const missingRangeKeys = await service.query({
+      role: 'ADMIN',
+      userId: 'admin-1',
+      query: { sources: [...RELIABILITY_SOURCES] },
+      previousSnapshot: { dto: first.dto, query: { sources: [...RELIABILITY_SOURCES] } },
+    });
+    assert.deepEqual(
+      [findSource(missingRangeKeys.dto, 'mail').state, findSource(missingRangeKeys.dto, 'mail').value, missingRangeKeys.dto.notificationCounts?.mail],
+      ['query_failed', null, null],
+    );
+
+    const differentDate = await service.query({
       role: 'ADMIN',
       userId: 'admin-1',
       query: { from: '2026-11-26', to: '2026-11-26', sources: [...RELIABILITY_SOURCES] },
       previousSnapshot: { dto: first.dto, query },
     });
-    assert.equal(findSource(differentScope.dto, 'mail').value, null);
+    assert.deepEqual(
+      [findSource(differentDate.dto, 'mail').state, findSource(differentDate.dto, 'mail').value, differentDate.dto.notificationCounts?.mail],
+      ['query_failed', null, null],
+    );
 
-    // Pure helper also preserves a legitimate zero snapshot on failure
+    const differentProduct = await service.query({
+      role: 'ADMIN',
+      userId: 'admin-1',
+      query: { ...query, productSlug: REAL_PRODUCT_A },
+      previousSnapshot: { dto: first.dto, query },
+    });
+    assert.deepEqual(
+      [findSource(differentProduct.dto, 'mail').state, findSource(differentProduct.dto, 'mail').value, differentProduct.dto.notificationCounts?.mail],
+      ['query_failed', null, null],
+    );
+
+    // Pure helper rejects fallback when proof flag/queries are omitted, and preserves when proven
+    assert.equal(findSource(preserveStatsSnapshotOnFailure(failedNoSnap.dto, first.dto), 'mail').value, null);
+    assert.equal(findSource(preserveStatsSnapshotOnFailure(failedNoSnap.dto, first.dto, {}), 'mail').value, null);
+    assert.equal(
+      findSource(
+        preserveStatsSnapshotOnFailure(failedNoSnap.dto, first.dto, {
+          currentQuery: { from: '2026-11-27' },
+          previousQuery: { from: '2026-11-27' },
+        }),
+        'mail',
+      ).value,
+      null,
+    );
+    const mergedByQueries = preserveStatsSnapshotOnFailure(failedNoSnap.dto, first.dto, {
+      currentQuery: query,
+      previousQuery: query,
+    });
+    assert.equal(findSource(mergedByQueries, 'mail').value, 2);
+    assert.deepEqual(mergedByQueries.notificationCounts?.mail, {
+      queued: 1,
+      sending: 0,
+      sent: 2,
+      failed: 1,
+      unknown: 1,
+    });
+
     const zeroSnap = toStatsSourceDTO(CONTEXT, 'mail', {
       value: 0,
       coverage: 'full',
@@ -585,8 +770,6 @@ describe('M6-T5 reliability source adapters & pure contracts (no database)', () 
     });
     const mergedZero = preserveSourceSnapshotOnFailure(rawFailed, zeroSnap);
     assert.deepEqual([mergedZero.state, mergedZero.value, mergedZero.lastSucceededAt], ['query_failed', 0, t1.toISOString()]);
-    const mergedFullDto = preserveStatsSnapshotOnFailure(failedNoSnap.dto, first.dto, { sameQueryKey: true });
-    assert.equal(findSource(mergedFullDto, 'mail').value, 2);
   });
 
   test('StatsDTOSchema backward compatibility and strict RBAC source pairing for apiErrorRate and notificationCounts', () => {
@@ -727,11 +910,17 @@ describe('M6-T5 reliability sources over real HTTP routes & notification jobs (P
   let composition: typeof import('../src/lib/server/composition');
   let statsMod: typeof import('../src/lib/server/ops/stats-service');
   let createOperationsHandler: typeof import('../src/lib/server/jobs/registry').createOperationsHandler;
+  let createJobRegistry: typeof import('../src/lib/server/jobs/registry').createJobRegistry;
   let reserveAndStart: typeof import('../src/lib/server/mail/send').reserveAndStart;
+  let anonymizeInquiriesTx: typeof import('../src/lib/server/privacy').anonymizeInquiriesTx;
   let setStore: (store: unknown) => void;
   let MemoryStoreCtor: new () => unknown;
   let hashSecret: typeof import('../src/lib/server/admin/crypto').hashSecret;
   let encrypt: typeof import('../src/lib/server/admin/crypto').encrypt;
+  let smtpCaDir: string | undefined;
+  let smtpCaCert: Buffer;
+  let smtpLeafCert: Buffer;
+  let smtpLeafKey: Buffer;
 
   type Operator = { userId: string; cookie: string };
   let admin: Operator;
@@ -751,7 +940,7 @@ describe('M6-T5 reliability sources over real HTTP routes & notification jobs (P
     RATE_LIMIT_STORE: 'memory',
     APP_ENV: 'test',
     SMTP_HOST: 'smtp.m6t5.example.test',
-    SMTP_PORT: '465',
+    SMTP_PORT: '587',
     SMTP_USER: 'mailer@m6t5.example.test',
     SMTP_PASS: 'm6t5-synthetic-smtp-pass',
     MAIL_FROM: 'PackJoyU <mailer@m6t5.example.test>',
@@ -875,9 +1064,233 @@ describe('M6-T5 reliability sources over real HTTP routes & notification jobs (P
     mailQueueRoute = await import('../src/app/api/admin/cron/mail-queue/route');
     composition = await import('../src/lib/server/composition');
     statsMod = await import('../src/lib/server/ops/stats-service');
-    ({ createOperationsHandler } = await import('../src/lib/server/jobs/registry'));
+    ({ createOperationsHandler, createJobRegistry } = await import('../src/lib/server/jobs/registry'));
     reserveAndStart = (await import('../src/lib/server/mail/send')).reserveAndStart;
+    ({ anonymizeInquiriesTx } = await import('../src/lib/server/privacy'));
+
+    // Generate ephemeral CA + SAN leaf certificate for isolated local STARTTLS SMTP verification (R1)
+    const findOpenssl = () => {
+      if (process.platform !== 'win32') return 'openssl';
+      for (const p of ['C:\\Program Files\\Git\\usr\\bin\\openssl.exe', 'D:\\Program Files\\Git\\usr\\bin\\openssl.exe']) {
+        try { statSync(p); return p; } catch { /* try next */ }
+      }
+      return 'openssl';
+    };
+    const opensslExe = findOpenssl();
+    const runOpenssl = (cwd: string, args: string[]) => {
+      const res = spawnSync(opensslExe, args, {
+        cwd,
+        encoding: 'utf8',
+        env: { ...process.env, MSYS2_ARG_CONV_EXCL: '*' },
+      });
+      assert.equal(res.status, 0, `openssl ${args[0]} failed: ${res.stderr}`);
+    };
+    smtpCaDir = mkdtempSync(path.join(tmpdir(), 'm6t5-smtp-ca-'));
+    runOpenssl(smtpCaDir, [
+      'req', '-x509', '-newkey', 'rsa:2048', '-keyout', 'ca.key', '-out', 'ca.crt',
+      '-days', '1', '-nodes', '-subj', '/CN=M6T5TestCA',
+    ]);
+    runOpenssl(smtpCaDir, [
+      'req', '-newkey', 'rsa:2048', '-keyout', 'leaf.key', '-out', 'leaf.csr', '-nodes',
+      '-subj', `/CN=${ENV.SMTP_HOST}`, '-addext', `subjectAltName=DNS:${ENV.SMTP_HOST}`,
+    ]);
+    runOpenssl(smtpCaDir, [
+      'x509', '-req', '-in', 'leaf.csr', '-CA', 'ca.crt', '-CAkey', 'ca.key',
+      '-CAcreateserial', '-out', 'leaf.crt', '-days', '1', '-copy_extensions', 'copy',
+    ]);
+    smtpCaCert = readFileSync(path.join(smtpCaDir, 'ca.crt'));
+    smtpLeafCert = readFileSync(path.join(smtpCaDir, 'leaf.crt'));
+    smtpLeafKey = readFileSync(path.join(smtpCaDir, 'leaf.key'));
   });
+
+  type SmtpDisposition = 'accept' | 'reject_550' | 'stall_after_data';
+  async function startIsolatedStartTlsSmtp(dispositions: SmtpDisposition[]) {
+    const queue = [...dispositions];
+    const secureContext = tls.createSecureContext({
+      key: smtpLeafKey,
+      cert: smtpLeafCert,
+      minVersion: 'TLSv1.2',
+    });
+    const stats = {
+      connections: 0,
+      tlsHandshakes: 0,
+      authenticated: 0,
+      accepted250: 0,
+      rejected550: 0,
+      stalledAfterData: 0,
+      seenMessageIds: [] as string[],
+    };
+    const peers = new Set<net.Socket>();
+    const server = net.createServer((rawSocket) => {
+      stats.connections += 1;
+      peers.add(rawSocket);
+      rawSocket.on('error', () => {});
+      let plainBuf = '';
+
+      const startEncryptedSession = (tlsSock: tls.TLSSocket) => {
+        let buf = '';
+        let inData = false;
+        let authLoginStep = 0;
+        let authPlainWait = false;
+        let currentDisposition: SmtpDisposition = 'accept';
+
+        const processBuffer = () => {
+          for (;;) {
+            if (inData) {
+              let endIdx = -1;
+              let sepLen = 0;
+              if (buf.startsWith('.\r\n')) {
+                endIdx = 0;
+                sepLen = 3;
+              } else {
+                const idx = buf.indexOf('\r\n.\r\n');
+                if (idx !== -1) {
+                  endIdx = idx;
+                  sepLen = 5;
+                }
+              }
+              if (endIdx === -1) return;
+              const rawMail = buf.slice(0, endIdx);
+              buf = buf.slice(endIdx + sepLen);
+              inData = false;
+              const msgIdMatch = /^Message-ID:\s*(.+)$/im.exec(rawMail);
+              if (msgIdMatch) stats.seenMessageIds.push(msgIdMatch[1].trim());
+              if (currentDisposition === 'stall_after_data') {
+                // Emit malformed post-DATA reply + close so SMTP client sees non-numeric EPROTOCOL after DATA dot -> unknown delivery
+                stats.stalledAfterData += 1;
+                tlsSock.write('GARBAGE_POST_DATA_FIN\r\n', () => tlsSock.end());
+                return;
+              }
+              stats.accepted250 += 1;
+              tlsSock.write('250 2.0.0 Queued\r\n');
+              continue;
+            }
+
+            const crlf = buf.indexOf('\r\n');
+            if (crlf === -1) return;
+            const line = buf.slice(0, crlf);
+            buf = buf.slice(crlf + 2);
+
+            if (authPlainWait) {
+              authPlainWait = false;
+              stats.authenticated += 1;
+              tlsSock.write('235 2.7.0 Authentication successful\r\n');
+              continue;
+            }
+            if (authLoginStep === 1) {
+              authLoginStep = 2;
+              tlsSock.write('334 UGFzc3dvcmQ6\r\n');
+              continue;
+            }
+            if (authLoginStep === 2) {
+              authLoginStep = 0;
+              stats.authenticated += 1;
+              tlsSock.write('235 2.7.0 Authentication successful\r\n');
+              continue;
+            }
+
+            const verb = line.split(/\s+/, 1)[0].toUpperCase();
+            if (verb === 'EHLO' || verb === 'HELO') {
+              tlsSock.write(`250-${ENV.SMTP_HOST}\r\n250 AUTH PLAIN LOGIN\r\n`);
+            } else if (/^AUTH\s+PLAIN(?:\s+\S+)?$/i.test(line)) {
+              if (/^AUTH\s+PLAIN\s+\S+$/i.test(line)) {
+                stats.authenticated += 1;
+                tlsSock.write('235 2.7.0 Authentication successful\r\n');
+              } else {
+                authPlainWait = true;
+                tlsSock.write('334 \r\n');
+              }
+            } else if (/^AUTH\s+LOGIN$/i.test(line)) {
+              authLoginStep = 1;
+              tlsSock.write('334 VXNlcm5hbWU6\r\n');
+            } else if (verb === 'MAIL') {
+              currentDisposition = queue.shift() ?? 'accept';
+              tlsSock.write('250 2.1.0 Sender ok\r\n');
+            } else if (verb === 'RCPT') {
+              if (currentDisposition === 'reject_550') {
+                stats.rejected550 += 1;
+                tlsSock.write('550 5.1.1 Mailbox unavailable\r\n');
+              } else {
+                tlsSock.write('250 2.1.5 Recipient ok\r\n');
+              }
+            } else if (verb === 'DATA') {
+              inData = true;
+              tlsSock.write('354 End data with <CR><LF>.<CR><LF>\r\n');
+            } else if (verb === 'RSET' || verb === 'NOOP') {
+              tlsSock.write('250 2.0.0 OK\r\n');
+            } else if (verb === 'QUIT') {
+              tlsSock.write('221 2.0.0 Bye\r\n', () => tlsSock.end());
+              return;
+            } else {
+              tlsSock.write('500 5.5.1 Unknown command\r\n');
+            }
+          }
+        };
+
+        tlsSock.on('data', (chunk: Buffer) => {
+          buf += chunk.toString('utf8');
+          processBuffer();
+        });
+      };
+
+      const onPlainData = (chunk: Buffer) => {
+        plainBuf += chunk.toString('utf8');
+        for (;;) {
+          const crlf = plainBuf.indexOf('\r\n');
+          if (crlf === -1) return;
+          const line = plainBuf.slice(0, crlf);
+          plainBuf = plainBuf.slice(crlf + 2);
+          const verb = line.split(/\s+/, 1)[0].toUpperCase();
+          if (verb === 'EHLO' || verb === 'HELO') {
+            rawSocket.write(`250-${ENV.SMTP_HOST}\r\n250 STARTTLS\r\n`);
+          } else if (verb === 'STARTTLS') {
+            rawSocket.off('data', onPlainData);
+            rawSocket.write('220 2.0.0 Ready to start TLS\r\n', () => {
+              const tlsSock = new tls.TLSSocket(rawSocket, {
+                isServer: true,
+                secureContext,
+                minVersion: 'TLSv1.2',
+              });
+              peers.add(tlsSock);
+              tlsSock.on('error', () => {});
+              tlsSock.once('secure', () => {
+                stats.tlsHandshakes += 1;
+                startEncryptedSession(tlsSock);
+              });
+            });
+            return;
+          } else if (verb === 'QUIT') {
+            rawSocket.write('221 2.0.0 Bye\r\n', () => rawSocket.end());
+            return;
+          } else {
+            rawSocket.write('530 5.7.0 Must issue a STARTTLS command first\r\n');
+          }
+        }
+      };
+
+      rawSocket.on('data', onPlainData);
+      rawSocket.write(`220 ${ENV.SMTP_HOST} ESMTP\r\n`);
+    });
+
+    await new Promise<void>((resolve, reject) => {
+      server.once('error', reject);
+      server.listen(0, '127.0.0.1', () => {
+        server.off('error', reject);
+        resolve();
+      });
+    });
+    const port = (server.address() as net.AddressInfo).port;
+    return {
+      port,
+      stats,
+      async close() {
+        for (const peer of peers) peer.destroy();
+        if (server.listening) {
+          await new Promise<void>((resolve, reject) => server.close((err) => (err ? reject(err) : resolve())));
+        }
+      },
+    };
+  }
 
   beforeEach(async () => {
     setStore(new MemoryStoreCtor());
@@ -921,6 +1334,9 @@ describe('M6-T5 reliability sources over real HTTP routes & notification jobs (P
       await owner?.$executeRawUnsafe(`DROP SCHEMA IF EXISTS "${schema}" CASCADE`);
     }
     await owner?.$disconnect();
+    if (smtpCaDir) {
+      rmSync(smtpCaDir, { recursive: true, force: true });
+    }
     for (const [key, value] of Object.entries(savedEnv)) {
       if (value === undefined) delete process.env[key];
       else process.env[key] = value;
@@ -931,45 +1347,73 @@ describe('M6-T5 reliability sources over real HTTP routes & notification jobs (P
     const today = siteLocalDate(new Date(), 'UTC');
     const yesterday = shiftLocalDate(today, -1);
 
-    // 1. Day with zero instrumented requests -> no_data (value: null) and apiErrorRate.value === null
+    // 1. R3 production composition states:
+    // (a) Connected with no samples (empty counter & empty JobState while SMTP + jobs are wired) -> no_data / null
     const emptyDayRes = await statsRoute.GET(
-      makeRequest(`/api/admin/stats?from=${yesterday}&to=${yesterday}&sources=api_requests,api_errors`, {
+      makeRequest(`/api/admin/stats?from=${yesterday}&to=${yesterday}&sources=${RELIABILITY_SOURCES.join(',')}`, {
         cookie: admin.cookie,
       }),
     );
     assert.equal(emptyDayRes.status, 200);
     const emptyDayDto = StatsDTOSchema.parse(await emptyDayRes.json());
-    assert.deepEqual(findSource(emptyDayDto, 'api_requests').value, null);
-    assert.equal(findSource(emptyDayDto, 'api_requests').state, 'no_data');
-    assert.equal(findSource(emptyDayDto, 'api_errors').value, null);
-    assert.equal(findSource(emptyDayDto, 'api_errors').state, 'no_data');
+    for (const src of RELIABILITY_SOURCES) {
+      assert.equal(findSource(emptyDayDto, src).state, 'no_data', `connected empty ${src} must be no_data`);
+      assert.equal(findSource(emptyDayDto, src).value, null);
+    }
     assert.deepEqual(emptyDayDto.apiErrorRate, {
       value: null,
       coverage: 'unavailable',
       scope: 'instrumented_routes',
     });
 
-    // 2. Disconnected HTTP producer -> not_connected
-    const discBundle = createReliabilitySourceBundle({ db: appDb, httpConnected: () => false });
-    const discStats = statsMod.createStatsService({
+    // (b) Unwired production composition (apiCounter: null & empty job registry) -> not_connected
+    const unwiredAdmin = composition.createAdminServices({
       db: appDb,
-      nonCoreReaders: discBundle.readers,
-      detailedNonCoreReaders: discBundle.detailedReaders,
+      apiCounter: null,
+      jobs: createJobRegistry([]),
     });
-    const httpServices = composition.createHttpServices({ db: appDb });
-    const discRes = await statsMod.handleGetStats(
-      makeRequest(`/api/admin/stats?from=${today}&to=${today}&sources=api_requests,api_errors`),
+    const unwiredRes = await statsMod.handleGetStats(
+      makeRequest(`/api/admin/stats?from=${today}&to=${today}&sources=${RELIABILITY_SOURCES.join(',')}`),
       { user: { id: admin.userId, role: 'ADMIN' } },
-      { stats: discStats, apiCounter: httpServices.apiCounter },
+      unwiredAdmin,
     );
-    const discDto = StatsDTOSchema.parse(await discRes.json());
-    assert.equal(findSource(discDto, 'api_requests').state, 'not_connected');
-    assert.equal(findSource(discDto, 'api_errors').state, 'not_connected');
-    assert.deepEqual(discDto.apiErrorRate, {
+    const unwiredDto = StatsDTOSchema.parse(await unwiredRes.json());
+    for (const src of RELIABILITY_SOURCES) {
+      assert.equal(findSource(unwiredDto, src).state, 'not_connected', `unwired ${src} must be not_connected`);
+      assert.equal(findSource(unwiredDto, src).value, null);
+    }
+    assert.deepEqual(unwiredDto.apiErrorRate, {
       value: null,
       coverage: 'unavailable',
       scope: 'instrumented_routes',
     });
+
+    // (c) Query failure in production composition -> query_failed / null
+    const brokenSourceDb = new Proxy(appDb, {
+      get(target, prop, receiver) {
+        if (prop !== '$transaction') return Reflect.get(target, prop, receiver);
+        return (fn: (tx: unknown) => Promise<unknown>, opts?: unknown) => {
+          // Let revision lookup (RepeatableRead isolation option) pass, fail reliability read-only transactions
+          if (opts && typeof opts === 'object' && 'isolationLevel' in opts) {
+            return target.$transaction(fn as never, opts as never);
+          }
+          return Promise.reject(new Error('simulated_reliability_db_failure'));
+        };
+      },
+    }) as PrismaClient;
+    const brokenAdmin = composition.createAdminServices({ db: brokenSourceDb });
+    const brokenRes = await statsMod.handleGetStats(
+      makeRequest(`/api/admin/stats?from=${today}&to=${today}&sources=${RELIABILITY_SOURCES.join(',')}`),
+      { user: { id: admin.userId, role: 'ADMIN' } },
+      brokenAdmin,
+    );
+    const brokenDto = StatsDTOSchema.parse(await brokenRes.json());
+    for (const src of RELIABILITY_SOURCES) {
+      assert.equal(findSource(brokenDto, src).state, 'query_failed', `failing ${src} must be query_failed`);
+      assert.equal(findSource(brokenDto, src).value, null);
+    }
+
+    const httpServices = composition.createHttpServices({ db: appDb });
 
     // Clear counters so we measure an exact known sequence of real instrumented vs uninstrumented calls
     await db.apiDailyCounter.deleteMany();
@@ -1063,9 +1507,82 @@ describe('M6-T5 reliability sources over real HTTP routes & notification jobs (P
     assert.equal(after5xxDto.apiErrorRate?.scope, 'instrumented_routes');
     assert.equal(after5xxDto.apiErrorRate?.coverage, 'partial');
     assert.ok(Math.abs((after5xxDto.apiErrorRate?.value ?? -1) - 2 / 7) < 1e-9);
+
+    // 7. R2 real PostgreSQL concurrent write check: start from exactly 10 non-5xx requests (10 req / 0 err),
+    // inject 5 real 5xx writes via apiCounter DURING the stats read after snapshot establishment;
+    // verify the GET never returns 5/10, and single-source queries still work!
+    await db.apiDailyCounter.deleteMany();
+    for (let i = 0; i < 10; i += 1) {
+      await httpServices.apiCounter.recordFinalResponse({
+        routeId: 'GET /api/admin/account',
+        status: 200,
+        body: null,
+      });
+    }
+    let injectedConcurrent5xx = false;
+    const snapshotTestDb = new Proxy(appDb, {
+      get(target, prop, receiver) {
+        if (prop !== '$transaction') return Reflect.get(target, prop, receiver);
+        return (fn: (tx: unknown) => Promise<unknown>, opts?: unknown) => target.$transaction(async (tx) => {
+          const result = await fn(tx);
+          // Immediately after the HTTP counter snapshot read finishes inside the GET, write 5 real 5xx responses
+          // before the second source iteration (api_errors) runs!
+          if (!injectedConcurrent5xx && opts && typeof opts === 'object' && !('isolationLevel' in opts)) {
+            injectedConcurrent5xx = true;
+            for (let k = 0; k < 5; k += 1) {
+              await httpServices.apiCounter.recordFinalResponse({
+                routeId: 'GET /api/admin/stats',
+                status: 500,
+                body: null,
+              });
+            }
+          }
+          return result;
+        }, opts as never);
+      },
+    }) as PrismaClient;
+    const concurrentServices = composition.createAdminServices({ db: snapshotTestDb });
+    const concurrentSnap = await concurrentServices.stats.query({
+      role: 'ADMIN',
+      userId: admin.userId,
+      query: { from: today, to: today, sources: ['api_requests', 'api_errors'] },
+    });
+    assert.equal(injectedConcurrent5xx, true);
+    assert.equal(findSource(concurrentSnap.dto, 'api_requests').value, 10);
+    assert.equal(findSource(concurrentSnap.dto, 'api_errors').value, 0);
+    assert.notEqual(concurrentSnap.dto.apiErrorRate?.value, 0.5, 'must never tear into 5/10');
+    assert.equal(concurrentSnap.dto.apiErrorRate?.value, 0);
+    assert.equal(
+      findSource(concurrentSnap.dto, 'api_requests').lastSucceededAt,
+      findSource(concurrentSnap.dto, 'api_errors').lastSucceededAt,
+    );
+
+    // Subsequent paired and single-source queries observe the consistent 15 requests & 5 errors (5/15 = 1/3)
+    const afterConcurrent = await concurrentServices.stats.query({
+      role: 'ADMIN',
+      userId: admin.userId,
+      query: { from: today, to: today, sources: ['api_requests', 'api_errors'] },
+    });
+    assert.equal(findSource(afterConcurrent.dto, 'api_requests').value, 15);
+    assert.equal(findSource(afterConcurrent.dto, 'api_errors').value, 5);
+    assert.ok(Math.abs((afterConcurrent.dto.apiErrorRate?.value ?? -1) - 5 / 15) < 1e-9);
+
+    const onlyReqRes = await statsRoute.GET(
+      makeRequest(`/api/admin/stats?from=${today}&to=${today}&sources=api_requests`, { cookie: admin.cookie }),
+    );
+    const onlyReqDto = StatsDTOSchema.parse(await onlyReqRes.json());
+    assert.equal(findSource(onlyReqDto, 'api_requests').value, 15);
+    assert.equal(onlyReqDto.apiErrorRate, null);
+
+    const onlyErrRes = await statsRoute.GET(
+      makeRequest(`/api/admin/stats?from=${today}&to=${today}&sources=api_errors`, { cookie: admin.cookie }),
+    );
+    const onlyErrDto = StatsDTOSchema.parse(await onlyErrRes.json());
+    assert.equal(findSource(onlyErrDto, 'api_errors').value, 5);
+    assert.equal(onlyErrDto.apiErrorRate, null);
   });
 
-  test('AC2 / E-64: real chat-notifications job produces queued, sending, sent, failed, unknown; consultation received and queued are never counted as delivered', async () => {
+  test('AC2 / R1 / E-64: real chat-notifications job over isolated STARTTLS SMTP produces queued, sending, sent, failed, unknown; persisted rows & stats match SMTP dispositions', async () => {
     const now = new Date();
     const today = siteLocalDate(now, 'UTC');
     const visitorCookie = await newVisitorCookie();
@@ -1100,60 +1617,99 @@ describe('M6-T5 reliability sources over real HTTP routes & notification jobs (P
     }
 
     // Defer the 5th notification into the future so it stays QUEUED during the job run;
-    // claim the 4th notification with an active SENDING lease so the job processes the remaining 3 into SENT / FAILED / UNKNOWN.
-    const notifications = await db.chatNotification.findMany({ orderBy: { createdAt: 'asc' } });
+    // claim the 4th notification with an active SENDING lease so the job processes the remaining 3 over real STARTTLS SMTP!
+    // Notification worker claims due rows in `ORDER BY "id"` order
+    const notifications = await db.chatNotification.findMany({ orderBy: { id: 'asc' } });
     assert.equal(notifications.length, 5);
+    // Assign deterministic strictly-increasing availableAt for the 3 due rows so claim order matches [0, 1, 2]
+    for (let i = 0; i < 3; i += 1) {
+      await db.chatNotification.update({
+        where: { id: notifications[i].id },
+        data: { availableAt: new Date(Date.now() - (3 - i) * 10_000) },
+      });
+    }
     await db.chatNotification.update({
       where: { id: notifications[4].id },
       data: { availableAt: new Date(Date.now() + 600_000) },
     });
 
-    let callIndex = 0;
-    const outcomes = [
-      { kind: 'sent' as const },
-      { kind: 'failed' as const, code: 'CHAT_SMTP_RECIPIENT' as const },
-      { kind: 'unknown' as const, code: 'CHAT_SMTP_DEADLINE' as const },
-    ];
-    const jobServices = composition.createJobServices({
-      db: appDb,
-      chat: {
-        env: ENV,
-        limit: 3,
-        getMailer: async () => ({
-          async send() {
-            const next = outcomes[callIndex] ?? { kind: 'unknown' as const, code: 'CHAT_SMTP_UNKNOWN' as const };
-            callIndex += 1;
-            return next;
-          },
+    const smtp = await startIsolatedStartTlsSmtp(['accept', 'reject_550', 'stall_after_data']);
+    try {
+      const cfg = notificationMailConfig(ENV);
+      assert.ok(cfg);
+      const realMailer = createNotificationMailer(cfg, {
+        connect: (opts) => {
+          assert.equal(opts.host, ENV.SMTP_HOST);
+          assert.equal(opts.port, Number(ENV.SMTP_PORT));
+          return net.createConnection({ host: '127.0.0.1', port: smtp.port, signal: opts.signal });
+        },
+        createTransport: (opts) => nodemailer.createTransport({
+          ...opts,
+          socketTimeout: 250,
+          tls: { ...opts.tls, ca: smtpCaCert },
         }),
-      },
-    });
-    const runOps = createOperationsHandler({
-      services: jobServices.jobs,
-      secret: CRON_SECRET,
-    });
+      });
 
-    // Claim one row into active SENDING lease right before running the job on the other 3 due rows
-    await db.chatNotification.update({
-      where: { id: notifications[3].id },
-      data: {
-        status: 'SENDING',
-        leaseOwner: 'active-worker:m6t5',
-        leaseVersion: 1,
-        lockedUntil: new Date(Date.now() + 35_000),
-        updatedAt: new Date(),
-      },
-    });
+      const jobServices = composition.createJobServices({
+        db: appDb,
+        chat: {
+          env: ENV,
+          limit: 3,
+          getMailer: async () => realMailer,
+        },
+      });
+      const runOps = createOperationsHandler({
+        services: jobServices.jobs,
+        secret: CRON_SECRET,
+      });
 
-    const jobRes = await runOps(makeRequest('/api/admin/cron/operations', {
-      headers: { authorization: `Bearer ${CRON_SECRET}` },
-      body: { jobKey: CHAT_NOTIFICATION_JOB_KEY },
-    }));
-    assert.equal(jobRes.status, 200);
-    assert.equal(callIndex, 3);
-    void repo;
+      await db.chatNotification.update({
+        where: { id: notifications[3].id },
+        data: {
+          status: 'SENDING',
+          attempts: 1,
+          requestStartedAt: new Date(),
+          leaseOwner: 'active-worker:m6t5',
+          leaseVersion: 1,
+          lockedUntil: new Date(Date.now() + 35_000),
+          updatedAt: new Date(),
+        },
+      });
 
-    // Query stats as ADMIN and SALES: only the 1 real SMTP-accepted SENT row counts as delivered!
+      const jobRes = await runOps(makeRequest('/api/admin/cron/operations', {
+        headers: { authorization: `Bearer ${CRON_SECRET}` },
+        body: { jobKey: CHAT_NOTIFICATION_JOB_KEY },
+      }));
+      assert.equal(jobRes.status, 200);
+
+      // R1 cross-check #1: Isolated TLS SMTP wire-level counts
+      assert.equal(smtp.stats.tlsHandshakes, 3);
+      assert.equal(smtp.stats.authenticated, 3);
+      assert.equal(smtp.stats.accepted250, 1);
+      assert.equal(smtp.stats.rejected550, 1);
+      assert.equal(smtp.stats.stalledAfterData, 1);
+    } finally {
+      await smtp.close();
+    }
+
+    // R1 cross-check #2: Durable database rows persisted by chat-notifications job (matched by exact row ID)
+    const persisted = await Promise.all(
+      notifications.map((n) => db.chatNotification.findUniqueOrThrow({ where: { id: n.id } })),
+    );
+    assert.equal(persisted[0].status, 'SENT');
+    assert.equal(persisted[0].attempts, 1);
+    assert.notEqual(persisted[0].sentAt, null);
+    assert.equal(persisted[1].status, 'FAILED');
+    assert.equal(persisted[1].attempts, 1);
+    assert.equal(persisted[1].lastErrorCode, 'CHAT_SMTP_RECIPIENT');
+    assert.equal(persisted[2].status, 'UNKNOWN');
+    assert.equal(persisted[2].attempts, 1);
+    assert.equal(persisted[2].lastErrorCode, 'CHAT_SMTP_UNKNOWN');
+    assert.equal(persisted[3].status, 'SENDING');
+    assert.equal(persisted[4].status, 'QUEUED');
+    assert.equal(persisted[4].attempts, 0);
+
+    // R1 cross-check #3: Query stats as ADMIN and SALES -> matches persisted & SMTP outcomes, desensitized
     for (const actor of [admin, sales]) {
       const res = await statsRoute.GET(
         makeRequest(`/api/admin/stats?from=${today}&to=${today}&sources=chat_notifications`, {
@@ -1205,9 +1761,10 @@ describe('M6-T5 reliability sources over real HTTP routes & notification jobs (P
     });
   });
 
-  test('AC2 / E-64: real mail-queue job produces queued, sending, sent, failed, unknown; inbound inquiry RECEIVED and outbound queued/sending are never counted as delivered', async () => {
+  test('AC2 / R1 / R4 / E-64: real mail-queue job over isolated STARTTLS SMTP produces 5 states & cross-day privacy redaction never migrates failed/unknown across days', async () => {
     const now = new Date();
     const today = siteLocalDate(now, 'UTC');
+    const yesterday = shiftLocalDate(today, -1);
 
     const contact = await db.contact.create({
       data: { region: 'DE', name: 'Mail Buyer', email: 'mail-buyer-pii@example.test' },
@@ -1215,13 +1772,12 @@ describe('M6-T5 reliability sources over real HTTP routes & notification jobs (P
     const inquiry = await db.inquiry.create({
       data: {
         ref: 'PJ-M6T5-MAIL-1',
-        replyToken: 'm6t5replytoken001',
+        replyToken: 'm6t5replytoken0000000001',
         contactId: contact.id,
         locale: 'en',
         source: 'FORM',
         retainUntil: new Date(now.getTime() + 30 * 86_400_000),
         items: {
-          // Two items with the same productSlug verify EXISTS deduplication (no double count)
           create: [
             { productSlug: REAL_PRODUCT_A, quantity: 100 },
             { productSlug: REAL_PRODUCT_A, quantity: 200 },
@@ -1259,8 +1815,6 @@ describe('M6-T5 reliability sources over real HTTP routes & notification jobs (P
       ],
     });
 
-    // Seed 3 due outbound QUEUED rows (to become SENT, FAILED, and unknown_delivery via real mail-queue job),
-    // 1 future-deferred QUEUED row, and 1 active SENDING row.
     const duePast = new Date(now.getTime() - 60_000);
     const dueRows = [];
     for (let idx = 1; idx <= 3; idx += 1) {
@@ -1278,12 +1832,13 @@ describe('M6-T5 reliability sources over real HTTP routes & notification jobs (P
           bodyText: 'Quote secret body',
           errorCode: 'daily_cap_deferred',
           deferredUntil: duePast,
+          createdAt: new Date(now.getTime() - (4 - idx) * 10_000),
         },
       }));
     }
 
     // 4th outbound row: deferred in the future -> stays QUEUED (attempts=0)
-    await db.mailMessage.create({
+    const deferredRow = await db.mailMessage.create({
       data: {
         direction: 'OUTBOUND',
         status: 'QUEUED',
@@ -1320,45 +1875,64 @@ describe('M6-T5 reliability sources over real HTTP routes & notification jobs (P
     const reserved = await reserveAndStart(appDb, sendingSeed.id, ['QUEUED'], { now: new Date(), env: ENV });
     assert.equal(reserved.kind, 'started');
 
-    // Run real mail-queue job through createJobServices -> executeJobRequest with controlled SMTP outcomes
-    let smtpIndex = 0;
-    const mailOutcomes: SendOutcome[] = [
-      { ok: true, messageId: '<accepted@smtp.m6t5.example.test>' },
-      { ok: false, reason: 'recipient_rejected', retryable: false, code: '550', alert: false },
-      { ok: false, reason: 'unknown_delivery', retryable: false, code: null, alert: false },
-    ];
-    const adapter: MailSendAdapter = {
-      kind: 'smtp',
-      async send(_mail: OutboundMail) {
-        const out = mailOutcomes[smtpIndex] ?? { ok: false, reason: 'unknown_delivery', retryable: false, code: null, alert: false };
-        smtpIndex += 1;
-        return out;
-      },
-    };
-    const jobs = composition.createJobServices({
-      db: appDb,
-      mail: { getAdapter: async () => adapter, alert: async () => 'skipped' },
-    }).jobs;
-    const runOps = createOperationsHandler({
-      services: jobs,
-      secret: CRON_SECRET,
-    });
-    const cronRes = await runOps(makeRequest('/api/admin/cron/operations', {
-      headers: { authorization: `Bearer ${CRON_SECRET}` },
-      body: { jobKey: MAIL_QUEUE_KEY },
-    }));
-    assert.equal(cronRes.status, 200);
-    assert.equal(smtpIndex, 3);
+    // Run real mail-queue job with real createSmtpAdapter over isolated STARTTLS SMTP server (R1)
+    const smtp = await startIsolatedStartTlsSmtp(['accept', 'reject_550', 'stall_after_data']);
+    try {
+      const parsedCfg = smtpConfig(ENV);
+      assert.equal(parsedCfg.ok, true);
+      const realAdapter = createSmtpAdapter(parsedCfg.cfg, {
+        createTransport: (opts) => nodemailer.createTransport({
+          ...opts,
+          host: '127.0.0.1',
+          port: smtp.port,
+          socketTimeout: 250,
+          tls: { ...opts.tls, ca: smtpCaCert },
+        }),
+      });
+      const jobs = composition.createJobServices({
+        db: appDb,
+        mail: { getAdapter: async () => realAdapter, alert: async () => 'skipped' },
+      }).jobs;
+      const runOps = createOperationsHandler({
+        services: jobs,
+        secret: CRON_SECRET,
+      });
+      const cronRes = await runOps(makeRequest('/api/admin/cron/operations', {
+        headers: { authorization: `Bearer ${CRON_SECRET}` },
+        body: { jobKey: MAIL_QUEUE_KEY },
+      }));
+      assert.equal(cronRes.status, 200);
+
+      // R1 cross-check #1: Isolated TLS SMTP wire-level counts
+      assert.equal(smtp.stats.tlsHandshakes, 3);
+      assert.equal(smtp.stats.authenticated, 3);
+      assert.equal(smtp.stats.accepted250, 1);
+      assert.equal(smtp.stats.rejected550, 1);
+      assert.equal(smtp.stats.stalledAfterData, 1);
+    } finally {
+      await smtp.close();
+    }
     void mailQueueRoute;
 
-    // Query GET /api/admin/stats?sources=mail (both site-wide and filtered by REAL_PRODUCT_A)
+    // R1 cross-check #2: Durable MailMessage rows persisted by mail-queue job
+    const sentRow = await db.mailMessage.findUniqueOrThrow({ where: { id: dueRows[0].id } });
+    const failedRow = await db.mailMessage.findUniqueOrThrow({ where: { id: dueRows[1].id } });
+    const unknownRow = await db.mailMessage.findUniqueOrThrow({ where: { id: dueRows[2].id } });
+    const sendingRow = await db.mailMessage.findUniqueOrThrow({ where: { id: sendingSeed.id } });
+    const queuedRow = await db.mailMessage.findUniqueOrThrow({ where: { id: deferredRow.id } });
+    assert.deepEqual([sentRow.status, sentRow.attempts, sentRow.sentAt !== null], ['SENT', 1, true]);
+    assert.deepEqual([failedRow.status, failedRow.attempts, failedRow.errorCode], ['FAILED', 1, 'recipient_rejected']);
+    assert.deepEqual([unknownRow.status, unknownRow.attempts, unknownRow.errorCode], ['FAILED', 1, 'unknown_delivery']);
+    assert.deepEqual([sendingRow.status, sendingRow.attempts], ['SENDING', 1]);
+    assert.deepEqual([queuedRow.status, queuedRow.attempts], ['QUEUED', 0]);
+
+    // R1 cross-check #3: Query GET /api/admin/stats?sources=mail (site-wide and filtered by REAL_PRODUCT_A)
     for (const qs of [`?from=${today}&to=${today}&sources=mail`, `?from=${today}&to=${today}&productSlug=${REAL_PRODUCT_A}&sources=mail`]) {
       const res = await statsRoute.GET(makeRequest(`/api/admin/stats${qs}`, { cookie: admin.cookie }));
       assert.equal(res.status, 200);
       const text = await res.text();
       const dto = StatsDTOSchema.parse(JSON.parse(text));
       const mailSource = findSource(dto, 'mail');
-      // Only the 1 SMTP-accepted outbound message counts in value; inbound RECEIVED, queued, sending, failed, unknown are excluded!
       assert.deepEqual([mailSource.state, mailSource.value, mailSource.coverage], ['ok', 1, 'full']);
       assert.deepEqual(dto.notificationCounts?.mail, {
         queued: 1,
@@ -1371,15 +1945,68 @@ describe('M6-T5 reliability sources over real HTTP routes & notification jobs (P
         assert.equal(text.includes(secret), false, `mail stats leaked ${secret}`);
       }
     }
+
+    // R4 cross-day privacy redaction regression:
+    // Move the real attempted rows to yesterday's UTC window, then run real anonymizeInquiriesTx TODAY (advancing updatedAt & redactedAt to today);
+    // verify failed & unknown stay on yesterday (day 1) with attempts unchanged, and do NOT migrate to today (day 2)!
+    const yesterdayBounds = siteDayUtcBounds(yesterday, 'UTC');
+    const day1AttemptAt = new Date(Date.parse(yesterdayBounds.startUtc) + 4 * 3_600_000);
+    await db.mailMessage.updateMany({
+      where: { id: { in: [sentRow.id, failedRow.id, unknownRow.id, sendingRow.id, queuedRow.id] } },
+      data: { createdAt: day1AttemptAt },
+    });
+    await db.mailMessage.update({
+      where: { id: sentRow.id },
+      data: { requestStartedAt: day1AttemptAt, sentAt: day1AttemptAt },
+    });
+    for (const r of [failedRow, unknownRow, sendingRow]) {
+      await db.mailMessage.update({
+        where: { id: r.id },
+        data: { requestStartedAt: day1AttemptAt },
+      });
+    }
+
+    await db.$transaction(async (tx) => {
+      await anonymizeInquiriesTx(tx, [inquiry.id], now);
+    });
+
+    const redactedFailed = await db.mailMessage.findUniqueOrThrow({ where: { id: failedRow.id } });
+    const redactedUnknown = await db.mailMessage.findUniqueOrThrow({ where: { id: unknownRow.id } });
+    assert.equal(redactedFailed.attempts, 1, 'redaction must preserve attempt count');
+    assert.equal(redactedUnknown.attempts, 1, 'redaction must preserve attempt count');
+    assert.equal(siteLocalDate(redactedFailed.updatedAt, 'UTC'), today, 'redaction advances updatedAt to today');
+    assert.equal(siteLocalDate(redactedUnknown.updatedAt, 'UTC'), today, 'redaction advances updatedAt to today');
+
+    const day1AfterRedact = StatsDTOSchema.parse(
+      await (await statsRoute.GET(makeRequest(`/api/admin/stats?from=${yesterday}&to=${yesterday}&sources=mail`, { cookie: admin.cookie }))).json(),
+    );
+    const day2AfterRedact = StatsDTOSchema.parse(
+      await (await statsRoute.GET(makeRequest(`/api/admin/stats?from=${today}&to=${today}&sources=mail`, { cookie: admin.cookie }))).json(),
+    );
+    assert.deepEqual(day1AfterRedact.notificationCounts?.mail, {
+      queued: 1,
+      sending: 1,
+      sent: 1,
+      failed: 1,
+      unknown: 1,
+    });
+    assert.equal(findSource(day1AfterRedact, 'mail').value, 1);
+    assert.deepEqual(day2AfterRedact.notificationCounts?.mail, {
+      queued: 0,
+      sending: 0,
+      sent: 0,
+      failed: 0,
+      unknown: 0,
+    });
+    assert.equal(findSource(day2AfterRedact, 'mail').value, 0);
   });
 
-  test('E-51 / E-52 / E-53 / E-67: partial source outage & stale job watermarks preserve original lastSucceededAt/value or report sanitized no-snapshot failure while sibling sources succeed', async () => {
+  test('E-51 / E-52 / E-53 / E-67 / R5: partial source outage & stale job watermarks preserve original lastSucceededAt/value ONLY for same valid query scope while sibling sources succeed', async () => {
     const tJobSuccess = new Date('2026-11-27T10:00:00.000Z');
     const today = '2026-11-27';
     const bounds = siteDayUtcBounds(today, 'UTC');
     const insideWindow = new Date(Date.parse(bounds.startUtc) + 3_600_000);
 
-    // Seed real ApiDailyCounter, ChatNotification + JobState, and MailMessage + JobState at tJobSuccess
     await db.apiDailyCounter.create({
       data: {
         localDate: today,
@@ -1415,6 +2042,7 @@ describe('M6-T5 reliability sources over real HTTP routes & notification jobs (P
         direction: 'OUTBOUND',
         status: 'SENT',
         attempts: 1,
+        requestStartedAt: insideWindow,
         sentAt: insideWindow,
         updatedAt: insideWindow,
         createdAt: insideWindow,
@@ -1512,7 +2140,7 @@ describe('M6-T5 reliability sources over real HTTP routes & notification jobs (P
     assert.equal(findSource(noSnapDto, 'api_errors').value, 1);
     assert.equal(findSource(noSnapDto, 'chat_notifications').value, 0);
 
-    // 3b. With same-query-key prior snapshot -> mail retains value=1 & original tJobSuccess while marked query_failed
+    // 3b. With proven same valid query scope -> mail retains value=1, breakdown, dataThrough & original tJobSuccess while marked query_failed
     const withSnapResult = await faultServices.stats.query({
       role: 'ADMIN',
       userId: admin.userId,
@@ -1521,12 +2149,38 @@ describe('M6-T5 reliability sources over real HTTP routes & notification jobs (P
     });
     const preservedMail = findSource(withSnapResult.dto, 'mail');
     assert.deepEqual(
-      [preservedMail.state, preservedMail.value, preservedMail.lastSucceededAt, preservedMail.coverage],
-      ['query_failed', 1, tJobSuccess.toISOString(), 'partial'],
+      [preservedMail.state, preservedMail.value, preservedMail.dataThrough, preservedMail.lastSucceededAt, preservedMail.coverage],
+      ['query_failed', 1, tJobSuccess.toISOString(), tJobSuccess.toISOString(), 'partial'],
     );
     assert.equal(preservedMail.queriedAt, tStaleQuery.toISOString());
+    assert.deepEqual(withSnapResult.dto.notificationCounts?.mail, {
+      queued: 0,
+      sending: 0,
+      sent: 1,
+      failed: 0,
+      unknown: 0,
+    });
     // Prior handleGetStats(200) recorded +1 instrumented request (8 -> 9)
     assert.equal(findSource(withSnapResult.dto, 'api_requests').value, 9);
+
+    // 3c. R5 DB-backed negative controls: missing query, missing date keys, different date, or different productSlug must stay query_failed / null
+    for (const mismatched of [
+      { query, previousSnapshot: { dto: freshResult.dto } as unknown as { dto: StatsDTO; query: typeof query } },
+      { query: { sources: query.sources }, previousSnapshot: { dto: freshResult.dto, query: { sources: query.sources } } },
+      { query: { ...query, from: '2026-11-26', to: '2026-11-26' }, previousSnapshot: { dto: freshResult.dto, query } },
+      { query: { ...query, productSlug: REAL_PRODUCT_A }, previousSnapshot: { dto: freshResult.dto, query } },
+    ]) {
+      const rejected = await faultServices.stats.query({
+        role: 'ADMIN',
+        userId: admin.userId,
+        ...mismatched,
+      });
+      const rejectedMail = findSource(rejected.dto, 'mail');
+      assert.deepEqual(
+        [rejectedMail.state, rejectedMail.value, rejectedMail.dataThrough, rejectedMail.lastSucceededAt, rejected.dto.notificationCounts?.mail],
+        ['query_failed', null, null, null, null],
+      );
+    }
   });
 
   test('E-66: RBAC matrix over real Auth.js sessions (unauthenticated 401; ADMIN all; SALES chat_notifications only, 403 on api_*/mail; EDITOR 403 on all reliability sources & pre-query trimming)', async () => {

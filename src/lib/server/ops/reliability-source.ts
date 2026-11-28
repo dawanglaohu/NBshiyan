@@ -1,4 +1,5 @@
 import { Prisma, type PrismaClient } from '@prisma/client';
+import { LocalDateSchema } from '../../contracts/common';
 import {
   StatsApiErrorRateSchema,
   StatsNotificationBreakdownSchema,
@@ -12,16 +13,15 @@ import {
   type StatsSource,
   type StatsSourceDTO,
 } from '../../contracts/ops';
-import { notificationMailConfig } from '../chat/notification-mailer';
 import { CHAT_NOTIFICATION_JOB_KEY } from '../chat/notification-policy';
 import { AppError } from '../http/errors';
-import { API_ROUTE_IDS } from '../http/metrics';
-import { sendingEnabled } from '../mail/config';
+import { API_ROUTE_IDS, type ApiCounter } from '../http/metrics';
 import { toStatsSourceDTO } from './source-dto';
 import type { DetailedNonCoreSourceReader, NonCoreSourceReader, NonCoreSourceReadInput } from './stats-service';
 
 /** 固定邮件队列作业键（与 JobKeySchema 同源，不导入 mail/queue-job 以免提前初始化全局 db 单例）。 */
 const MAIL_QUEUE_JOB_KEY = 'mail-queue' as const satisfies JobKey;
+const HTTP_SNAPSHOT_MEMO_KEY = Symbol('m6t5.httpCounterSnapshot');
 
 /** HTTP 与邮件/聊天通知可靠性来源（M6-T5；E-51、E-52、E-53、E-64、E-67）。 */
 export const HTTP_RELIABILITY_SOURCES = ['api_requests', 'api_errors'] as const satisfies readonly StatsSource[];
@@ -48,6 +48,8 @@ export type ReliabilityDb = Pick<PrismaClient, '$transaction'>;
 
 export type ReliabilitySourceDeps = {
   db: ReliabilityDb;
+  /** 实际 HTTP 最终响应计数器接线；未传且未提供 httpConnected 时默认未接通（fail-closed）。 */
+  apiCounter?: Pick<ApiCounter, 'recordFinalResponse'> | null;
   httpConnected?: () => boolean;
   chatNotificationConfigured?: () => boolean;
   chatNotificationJobRegistered?: () => boolean;
@@ -168,24 +170,57 @@ export function preserveSourceSnapshotOnFailure(
   return parsed.success ? parsed.data : failedDto;
 }
 
-export function sameStatsQueryScope(a?: StatsQueryDTO, b?: StatsQueryDTO): boolean {
-  if (!a || !b) return true;
-  return a.from === b.from
-    && a.to === b.to
-    && a.productSlug === b.productSlug
-    && a.timezoneRevision === b.timezoneRevision;
+export function sameStatsQueryScope(
+  a?: Partial<StatsQueryDTO> | null,
+  b?: Partial<StatsQueryDTO> | null,
+): boolean {
+  if (!a || !b) return false;
+  if (
+    typeof a.from !== 'string'
+    || typeof a.to !== 'string'
+    || typeof b.from !== 'string'
+    || typeof b.to !== 'string'
+  ) {
+    return false;
+  }
+  const aFrom = LocalDateSchema.safeParse(a.from);
+  const aTo = LocalDateSchema.safeParse(a.to);
+  const bFrom = LocalDateSchema.safeParse(b.from);
+  const bTo = LocalDateSchema.safeParse(b.to);
+  if (!aFrom.success || !aTo.success || !bFrom.success || !bTo.success) {
+    return false;
+  }
+  if (aFrom.data > aTo.data || bFrom.data > bTo.data) {
+    return false;
+  }
+  return aFrom.data === bFrom.data
+    && aTo.data === bTo.data
+    && (a.productSlug ?? undefined) === (b.productSlug ?? undefined)
+    && (a.timezoneRevision ?? undefined) === (b.timezoneRevision ?? undefined);
 }
+
+export type SnapshotFallbackOptions = {
+  sameQueryKey?: boolean;
+  currentQuery?: Partial<StatsQueryDTO> | null;
+  previousQuery?: Partial<StatsQueryDTO> | null;
+};
 
 /**
  * 整张看板响应的无全局状态分源失败回退（E-51、E-53、E-67）：
- * 仅对同查询范围且本次落入无值 `query_failed` 的来源恢复原值与原时间；其他成功来源保持最新结果不变。
+ * 必须显式证明同一有效查询范围（传入匹配的 currentQuery + previousQuery 或显式 sameQueryKey: true），
+ * 缺键、未传匹配证明、不同日期或不同产品一律拒绝回退，保持 query_failed / null。
  */
 export function preserveStatsSnapshotOnFailure(
   current: StatsDTO,
   previous?: StatsDTO | null,
-  options: { sameQueryKey?: boolean } = {},
+  options?: SnapshotFallbackOptions,
 ): StatsDTO {
-  if (!previous || options.sameQueryKey === false) return current;
+  if (!previous || !options) return current;
+  const hasExplicitQueries = 'currentQuery' in options || 'previousQuery' in options;
+  const provenSameScope = hasExplicitQueries
+    ? options.sameQueryKey !== false && sameStatsQueryScope(options.currentQuery, options.previousQuery)
+    : options.sameQueryKey === true;
+  if (!provenSameScope) return current;
   const prevBySource = new Map(previous.sources.map((item) => [item.source, item]));
   const mergedSources = current.sources.map((item) =>
     preserveSourceSnapshotOnFailure(item, prevBySource.get(item.source)),
@@ -221,26 +256,34 @@ export function preserveStatsSnapshotOnFailure(
   };
 }
 
-async function readHttpCounterSource(
+type HttpCounterSnapshotOutcome =
+  | { kind: 'not_connected' }
+  | { kind: 'no_data' }
+  | { kind: 'query_failed' }
+  | {
+    kind: 'measured';
+    requestCount: number;
+    errorCount: number;
+    observedAt: Date;
+  };
+
+async function queryHttpCounterSnapshotOnce(
   db: ReliabilityDb,
-  source: HttpReliabilitySource,
   httpConnected: () => boolean,
   input: NonCoreSourceReadInput,
-): Promise<StatsSourceDTO> {
-  const { role, scope, context, now, previousSource } = input;
-  if (role !== 'ADMIN') throw new AppError('forbidden');
+): Promise<HttpCounterSnapshotOutcome> {
+  const { scope, now } = input;
   if (!httpConnected()) {
-    return toStatsSourceDTO(context, source, { unavailableState: 'not_connected' });
+    return { kind: 'not_connected' };
   }
-
   // ApiDailyCounter 按路由维度统计，不含产品归因；带 productSlug 或未来日期窗口返回 no_data。
   if (scope.productSlug !== undefined || Date.parse(scope.startUtc) > now.getTime()) {
-    return toStatsSourceDTO(context, source);
+    return { kind: 'no_data' };
   }
 
   try {
     const summary = await db.$transaction(async (tx) => {
-      await tx.$executeRaw`SET TRANSACTION READ ONLY`;
+      await tx.$executeRaw`SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY`;
       const rows = await tx.$queryRaw<ApiCounterSummaryRow[]>`
         SELECT
           COALESCE(SUM("requestCount"), 0)::bigint AS "requestCount",
@@ -259,7 +302,7 @@ async function readHttpCounterSource(
 
     if (!summary || summary.corrupt) {
       if (summary?.corrupt) throw new Error('api_daily_counter_corrupt');
-      return toStatsSourceDTO(context, source);
+      return { kind: 'no_data' };
     }
 
     const requestCount = toBoundedNonNegativeInt(summary.requestCount);
@@ -271,23 +314,57 @@ async function readHttpCounterSource(
     // 无真实 requestCount 分母时返回 no_data (value=null)，不伪造 0 或观测时间（AC1、E-54、E-64）。
     const observedAt = parseUtcIso(summary.lastObservedAt);
     if (summary.rowCount === 0 || requestCount === 0 || !observedAt) {
-      return toStatsSourceDTO(context, source);
+      return { kind: 'no_data' };
     }
 
-    const endMs = Date.parse(scope.endUtc);
-    const dataThrough = new Date(Math.min(now.getTime(), endMs, observedAt.getTime()));
-    const value = source === 'api_requests' ? requestCount : errorCount;
-    // 覆盖范围严格只是第 10 节本轮已接线路由，因此固定标 partial，绝不冒称全站 full。
-    return toStatsSourceDTO(context, source, {
-      value,
-      coverage: 'partial',
-      dataThrough,
-      lastSucceededAt: observedAt,
-    });
+    return {
+      kind: 'measured',
+      requestCount,
+      errorCount,
+      observedAt,
+    };
   } catch {
+    return { kind: 'query_failed' };
+  }
+}
+
+async function readHttpCounterSource(
+  db: ReliabilityDb,
+  source: HttpReliabilitySource,
+  httpConnected: () => boolean,
+  input: NonCoreSourceReadInput,
+): Promise<StatsSourceDTO> {
+  const { role, scope, context, now, previousSource, requestMemo } = input;
+  if (role !== 'ADMIN') throw new AppError('forbidden');
+
+  let snapshotPromise = requestMemo?.get(HTTP_SNAPSHOT_MEMO_KEY) as Promise<HttpCounterSnapshotOutcome> | undefined;
+  if (!snapshotPromise) {
+    snapshotPromise = queryHttpCounterSnapshotOnce(db, httpConnected, input);
+    requestMemo?.set(HTTP_SNAPSHOT_MEMO_KEY, snapshotPromise);
+  }
+  const outcome = await snapshotPromise;
+
+  if (outcome.kind === 'not_connected') {
+    return toStatsSourceDTO(context, source, { unavailableState: 'not_connected' });
+  }
+  if (outcome.kind === 'no_data') {
+    return toStatsSourceDTO(context, source);
+  }
+  if (outcome.kind === 'query_failed') {
     const failed = toStatsSourceDTO(context, source, { unavailableState: 'query_failed' });
     return preserveSourceSnapshotOnFailure(failed, previousSource);
   }
+
+  const endMs = Date.parse(scope.endUtc);
+  const dataThrough = new Date(Math.min(now.getTime(), endMs, outcome.observedAt.getTime()));
+  const value = source === 'api_requests' ? outcome.requestCount : outcome.errorCount;
+  // 覆盖范围严格只是第 10 节本轮已接线路由，因此固定标 partial，绝不冒称全站 full。
+  return toStatsSourceDTO(context, source, {
+    value,
+    coverage: 'partial',
+    dataThrough,
+    lastSucceededAt: outcome.observedAt,
+  });
 }
 
 async function queryChatNotificationBreakdownInTx(
@@ -296,17 +373,18 @@ async function queryChatNotificationBreakdownInTx(
   toExclusiveUtc: Date,
   productSlug?: string,
 ): Promise<StatsNotificationBreakdownDTO> {
+  // 归桶使用稳定的实际尝试时间 requestStartedAt / 接收时间 createdAt，避免后续维护操作推进 updatedAt 导致跨日迁移。
   const rows = await tx.$queryRaw<NotificationBreakdownRow[]>`
     SELECT
       COUNT(*) FILTER (
         WHERE n."status" = 'QUEUED'::"ChatNotificationStatus"
-          AND n."updatedAt" >= ${utcTimestamp(fromUtc)}
-          AND n."updatedAt" < ${utcTimestamp(toExclusiveUtc)}
+          AND COALESCE(n."requestStartedAt", n."createdAt") >= ${utcTimestamp(fromUtc)}
+          AND COALESCE(n."requestStartedAt", n."createdAt") < ${utcTimestamp(toExclusiveUtc)}
       )::int AS "queued",
       COUNT(*) FILTER (
         WHERE n."status" = 'SENDING'::"ChatNotificationStatus"
-          AND n."updatedAt" >= ${utcTimestamp(fromUtc)}
-          AND n."updatedAt" < ${utcTimestamp(toExclusiveUtc)}
+          AND COALESCE(n."requestStartedAt", n."createdAt") >= ${utcTimestamp(fromUtc)}
+          AND COALESCE(n."requestStartedAt", n."createdAt") < ${utcTimestamp(toExclusiveUtc)}
       )::int AS "sending",
       COUNT(*) FILTER (
         WHERE n."status" = 'SENT'::"ChatNotificationStatus"
@@ -319,15 +397,15 @@ async function queryChatNotificationBreakdownInTx(
         WHERE n."status" = 'FAILED'::"ChatNotificationStatus"
           AND n."attempts" > 0
           AND n."requestStartedAt" IS NOT NULL
-          AND n."updatedAt" >= ${utcTimestamp(fromUtc)}
-          AND n."updatedAt" < ${utcTimestamp(toExclusiveUtc)}
+          AND n."requestStartedAt" >= ${utcTimestamp(fromUtc)}
+          AND n."requestStartedAt" < ${utcTimestamp(toExclusiveUtc)}
       )::int AS "failed",
       COUNT(*) FILTER (
         WHERE n."status" = 'UNKNOWN'::"ChatNotificationStatus"
           AND n."attempts" > 0
           AND n."requestStartedAt" IS NOT NULL
-          AND n."updatedAt" >= ${utcTimestamp(fromUtc)}
-          AND n."updatedAt" < ${utcTimestamp(toExclusiveUtc)}
+          AND n."requestStartedAt" >= ${utcTimestamp(fromUtc)}
+          AND n."requestStartedAt" < ${utcTimestamp(toExclusiveUtc)}
       )::int AS "unknown"
     FROM "ChatNotification" n
     ${productSlug !== undefined
@@ -351,18 +429,19 @@ async function queryMailBreakdownInTx(
   productSlug?: string,
 ): Promise<StatsNotificationBreakdownDTO> {
   // 严格只读 OUTBOUND 出站邮件：INBOUND 的 RECEIVED/UNASSIGNED/IGNORED 普通询盘收件一律排除（AC2、E-64）。
-  // 保留 MailMessage 的 unknown_delivery 协议差异：status='FAILED' 且 errorCode='unknown_delivery' 归入 unknown。
+  // 终态 FAILED / unknown_delivery 按稳定的实际尝试时间 requestStartedAt（兜底不可变 createdAt）归桶，
+  // 严禁用 updatedAt，防止 privacy.ts 询盘匿名化更新 messageId/redactedAt 时将历史失败邮件迁移至脱敏日。
   const rows = await tx.$queryRaw<NotificationBreakdownRow[]>`
     SELECT
       COUNT(*) FILTER (
         WHERE m."status" = 'QUEUED'::"MailStatus"
-          AND m."updatedAt" >= ${utcTimestamp(fromUtc)}
-          AND m."updatedAt" < ${utcTimestamp(toExclusiveUtc)}
+          AND COALESCE(m."requestStartedAt", m."createdAt") >= ${utcTimestamp(fromUtc)}
+          AND COALESCE(m."requestStartedAt", m."createdAt") < ${utcTimestamp(toExclusiveUtc)}
       )::int AS "queued",
       COUNT(*) FILTER (
         WHERE m."status" = 'SENDING'::"MailStatus"
-          AND m."updatedAt" >= ${utcTimestamp(fromUtc)}
-          AND m."updatedAt" < ${utcTimestamp(toExclusiveUtc)}
+          AND COALESCE(m."requestStartedAt", m."createdAt") >= ${utcTimestamp(fromUtc)}
+          AND COALESCE(m."requestStartedAt", m."createdAt") < ${utcTimestamp(toExclusiveUtc)}
       )::int AS "sending",
       COUNT(*) FILTER (
         WHERE m."status" = 'SENT'::"MailStatus"
@@ -375,15 +454,15 @@ async function queryMailBreakdownInTx(
         WHERE m."status" = 'FAILED'::"MailStatus"
           AND (m."errorCode" IS NULL OR m."errorCode" <> 'unknown_delivery')
           AND m."attempts" > 0
-          AND m."updatedAt" >= ${utcTimestamp(fromUtc)}
-          AND m."updatedAt" < ${utcTimestamp(toExclusiveUtc)}
+          AND COALESCE(m."requestStartedAt", m."createdAt") >= ${utcTimestamp(fromUtc)}
+          AND COALESCE(m."requestStartedAt", m."createdAt") < ${utcTimestamp(toExclusiveUtc)}
       )::int AS "failed",
       COUNT(*) FILTER (
         WHERE m."status" = 'FAILED'::"MailStatus"
           AND m."errorCode" = 'unknown_delivery'
           AND m."attempts" > 0
-          AND m."updatedAt" >= ${utcTimestamp(fromUtc)}
-          AND m."updatedAt" < ${utcTimestamp(toExclusiveUtc)}
+          AND COALESCE(m."requestStartedAt", m."createdAt") >= ${utcTimestamp(fromUtc)}
+          AND COALESCE(m."requestStartedAt", m."createdAt") < ${utcTimestamp(toExclusiveUtc)}
       )::int AS "unknown"
     FROM "MailMessage" m
     WHERE m."direction" = 'OUTBOUND'::"MailDirection"
@@ -440,27 +519,28 @@ async function readNotificationSourceDetailed(
         FROM "JobState"
         WHERE "key" = ${jobKey}
       `;
+      const isConfigured = configured();
       const job = jobs[0] ?? null;
       if (!job || job.lastStatus === 'NEVER') {
-        return { kind: 'not_connected' as const };
+        // 已注册作业且发信配置已接通但尚无作业运行样本 -> no_data/null；未配置发信 -> not_connected。
+        return isConfigured ? { kind: 'no_data' as const } : { kind: 'not_connected' as const };
       }
 
       const lastSucceededAt = parseUtcIso(job.lastSucceededAt);
       const lastFinishedAt = parseUtcIso(job.lastFinishedAt);
       if (!lastSucceededAt) {
         if (job.lastStatus === 'FAILED') return { kind: 'failed_without_snapshot' as const };
-        return { kind: 'no_data' as const };
+        return isConfigured ? { kind: 'no_data' as const } : { kind: 'not_connected' as const };
       }
 
       if (fromUtc.getTime() > now.getTime()) {
-        return { kind: 'no_data' as const };
+        return isConfigured ? { kind: 'no_data' as const } : { kind: 'not_connected' as const };
       }
 
       const breakdown = source === 'chat_notifications'
         ? await queryChatNotificationBreakdownInTx(tx, fromUtc, toExclusiveUtc, scope.productSlug)
         : await queryMailBreakdownInTx(tx, fromUtc, toExclusiveUtc, scope.productSlug);
 
-      const isConfigured = configured();
       const totalAttempted = breakdown.sent + breakdown.failed + breakdown.unknown;
       // 发信配置未接通且无任何已发生尝试事实时，即使 cron 空跑写过 JobState 也不得冒充已接通 0 值（16 节 / E-54）。
       if (!isConfigured && totalAttempted === 0) {
@@ -527,16 +607,21 @@ async function readNotificationSourceDetailed(
   }
 }
 
-/** 构造可靠性四源的只读适配器包（同时供 `nonCoreReaders` 与带通知五态分解的 `detailedNonCoreReaders` 使用）。 */
+/** 构造可靠性四源的只读适配器包（缺依赖严格 fail-closed 返回 not_connected，不默认放行）。 */
 export function createReliabilitySourceBundle(deps: ReliabilitySourceDeps): {
   readers: Record<ReliabilitySource, NonCoreSourceReader>;
   detailedReaders: Record<ReliabilitySource, DetailedNonCoreSourceReader>;
 } {
-  const httpConnected = deps.httpConnected ?? (() => true);
-  const chatConfigured = deps.chatNotificationConfigured ?? (() => notificationMailConfig() !== null);
-  const chatJobRegistered = deps.chatNotificationJobRegistered ?? (() => true);
-  const mailConfigured = deps.mailConfigured ?? (() => sendingEnabled());
-  const mailJobRegistered = deps.mailQueueJobRegistered ?? (() => true);
+  const httpConnected = deps.httpConnected
+    ?? (() => Boolean(
+      deps.apiCounter
+      && typeof deps.apiCounter.recordFinalResponse === 'function'
+      && API_ROUTE_IDS.length > 0,
+    ));
+  const chatConfigured = deps.chatNotificationConfigured ?? (() => false);
+  const chatJobRegistered = deps.chatNotificationJobRegistered ?? (() => false);
+  const mailConfigured = deps.mailConfigured ?? (() => false);
+  const mailJobRegistered = deps.mailQueueJobRegistered ?? (() => false);
 
   const detailedReaders: Record<ReliabilitySource, DetailedNonCoreSourceReader> = {
     api_requests: async (input) => ({
