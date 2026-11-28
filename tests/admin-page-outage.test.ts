@@ -35,6 +35,7 @@ const PAGE_FILES = [
   'src/app/admin/settings/page.tsx',
   'src/app/admin/specs/page.tsx',
   'src/app/admin/specs/[category]/page.tsx',
+  'src/app/admin/stats/page.tsx',
   'src/app/admin/users/page.tsx',
 ];
 
@@ -131,6 +132,7 @@ before(async () => {
   const settings = (await import('../src/app/admin/settings/page')).default;
   const specs = (await import('../src/app/admin/specs/page')).default;
   const specCategory = (await import('../src/app/admin/specs/[category]/page')).default;
+  const stats = (await import('../src/app/admin/stats/page')).default;
   const users = (await import('../src/app/admin/users/page')).default;
   loaded.push(
     { href: '/admin/inquiries', render: () => inquiries() },
@@ -140,6 +142,7 @@ before(async () => {
     { href: '/admin/settings', render: () => settings({ searchParams: Promise.resolve({}) }) },
     { href: '/admin/specs', render: () => specs() },
     { href: '/admin/specs/corrugated-boxes', render: () => specCategory({ params: Promise.resolve({ category: 'corrugated-boxes' }) }) },
+    { href: '/admin/stats', render: () => stats() },
     { href: '/admin/users', render: () => users() },
   );
   pagesReady = true;
