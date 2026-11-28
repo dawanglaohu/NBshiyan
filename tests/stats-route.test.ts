@@ -423,20 +423,20 @@ describe('M6-T6 GET /api/admin/stats pure rules & HTTP contract', () => {
       ?.split('- name: Playwright A3 主段')[0];
     assert.ok(e2ePartition, 'e2e_partition step must exist');
     assert.ok(
-      e2ePartition.includes('{ all: 262, main: 231, model: 14, consent: 14, errors: 2, flow: 1 }'),
-      'e2e_partition must require all=262 and main=231',
+      e2ePartition.includes('{ all: 263, main: 232, model: 14, consent: 14, errors: 2, flow: 1 }'),
+      'e2e_partition must require all=263 and main=232',
     );
     assert.ok(
-      e2ePartition.includes('assert.equal(new Set(parts).size, 262'),
-      'e2e_partition must preserve 262 disjointness assertion',
+      e2ePartition.includes('assert.equal(new Set(parts).size, 263'),
+      'e2e_partition must preserve 263 disjointness assertion',
     );
     assert.ok(
       e2ePartition.includes('stats-core-api.spec.ts'),
       'e2e_partition must explicitly check stats-core-api.spec.ts collection',
     );
     assert.ok(
-      workflow.includes('Playwright A3 主段（231例，含同次 RUM 检查）'),
-      'main segment title must reflect 231 tests',
+      workflow.includes('Playwright A3 主段（232例，含同次 RUM 检查）'),
+      'main segment title must reflect 232 tests',
     );
     assert.ok(
       workflow.includes('stats-core-api.txt'),
