@@ -1230,6 +1230,11 @@ test.describe('M6-T4 core stats dashboard page', () => {
         const { page, observer } = session;
         const { dto: vpDto } = await navigateViaStatsLink(page, observer!, '/admin/inquiries', mobile);
         expect(vpDto.sources).toHaveLength(17);
+        for (const source of ['chat_notifications', 'mail'] as const) {
+          await expect(page.getByTestId(`stats-source-${source}`)).toContainText('SMTP-accepted');
+          await expect(page.getByTestId(`stats-row-${source}`)).toContainText('SMTP 已接受');
+        }
+        await expect(page.getByTestId('stats-source-chat_starts')).toContainText('首条消息保存成功');
         await expect(page.getByTestId('stats-source-visitors')).toBeVisible();
         await expect(page.getByTestId('stats-table')).toBeVisible();
 
