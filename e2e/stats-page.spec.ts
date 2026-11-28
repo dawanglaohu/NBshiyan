@@ -772,7 +772,7 @@ test.describe('M6-T4 core stats dashboard page', () => {
         );
         expect(salesMixedRes.status()).toBe(200);
         const salesMixedRaw = (await salesMixedRes.json()) as Record<string, unknown>;
-        expect(Object.keys(salesMixedRaw).sort()).toEqual(['modelSuccessRate', 'recomputableFrom', 'sources']);
+        expectMixedStatsEnvelope(salesMixedRaw);
         const salesMixedDto = StatsDTOSchema.parse(salesMixedRaw);
         expect(salesMixedDto.sources.map((s) => s.source)).toEqual(['visitors', 'inquiries']);
       } finally {
@@ -808,7 +808,7 @@ test.describe('M6-T4 core stats dashboard page', () => {
         );
         expect(editorMixedRes.status()).toBe(200);
         const editorMixedRaw = (await editorMixedRes.json()) as Record<string, unknown>;
-        expect(Object.keys(editorMixedRaw).sort()).toEqual(['modelSuccessRate', 'recomputableFrom', 'sources']);
+        expectMixedStatsEnvelope(editorMixedRaw);
         const editorMixedDto = StatsDTOSchema.parse(editorMixedRaw);
         expect(editorMixedDto.sources.map((s) => s.source)).toEqual(['visitors']);
       } finally {
@@ -1369,3 +1369,12 @@ test.describe('M6-T4 core stats dashboard page', () => {
     await testInfo.attach('stats-density-report', { path: reportPath, contentType: 'application/json' });
   });
 });
+
+function expectMixedStatsEnvelope(raw: Record<string, unknown>) {
+  expect(Object.keys(raw).sort()).toEqual([
+    'apiErrorRate', 'modelSuccessRate', 'notificationCounts', 'recomputableFrom', 'sources',
+  ]);
+  expect(raw.apiErrorRate).toBeNull();
+  expect(raw.modelSuccessRate).toBeNull();
+  expect(raw.notificationCounts).toBeNull();
+}
