@@ -1,0 +1,133 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M3-T10": {
+      "contractHash": "c8dd8b595949e377cbbc80724f332643c09d38601b209717a438aadd348cb0cf",
+      "evidence": [
+        "补丁前后逐字段核对 M3-T10「接通首次绑定表单与一次展示材料」。供应者链为 M3-T6（admin-auth-ui）、M3-T2（first-enrollment）。本任务的输入、产出、接口、验收、边界和有效路径均与基线相同。版本变化由上游 M6-T4 支持路径沿依赖传播。本条仅记录本次契约差异，不签发本任务的完整语义复核或实现验收。"
+      ],
+      "verdict": "pending"
+    },
+    "M3-T11": {
+      "contractHash": "b6d5972492d8f16d965c41d1d320a1801ecb36f523fba0e86fa3c7c21b267838",
+      "evidence": [
+        "补丁前后逐字段核对 M3-T11「接通独立恢复及受限重绑向导」。供应者链为 M3-T6（admin-auth-ui）、M3-T5（limited-recovery-completion）、M3-T18（os-owner-recovery-cli）、M3-T20（self-rebind-api）。本任务的输入、产出、接口、验收、边界和有效路径均与基线相同。版本变化由上游 M6-T4 支持路径沿依赖传播。本条仅记录本次契约差异，不签发本任务的完整语义复核或实现验收。"
+      ],
+      "verdict": "pending"
+    },
+    "M3-T12": {
+      "contractHash": "b9e37a060f1c65b1043273b443391aa308fdc51a22c6e5b2ca30c78f11ed8db2",
+      "evidence": [
+        "补丁前后逐字段核对 M3-T12「接通个人安全页与共享新鲜验证对话框」。供应者链为 M3-T7（admin-shell）、M3-T16（account-security-mutations）、M3-T20（self-rebind-api）、M3-T11（recovery-ui）。本任务的输入、产出、接口、验收、边界和有效路径均与基线相同。版本变化由上游 M6-T4 支持路径沿依赖传播。本条仅记录本次契约差异，不签发本任务的完整语义复核或实现验收。"
+      ],
+      "verdict": "pending"
+    },
+    "M3-T13": {
+      "contractHash": "d44a76d2a5dc4123e75c03821221cf3352c489b6f45248463b2d4de15f11446d",
+      "evidence": [
+        "补丁前后逐字段核对 M3-T13「接通退出全部设备确认与结果核实」。供应者链为 M3-T8（device-management-ui）、M3-T12（reauth-dialog）、M3-T17（device-management-api）。本任务的输入、产出、接口、验收、边界和有效路径均与基线相同。版本变化由上游 M6-T4 支持路径沿依赖传播。本条仅记录本次契约差异，不签发本任务的完整语义复核或实现验收。"
+      ],
+      "verdict": "pending"
+    },
+    "M3-T25": {
+      "contractHash": "a1df7224b484ece306e97af84050e6acf0d65d76dfab54e66fd559b931d1c303",
+      "evidence": [
+        "补丁前后逐字段核对 M3-T25「统一既有站点设置和账号表完整视觉」。供应者链为 M1-T7（visual-components）、M3-T7（admin-shell）、M3-T9（target-recovery-ui）、M5-T10（analytics-settings-ui）、M1-T5（company-content）。本任务的输入、产出、接口、验收、边界和有效路径均与基线相同。版本变化由上游 M6-T4 支持路径沿依赖传播。本条仅记录本次契约差异，不签发本任务的完整语义复核或实现验收。"
+      ],
+      "verdict": "pending"
+    },
+    "M3-T6": {
+      "contractHash": "3a833c79dd2c5b93d1ef1e6782a5695c4c86cb3310cebd21b38257dddbe32c01",
+      "evidence": [
+        "补丁前后逐字段核对 M3-T6「接通唯一登录页和明确方式字段」。供应者链为 M3-T2（admin-login-modes）、M1-T1（visual-base）、M1-T8（client-api-foundation）、M1-T7（visual-components）、M6-T4（stats-base-ui）。本任务的输入、产出、接口、验收、边界和有效路径均与基线相同。版本变化由上游 M6-T4 支持路径沿依赖传播。本条仅记录本次契约差异，不签发本任务的完整语义复核或实现验收。"
+      ],
+      "verdict": "pending"
+    },
+    "M3-T8": {
+      "contractHash": "416589d17ba57619cc45b273c1692426fcd31c939b3fb18544cb56b7c498f031",
+      "evidence": [
+        "补丁前后逐字段核对 M3-T8「显示本人设备并退出指定设备」。供应者链为 M3-T12（reauth-dialog）、M3-T17（device-management-api）。本任务的输入、产出、接口、验收、边界和有效路径均与基线相同。版本变化由上游 M6-T4 支持路径沿依赖传播。本条仅记录本次契约差异，不签发本任务的完整语义复核或实现验收。"
+      ],
+      "verdict": "pending"
+    },
+    "M3-T9": {
+      "contractHash": "bf053c17edf36f4169873118a4041ecc1c109c97da635aaab3027013d568bf46",
+      "evidence": [
+        "补丁前后逐字段核对 M3-T9「在账号行复用验证对话框授权恢复」。供应者链为 M3-T12（reauth-dialog）、M3-T4（targeted-recovery-authorizations）。本任务的输入、产出、接口、验收、边界和有效路径均与基线相同。版本变化由上游 M6-T4 支持路径沿依赖传播。本条仅记录本次契约差异，不签发本任务的完整语义复核或实现验收。"
+      ],
+      "verdict": "pending"
+    },
+    "M6-T4": {
+      "contractHash": "0d2674485e4b6baa2cb12c0e9a96b0a704e1c59fa5d8cc8bff5fffb45506cf8b",
+      "evidence": [
+        "第19节 M6-T4 沿用已落地 M6-T6 的 stats-core 和 M3-T7 的后台壳，交付 stats-base-ui。07 节路由表规定 AdminShell.stats-link → /admin/stats；10 节规定 GET /api/admin/stats 的 StatsDTO 和角色来源。12 节将统一页脚登录入口交给 M3-T6。",
+        "13 节 E-61/E-63/E-66 与 17 节真实 HTTP、聚合、角色矩阵、三视口密度验收一致。src/lib/client/ops.ts:76、src/app/admin/stats/page.tsx:19、e2e/stats-page.spec.ts:205、:610 对应入口及测试。实现仍须按 PR #579 首轮返工修复缓存隔离、3D 状态和失败的 main-stats 测试。",
+        "六个新增支持路径覆盖布局守卫和角色断言、原不可达冒烟、故障页注册，以及 CI 与统计路由测试的精确分区计数。M6-T5（PR #578）同改 .github/workflows/ci.yml 和 tests/stats-route.test.ts；同步时应核对两层增加的用例并保留两者的测试分段。其余17个任务的本地契约字段与基线逐项相同。"
+      ],
+      "verdict": "pass"
+    },
+    "M6-T7": {
+      "contractHash": "8e42cb36438587a409f5605189beb9aeb6e669c1253553bed928c53f12a8a4d8",
+      "evidence": [
+        "补丁前后逐字段核对 M6-T7「完成看板逐源状态与故障呈现」。供应者链为 M6-T4（stats-base-ui）、M6-T2（stats-business）、M6-T5（stats-reliability）、M6-T3（ops-sources）。本任务的输入、产出、接口、验收、边界和有效路径均与基线相同。版本变化由上游 M6-T4 支持路径沿依赖传播。本条仅记录本次契约差异，不签发本任务的完整语义复核或实现验收。"
+      ],
+      "verdict": "pending"
+    },
+    "M7-T10": {
+      "contractHash": "398f739bceb7c8d76d3838fd18aa6b8c8001d40985285265d86c2f5c06d44a40",
+      "evidence": [
+        "补丁前后逐字段核对 M7-T10「zod 3→4 迁移并删除扫描豁免」。供应者链为 M7-T9（delivery-acceptance）。本任务的输入、产出、接口、验收、边界和有效路径均与基线相同。版本变化由上游 M6-T4 支持路径沿依赖传播。本条仅记录本次契约差异，不签发本任务的完整语义复核或实现验收。"
+      ],
+      "verdict": "pending"
+    },
+    "M7-T2": {
+      "contractHash": "c192d056c8e2ec1584f05fc2ad3c87036e998ae682ac83142d15be7b9076f0a1",
+      "evidence": [
+        "补丁前后逐字段核对 M7-T2「终验真实会话跨路径持久与撤销」。供应者链为 M3-T8（device-management-ui）、M3-T6（admin-auth-ui）。本任务的输入、产出、接口、验收、边界和有效路径均与基线相同。版本变化由上游 M6-T4 支持路径沿依赖传播。本条仅记录本次契约差异，不签发本任务的完整语义复核或实现验收。"
+      ],
+      "verdict": "pending"
+    },
+    "M7-T3": {
+      "contractHash": "2721cad2542d8158cddfca9bf9c0fe95a6dba6f49b3bd4e55ec016691f81d2ea",
+      "evidence": [
+        "补丁前后逐字段核对 M7-T3「终验同意到分析看板及统计日界线」。供应者链为 M5-T11（analytics-retention）、M5-T10（analytics-settings-ui）、M6-T7（stats-ui）、M2-T7（model-events）。本任务的输入、产出、接口、验收、边界和有效路径均与基线相同。版本变化由上游 M6-T4 支持路径沿依赖传播。本条仅记录本次契约差异，不签发本任务的完整语义复核或实现验收。"
+      ],
+      "verdict": "pending"
+    },
+    "M7-T5": {
+      "contractHash": "05eb5691a02735810928ea505db507ba375664d09f072e2ee9e8ab16d3b2a910",
+      "evidence": [
+        "补丁前后逐字段核对 M7-T5「终验受限恢复与单管理员兜底」。供应者链为 M7-T6（fresh-auth-acceptance）、M3-T9（target-recovery-ui）。本任务的输入、产出、接口、验收、边界和有效路径均与基线相同。版本变化由上游 M6-T4 支持路径沿依赖传播。本条仅记录本次契约差异，不签发本任务的完整语义复核或实现验收。"
+      ],
+      "verdict": "pending"
+    },
+    "M7-T6": {
+      "contractHash": "767af77564437f57762ac46551e0aa168db67f849a7801a0d64a4d639e31658f",
+      "evidence": [
+        "补丁前后逐字段核对 M7-T6「终验新鲜本人授权与忘密码隔离」。供应者链为 M3-T12（reauth-dialog）、M3-T9（target-recovery-ui）。本任务的输入、产出、接口、验收、边界和有效路径均与基线相同。版本变化由上游 M6-T4 支持路径沿依赖传播。本条仅记录本次契约差异，不签发本任务的完整语义复核或实现验收。"
+      ],
+      "verdict": "pending"
+    },
+    "M7-T7": {
+      "contractHash": "7574e9764b670e0f8ae37fcdea75a764d5fd0239c6bfc74768d27014894a798c",
+      "evidence": [
+        "补丁前后逐字段核对 M7-T7「终验运维来源与通知重启消费」。供应者链为 M6-T7（stats-ui）、M4-T4（chat-notification-job）、M5-T8（job-foundation）。本任务的输入、产出、接口、验收、边界和有效路径均与基线相同。版本变化由上游 M6-T4 支持路径沿依赖传播。本条仅记录本次契约差异，不签发本任务的完整语义复核或实现验收。"
+      ],
+      "verdict": "pending"
+    },
+    "M7-T8": {
+      "contractHash": "eea120347157bede4c25182b9303599b338a43d2c192c358b067cb049f0ca7c8",
+      "evidence": [
+        "补丁前后逐字段核对 M7-T8「核对恢复候选的当前来源与安全批准」。供应者链为 M7-T4（visitor-acceptance）、M7-T2（session-acceptance）、M7-T5（admin-acceptance）、M7-T3（analytics-acceptance）、M7-T7（operations-acceptance）。本任务的输入、产出、接口、验收、边界和有效路径均与基线相同。版本变化由上游 M6-T4 支持路径沿依赖传播。本条仅记录本次契约差异，不签发本任务的完整语义复核或实现验收。"
+      ],
+      "verdict": "pending"
+    },
+    "M7-T9": {
+      "contractHash": "87978905b2b719b884e93b4af4c105c6767ee468ca0754bc520c8d48d808c90b",
+      "evidence": [
+        "补丁前后逐字段核对 M7-T9「验收既有分发脚本与隔离备份恢复链」。供应者链为 M7-T8（provenance-acceptance）、M3-T21（legacy-inquiries-ui）、M3-T22（legacy-unassigned-ui）、M3-T23（legacy-model-admin-ui）、M3-T24（legacy-specs-ui）、M3-T25（legacy-settings-users-ui）。本任务的输入、产出、接口、验收、边界和有效路径均与基线相同。版本变化由上游 M6-T4 支持路径沿依赖传播。本条仅记录本次契约差异，不签发本任务的完整语义复核或实现验收。"
+      ],
+      "verdict": "pending"
+    }
+  }
+}
