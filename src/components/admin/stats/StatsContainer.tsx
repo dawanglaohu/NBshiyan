@@ -7,7 +7,6 @@ import { siteLocalDate } from '@/lib/analytics/day-boundaries';
 import { getStats, type StatsResult } from '@/lib/client/ops';
 import type {
   AccountRole,
-  StatsCoverage,
   StatsDTO,
   StatsModelSuccessRateDTO,
   StatsQueryDTO,
@@ -15,7 +14,11 @@ import type {
   StatsSourceDTO,
   StatsSourceState,
 } from '@/lib/contracts';
+import SourceCard, { formatCoverageText, formatStateBadge } from './SourceCard';
+import StatsTrend from './StatsTrend';
 import StatsFilters, { type StatsProductOption, type StatsScopeMode } from './StatsFilters';
+
+export { formatDurationSamples, formatSourceValue } from './SourceCard';
 
 export type StatsClientApi = {
   query: (input: StatsQueryDTO, options?: { signal?: AbortSignal }) => Promise<StatsResult>;
@@ -51,118 +54,6 @@ export const OPS_SOURCES: readonly StatsSource[] = [
   'backup',
 ];
 
-type SourceMeta = {
-  title: string;
-  enLabel: string;
-  unit: 'count' | 'ms' | 'bytes' | 'seconds';
-  description: string;
-};
-
-export const SOURCE_CATALOG: Readonly<Record<StatsSource, SourceMeta>> = {
-  visitors: {
-    title: '授权匿名浏览器',
-    enLabel: 'Consenting visitors',
-    unit: 'count',
-    description: '获分析同意后在同一站点自然日去重的匿名浏览器数（非跨设备唯一真人）。',
-  },
-  page_views: {
-    title: '页面浏览量（PV）',
-    enLabel: 'Page views',
-    unit: 'count',
-    description: '获分析同意后已完成的站内页面访问计数；单产品维度不拆页面 PV。',
-  },
-  product_views: {
-    title: '产品归因访问',
-    enLabel: 'Product views',
-    unit: 'count',
-    description: '获分析同意后绑定已发布产品 slug 的产品上下文访问次数。',
-  },
-  model_starts: {
-    title: '3D 模型发起',
-    enLabel: '3D model starts',
-    unit: 'count',
-    description: '获分析同意后真实 GLB 加载发起次数（作为配对成功率唯一分母）。',
-  },
-  model_successes: {
-    title: '3D 加载成功',
-    enLabel: '3D load successes',
-    unit: 'count',
-    description: '与同浏览器同 viewId 发起配对的真实 GLB 成功终态（海报/回退不计入）。',
-  },
-  model_failures: {
-    title: '3D 加载失败/超时',
-    enLabel: '3D load failures',
-    unit: 'count',
-    description: '与真实发起配对的失败或超时终态（每 viewId 至多记录一个终态）。',
-  },
-  mean_load_duration_ms: {
-    title: '3D 平均加载耗时',
-    enLabel: 'Mean 3D load duration',
-    unit: 'ms',
-    description: '按有效配对终态耗时样本加权计算；无样本时为 null，绝不填 0。',
-  },
-  chat_starts: {
-    title: '分析咨询发起',
-    enLabel: 'Chat starts',
-    unit: 'count',
-    description: '访客同意分析后，按首条消息保存成功的咨询去重计数。',
-  },
-  inquiries: {
-    title: '已保存询盘',
-    enLabel: 'Saved inquiries',
-    unit: 'count',
-    description: '按当前角色可见范围（SALES 受派范围）统计已持久化的真实询盘编号数。',
-  },
-  chat_conversations: {
-    title: '人工咨询会话',
-    enLabel: 'Chat conversations',
-    unit: 'count',
-    description: '所选站点日区间内已持久化创建的第一方人工咨询会话数。',
-  },
-  chat_messages: {
-    title: '咨询收件消息',
-    enLabel: 'Chat messages',
-    unit: 'count',
-    description: '已持久化收件的消息标识计数（同 UUID 幂等重试不重复累加）。',
-  },
-  chat_notifications: {
-    title: 'SMTP 已接受的咨询通知',
-    enLabel: 'SMTP-accepted chat notifications',
-    unit: 'count',
-    description: '邮件服务器已接受的人工咨询通知数。',
-  },
-  api_requests: {
-    title: '已接线 API 请求数',
-    enLabel: 'Instrumented API requests',
-    unit: 'count',
-    description: '仅限本轮已接线路由最终响应计数，不声称全站请求量。',
-  },
-  api_errors: {
-    title: '已接线 API 5xx 错误',
-    enLabel: 'Instrumented API 5xx',
-    unit: 'count',
-    description: '仅限本轮已接线路由的 5xx 响应计数，与同范围请求数配对阅读。',
-  },
-  mail: {
-    title: 'SMTP 已接受的出站邮件',
-    enLabel: 'SMTP-accepted outbound mail',
-    unit: 'count',
-    description: '邮件服务器已接受的出站邮件数。',
-  },
-  storage: {
-    title: '受控存储已用空间',
-    enLabel: 'Controlled storage used',
-    unit: 'bytes',
-    description: '受控上传目录采样字节计数，不接受任意路径或文件内容读取。',
-  },
-  backup: {
-    title: '最近备份距今时长',
-    enLabel: 'Latest backup age',
-    unit: 'seconds',
-    description: '受控备份元数据距今秒数；未完成隔离恢复演练时覆盖标为 partial。',
-  },
-};
-
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 /** 本地预检日期输入：非法格式、起止倒置或超过 400 天直接给出字段级提示。 */
@@ -197,79 +88,6 @@ export function buildStatsSnapshotKey(input: {
     input.scopeMode,
     input.timezoneRevision ?? 'current',
   ].join('|');
-}
-
-export function formatStateBadge(state: StatsSourceState): { prefix: string; text: string } {
-  switch (state) {
-    case 'ok':
-      return { prefix: '●', text: '正常（OK）' };
-    case 'zero':
-      return { prefix: '○', text: '真实零值（0）' };
-    case 'no_data':
-      return { prefix: '—', text: '尚无数据（No data yet）' };
-    case 'not_connected':
-      return { prefix: '◌', text: '未接入（Not connected）' };
-    case 'query_failed':
-      return { prefix: '▲', text: '查询失败（Failed）' };
-    case 'stale':
-      return { prefix: '△', text: '旧值（Stale）' };
-  }
-}
-
-export function formatCoverageText(coverage: StatsCoverage): string {
-  switch (coverage) {
-    case 'full':
-      return '完整覆盖（full）';
-    case 'partial':
-      return '部分覆盖（partial）';
-    case 'unavailable':
-      return '无覆盖（unavailable）';
-  }
-}
-
-function formatByteCount(bytes: number): string {
-  if (bytes < 1024) return `${bytes.toLocaleString('en-US')} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KiB (${bytes.toLocaleString('en-US')} B)`;
-  return `${(bytes / (1024 * 1024)).toFixed(2)} MiB (${bytes.toLocaleString('en-US')} B)`;
-}
-
-/**
- * 严格按 09/11 节与 E-63 口径格式化单源数值（R4）：
- * - no_data / not_connected / query_failed(无值) / 无样本(null) 绝不渲染为 0；
- * - query_failed(无快照) 优先展示失败文案，绝不将失败误报为「无样本」；
- * - 只有 state === 'zero' 或确有 0 值时才显示 0。
- */
-export function formatSourceValue(item: StatsSourceDTO): string {
-  if (item.state === 'not_connected') return `Not connected: ${item.source}`;
-  if (item.state === 'query_failed' && item.value === null) return '查询失败（无快照）';
-  if (item.state === 'no_data') {
-    if (item.source === 'mean_load_duration_ms' && item.coverage !== 'unavailable') {
-      return '—（无样本）';
-    }
-    return 'No data yet';
-  }
-  if (item.value === null) {
-    if (item.source === 'mean_load_duration_ms') return '—（无样本）';
-    return '—';
-  }
-  const meta = SOURCE_CATALOG[item.source];
-  if (meta.unit === 'ms') {
-    const rounded = Number.isInteger(item.value) ? String(item.value) : item.value.toFixed(1);
-    return `${rounded} ms`;
-  }
-  if (meta.unit === 'bytes') return formatByteCount(item.value);
-  if (meta.unit === 'seconds') return `${item.value.toLocaleString('en-US')} s`;
-  return item.value.toLocaleString('en-US');
-}
-
-/**
- * 格式化 3D 平均加载耗时的有效终态样本数（samples）：
- * 未接入或无留存快照的查询失败属于未知状态，返回 '—' 而非断言 0。
- */
-export function formatDurationSamples(item: StatsSourceDTO): string {
-  if (item.state === 'not_connected') return '—';
-  if (item.state === 'query_failed' && item.value === null) return '—';
-  return (item.loadDurationSamples ?? 0).toLocaleString('en-US');
 }
 
 export type ModelSuccessRatePairing = {
@@ -431,6 +249,7 @@ export function mergeSnapshotSources(
           value: prev.value,
           dataThrough: prev.dataThrough,
           lastSucceededAt: prev.lastSucceededAt,
+          coverage: prev.coverage,
           loadDurationSamples: prev.loadDurationSamples,
         };
       }
@@ -458,99 +277,30 @@ export function mergeSnapshotSources(
   };
 }
 
-function SourceCardView({
-  item,
-  retainedFromSnapshot,
-}: {
-  item: StatsSourceDTO;
-  retainedFromSnapshot: boolean;
-}) {
-  const meta = SOURCE_CATALOG[item.source];
-  const badge = formatStateBadge(item.state);
-  const isAlert = item.state === 'query_failed' || item.state === 'stale';
-
-  return (
-    <article
-      className="stats-card"
-      data-testid={`stats-source-${item.source}`}
-      data-source-state={item.state}
-      data-alert={isAlert ? 'true' : undefined}
-    >
-      <div className="stats-card-top">
-        <div>
-          <h3 className="stats-card-title">{meta.title}</h3>
-          <p className="stats-card-desc">{meta.enLabel}</p>
-        </div>
-        <span
-          className="stats-badge"
-          data-state={item.state}
-          data-testid={`stats-state-${item.source}`}
-        >
-          <span aria-hidden="true">{badge.prefix}</span>
-          <span>{badge.text}</span>
-        </span>
-      </div>
-
-      <p className="stats-value" data-testid={`stats-value-${item.source}`}>
-        {formatSourceValue(item)}
-      </p>
-
-      <p className="stats-card-desc">{meta.description}</p>
-
-      <div className="stats-card-meta">
-        {item.source === 'mean_load_duration_ms' && (
-          <p data-testid="stats-duration-samples">
-            <strong>有效终态样本（samples）：</strong>
-            <span className="stats-mono">{formatDurationSamples(item)}</span>
-          </p>
-        )}
-        {retainedFromSnapshot && item.lastSucceededAt && (
-          <p>
-            <strong>旧值保留：</strong>Couldn&apos;t refresh. Showing data through {item.dataThrough ?? item.lastSucceededAt}.
-          </p>
-        )}
-        <p>
-          <strong>覆盖：</strong>
-          <span>{formatCoverageText(item.coverage)}</span>
-          {' · '}
-          <strong>时区：</strong>
-          <span className="stats-mono">{item.timezone} (rev {item.timezoneRevision})</span>
-        </p>
-        <p>
-          <strong>数据截止：</strong>
-          <span className="stats-mono">{item.dataThrough ?? '—'}</span>
-        </p>
-        <p>
-          <strong>最近成功：</strong>
-          <span className="stats-mono">{item.lastSucceededAt ?? '—'}</span>
-        </p>
-      </div>
-    </article>
-  );
-}
-
 function ModelSuccessRateCard({
   rate,
   startsSource,
   successesSource,
-  retainedFromSnapshot,
+  refreshFailed,
 }: {
   rate: StatsModelSuccessRateDTO;
   startsSource?: StatsSourceDTO;
   successesSource?: StatsSourceDTO;
-  retainedFromSnapshot: boolean;
+  refreshFailed: boolean;
 }) {
   const display = resolveModelSuccessRateDisplay(rate, { startsSource, successesSource });
-  const badge = formatStateBadge(display.badgeState);
+  const state = refreshFailed && rate.value !== null && display.badgeState !== 'query_failed'
+    ? 'stale'
+    : display.badgeState;
+  const badge = formatStateBadge(state);
   const refSource = startsSource ?? successesSource;
-  const retainedTimestamp = refSource?.dataThrough ?? refSource?.lastSucceededAt ?? null;
 
   return (
     <article
       className="stats-card"
       data-testid="stats-model-success-rate"
-      data-source-state={display.badgeState}
-      data-alert={display.isAlert ? 'true' : undefined}
+      data-source-state={state}
+      data-alert={state === 'stale' || display.isAlert ? 'true' : undefined}
     >
       <div className="stats-card-top">
         <div>
@@ -559,7 +309,7 @@ function ModelSuccessRateCard({
         </div>
         <span
           className="stats-badge"
-          data-state={display.badgeState}
+          data-state={state}
           data-testid="stats-state-model_success_rate"
         >
           <span aria-hidden="true">{badge.prefix}</span>
@@ -580,11 +330,6 @@ function ModelSuccessRateCard({
           <strong>配对读数：</strong>
           <span className="stats-mono">{display.pairText}</span>
         </p>
-        {retainedFromSnapshot && retainedTimestamp && (
-          <p>
-            <strong>旧值保留：</strong>Couldn&apos;t refresh. Showing data through {retainedTimestamp}.
-          </p>
-        )}
         <p>
           <strong>覆盖：</strong>
           <span>{formatCoverageText(rate.coverage)}</span>
@@ -602,74 +347,6 @@ function ModelSuccessRateCard({
         </p>
       </div>
     </article>
-  );
-}
-
-function StatsComparisonChart({
-  sources,
-  timezone,
-}: {
-  sources: readonly StatsSourceDTO[];
-  timezone: string;
-}) {
-  const comparable = sources.filter(
-    (s) => SOURCE_CATALOG[s.source].unit === 'count' && s.value !== null && (s.state === 'ok' || s.state === 'zero' || s.state === 'stale'),
-  );
-  const maxVal = Math.max(1, ...comparable.map((s) => s.value ?? 0));
-  const rowHeight = 28;
-  const chartHeight = Math.max(48, comparable.length * rowHeight + 16);
-
-  return (
-    <section className="stats-panel" aria-labelledby="stats-chart-heading" data-testid="stats-chart-panel">
-      <div className="stats-section-head">
-        <h2 id="stats-chart-heading" className="stats-section-title">
-          同源计数对比（单位：事件/业务记录数 · 站点时区 {timezone}）
-        </h2>
-        <span className="stats-section-note">
-          与下方明细表共享同一份 StatsDTO；未接入、无数据与非计数单位（ms/字节/秒）不参与等比例条形比较。
-        </span>
-      </div>
-
-      {comparable.length === 0 ? (
-        <p className="stats-section-note" data-testid="stats-chart-empty">
-          当前所选区间尚无已就绪的计数型指标样本（No comparable count readings yet）。
-        </p>
-      ) : (
-        <figure className="stats-svg-wrap">
-          <svg
-            className="stats-svg"
-            viewBox={`0 0 720 ${chartHeight}`}
-            role="img"
-            aria-labelledby="stats-chart-title stats-chart-desc"
-            data-testid="stats-svg-chart"
-          >
-            <title id="stats-chart-title">授权计数来源对比图（时区 {timezone}）</title>
-            <desc id="stats-chart-desc">
-              {comparable.map((item) => `${SOURCE_CATALOG[item.source].title}: ${item.value ?? 0}`).join('；')}
-            </desc>
-            {comparable.map((item, idx) => {
-              const y = 8 + idx * rowHeight;
-              const val = item.value ?? 0;
-              const barWidth = Math.round((val / maxVal) * 400);
-              return (
-                <g key={item.source} transform={`translate(0, ${y})`}>
-                  <text x="0" y="16" fill="#000000" fontSize="13" fontWeight="600">
-                    {SOURCE_CATALOG[item.source].title}
-                  </text>
-                  <rect x="200" y="3" width="404" height="18" fill="#ffffff" stroke="#000000" strokeWidth="2" />
-                  {barWidth > 0 && (
-                    <rect x="202" y="5" width={barWidth} height="14" fill="#000000" />
-                  )}
-                  <text x="616" y="16" fill="#000000" fontSize="13" fontFamily="ui-monospace, SFMono-Regular, Consolas, monospace">
-                    {val.toLocaleString('en-US')}
-                  </text>
-                </g>
-              );
-            })}
-          </svg>
-        </figure>
-      )}
-    </section>
   );
 }
 
@@ -707,10 +384,10 @@ export default function StatsContainer({
   const [toError, setToError] = useState<string | undefined>(undefined);
   const [busy, setBusy] = useState(true);
   const [dto, setDto] = useState<StatsDTO | null>(null);
-  const [retainedSources, setRetainedSources] = useState<ReadonlySet<StatsSource>>(new Set());
   const [errorBanner, setErrorBanner] = useState<{
     kind: 'unauthorized' | 'forbidden' | 'stale-error' | 'fatal-error';
     text: string;
+    snapshotKey?: string;
   } | null>(null);
 
   const snapshotsRef = useRef<Map<string, StatsDTO>>(new Map());
@@ -720,11 +397,11 @@ export default function StatsContainer({
   const initializedDatesRef = useRef(false);
 
   const snapshotKeyForRevision = useCallback(
-    (revision: number, overrides?: { from?: string; to?: string }) =>
+    (revision: number, siteDay?: string) =>
       buildStatsSnapshotKey({
         role,
-        from: overrides?.from ?? appliedQuery.from,
-        to: overrides?.to ?? appliedQuery.to,
+        from: appliedQuery.from ?? siteDay,
+        to: appliedQuery.to ?? siteDay,
         productSlug: appliedQuery.productSlug,
         scopeMode: appliedQuery.scopeMode,
         timezoneRevision: revision,
@@ -739,14 +416,13 @@ export default function StatsContainer({
 
     // R2 + R3：切换查询时仅展示当前已知 timezoneRevision 下目标查询自身的缓存快照或加载态（null），绝不残留上一个查询的计数。
     const knownRevision = latestRevisionRef.current;
-    const targetCached =
-      knownRevision !== undefined
-        ? (snapshotsRef.current.get(snapshotKeyForRevision(knownRevision)) ?? null)
-        : null;
+    const targetKey = knownRevision === undefined ? undefined : snapshotKeyForRevision(knownRevision);
+    const targetCached = targetKey ? snapshotsRef.current.get(targetKey) ?? null : null;
     setDto(targetCached);
-    setRetainedSources(new Set());
     setBusy(true);
-    setErrorBanner(null);
+    setErrorBanner((previous) => (
+      previous?.kind === 'stale-error' && previous.snapshotKey === targetKey ? previous : null
+    ));
 
     const requestQuery: StatsQueryDTO = {
       ...(appliedQuery.from ? { from: appliedQuery.from } : {}),
@@ -764,6 +440,7 @@ export default function StatsContainer({
         setBusy(false);
 
         if (result.ok) {
+          setErrorBanner(null);
           const first = result.data.sources[0];
           const responseRevision = first?.timezoneRevision;
           let resolvedDay: string | null = null;
@@ -794,27 +471,14 @@ export default function StatsContainer({
             latestRevisionRef.current = responseRevision;
           }
 
-          const previousGoodForRevision =
-            responseRevision !== undefined
-              ? (snapshotsRef.current.get(snapshotKeyForRevision(responseRevision)) ?? null)
-              : null;
-
-          const merged = mergeSnapshotSources(result.data, previousGoodForRevision);
+          // 默认今日按响应的站点日存储，避免跨站点午夜时继承前一天的值。
+          const responseKey = responseRevision === undefined
+            ? undefined
+            : snapshotKeyForRevision(responseRevision, resolvedDay ?? undefined);
+          const previous = responseKey ? snapshotsRef.current.get(responseKey) ?? null : null;
+          const merged = mergeSnapshotSources(result.data, previous);
           setDto(merged.dto);
-          setRetainedSources(merged.retainedSources);
-
-          const hasGoodReading = merged.dto.sources.some(
-            (s) => s.value !== null || s.state === 'zero' || s.state === 'ok',
-          );
-          if (hasGoodReading && responseRevision !== undefined) {
-            snapshotsRef.current.set(snapshotKeyForRevision(responseRevision), merged.dto);
-            if (resolvedDay && !appliedQuery.from && !appliedQuery.to) {
-              snapshotsRef.current.set(
-                snapshotKeyForRevision(responseRevision, { from: resolvedDay, to: resolvedDay }),
-                merged.dto,
-              );
-            }
-          }
+          if (responseKey) snapshotsRef.current.set(responseKey, merged.dto);
           return;
         }
 
@@ -822,7 +486,6 @@ export default function StatsContainer({
           snapshotsRef.current.clear();
           latestRevisionRef.current = undefined;
           setDto(null);
-          setRetainedSources(new Set());
           setErrorBanner({
             kind: 'unauthorized',
             text: 'Your session has ended. Sign in again to continue.（当前会话已失效，请重新登录。）',
@@ -836,7 +499,6 @@ export default function StatsContainer({
           latestRevisionRef.current = undefined;
           opsForbiddenRef.current = true;
           setDto(null);
-          setRetainedSources(new Set());
           setOpsForbidden(true);
           setScopeMode('all');
           setErrorBanner({
@@ -851,20 +513,11 @@ export default function StatsContainer({
           if (result.fieldErrors.to) setToError(result.fieldErrors.to);
         }
 
-        const fallbackGood =
-          latestRevisionRef.current !== undefined
-            ? (snapshotsRef.current.get(snapshotKeyForRevision(latestRevisionRef.current)) ?? null)
-            : null;
-
-        if (fallbackGood) {
-          const oldThrough =
-            fallbackGood.sources.find((s) => s.dataThrough)?.dataThrough ??
-            fallbackGood.sources.find((s) => s.lastSucceededAt)?.lastSucceededAt ??
-            '上次成功读取';
-          setDto(fallbackGood);
+        if (targetCached) {
           setErrorBanner({
             kind: 'stale-error',
-            text: `Couldn't refresh. Showing data through ${oldThrough}.（${result.text || '刷新失败，当前保留原成功快照时间与数值。'}）`,
+            text: '刷新失败。各来源显示最近一次返回的快照。',
+            snapshotKey: targetKey,
           });
         } else {
           setDto(null);
@@ -877,19 +530,11 @@ export default function StatsContainer({
       .catch(() => {
         if (controller.signal.aborted) return;
         setBusy(false);
-        const fallbackGood =
-          latestRevisionRef.current !== undefined
-            ? (snapshotsRef.current.get(snapshotKeyForRevision(latestRevisionRef.current)) ?? null)
-            : null;
-        if (fallbackGood) {
-          const oldThrough =
-            fallbackGood.sources.find((s) => s.dataThrough)?.dataThrough ??
-            fallbackGood.sources.find((s) => s.lastSucceededAt)?.lastSucceededAt ??
-            '上次成功读取';
-          setDto(fallbackGood);
+        if (targetCached) {
           setErrorBanner({
             kind: 'stale-error',
-            text: `Couldn't refresh. Showing data through ${oldThrough}.（网络异常，保留原成功快照。）`,
+            text: '网络异常。各来源显示最近一次返回的快照。',
+            snapshotKey: targetKey,
           });
         } else {
           setDto(null);
@@ -1019,6 +664,16 @@ export default function StatsContainer({
   const displayedFrom = appliedQuery.from ?? resolvedDefaultDay;
   const displayedTo = appliedQuery.to ?? resolvedDefaultDay;
 
+  const refreshFailed = errorBanner?.kind === 'stale-error';
+
+  const retryAppliedQuery = () => {
+    if (busy) return;
+    if (!appliedQuery.from && !appliedQuery.to && resolvedDefaultDay) {
+      setAppliedQuery({ ...appliedQuery, from: resolvedDefaultDay, to: resolvedDefaultDay });
+    }
+    setRefreshNonce((n) => n + 1);
+  };
+
   const coreWatermark = useMemo(() => {
     if (!dto) return null;
     const coreSet = new Set<StatsSource>(CORE_SOURCES);
@@ -1027,8 +682,7 @@ export default function StatsContainer({
       .map((s) => s.dataThrough!)
       .sort();
     if (stamps.length > 0) return stamps[stamps.length - 1]!;
-    const fallback = dto.sources.find((s) => s.dataThrough)?.dataThrough ?? null;
-    return fallback;
+    return null;
   }, [dto]);
 
   const coreItems = useMemo(() => {
@@ -1118,7 +772,7 @@ export default function StatsContainer({
               data-testid="stats-retry"
               busy={busy}
               busyLabel="重试中…"
-              onClick={handleRefresh}
+              onClick={retryAppliedQuery}
             >
               重试
             </Button>
@@ -1142,16 +796,18 @@ export default function StatsContainer({
                 <h2 id="stats-core-heading" className="stats-section-title">
                   公开流量、产品归因与 3D 模型指标
                 </h2>
-                <span className="stats-section-note">
-                  5 分钟聚合作业一致快照；所有日期边界均按站点 IANA 时区 [{siteTimezone}] 自然日计算。
+                <span className="stats-section-note" data-testid="stats-ingestion-status">
+                  站点自然日（{siteTimezone}）· 事件接收链路状态未知 · 最近接收时间未知
                 </span>
               </div>
               <div className="stats-grid">
                 {coreItems.map((item) => (
-                  <SourceCardView
+                  <SourceCard
                     key={item.source}
                     item={item}
-                    retainedFromSnapshot={retainedSources.has(item.source)}
+                    refreshFailed={refreshFailed}
+                    busy={busy}
+                    onRetry={retryAppliedQuery}
                   />
                 ))}
                 {dto.modelSuccessRate !== null && dto.modelSuccessRate !== undefined && (
@@ -1159,9 +815,7 @@ export default function StatsContainer({
                     rate={dto.modelSuccessRate}
                     startsSource={startsItem}
                     successesSource={successesItem}
-                    retainedFromSnapshot={
-                      retainedSources.has('model_starts') && retainedSources.has('model_successes')
-                    }
+                    refreshFailed={refreshFailed}
                   />
                 )}
               </div>
@@ -1184,10 +838,12 @@ export default function StatsContainer({
               </div>
               <div className="stats-grid">
                 {businessItems.map((item) => (
-                  <SourceCardView
+                  <SourceCard
                     key={item.source}
                     item={item}
-                    retainedFromSnapshot={retainedSources.has(item.source)}
+                    refreshFailed={refreshFailed}
+                    busy={busy}
+                    onRetry={retryAppliedQuery}
                   />
                 ))}
               </div>
@@ -1206,71 +862,26 @@ export default function StatsContainer({
               </div>
               <div className="stats-grid">
                 {opsItems.map((item) => (
-                  <SourceCardView
+                  <SourceCard
                     key={item.source}
                     item={item}
-                    retainedFromSnapshot={retainedSources.has(item.source)}
+                    refreshFailed={refreshFailed}
+                    busy={busy}
+                    onRetry={retryAppliedQuery}
                   />
                 ))}
               </div>
             </section>
           )}
 
-          <StatsComparisonChart sources={dto.sources} timezone={siteTimezone ?? 'UTC'} />
-
-          <section className="stats-panel" aria-labelledby="stats-table-heading" data-testid="stats-table-panel">
-            <div className="stats-section-head">
-              <h2 id="stats-table-heading" className="stats-section-title">
-                授权来源明细表（共 {dto.sources.length} 项）
-              </h2>
-              <span className="stats-section-note">
-                站点时区：{siteTimezone ?? 'UTC'}（rev {siteRevision ?? 1}）
-              </span>
-            </div>
-            <div className="stats-table-wrap">
-              <table className="stats-table" data-testid="stats-table">
-                <thead>
-                  <tr>
-                    <th scope="col">来源（Source）</th>
-                    <th scope="col">状态</th>
-                    <th scope="col" className="stats-col-num">数值</th>
-                    <th scope="col">样本 / 覆盖</th>
-                    <th scope="col">数据截止（dataThrough）</th>
-                    <th scope="col">最近成功（lastSucceededAt）</th>
-                    <th scope="col">站点时区</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {dto.sources.map((item) => {
-                    const meta = SOURCE_CATALOG[item.source];
-                    const badge = formatStateBadge(item.state);
-                    return (
-                      <tr key={item.source} data-testid={`stats-row-${item.source}`}>
-                        <td>
-                          <strong>{meta.title}</strong>{' '}
-                          <span className="stats-mono">({item.source})</span>
-                        </td>
-                        <td>
-                          {badge.prefix} {badge.text}
-                        </td>
-                        <td className="stats-col-num stats-mono">{formatSourceValue(item)}</td>
-                        <td>
-                          {item.source === 'mean_load_duration_ms'
-                            ? `samples=${formatDurationSamples(item)} · ${formatCoverageText(item.coverage)}`
-                            : formatCoverageText(item.coverage)}
-                        </td>
-                        <td className="stats-mono">{item.dataThrough ?? '—'}</td>
-                        <td className="stats-mono">{item.lastSucceededAt ?? '—'}</td>
-                        <td className="stats-mono">
-                          {item.timezone} (rev {item.timezoneRevision})
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </section>
+          {firstSource && (
+            <StatsTrend
+              sources={dto.sources}
+              timezone={firstSource.timezone}
+              timezoneRevision={firstSource.timezoneRevision}
+              refreshFailed={refreshFailed}
+            />
+          )}
         </>
       )}
     </div>
