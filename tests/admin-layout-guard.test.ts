@@ -58,7 +58,7 @@ const g = (role: string, p: string | null) => adminGate({ ok: true, role }, p).a
 
 test('per-route roles: SALES', () => {
   for (const p of ['/admin/models/new', '/admin/models', '/admin/specs', '/admin/specs/gift-boxes', '/admin/settings', '/admin/users']) assert.equal(g('SALES', p), 'notFound', p);
-  for (const p of ['/admin/inquiries', '/admin/inquiries/', '/admin/inquiries/abc123', '/admin/inquiries/abc?x=1', '/admin']) assert.equal(g('SALES', p), 'render', p);
+  for (const p of ['/admin/inquiries', '/admin/inquiries/', '/admin/inquiries/abc123', '/admin/inquiries/abc?x=1', '/admin/stats', '/admin']) assert.equal(g('SALES', p), 'render', p);
 });
 
 test('per-route roles: EDITOR', () => {
@@ -66,6 +66,7 @@ test('per-route roles: EDITOR', () => {
   assert.equal(g('EDITOR', '/admin/inquiries/abc'), 'notFound');
   assert.equal(g('EDITOR', '/admin/models/new'), 'render');
   assert.equal(g('EDITOR', '/admin/specs/'), 'render');
+  assert.equal(g('EDITOR', '/admin/stats'), 'render');
   assert.equal(g('EDITOR', '/admin/settings'), 'notFound');
 });
 

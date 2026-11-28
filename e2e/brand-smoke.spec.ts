@@ -307,12 +307,12 @@ test.describe('standalone 主冒烟', () => {
     await shot(page, testInfo, '02-admin-inquiries.png');
 
     const nav = page.getByRole('navigation', { name: '后台导航' });
-    for (const label of ['样品申请', '内容', '数据看板']) {
+    for (const label of ['样品申请', '内容']) {
       await expect(nav.getByRole('link', { name: label })).toHaveAttribute('aria-disabled', 'true');
     }
     const closed = await page.request.get('/admin/mail/unassigned');
     expect(closed.status(), '未归类邮件入口仍关闭').toBe(404);
-    for (const missing of ['/admin/samples', '/admin/content', '/admin/stats']) {
+    for (const missing of ['/admin/samples', '/admin/content']) {
       expect((await page.request.get(missing)).status(), missing).toBe(404);
     }
 
@@ -343,7 +343,7 @@ test.describe('standalone 主冒烟', () => {
     const report = {
       transport: 'standalone',
       origin: SMOKE_ORIGIN,
-      notClaimed: ['/admin/samples', '/admin/content', '/admin/stats', '/admin/mail/unassigned'],
+      notClaimed: ['/admin/samples', '/admin/content', '/admin/mail/unassigned'],
       requests: hits.filter((h) => h.path.startsWith('/api/') || h.path.startsWith('/admin') || h.path.startsWith('/en')),
       probes,
       densityFailed,

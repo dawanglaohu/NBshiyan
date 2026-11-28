@@ -391,7 +391,7 @@ describe('M6-T6 GET /api/admin/stats pure rules & HTTP contract', () => {
     }
   });
 
-  test('R3 PG17 CI workflow enforces 262/231 E2E partition, named stats-core-api execution, and dedicated schema=m6t6 gate', () => {
+  test('R3 PG17 CI workflow enforces 264/233 E2E partition, named stats-core-api execution, and dedicated schema=m6t6 gate', () => {
     const workflow = readFileSync(path.resolve(process.cwd(), '.github/workflows/ci.yml'), 'utf8');
     assert.ok(workflow.includes('CREATE DATABASE "m6t6_route_test"'), 'CI must provision dedicated m6t6_route_test DB');
 
@@ -423,20 +423,20 @@ describe('M6-T6 GET /api/admin/stats pure rules & HTTP contract', () => {
       ?.split('- name: Playwright A3 主段')[0];
     assert.ok(e2ePartition, 'e2e_partition step must exist');
     assert.ok(
-      e2ePartition.includes('{ all: 262, main: 231, model: 14, consent: 14, errors: 2, flow: 1 }'),
-      'e2e_partition must require all=262 and main=231',
+      e2ePartition.includes('{ all: 264, main: 233, model: 14, consent: 14, errors: 2, flow: 1 }'),
+      'e2e_partition must require all=264 and main=233',
     );
     assert.ok(
-      e2ePartition.includes('assert.equal(new Set(parts).size, 262'),
-      'e2e_partition must preserve 262 disjointness assertion',
+      e2ePartition.includes('assert.equal(new Set(parts).size, 264'),
+      'e2e_partition must preserve 264 disjointness assertion',
     );
     assert.ok(
       e2ePartition.includes('stats-core-api.spec.ts'),
       'e2e_partition must explicitly check stats-core-api.spec.ts collection',
     );
     assert.ok(
-      workflow.includes('Playwright A3 主段（231例，含同次 RUM 检查）'),
-      'main segment title must reflect 231 tests',
+      workflow.includes('Playwright A3 主段（233例，含同次 RUM 检查）'),
+      'main segment title must reflect 233 tests',
     );
     assert.ok(
       workflow.includes('stats-core-api.txt'),
@@ -444,7 +444,7 @@ describe('M6-T6 GET /api/admin/stats pure rules & HTTP contract', () => {
     );
     const runner = e2ePartition.split('segment=${1:?SEGMENT_REQUIRED}')[1];
     assert.match(runner, /mapfile -t main_files[^\n]*stats-core-api/);
-    assert.match(runner, /main-stats\) args=\(e2e\/stats-core-api\.spec\.ts\)/);
+    assert.match(runner, /main-stats\) args=\(e2e\/stats-core-api\.spec\.ts e2e\/stats-page\.spec\.ts\)/);
     assert.match(workflow, /run: bash "\$A3_DRIVER_DIR\/run\.sh" main-stats/);
     assert.ok(workflow.includes('e2e-evidence/main-stats/stats-core-api.txt'));
   });

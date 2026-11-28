@@ -886,7 +886,7 @@ jobs:
           grep -Fqx $'tests/admin-self-rebind.db.test.ts\tpass=17\tfail=0\tskip=0\ttodo=0\tcancelled=0' /tmp/m3t20-http-gate.txt
       # 五段使用同一构建产物与 PG，各自重启 Playwright 管理的应用，隔离 memory 限流。
       # 建单源码预算 5/3/3，认证源码预算 29/7/7；不是服务器请求实测计数。
-      - name: 核对 A3 收集分区并准备执行器（231 + 14 + 14 + 2 + 1 = 262）
+      - name: 核对 A3 收集分区并准备执行器（233 + 14 + 14 + 2 + 1 = 264）
         id: e2e_partition
         shell: bash
         run: |
@@ -921,9 +921,9 @@ jobs:
             groups[name] = rows;
             assert.equal(new Set(rows.map(row => row.key)).size, rows.length, `${name}: duplicate tests`);
           }
-          assert.deepEqual(Object.fromEntries(Object.entries(groups).map(([name, rows]) => [name, rows.length])), { all: 262, main: 231, model: 14, consent: 14, errors: 2, flow: 1 });
+          assert.deepEqual(Object.fromEntries(Object.entries(groups).map(([name, rows]) => [name, rows.length])), { all: 264, main: 233, model: 14, consent: 14, errors: 2, flow: 1 });
           const parts = [...groups.main, ...groups.model, ...groups.consent, ...groups.errors, ...groups.flow].map(row => row.key);
-          assert.equal(new Set(parts).size, 262, 'Partitions overlap');
+          assert.equal(new Set(parts).size, 264, 'Partitions overlap');
           assert.deepEqual(parts.sort(), groups.all.map(row => row.key).sort(), 'Partitions omit or change tests');
           const errors = [
             'E1 真实 400：搜索 101 字符 / 备注 5001 字符错误与纠正恢复',
@@ -939,8 +939,11 @@ jobs:
           const statsBusinessApi = groups.main.filter(row => row.file === 'stats-business-api.spec.ts');
           assert.equal(statsBusinessApi.length, 1, 'Missing e2e/stats-business-api.spec.ts in main partition');
           assert.ok(groups.all.some(row => row.key === statsBusinessApi[0].key), 'Missing e2e/stats-business-api.spec.ts in all collection');
+          const statsPage = groups.main.filter(row => row.file === 'stats-page.spec.ts');
+          assert.equal(statsPage.length, 2, 'Missing e2e/stats-page.spec.ts in main partition');
+          assert.ok(statsPage.every(item => groups.all.some(row => row.key === item.key)), 'Missing e2e/stats-page.spec.ts in all collection');
           writeFileSync('e2e-evidence/collection/partition.json', JSON.stringify(groups, null, 2) + '\n');
-          console.log('A3_COLLECTION all=262 main=231 model=14 consent=14 errors=2 flow=1 disjoint=true complete=true');
+          console.log('A3_COLLECTION all=264 main=233 model=14 consent=14 errors=2 flow=1 disjoint=true complete=true');
           console.log('A3_STATS_CORE_API_COLLECTED file=stats-core-api.spec.ts segment=main count=1');
           EOF
           driver_dir=$(mktemp -d "${RUNNER_TEMP:?}/nbshiyan-e2e-a3.XXXXXXXX")
@@ -961,11 +964,11 @@ jobs:
           #!/usr/bin/env bash
           set -Eeuo pipefail
           segment=${1:?SEGMENT_REQUIRED}
-          # 主段收集的 231 例分两次运行。统计用例需要独立的应用进程，避免与其余 230 例共享同意写限流。
-          mapfile -t main_files < <(ls e2e/*.spec.ts | grep -v -E '/(model-events|analytics-consent|consent-writes|stats-core-api)\.spec\.ts$')
+          # 主段收集的 233 例分两次运行。统计用例需要独立的应用进程，避免与其余 230 例共享同意写限流。
+          mapfile -t main_files < <(ls e2e/*.spec.ts | grep -v -E '/(model-events|analytics-consent|consent-writes|stats-core-api|stats-page)\.spec\.ts$')
           case "$segment" in
             main) args=("${main_files[@]}" --grep-invert "$A3_SPLIT_PATTERN") ;;
-            main-stats) args=(e2e/stats-core-api.spec.ts) ;;
+            main-stats) args=(e2e/stats-core-api.spec.ts e2e/stats-page.spec.ts) ;;
             model) args=(e2e/model-events.spec.ts) ;;
             consent) args=(e2e/analytics-consent.spec.ts e2e/consent-writes.spec.ts) ;;
             errors) args=(e2e/admin-legacy-inquiries-visual.spec.ts --grep "$A3_ERROR_PATTERN") ;;
@@ -1048,11 +1051,11 @@ jobs:
             printf 'A3_ERROR_PATTERN=%s\n' "$error_pattern"
             printf 'A3_FLOW_PATTERN=%s\n' "$flow_pattern"
           } >> "$GITHUB_ENV"
-      - name: Playwright A3 主段（231例，含同次 RUM 检查）
+      - name: Playwright A3 主段（233例，含同次 RUM 检查）
         id: e2e_main
         shell: bash
         run: bash "$A3_DRIVER_DIR/run.sh" main
-      - name: Playwright A3 主段统计用例（1/231，独立应用进程）
+      - name: Playwright A3 主段统计用例（3/233，独立应用进程）
         id: e2e_main_stats
         if: ${{ !cancelled() && steps.e2e_partition.outcome == 'success' && steps.e2e_main.outputs.released == 'true' }}
         shell: bash
