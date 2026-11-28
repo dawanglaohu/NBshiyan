@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import type { APIRequestContext, Browser, BrowserContext, Page } from '@playwright/test';
 import { BASE } from './base-url';
-import { expect, test } from './fixtures';
+import { closeRoutedContext, expect, test } from './fixtures';
 import { loadRunAuth } from './run-auth';
 import { shiftLocalDate } from '../src/lib/analytics/aggregate-plan';
 import { siteLocalDate } from '../src/lib/analytics/day-boundaries';
@@ -598,7 +598,7 @@ test.describe('M6-T4 core stats dashboard page', () => {
           )
           .toBe(true);
       } finally {
-        await visitorCtx.close();
+        await closeRoutedContext(visitorPage, visitorCtx);
       }
 
       const observedSlug =

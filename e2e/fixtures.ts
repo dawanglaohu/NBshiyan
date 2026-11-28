@@ -1,4 +1,4 @@
-import { test as base, expect, type Page } from '@playwright/test';
+import { test as base, expect, type BrowserContext, type Page } from '@playwright/test';
 
 // 所有外部请求一律拦截（CI 无外网），Turnstile 脚本用本地桩替代。
 // 桩按真实 API 行为：只有显式 render() 才会出控件（不再自动扫描 .cf-turnstile），这样 #181 这类重挂载问题能被测出来。
@@ -32,4 +32,15 @@ export async function consent(page: Page, value: 'all' | 'none') {
     localStorage.setItem('pj-consent', JSON.stringify(value));
     window.dispatchEvent(new CustomEvent('pj:consent', { detail: value }));
   }, value === 'all');
+}
+
+export async function closeRoutedContext(
+  page: Pick<Page, 'unrouteAll'>,
+  context: Pick<BrowserContext, 'close'>,
+) {
+  try {
+    await page.unrouteAll({ behavior: 'wait' });
+  } finally {
+    await context.close();
+  }
 }
