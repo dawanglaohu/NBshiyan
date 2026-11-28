@@ -1189,25 +1189,27 @@
   },
   "M6-T4": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "0d2674485e4b6baa2cb12c0e9a96b0a704e1c59fa5d8cc8bff5fffb45506cf8b",
+    "contractHash": "c7b7ab2bf05bde030687ab7b433001005e7ecbbf8bf5d330205151af3eb79f4c",
     "evidence": [
-      "第19节 M6-T4 沿用已落地 M6-T6 的 stats-core 和 M3-T7 的后台壳，交付 stats-base-ui。07 节路由表规定 AdminShell.stats-link → /admin/stats；10 节规定 GET /api/admin/stats 的 StatsDTO 和角色来源。12 节将统一页脚登录入口交给 M3-T6。",
-      "13 节 E-61/E-63/E-66 与 17 节真实 HTTP、聚合、角色矩阵、三视口密度验收一致。src/lib/client/ops.ts:76、src/app/admin/stats/page.tsx:19、e2e/stats-page.spec.ts:205、:610 对应入口及测试。实现仍须按 PR #579 首轮返工修复缓存隔离、3D 状态和失败的 main-stats 测试。",
-      "六个新增支持路径覆盖布局守卫和角色断言、原不可达冒烟、故障页注册，以及 CI 与统计路由测试的精确分区计数。M6-T5（PR #578）同改 .github/workflows/ci.yml 和 tests/stats-route.test.ts；同步时应核对两层增加的用例并保留两者的测试分段。其余17个任务的本地契约字段与基线逐项相同。"
+      "M6-T6 stats-core、M3-T7 admin-shell-profile-ui 继续提供后台壳导航及已授权的 GET /api/admin/stats。19节与13节 E-61/E-63/E-66、17节真实会话与三尺寸验收要求未变。",
+      "StatsContainer.tsx:741 按目标查询和真实 revision 选快照，:833 的 403 分支清缓存并屏蔽越权 sources。:298、:409 区分配对来源状态和同版本单源失败。e2e/stats-page.spec.ts:960、:1031、:1054、:1145 覆盖延迟、版本更换、3D状态与失权。",
+      "e2e/stats-page.spec.ts:135 在 Node 端读取并原样转交真实统计响应。:268、:1215 保留真实授权统计链、三角色、三视口。实施方独立服务日志记录统计三例通过，重启后页面两例通过。",
+      "main 2023b8ea 已纳入 stats-reliability-api.spec.ts。合并后 .github/workflows/ci.yml:934、:952、:955 校验 all=265、main=234 并单独核对两个规格；:984 指定原三个 main-stats 用例。tests/stats-route.test.ts:426 和 tests/stats-reliability.test.ts:874 使用相同门槛，保留 M6-T5 专库14例门禁。"
     ],
-    "reviewed": "2026-11-28T06:17:22.605631+00:00",
+    "reviewed": "2026-11-28T10:25:30.012133+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M6-T5": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "f6c1a7d33d4bfbdaf87ea85d06f76ae99e72644e379f36a55c4c0d22327e1f42",
+    "contractHash": "f71208e6f8991e6353506751477014356eda20b83f1f1e5797d5578e9c0f5697",
     "evidence": [
-      "固定对象：L bed4436b7bb26d67583373c24777eb2953f19cc3 / tree ace1e3fc305c882758b406ffb2cd00d5012aea0c / 唯一父 K 81cdb260224d359bb04bb6d35306c2e944a6958f；task/M5-T4 工作树 clean；本登记只写本补丁证据、task-reviews 与正常派生，不改 task-contracts.json、任务状态、源码/测试/CI/包锁/schema 与生成器。",
-      "本键为传播变更：契约对象在 K→L 逐字节相同（对象摘要 e3e579a5746dae17 = e3e579a5746dae17）；provides=1/requires=2/sections=12/supportPaths=0/outputPaths=4 全为原值；当前契约 hash f6c1a7d33d4bfbdaf87ea85d06f76ae99e72644e379f36a55c4c0d22327e1f42 变化仅因依赖闭包含 M5-T4（经 M6-T6 → M5-T4），能力与接口未变。",
-      "范围限定：本记录只是 L 当前契约语义复核，不证明该任务已实现、不改变其 todo/status；M5-T4 亦不证明真实 PG 用例 15./16. 通过、不证明新 CI 转绿；未重验 P2/O1 或旧 43，未顺手清理既有 stale。"
+      "契约 f71208e6 引用 M6-T6 的 stats-core 与 M4-T4 的 chat-notification-job；与第10节分源 DTO、第13节 E-51/52/53/64/67、第17节真实 HTTP 与通知作业、第19节 M6-T5 接线要求一致。本轮沿用已核验的四个支持路径，未改契约。",
+      "PR #578 返工提交 aedd8492：R1 隔离 STARTTLS SMTP、持久化行、授权 GET 三方对照见 tests/stats-reliability.test.ts:1585 和 :1764。R2 同请求单快照见 src/lib/server/ops/reliability-source.ts:270 及并发写入测试 :1511；R3 生产装配及三态断言见 src/lib/server/composition.ts:142、tests/stats-reliability.test.ts:1350。",
+      "R4 已通过 anonymizeInquiriesTx 跨日回归（tests/stats-reliability.test.ts:1970）。R5 服务按日期、产品及有效时区修订校验旧查询，缺键或异键返回失败空值，同键保留明细和成功时间（src/lib/server/ops/stats-service.ts:351，tests/stats-reliability.test.ts:2148、:2166）。",
+      "审查复跑本地 PostgreSQL 12 的 14 项可靠性用例，14 通过、0 跳过；tsc --noEmit、next lint 和 lint-ru-yo 通过。GitHub Actions 46106996100 的 PG17 三个文件分别 14、9、14 项通过且无跳过，A3 的 stats-reliability-api.spec.ts:27 在真实 standalone 上具名通过。返工提交四项 CI 全绿，bot 对同一 SHA 的复核无新发现。"
     ],
-    "reviewed": "2026-11-11T05:34:58.660575+00:00",
+    "reviewed": "2026-11-28T06:13:39.959590+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },

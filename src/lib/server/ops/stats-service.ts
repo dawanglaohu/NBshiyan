@@ -8,8 +8,11 @@ import type { FieldError } from '../../contracts/errors';
 import {
   StatsDTOSchema,
   StatsQuerySchema,
+  type StatsApiErrorRateDTO,
   type StatsCoverage,
   type StatsDTO,
+  type StatsNotificationBreakdownDTO,
+  type StatsNotificationCountsDTO,
   type StatsQueryDTO,
   type StatsSource,
   type StatsSourceDTO,
@@ -28,6 +31,11 @@ import { AppError, classifyThrown, type UnknownFailureLog } from '../http/errors
 import type { ApiCounter, ApiRouteId } from '../http/metrics';
 import { INITIAL_TIMEZONE_REVISION } from '../jobs/types';
 import { hitRateLimit } from '../security';
+import {
+  computeApiErrorRate,
+  preserveSourceSnapshotOnFailure,
+  sameStatsQueryScope,
+} from './reliability-source';
 import { toStatsSourceDTO } from './source-dto';
 import { readCoreStats, selectStatsSources } from './stats-query';
 
@@ -44,7 +52,7 @@ export type StatsDb = Pick<PrismaClient, '$transaction'>;
 
 type CoreStatsResult = Awaited<ReturnType<typeof readCoreStats>>;
 
-export type NonCoreSourceReader = (input: {
+export type NonCoreSourceReadInput = {
   role: Role;
   /** 当前请求的后台用户；按人分配的来源（如 SALES 询盘）据此取 scope。 */
   userId?: string;
@@ -52,7 +60,22 @@ export type NonCoreSourceReader = (input: {
   context: { timezone: string; timezoneRevision: number; queriedAt: string };
   now: Date;
   connected: boolean;
-}) => Promise<StatsSourceDTO> | StatsSourceDTO;
+  /** 可选：调用方显式提供的同查询键上次成功单源快照（无全局状态，用于 E-51 失败回退）。 */
+  previousSource?: StatsSourceDTO;
+  previousBreakdown?: StatsNotificationBreakdownDTO | null;
+  /** 单次 query() 请求栈内的临时快照备忘（禁止跨请求共享，仅用于同一次 GET 配对源共享数据库快照）。 */
+  requestMemo?: Map<symbol, unknown>;
+};
+
+export type NonCoreSourceReader = (input: NonCoreSourceReadInput) => Promise<StatsSourceDTO> | StatsSourceDTO;
+
+export type DetailedNonCoreSourceReader = (input: NonCoreSourceReadInput) => Promise<{
+  dto: StatsSourceDTO;
+  notificationBreakdown?: StatsNotificationBreakdownDTO | null;
+}> | {
+  dto: StatsSourceDTO;
+  notificationBreakdown?: StatsNotificationBreakdownDTO | null;
+};
 
 export type StatsServiceDeps = {
   db?: StatsDb;
@@ -61,17 +84,24 @@ export type StatsServiceDeps = {
   aggregateJobRegistered?: () => boolean;
   resolveLegacyBefore?: (timezoneRevision: number) => Promise<string | null> | string | null;
   nonCoreReaders?: Partial<Record<StatsSource, NonCoreSourceReader>>;
+  detailedNonCoreReaders?: Partial<Record<StatsSource, DetailedNonCoreSourceReader>>;
 };
 
 export type StatsQueryInput = {
   role: Role;
   userId?: string;
   query: StatsQueryDTO;
+  /** 可选：单次请求显式传入的上次同键成功快照（严禁进程级全局缓存；必须携带完整旧 query 且同有效范围才允许回退）。 */
+  previousSnapshot?: {
+    dto: StatsDTO;
+    query: StatsQueryDTO;
+  };
 };
 
 export type StatsServiceResult = {
   dto: StatsDTO;
   modelSuccessRate: { value: number | null; coverage: StatsCoverage } | null;
+  apiErrorRate: StatsApiErrorRateDTO | null;
   scope: CoreStatsResult['scope'];
 };
 
@@ -276,9 +306,10 @@ async function resolveTrustedLegacyBefore(
 export function createStatsService(deps: StatsServiceDeps = {}): StatsService {
   const clock = deps.clock ?? (() => new Date());
   const nonCoreReaders = deps.nonCoreReaders ?? {};
+  const detailedNonCoreReaders = deps.detailedNonCoreReaders ?? {};
 
   return {
-    async query({ role, userId, query }) {
+    async query({ role, userId, query, previousSnapshot }) {
       if (!deps.db) throw new Error('StatsService requires db');
       if (!isAllowedRole(role)) throw new AppError('forbidden');
 
@@ -314,27 +345,104 @@ export function createStatsService(deps: StatsServiceDeps = {}): StatsService {
         queriedAt: now.toISOString(),
       };
 
+      const prevQuery = previousSnapshot?.query;
+      const prevRevision = prevQuery?.timezoneRevision
+        ?? previousSnapshot?.dto.sources[0]?.timezoneRevision;
+      const canUsePrevious = Boolean(
+        previousSnapshot
+        && prevQuery
+        && sameStatsQueryScope(
+          { ...query, timezoneRevision: coreResult.scope.timezoneRevision },
+          prevRevision !== undefined ? { ...prevQuery, timezoneRevision: prevRevision } : prevQuery,
+        ),
+      );
+      const prevSources = canUsePrevious
+        ? new Map(previousSnapshot!.dto.sources.map((item) => [item.source, item]))
+        : new Map<StatsSource, StatsSourceDTO>();
+      const prevNotificationCounts = canUsePrevious ? previousSnapshot!.dto.notificationCounts : null;
+      const requestMemo = new Map<symbol, unknown>();
+
       const sources: StatsSourceDTO[] = [];
+      const notificationBreakdowns: Partial<Record<'chat_notifications' | 'mail', StatsNotificationBreakdownDTO | null>> = {};
+
       for (const source of allowedSources) {
         const coreItem = bySource.get(source);
         if (coreItem) {
-          sources.push(coreItem);
+          sources.push(preserveSourceSnapshotOnFailure(coreItem, prevSources.get(source)));
           continue;
         }
+        const previousSource = prevSources.get(source);
+        const previousBreakdown = source === 'chat_notifications' || source === 'mail'
+          ? (prevNotificationCounts?.[source] ?? null)
+          : undefined;
+        const readInput: NonCoreSourceReadInput = {
+          role,
+          userId,
+          scope: coreResult.scope,
+          context,
+          now,
+          connected,
+          requestMemo,
+          ...(previousSource ? { previousSource } : {}),
+          ...(previousBreakdown !== undefined ? { previousBreakdown } : {}),
+        };
+
+        const detailedReader = detailedNonCoreReaders[source];
+        if (detailedReader) {
+          const outcome = await detailedReader(readInput);
+          const merged = preserveSourceSnapshotOnFailure(outcome.dto, previousSource);
+          sources.push(merged);
+          if (source === 'chat_notifications' || source === 'mail') {
+            notificationBreakdowns[source] = outcome.notificationBreakdown
+              ?? (merged.state === 'query_failed' && merged.value !== null ? (previousBreakdown ?? null) : null);
+          }
+          continue;
+        }
+
         const reader = nonCoreReaders[source];
         if (reader) {
-          sources.push(await reader({ role, userId, scope: coreResult.scope, context, now, connected }));
+          const item = await reader(readInput);
+          const merged = preserveSourceSnapshotOnFailure(item, previousSource);
+          sources.push(merged);
+          if (source === 'chat_notifications' || source === 'mail') {
+            notificationBreakdowns[source] = merged.state === 'query_failed' && merged.value !== null
+              ? (previousBreakdown ?? null)
+              : null;
+          }
         } else {
           sources.push(toStatsSourceDTO(context, source, { unavailableState: 'not_connected' }));
+          if (source === 'chat_notifications' || source === 'mail') {
+            notificationBreakdowns[source] = null;
+          }
         }
       }
+
+      const apiErrorRate = computeApiErrorRate(sources);
+      const hasNotificationSources = allowedSources.includes('chat_notifications') || allowedSources.includes('mail');
+      const notificationCounts: StatsNotificationCountsDTO | null = hasNotificationSources
+        ? {
+          ...(allowedSources.includes('chat_notifications')
+            ? { chat_notifications: notificationBreakdowns.chat_notifications ?? null }
+            : {}),
+          ...(allowedSources.includes('mail')
+            ? { mail: notificationBreakdowns.mail ?? null }
+            : {}),
+        }
+        : null;
 
       const dto = StatsDTOSchema.parse({
         sources,
         modelSuccessRate: coreResult.modelSuccessRate,
+        apiErrorRate,
+        notificationCounts,
         recomputableFrom: targetRevision.recomputableFrom,
       });
-      return { dto, modelSuccessRate: coreResult.modelSuccessRate, scope: coreResult.scope };
+      return {
+        dto,
+        modelSuccessRate: coreResult.modelSuccessRate,
+        apiErrorRate,
+        scope: coreResult.scope,
+      };
     },
   };
 }

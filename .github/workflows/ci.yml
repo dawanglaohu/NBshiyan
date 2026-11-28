@@ -417,6 +417,7 @@ jobs:
             -c 'CREATE DATABASE "m6t1_stats_test"' \
             -c 'CREATE DATABASE "m6t2_business_test"' \
             -c 'CREATE DATABASE "m6t3_ops_report_test"' \
+            -c 'CREATE DATABASE "m6t5_reliability_test"' \
             -c 'CREATE DATABASE "m6t6_route_test"' \
             -c 'CREATE DATABASE "m4t11_operator_write_test"'
       - name: Analytics, chat, and other PostgreSQL regressions
@@ -450,6 +451,9 @@ jobs:
           # M6-T3 存储/备份运维报告与 ops-sample 真实 PG/Auth.js 回归：专用库 + require；缺库即失败，不回退通用 DATABASE_URL。
           M6T3_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/m6t3_ops_report_test
           M6T3_REQUIRE_DATABASE: 'true'
+          # M6-T5 HTTP 与邮件可靠性来源真实 PG/Auth.js/通知作业回归：专用库 + require；缺库即失败，不回退通用 DATABASE_URL。
+          M6T5_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/m6t5_reliability_test
+          M6T5_REQUIRE_DATABASE: 'true'
           B10_M4T4_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
           M3T2_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e?schema=m3t2
           M3T2_REQUIRE_DATABASE: 'true'
@@ -504,6 +508,7 @@ jobs:
               'tests/stats-route.test.ts',
               'tests/stats-business.test.ts',
               'tests/ops-report.test.ts',
+              'tests/stats-reliability.test.ts',
               'tests/chat-visitor-append.db.test.ts',
               'tests/analytics-daily.db.test.ts',
               'tests/analytics-day-state.db.test.ts',
@@ -568,6 +573,7 @@ jobs:
             tests/stats-route.test.ts \
             tests/stats-business.test.ts \
             tests/ops-report.test.ts \
+            tests/stats-reliability.test.ts \
             tests/chat-visitor-append.db.test.ts \
             tests/analytics-daily.db.test.ts \
             tests/analytics-day-state.db.test.ts \
@@ -618,6 +624,7 @@ jobs:
             'tests/stats-route.test.ts',
             'tests/stats-business.test.ts',
             'tests/ops-report.test.ts',
+            'tests/stats-reliability.test.ts',
             'tests/chat-visitor-append.db.test.ts',
               'tests/analytics-daily.db.test.ts',
               'tests/analytics-day-state.db.test.ts',
@@ -684,6 +691,9 @@ jobs:
           # M6-T3 精确分母 14（8 纯契约/脚本单测 + 6 PG/Auth.js 真库用例）；防止真库 suite 级 skip 被 pass>=1 宽门吞掉。
           grep -Fqx $'tests/ops-report.test.ts\tpass=17\tfail=0\tskip=0\ttodo=0\tcancelled=0' /tmp/m3t2-file-gate.txt
           grep -Eq '^[[:space:]]*ok [0-9]+ - M6-T3 ops-report & ops-sample PostgreSQL \+ Auth\.js integration$' /tmp/pg-regressions.tap
+          # M6-T5 精确分母 14（8 纯契约/边界单测 + 6 PG/Auth.js/真实通知作业集成用例）；防止真库 suite 级 skip 被 pass>=1 宽门吞掉。
+          grep -Fqx $'tests/stats-reliability.test.ts\tpass=14\tfail=0\tskip=0\ttodo=0\tcancelled=0' /tmp/m3t2-file-gate.txt
+          grep -Eq '^[[:space:]]*ok [0-9]+ - M6-T5 reliability sources over real HTTP routes & notification jobs \(PostgreSQL \+ Auth\.js\)$' /tmp/pg-regressions.tap
           grep -F 'M4-T4 notification PostgreSQL' /tmp/pg-regressions.tap
           # Named-case evidence. The 26 above is still owned by the exact file gate; this only
           # persists WHICH 26 ran. Nothing captured from the TAP is printed or written: every
@@ -886,7 +896,7 @@ jobs:
           grep -Fqx $'tests/admin-self-rebind.db.test.ts\tpass=17\tfail=0\tskip=0\ttodo=0\tcancelled=0' /tmp/m3t20-http-gate.txt
       # 五段使用同一构建产物与 PG，各自重启 Playwright 管理的应用，隔离 memory 限流。
       # 建单源码预算 5/3/3，认证源码预算 29/7/7；不是服务器请求实测计数。
-      - name: 核对 A3 收集分区并准备执行器（233 + 14 + 14 + 2 + 1 = 264）
+      - name: 核对 A3 收集分区并准备执行器（234 + 14 + 14 + 2 + 1 = 265）
         id: e2e_partition
         shell: bash
         run: |
@@ -921,9 +931,9 @@ jobs:
             groups[name] = rows;
             assert.equal(new Set(rows.map(row => row.key)).size, rows.length, `${name}: duplicate tests`);
           }
-          assert.deepEqual(Object.fromEntries(Object.entries(groups).map(([name, rows]) => [name, rows.length])), { all: 264, main: 233, model: 14, consent: 14, errors: 2, flow: 1 });
+          assert.deepEqual(Object.fromEntries(Object.entries(groups).map(([name, rows]) => [name, rows.length])), { all: 265, main: 234, model: 14, consent: 14, errors: 2, flow: 1 });
           const parts = [...groups.main, ...groups.model, ...groups.consent, ...groups.errors, ...groups.flow].map(row => row.key);
-          assert.equal(new Set(parts).size, 264, 'Partitions overlap');
+          assert.equal(new Set(parts).size, 265, 'Partitions overlap');
           assert.deepEqual(parts.sort(), groups.all.map(row => row.key).sort(), 'Partitions omit or change tests');
           const errors = [
             'E1 真实 400：搜索 101 字符 / 备注 5001 字符错误与纠正恢复',
@@ -939,11 +949,14 @@ jobs:
           const statsBusinessApi = groups.main.filter(row => row.file === 'stats-business-api.spec.ts');
           assert.equal(statsBusinessApi.length, 1, 'Missing e2e/stats-business-api.spec.ts in main partition');
           assert.ok(groups.all.some(row => row.key === statsBusinessApi[0].key), 'Missing e2e/stats-business-api.spec.ts in all collection');
+          const statsReliabilityApi = groups.main.filter(row => row.file === 'stats-reliability-api.spec.ts');
+          assert.equal(statsReliabilityApi.length, 1, 'Missing e2e/stats-reliability-api.spec.ts in main partition');
+          assert.ok(groups.all.some(row => row.key === statsReliabilityApi[0].key), 'Missing e2e/stats-reliability-api.spec.ts in all collection');
           const statsPage = groups.main.filter(row => row.file === 'stats-page.spec.ts');
           assert.equal(statsPage.length, 2, 'Missing e2e/stats-page.spec.ts in main partition');
           assert.ok(statsPage.every(item => groups.all.some(row => row.key === item.key)), 'Missing e2e/stats-page.spec.ts in all collection');
           writeFileSync('e2e-evidence/collection/partition.json', JSON.stringify(groups, null, 2) + '\n');
-          console.log('A3_COLLECTION all=264 main=233 model=14 consent=14 errors=2 flow=1 disjoint=true complete=true');
+          console.log('A3_COLLECTION all=265 main=234 model=14 consent=14 errors=2 flow=1 disjoint=true complete=true');
           console.log('A3_STATS_CORE_API_COLLECTED file=stats-core-api.spec.ts segment=main count=1');
           EOF
           driver_dir=$(mktemp -d "${RUNNER_TEMP:?}/nbshiyan-e2e-a3.XXXXXXXX")
@@ -964,7 +977,7 @@ jobs:
           #!/usr/bin/env bash
           set -Eeuo pipefail
           segment=${1:?SEGMENT_REQUIRED}
-          # 主段收集的 233 例分两次运行。统计用例需要独立的应用进程，避免与其余 230 例共享同意写限流。
+          # 主段收集的 234 例分两次运行。统计用例需要独立的应用进程，避免与其余 231 例共享同意写限流。
           mapfile -t main_files < <(ls e2e/*.spec.ts | grep -v -E '/(model-events|analytics-consent|consent-writes|stats-core-api|stats-page)\.spec\.ts$')
           case "$segment" in
             main) args=("${main_files[@]}" --grep-invert "$A3_SPLIT_PATTERN") ;;
@@ -1051,11 +1064,11 @@ jobs:
             printf 'A3_ERROR_PATTERN=%s\n' "$error_pattern"
             printf 'A3_FLOW_PATTERN=%s\n' "$flow_pattern"
           } >> "$GITHUB_ENV"
-      - name: Playwright A3 主段（233例，含同次 RUM 检查）
+      - name: Playwright A3 主段（234例，含同次 RUM 检查）
         id: e2e_main
         shell: bash
         run: bash "$A3_DRIVER_DIR/run.sh" main
-      - name: Playwright A3 主段统计用例（3/233，独立应用进程）
+      - name: Playwright A3 主段统计用例（3/234，独立应用进程）
         id: e2e_main_stats
         if: ${{ !cancelled() && steps.e2e_partition.outcome == 'success' && steps.e2e_main.outputs.released == 'true' }}
         shell: bash
