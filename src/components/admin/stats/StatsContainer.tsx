@@ -234,16 +234,22 @@ function formatByteCount(bytes: number): string {
 }
 
 /**
- * 严格按 09/11 节与 E-63 口径格式化单源数值：
+ * 严格按 09/11 节与 E-63 口径格式化单源数值（R4）：
  * - no_data / not_connected / query_failed(无值) / 无样本(null) 绝不渲染为 0；
+ * - query_failed(无快照) 优先展示失败文案，绝不将失败误报为「无样本」；
  * - 只有 state === 'zero' 或确有 0 值时才显示 0。
  */
 export function formatSourceValue(item: StatsSourceDTO): string {
   if (item.state === 'not_connected') return `Not connected: ${item.source}`;
-  if (item.state === 'no_data') return 'No data yet';
+  if (item.state === 'query_failed' && item.value === null) return '查询失败（无快照）';
+  if (item.state === 'no_data') {
+    if (item.source === 'mean_load_duration_ms' && item.coverage !== 'unavailable') {
+      return '—（无样本）';
+    }
+    return 'No data yet';
+  }
   if (item.value === null) {
     if (item.source === 'mean_load_duration_ms') return '—（无样本）';
-    if (item.state === 'query_failed') return '查询失败（无快照）';
     return '—';
   }
   const meta = SOURCE_CATALOG[item.source];
@@ -257,19 +263,148 @@ export function formatSourceValue(item: StatsSourceDTO): string {
 }
 
 /**
- * 格式化配对 3D 加载成功率（E-63）：
- * 分母仅为获同意后真实 model_view_start；无样本返回无样本说明，有发起分母且零成功才返回 0%。
+ * 格式化 3D 平均加载耗时的有效终态样本数（samples）：
+ * 未接入或无留存快照的查询失败属于未知状态，返回 '—' 而非断言 0。
  */
-export function formatModelSuccessRate(rate: StatsModelSuccessRateDTO): string {
-  if (rate.value === null) return '—（无发起样本）';
-  if (rate.value === 0) return '0%';
-  const pct = (rate.value * 100).toFixed(1).replace(/\.0$/, '');
+export function formatDurationSamples(item: StatsSourceDTO): string {
+  if (item.state === 'not_connected') return '—';
+  if (item.state === 'query_failed' && item.value === null) return '—';
+  return (item.loadDurationSamples ?? 0).toLocaleString('en-US');
+}
+
+export type ModelSuccessRatePairing = {
+  startsSource?: StatsSourceDTO;
+  successesSource?: StatsSourceDTO;
+};
+
+export type ModelSuccessRateDisplay = {
+  badgeState: StatsSourceState;
+  valueText: string;
+  pairText: string;
+  isAlert: boolean;
+};
+
+function formatSuccessRatePct(val: number): string {
+  if (val === 0) return '0%';
+  const pct = (val * 100).toFixed(1).replace(/\.0$/, '');
   return `${pct}%`;
 }
 
 /**
- * 同查询键合并逐源旧值：若某源当前为 query_failed 且 value === null，但上次同键快照有成功值，
- * 保留旧数值与原 dataThrough / lastSucceededAt，同时将状态保持为 query_failed 并标记保留旧值。
+ * 结合配对来源（model_starts / model_successes）的实际状态与 DTO 推导 3D 加载成功率展示（R4 / E-63）：
+ * 完整区分 query_failed、not_connected、stale、no_data/zero 真实无样本与有分母的 0%；
+ * 查询失败或未接入时绝不断言「0 starts」。
+ */
+export function resolveModelSuccessRateDisplay(
+  rate: StatsModelSuccessRateDTO,
+  pairing: ModelSuccessRatePairing = {},
+): ModelSuccessRateDisplay {
+  const { startsSource, successesSource } = pairing;
+
+  const pairedCountsText = (): string | null => {
+    if (
+      startsSource?.value !== null &&
+      startsSource?.value !== undefined &&
+      successesSource?.value !== null &&
+      successesSource?.value !== undefined
+    ) {
+      if (
+        rate.value !== null &&
+        startsSource.value > 0 &&
+        Math.abs(successesSource.value / startsSource.value - rate.value) <= 1e-6
+      ) {
+        return `${successesSource.value.toLocaleString('en-US')} / ${startsSource.value.toLocaleString('en-US')} starts`;
+      }
+      if (rate.value === null && startsSource.value === 0 && successesSource.value === 0) {
+        return '0 starts（无配对分母）';
+      }
+    }
+    return null;
+  };
+
+  if (startsSource?.state === 'query_failed' || successesSource?.state === 'query_failed') {
+    const retainedCounts = pairedCountsText();
+    if (rate.value !== null && retainedCounts !== null) {
+      return {
+        badgeState: 'query_failed',
+        valueText: formatSuccessRatePct(rate.value),
+        pairText: retainedCounts,
+        isAlert: true,
+      };
+    }
+    return {
+      badgeState: 'query_failed',
+      valueText: '查询失败（无快照）',
+      pairText: '查询失败（配对分母未知）',
+      isAlert: true,
+    };
+  }
+
+  if (startsSource?.state === 'not_connected' || successesSource?.state === 'not_connected') {
+    return {
+      badgeState: 'not_connected',
+      valueText: 'Not connected: model_success_rate',
+      pairText: 'Not connected（未接入配对来源）',
+      isAlert: false,
+    };
+  }
+
+  if (startsSource?.state === 'stale' || successesSource?.state === 'stale') {
+    const counts = pairedCountsText();
+    return {
+      badgeState: 'stale',
+      valueText: rate.value === null ? '—（无发起样本）' : formatSuccessRatePct(rate.value),
+      pairText:
+        counts ??
+        (rate.value !== null
+          ? `配对覆盖：${formatCoverageText(rate.coverage)}`
+          : '无配对样本（旧快照无分母）'),
+      isAlert: true,
+    };
+  }
+
+  if (rate.value === null) {
+    const hasMeasuredZeroStarts = startsSource?.state === 'zero' && startsSource.value === 0;
+    const isNoData =
+      startsSource?.state === 'no_data' ||
+      successesSource?.state === 'no_data' ||
+      rate.coverage === 'unavailable';
+    return {
+      badgeState: 'no_data',
+      valueText: '—（无发起样本）',
+      pairText: hasMeasuredZeroStarts
+        ? '0 starts（无配对分母）'
+        : isNoData
+          ? 'No data yet（尚无配对样本）'
+          : '无配对分母',
+      isAlert: false,
+    };
+  }
+
+  const counts = pairedCountsText();
+  return {
+    badgeState: rate.value === 0 ? 'zero' : 'ok',
+    valueText: formatSuccessRatePct(rate.value),
+    pairText: counts ?? `配对覆盖：${formatCoverageText(rate.coverage)}`,
+    isAlert: false,
+  };
+}
+
+/**
+ * 格式化配对 3D 加载成功率主读数（E-63 / R4）：
+ * 分母仅为获同意后真实 model_view_start；支持传入配对来源以区分失败/未接入/无样本/0%。
+ */
+export function formatModelSuccessRate(
+  rate: StatsModelSuccessRateDTO,
+  pairing?: ModelSuccessRatePairing,
+): string {
+  return resolveModelSuccessRateDisplay(rate, pairing).valueText;
+}
+
+/**
+ * 同查询键且同 timezoneRevision 合并逐源旧值（R3）：
+ * 仅当 prev 与当前项的 timezoneRevision 及 timezone 完全一致、当前项为 query_failed 且 value === null、
+ * 且上次快照有成功值时，保留旧数值、样本数与原 dataThrough / lastSucceededAt；跨版本绝不串值。
  */
 export function mergeSnapshotSources(
   current: StatsDTO,
@@ -283,7 +418,13 @@ export function mergeSnapshotSources(
   const merged = current.sources.map((item) => {
     if (item.state === 'query_failed' && item.value === null) {
       const prev = prevBySource.get(item.source);
-      if (prev && prev.value !== null && prev.lastSucceededAt !== null) {
+      if (
+        prev &&
+        prev.timezoneRevision === item.timezoneRevision &&
+        prev.timezone === item.timezone &&
+        prev.value !== null &&
+        prev.lastSucceededAt !== null
+      ) {
         retained.add(item.source);
         return {
           ...item,
@@ -296,10 +437,22 @@ export function mergeSnapshotSources(
     }
     return item;
   });
+
+  const retainPairedRate =
+    retained.has('model_starts') &&
+    retained.has('model_successes') &&
+    current.modelSuccessRate !== null &&
+    current.modelSuccessRate !== undefined &&
+    current.modelSuccessRate.value === null &&
+    previousGood.modelSuccessRate !== null &&
+    previousGood.modelSuccessRate !== undefined &&
+    previousGood.modelSuccessRate.value !== null;
+
   return {
     dto: {
       ...current,
       sources: merged,
+      ...(retainPairedRate ? { modelSuccessRate: previousGood.modelSuccessRate } : {}),
     },
     retainedSources: retained,
   };
@@ -348,7 +501,7 @@ function SourceCardView({
         {item.source === 'mean_load_duration_ms' && (
           <p data-testid="stats-duration-samples">
             <strong>有效终态样本（samples）：</strong>
-            <span className="stats-mono">{item.loadDurationSamples ?? 0}</span>
+            <span className="stats-mono">{formatDurationSamples(item)}</span>
           </p>
         )}
         {retainedFromSnapshot && item.lastSucceededAt && (
@@ -380,40 +533,42 @@ function ModelSuccessRateCard({
   rate,
   startsSource,
   successesSource,
+  retainedFromSnapshot,
 }: {
   rate: StatsModelSuccessRateDTO;
   startsSource?: StatsSourceDTO;
   successesSource?: StatsSourceDTO;
+  retainedFromSnapshot: boolean;
 }) {
-  const isZeroOrOk = rate.value !== null;
-  const badgeState: StatsSourceState = rate.coverage === 'unavailable'
-    ? 'not_connected'
-    : rate.value === null
-      ? 'no_data'
-      : rate.value === 0
-        ? 'zero'
-        : 'ok';
-  const badge = formatStateBadge(badgeState);
+  const display = resolveModelSuccessRateDisplay(rate, { startsSource, successesSource });
+  const badge = formatStateBadge(display.badgeState);
+  const refSource = startsSource ?? successesSource;
+  const retainedTimestamp = refSource?.dataThrough ?? refSource?.lastSucceededAt ?? null;
 
   return (
     <article
       className="stats-card"
       data-testid="stats-model-success-rate"
-      data-source-state={badgeState}
+      data-source-state={display.badgeState}
+      data-alert={display.isAlert ? 'true' : undefined}
     >
       <div className="stats-card-top">
         <div>
           <h3 className="stats-card-title">3D 加载成功率</h3>
           <p className="stats-card-desc">3D load success rate</p>
         </div>
-        <span className="stats-badge" data-state={badgeState}>
+        <span
+          className="stats-badge"
+          data-state={display.badgeState}
+          data-testid="stats-state-model_success_rate"
+        >
           <span aria-hidden="true">{badge.prefix}</span>
           <span>{badge.text}</span>
         </span>
       </div>
 
       <p className="stats-value" data-testid="stats-value-model_success_rate">
-        {formatModelSuccessRate(rate)}
+        {display.valueText}
       </p>
 
       <p className="stats-card-desc">
@@ -423,26 +578,27 @@ function ModelSuccessRateCard({
       <div className="stats-card-meta">
         <p data-testid="stats-success-rate-pair">
           <strong>配对读数：</strong>
-          <span className="stats-mono">
-            {isZeroOrOk
-              ? `${successesSource?.value ?? 0} / ${startsSource?.value ?? 0} starts`
-              : '0 starts（无配对分母）'}
-          </span>
+          <span className="stats-mono">{display.pairText}</span>
         </p>
+        {retainedFromSnapshot && retainedTimestamp && (
+          <p>
+            <strong>旧值保留：</strong>Couldn&apos;t refresh. Showing data through {retainedTimestamp}.
+          </p>
+        )}
         <p>
           <strong>覆盖：</strong>
           <span>{formatCoverageText(rate.coverage)}</span>
-          {startsSource && (
+          {refSource && (
             <>
               {' · '}
               <strong>时区：</strong>
-              <span className="stats-mono">{startsSource.timezone} (rev {startsSource.timezoneRevision})</span>
+              <span className="stats-mono">{refSource.timezone} (rev {refSource.timezoneRevision})</span>
             </>
           )}
         </p>
         <p>
           <strong>数据截止：</strong>
-          <span className="stats-mono">{startsSource?.dataThrough ?? '—'}</span>
+          <span className="stats-mono">{refSource?.dataThrough ?? '—'}</span>
         </p>
       </div>
     </article>
@@ -538,6 +694,7 @@ export default function StatsContainer({
   const [draftTo, setDraftTo] = useState('');
   const [productSlug, setProductSlug] = useState('');
   const [scopeMode, setScopeMode] = useState<StatsScopeMode>('all');
+  const [opsForbidden, setOpsForbidden] = useState(false);
   const [appliedQuery, setAppliedQuery] = useState<{
     from?: string;
     to?: string;
@@ -557,17 +714,20 @@ export default function StatsContainer({
   } | null>(null);
 
   const snapshotsRef = useRef<Map<string, StatsDTO>>(new Map());
+  const latestRevisionRef = useRef<number | undefined>(undefined);
+  const opsForbiddenRef = useRef(false);
   const activeAbortRef = useRef<AbortController | null>(null);
   const initializedDatesRef = useRef(false);
 
-  const activeKey = useMemo(
-    () =>
+  const snapshotKeyForRevision = useCallback(
+    (revision: number, overrides?: { from?: string; to?: string }) =>
       buildStatsSnapshotKey({
         role,
-        from: appliedQuery.from,
-        to: appliedQuery.to,
+        from: overrides?.from ?? appliedQuery.from,
+        to: overrides?.to ?? appliedQuery.to,
         productSlug: appliedQuery.productSlug,
         scopeMode: appliedQuery.scopeMode,
+        timezoneRevision: revision,
       }),
     [role, appliedQuery.from, appliedQuery.to, appliedQuery.productSlug, appliedQuery.scopeMode],
   );
@@ -577,11 +737,14 @@ export default function StatsContainer({
     const controller = new AbortController();
     activeAbortRef.current = controller;
 
-    const previousGood = snapshotsRef.current.get(activeKey) ?? null;
-    if (!previousGood) {
-      setDto(null);
-      setRetainedSources(new Set());
-    }
+    // R2 + R3：切换查询时仅展示当前已知 timezoneRevision 下目标查询自身的缓存快照或加载态（null），绝不残留上一个查询的计数。
+    const knownRevision = latestRevisionRef.current;
+    const targetCached =
+      knownRevision !== undefined
+        ? (snapshotsRef.current.get(snapshotKeyForRevision(knownRevision)) ?? null)
+        : null;
+    setDto(targetCached);
+    setRetainedSources(new Set());
     setBusy(true);
     setErrorBanner(null);
 
@@ -589,7 +752,9 @@ export default function StatsContainer({
       ...(appliedQuery.from ? { from: appliedQuery.from } : {}),
       ...(appliedQuery.to ? { to: appliedQuery.to } : {}),
       ...(appliedQuery.productSlug ? { productSlug: appliedQuery.productSlug } : {}),
-      ...(role === 'ADMIN' && appliedQuery.scopeMode === 'ops' ? { sources: [...OPS_SOURCES] } : {}),
+      ...(role === 'ADMIN' && !opsForbiddenRef.current && appliedQuery.scopeMode === 'ops'
+        ? { sources: [...OPS_SOURCES] }
+        : {}),
     };
 
     void api
@@ -600,6 +765,7 @@ export default function StatsContainer({
 
         if (result.ok) {
           const first = result.data.sources[0];
+          const responseRevision = first?.timezoneRevision;
           let resolvedDay: string | null = null;
           if (first) {
             try {
@@ -614,22 +780,39 @@ export default function StatsContainer({
             setDraftTo((curr) => curr || resolvedDay);
           }
 
-          const merged = mergeSnapshotSources(result.data, previousGood);
+          // R3：按服务端实际返回的 timezoneRevision 隔离快照；版本变更时剔除旧版本快照。
+          if (responseRevision !== undefined) {
+            const prevRevision = latestRevisionRef.current;
+            if (prevRevision !== undefined && prevRevision !== responseRevision) {
+              const suffix = `|${responseRevision}`;
+              for (const existingKey of snapshotsRef.current.keys()) {
+                if (!existingKey.endsWith(suffix)) {
+                  snapshotsRef.current.delete(existingKey);
+                }
+              }
+            }
+            latestRevisionRef.current = responseRevision;
+          }
+
+          const previousGoodForRevision =
+            responseRevision !== undefined
+              ? (snapshotsRef.current.get(snapshotKeyForRevision(responseRevision)) ?? null)
+              : null;
+
+          const merged = mergeSnapshotSources(result.data, previousGoodForRevision);
           setDto(merged.dto);
           setRetainedSources(merged.retainedSources);
 
-          const hasGoodReading = merged.dto.sources.some((s) => s.value !== null || s.state === 'zero' || s.state === 'ok');
-          if (hasGoodReading) {
-            snapshotsRef.current.set(activeKey, merged.dto);
+          const hasGoodReading = merged.dto.sources.some(
+            (s) => s.value !== null || s.state === 'zero' || s.state === 'ok',
+          );
+          if (hasGoodReading && responseRevision !== undefined) {
+            snapshotsRef.current.set(snapshotKeyForRevision(responseRevision), merged.dto);
             if (resolvedDay && !appliedQuery.from && !appliedQuery.to) {
-              const explicitKey = buildStatsSnapshotKey({
-                role,
-                from: resolvedDay,
-                to: resolvedDay,
-                productSlug: appliedQuery.productSlug,
-                scopeMode: appliedQuery.scopeMode,
-              });
-              snapshotsRef.current.set(explicitKey, merged.dto);
+              snapshotsRef.current.set(
+                snapshotKeyForRevision(responseRevision, { from: resolvedDay, to: resolvedDay }),
+                merged.dto,
+              );
             }
           }
           return;
@@ -637,6 +820,7 @@ export default function StatsContainer({
 
         if (result.action === 'login' || result.status === 401) {
           snapshotsRef.current.clear();
+          latestRevisionRef.current = undefined;
           setDto(null);
           setRetainedSources(new Set());
           setErrorBanner({
@@ -647,8 +831,14 @@ export default function StatsContainer({
         }
 
         if (result.status === 403) {
+          // R1：收到 403 立即清除失权会话的全部留存快照，并停止该越权查询（回退默认范围且不自动重发）。
+          snapshotsRef.current.clear();
+          latestRevisionRef.current = undefined;
+          opsForbiddenRef.current = true;
           setDto(null);
           setRetainedSources(new Set());
+          setOpsForbidden(true);
+          setScopeMode('all');
           setErrorBanner({
             kind: 'forbidden',
             text: "You don't have access to this area.（当前账号角色无权查看所请求的统计来源。）",
@@ -661,12 +851,17 @@ export default function StatsContainer({
           if (result.fieldErrors.to) setToError(result.fieldErrors.to);
         }
 
-        if (previousGood) {
+        const fallbackGood =
+          latestRevisionRef.current !== undefined
+            ? (snapshotsRef.current.get(snapshotKeyForRevision(latestRevisionRef.current)) ?? null)
+            : null;
+
+        if (fallbackGood) {
           const oldThrough =
-            previousGood.sources.find((s) => s.dataThrough)?.dataThrough ??
-            previousGood.sources.find((s) => s.lastSucceededAt)?.lastSucceededAt ??
+            fallbackGood.sources.find((s) => s.dataThrough)?.dataThrough ??
+            fallbackGood.sources.find((s) => s.lastSucceededAt)?.lastSucceededAt ??
             '上次成功读取';
-          setDto(previousGood);
+          setDto(fallbackGood);
           setErrorBanner({
             kind: 'stale-error',
             text: `Couldn't refresh. Showing data through ${oldThrough}.（${result.text || '刷新失败，当前保留原成功快照时间与数值。'}）`,
@@ -682,12 +877,16 @@ export default function StatsContainer({
       .catch(() => {
         if (controller.signal.aborted) return;
         setBusy(false);
-        if (previousGood) {
+        const fallbackGood =
+          latestRevisionRef.current !== undefined
+            ? (snapshotsRef.current.get(snapshotKeyForRevision(latestRevisionRef.current)) ?? null)
+            : null;
+        if (fallbackGood) {
           const oldThrough =
-            previousGood.sources.find((s) => s.dataThrough)?.dataThrough ??
-            previousGood.sources.find((s) => s.lastSucceededAt)?.lastSucceededAt ??
+            fallbackGood.sources.find((s) => s.dataThrough)?.dataThrough ??
+            fallbackGood.sources.find((s) => s.lastSucceededAt)?.lastSucceededAt ??
             '上次成功读取';
-          setDto(previousGood);
+          setDto(fallbackGood);
           setErrorBanner({
             kind: 'stale-error',
             text: `Couldn't refresh. Showing data through ${oldThrough}.（网络异常，保留原成功快照。）`,
@@ -704,7 +903,7 @@ export default function StatsContainer({
     return () => {
       controller.abort();
     };
-  }, [activeKey, api, appliedQuery, refreshNonce, role]);
+  }, [api, appliedQuery, refreshNonce, role, snapshotKeyForRevision]);
 
   const submitQuery = useCallback(
     (nextFrom: string, nextTo: string, nextProduct: string, nextScope: StatsScopeMode) => {
@@ -712,14 +911,15 @@ export default function StatsContainer({
       setFromError(validation.fromError);
       setToError(validation.toError);
       if (validation.fromError || validation.toError) return;
+      const effectiveScope: StatsScopeMode = opsForbidden ? 'all' : nextScope;
       setAppliedQuery({
         from: nextFrom || undefined,
         to: nextTo || undefined,
         productSlug: nextProduct || undefined,
-        scopeMode: nextScope,
+        scopeMode: effectiveScope,
       });
     },
-    [],
+    [opsForbidden],
   );
 
   const handleFromChange = (value: string) => {
@@ -728,11 +928,12 @@ export default function StatsContainer({
     if (value && draftTo) {
       const validation = validateStatsDates(value, draftTo);
       if (!validation.fromError && !validation.toError) {
+        const effectiveScope: StatsScopeMode = opsForbidden ? 'all' : scopeMode;
         setAppliedQuery({
           from: value,
           to: draftTo,
           productSlug: productSlug || undefined,
-          scopeMode,
+          scopeMode: effectiveScope,
         });
       }
     }
@@ -744,11 +945,12 @@ export default function StatsContainer({
     if (draftFrom && value) {
       const validation = validateStatsDates(draftFrom, value);
       if (!validation.fromError && !validation.toError) {
+        const effectiveScope: StatsScopeMode = opsForbidden ? 'all' : scopeMode;
         setAppliedQuery({
           from: draftFrom,
           to: value,
           productSlug: productSlug || undefined,
-          scopeMode,
+          scopeMode: effectiveScope,
         });
       }
     }
@@ -758,17 +960,19 @@ export default function StatsContainer({
     setProductSlug(value);
     const validation = validateStatsDates(draftFrom, draftTo);
     if (!validation.fromError && !validation.toError) {
+      const effectiveScope: StatsScopeMode = opsForbidden ? 'all' : scopeMode;
       setAppliedQuery({
         from: draftFrom || undefined,
         to: draftTo || undefined,
         productSlug: value || undefined,
-        scopeMode,
+        scopeMode: effectiveScope,
       });
     }
   };
 
   const handleScopeModeChange = (nextMode: StatsScopeMode) => {
     if (role !== 'ADMIN') return;
+    if (opsForbidden && nextMode === 'ops') return;
     setScopeMode(nextMode);
     const validation = validateStatsDates(draftFrom, draftTo);
     if (!validation.fromError && !validation.toError) {
@@ -790,11 +994,12 @@ export default function StatsContainer({
     setFromError(validation.fromError);
     setToError(validation.toError);
     if (validation.fromError || validation.toError) return;
+    const effectiveScope: StatsScopeMode = opsForbidden ? 'all' : scopeMode;
     setAppliedQuery({
       from: draftFrom || undefined,
       to: draftTo || undefined,
       productSlug: productSlug || undefined,
-      scopeMode,
+      scopeMode: effectiveScope,
     });
     setRefreshNonce((n) => n + 1);
   };
@@ -870,7 +1075,7 @@ export default function StatsContainer({
         to={draftTo}
         productSlug={productSlug}
         products={products}
-        isAdmin={role === 'ADMIN'}
+        isAdmin={role === 'ADMIN' && !opsForbidden}
         scopeMode={scopeMode}
         busy={busy}
         fromError={fromError}
@@ -954,6 +1159,9 @@ export default function StatsContainer({
                     rate={dto.modelSuccessRate}
                     startsSource={startsItem}
                     successesSource={successesItem}
+                    retainedFromSnapshot={
+                      retainedSources.has('model_starts') && retainedSources.has('model_successes')
+                    }
                   />
                 )}
               </div>
@@ -1048,7 +1256,7 @@ export default function StatsContainer({
                         <td className="stats-col-num stats-mono">{formatSourceValue(item)}</td>
                         <td>
                           {item.source === 'mean_load_duration_ms'
-                            ? `samples=${item.loadDurationSamples ?? 0} · ${formatCoverageText(item.coverage)}`
+                            ? `samples=${formatDurationSamples(item)} · ${formatCoverageText(item.coverage)}`
                             : formatCoverageText(item.coverage)}
                         </td>
                         <td className="stats-mono">{item.dataThrough ?? '—'}</td>

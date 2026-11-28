@@ -8,13 +8,15 @@ import { shiftLocalDate } from '../src/lib/analytics/aggregate-plan';
 import { siteLocalDate } from '../src/lib/analytics/day-boundaries';
 import { buildStatsApiPath } from '../src/lib/client/ops';
 import {
+  formatDurationSamples,
   formatModelSuccessRate,
   formatSourceValue,
   mergeSnapshotSources,
+  resolveModelSuccessRateDisplay,
   validateStatsDates,
 } from '../src/components/admin/stats/StatsContainer';
 import { AnalyticsSettingsDTOSchema } from '../src/lib/contracts/analytics';
-import { StatsDTOSchema, type StatsDTO, type StatsSource } from '../src/lib/contracts/ops';
+import { StatsDTOSchema, type StatsDTO, type StatsSource, type StatsSourceDTO } from '../src/lib/contracts/ops';
 
 // 文件顶层开启一次录像，供 CI 与本地复核真实流程视频/GIF（不能写在 describe 内，否则会强制新建 worker）。
 test.use({
@@ -114,11 +116,73 @@ async function runAggregateJob(adminReq: APIRequestContext, cronSecret: string):
   throw new Error('analytics-aggregate job remained busy after retries');
 }
 
+type ObservedStatsResponse = {
+  seq: number;
+  url: string;
+  status: number;
+  rawText: string;
+};
+
+type StatsGetObserver = {
+  latestSeq: () => number;
+  nextAfter: (afterSeq: number, predicate?: (entry: ObservedStatsResponse) => boolean) => Promise<ObservedStatsResponse>;
+};
+
+/**
+ * R5：在 Playwright Node 侧对 GET /api/admin/stats 建立纯透传观察器（route.fetch + 原样 fulfill），
+ * 在交还页面前于 Node 侧拷贝响应体字节，彻底规避跨页路由切换时 Chromium CDP 回收响应缓冲导致的偶发 Network.getResponseBody。
+ */
+async function attachStatsGetObserver(page: Page): Promise<StatsGetObserver> {
+  let seq = 0;
+  const entries: ObservedStatsResponse[] = [];
+  await page.route(
+    (url) => url.pathname === '/api/admin/stats',
+    async (route) => {
+      const req = route.request();
+      if (req.method() !== 'GET') {
+        await route.continue();
+        return;
+      }
+      const upstream = await route.fetch();
+      const rawText = await upstream.text();
+      seq += 1;
+      entries.push({
+        seq,
+        url: req.url(),
+        status: upstream.status(),
+        rawText,
+      });
+      await route.fulfill({ response: upstream, body: rawText });
+    },
+  );
+  return {
+    latestSeq: () => seq,
+    async nextAfter(afterSeq, predicate) {
+      let matched: ObservedStatsResponse | undefined;
+      await expect
+        .poll(
+          () => {
+            matched = entries.find((item) => item.seq > afterSeq && (!predicate || predicate(item)));
+            return Boolean(matched);
+          },
+          { timeout: 20_000 },
+        )
+        .toBe(true);
+      return matched!;
+    },
+  };
+}
+
 async function openRoleContext(
   browser: Browser,
   state: StorageState,
-  opts?: { viewport?: { width: number; height: number }; hasTouch?: boolean; isMobile?: boolean },
-): Promise<{ context: BrowserContext; page: Page }> {
+  opts?: {
+    viewport?: { width: number; height: number };
+    hasTouch?: boolean;
+    isMobile?: boolean;
+    observeStats?: boolean;
+  },
+): Promise<{ context: BrowserContext; page: Page; observer: StatsGetObserver | null }> {
   const context = await browser.newContext({
     storageState: state,
     baseURL: BASE,
@@ -129,12 +193,14 @@ async function openRoleContext(
   });
   await context.route(/^https?:\/\/(?!localhost|127\.0\.0\.1)/, (route) => route.abort());
   const page = await context.newPage();
-  return { context, page };
+  const observer = opts?.observeStats === false ? null : await attachStatsGetObserver(page);
+  return { context, page, observer };
 }
 
 /** 从角色可访问的起始后台页点击可见控件 stats-link 进入 /admin/stats（窄屏先点开抽屉菜单）。 */
 async function navigateViaStatsLink(
   page: Page,
+  observer: StatsGetObserver,
   startPath: string,
   mobile: boolean,
 ): Promise<{ status: number; url: string; dto: StatsDTO }> {
@@ -148,21 +214,18 @@ async function navigateViaStatsLink(
   const statsLink = nav.getByTestId('stats-link');
   await expect(statsLink).toBeVisible();
 
-  const statsResPromise = page.waitForResponse(
-    (res) => res.request().method() === 'GET' && new URL(res.url()).pathname === '/api/admin/stats',
-    { timeout: 20_000 },
-  );
+  const beforeClickSeq = observer.latestSeq();
   await statsLink.click();
   await expect(page).toHaveURL(/\/admin\/stats$/);
-  const statsRes = await statsResPromise;
-  expect(statsRes.status()).toBe(200);
-  const dto = StatsDTOSchema.parse(await statsRes.json());
+  const statsEntry = await observer.nextAfter(beforeClickSeq);
+  expect(statsEntry.status).toBe(200);
+  const dto = StatsDTOSchema.parse(JSON.parse(statsEntry.rawText));
   await expect(page.getByRole('heading', { level: 1, name: '数据看板' })).toBeVisible();
   await expect(page.getByTestId('stats-timezone')).toContainText(dto.sources[0]!.timezone);
   if (!mobile) {
     await expect(statsLink).toHaveAttribute('aria-current', 'page');
   }
-  return { status: statsRes.status(), url: statsRes.url(), dto };
+  return { status: statsEntry.status, url: statsEntry.url, dto };
 }
 
 async function runWorkDensityProbe(page: Page): Promise<DensityRaw> {
@@ -290,6 +353,154 @@ test.describe('M6-T4 core stats dashboard page', () => {
     expect(merged.dto.sources[0]?.value).toBe(12);
     expect(merged.dto.sources[0]?.lastSucceededAt).toBe('2026-11-27T01:00:00.000Z');
 
+    // R3 纯规则复核：跨 timezoneRevision 的单源失败不得合并旧版本的数值、样本数或时间
+    const prevRev1WithDuration: StatsDTO = {
+      sources: [
+        {
+          source: 'visitors',
+          state: 'ok',
+          value: 25,
+          timezone: 'UTC',
+          timezoneRevision: 1,
+          dataThrough: '2026-11-27T01:00:00.000Z',
+          queriedAt: '2026-11-27T01:01:00.000Z',
+          lastSucceededAt: '2026-11-27T01:00:00.000Z',
+          coverage: 'full',
+        },
+        {
+          source: 'mean_load_duration_ms',
+          state: 'ok',
+          value: 380,
+          timezone: 'UTC',
+          timezoneRevision: 1,
+          dataThrough: '2026-11-27T01:00:00.000Z',
+          queriedAt: '2026-11-27T01:01:00.000Z',
+          lastSucceededAt: '2026-11-27T01:00:00.000Z',
+          coverage: 'full',
+          loadDurationSamples: 9,
+        },
+      ],
+      modelSuccessRate: null,
+      recomputableFrom: null,
+    };
+    const failedRev2: StatsDTO = {
+      sources: [
+        {
+          source: 'visitors',
+          state: 'query_failed',
+          value: null,
+          timezone: 'Asia/Tokyo',
+          timezoneRevision: 2,
+          dataThrough: null,
+          queriedAt: '2026-11-27T03:00:00.000Z',
+          lastSucceededAt: null,
+          coverage: 'unavailable',
+        },
+        {
+          source: 'mean_load_duration_ms',
+          state: 'query_failed',
+          value: null,
+          timezone: 'Asia/Tokyo',
+          timezoneRevision: 2,
+          dataThrough: null,
+          queriedAt: '2026-11-27T03:00:00.000Z',
+          lastSucceededAt: null,
+          coverage: 'unavailable',
+          loadDurationSamples: 0,
+        },
+      ],
+      modelSuccessRate: null,
+      recomputableFrom: null,
+    };
+    const crossRevMerged = mergeSnapshotSources(failedRev2, prevRev1WithDuration);
+    expect(crossRevMerged.retainedSources.size).toBe(0);
+    expect(crossRevMerged.dto.sources[0]?.value).toBeNull();
+    expect(crossRevMerged.dto.sources[0]?.dataThrough).toBeNull();
+    expect(crossRevMerged.dto.sources[1]?.value).toBeNull();
+    expect(crossRevMerged.dto.sources[1]?.dataThrough).toBeNull();
+    expect(formatSourceValue(crossRevMerged.dto.sources[1]!)).toBe('查询失败（无快照）');
+    expect(formatDurationSamples(crossRevMerged.dto.sources[1]!)).toBe('—');
+
+    // R4 纯规则复核：覆盖查询失败、旧值、确实未接入、真实无样本（no_data / zero）与有分母 0%，失败/未接入不断言 0 starts
+    const make3dPair = (
+      state: StatsSourceDTO['state'],
+      startsVal: number | null,
+      succVal: number | null,
+      coverage: StatsSourceDTO['coverage'],
+    ): { startsSource: StatsSourceDTO; successesSource: StatsSourceDTO } => ({
+      startsSource: {
+        source: 'model_starts',
+        state,
+        value: startsVal,
+        timezone: 'UTC',
+        timezoneRevision: 1,
+        dataThrough: startsVal !== null ? '2026-11-27T01:00:00.000Z' : null,
+        queriedAt: '2026-11-27T01:01:00.000Z',
+        lastSucceededAt: startsVal !== null ? '2026-11-27T01:00:00.000Z' : null,
+        coverage,
+      },
+      successesSource: {
+        source: 'model_successes',
+        state: succVal === 0 && state === 'ok' ? 'zero' : state,
+        value: succVal,
+        timezone: 'UTC',
+        timezoneRevision: 1,
+        dataThrough: succVal !== null ? '2026-11-27T01:00:00.000Z' : null,
+        queriedAt: '2026-11-27T01:01:00.000Z',
+        lastSucceededAt: succVal !== null ? '2026-11-27T01:00:00.000Z' : null,
+        coverage,
+      },
+    });
+
+    const failedRateDisplay = resolveModelSuccessRateDisplay(
+      { value: null, coverage: 'unavailable' },
+      make3dPair('query_failed', null, null, 'unavailable'),
+    );
+    expect(failedRateDisplay.badgeState).toBe('query_failed');
+    expect(failedRateDisplay.valueText).toBe('查询失败（无快照）');
+    expect(failedRateDisplay.pairText).not.toContain('0 starts');
+
+    const staleRateDisplay = resolveModelSuccessRateDisplay(
+      { value: 0.75, coverage: 'full' },
+      make3dPair('stale', 4, 3, 'full'),
+    );
+    expect(staleRateDisplay.badgeState).toBe('stale');
+    expect(staleRateDisplay.isAlert).toBe(true);
+    expect(staleRateDisplay.valueText).toBe('75%');
+    expect(staleRateDisplay.pairText).toBe('3 / 4 starts');
+
+    const disconnectedRateDisplay = resolveModelSuccessRateDisplay(
+      { value: null, coverage: 'unavailable' },
+      make3dPair('not_connected', null, null, 'unavailable'),
+    );
+    expect(disconnectedRateDisplay.badgeState).toBe('not_connected');
+    expect(disconnectedRateDisplay.valueText).toBe('Not connected: model_success_rate');
+    expect(disconnectedRateDisplay.pairText).not.toContain('0 starts');
+
+    const noDataRateDisplay = resolveModelSuccessRateDisplay(
+      { value: null, coverage: 'unavailable' },
+      make3dPair('no_data', null, null, 'unavailable'),
+    );
+    expect(noDataRateDisplay.badgeState).toBe('no_data');
+    expect(noDataRateDisplay.valueText).toBe('—（无发起样本）');
+    expect(noDataRateDisplay.pairText).toBe('No data yet（尚无配对样本）');
+
+    const zeroStartsRateDisplay = resolveModelSuccessRateDisplay(
+      { value: null, coverage: 'full' },
+      make3dPair('zero', 0, 0, 'full'),
+    );
+    expect(zeroStartsRateDisplay.badgeState).toBe('no_data');
+    expect(zeroStartsRateDisplay.valueText).toBe('—（无发起样本）');
+    expect(zeroStartsRateDisplay.pairText).toBe('0 starts（无配对分母）');
+
+    const zeroPctWithDenomDisplay = resolveModelSuccessRateDisplay(
+      { value: 0, coverage: 'full' },
+      make3dPair('ok', 5, 0, 'full'),
+    );
+    expect(zeroPctWithDenomDisplay.badgeState).toBe('zero');
+    expect(zeroPctWithDenomDisplay.valueText).toBe('0%');
+    expect(zeroPctWithDenomDisplay.pairText).toBe('0 / 5 starts');
+
     // 1. 加载 globalSetup 真实登录的三个角色槽
     const states: Record<Role, StorageState> = {
       ADMIN: await loadRunAuth(ROLE_SLOTS.ADMIN, BASE, playwright.request),
@@ -402,6 +613,7 @@ test.describe('M6-T4 core stats dashboard page', () => {
       const adminSession = await openRoleContext(browser, states.ADMIN, { viewport: { width: 1440, height: 900 } });
       try {
         const adminPage = adminSession.page;
+        const adminObserver = adminSession.observer!;
         let forbiddenMutations = 0;
         adminPage.on('request', (req) => {
           const p = new URL(req.url()).pathname;
@@ -410,7 +622,7 @@ test.describe('M6-T4 core stats dashboard page', () => {
           }
         });
 
-        const { dto: initialDto } = await navigateViaStatsLink(adminPage, '/admin/inquiries', false);
+        const { dto: initialDto } = await navigateViaStatsLink(adminPage, adminObserver, '/admin/inquiries', false);
         expect(initialDto.sources).toHaveLength(17);
 
         // 核对日期输入框自动填充为站点今日（非浏览器本地硬算）
@@ -449,44 +661,40 @@ test.describe('M6-T4 core stats dashboard page', () => {
         await expect(adminPage.locator('[data-testid="stats-table"] tbody tr')).toHaveCount(17);
 
         // 产品筛选控件：选择 observedSlug 发真实 GET /api/admin/stats?...&productSlug=<slug>
-        const productResPromise = adminPage.waitForResponse(
-          (res) =>
-            res.request().method() === 'GET' &&
-            new URL(res.url()).pathname === '/api/admin/stats' &&
-            new URL(res.url()).searchParams.get('productSlug') === observedSlug,
-        );
+        const beforeProdSeq = adminObserver.latestSeq();
         await adminPage.getByTestId('stats-filter-product').selectOption(observedSlug!);
-        const productRes = await productResPromise;
-        expect(productRes.status()).toBe(200);
-        const productDto = StatsDTOSchema.parse(await productRes.json());
+        const productEntry = await adminObserver.nextAfter(
+          beforeProdSeq,
+          (entry) => new URL(entry.url).searchParams.get('productSlug') === observedSlug,
+        );
+        expect(productEntry.status).toBe(200);
+        const productDto = StatsDTOSchema.parse(JSON.parse(productEntry.rawText));
         expect(findSource(productDto, 'product_views').value!).toBeGreaterThanOrEqual(1);
         expect(findSource(productDto, 'model_starts').value!).toBeGreaterThanOrEqual(1);
         expect(findSource(productDto, 'page_views').state).toBe('no_data');
         await expect(adminPage.getByTestId('stats-value-page_views')).toHaveText('No data yet');
 
         // 切回全部产品，再测无样本历史自然日（E-63 无样本为 null 而非 0%）
-        const resetProductPromise = adminPage.waitForResponse(
-          (res) =>
-            res.request().method() === 'GET' &&
-            new URL(res.url()).pathname === '/api/admin/stats' &&
-            !new URL(res.url()).searchParams.has('productSlug'),
-        );
+        const beforeResetSeq = adminObserver.latestSeq();
         await adminPage.getByTestId('stats-filter-product').selectOption('');
-        expect((await resetProductPromise).status()).toBe(200);
+        const resetEntry = await adminObserver.nextAfter(
+          beforeResetSeq,
+          (entry) => !new URL(entry.url).searchParams.has('productSlug'),
+        );
+        expect(resetEntry.status).toBe(200);
 
         const emptyHistoryDay = shiftLocalDate(siteToday, -7);
-        const dateResPromise = adminPage.waitForResponse(
-          (res) =>
-            res.request().method() === 'GET' &&
-            new URL(res.url()).pathname === '/api/admin/stats' &&
-            new URL(res.url()).searchParams.get('from') === emptyHistoryDay &&
-            new URL(res.url()).searchParams.get('to') === emptyHistoryDay,
-        );
+        const beforeHistorySeq = adminObserver.latestSeq();
         await adminPage.getByTestId('stats-filter-from').fill(emptyHistoryDay);
         await adminPage.getByTestId('stats-filter-to').fill(emptyHistoryDay);
-        const dateRes = await dateResPromise;
-        expect(dateRes.status()).toBe(200);
-        const dateDto = StatsDTOSchema.parse(await dateRes.json());
+        const dateEntry = await adminObserver.nextAfter(
+          beforeHistorySeq,
+          (entry) =>
+            new URL(entry.url).searchParams.get('from') === emptyHistoryDay &&
+            new URL(entry.url).searchParams.get('to') === emptyHistoryDay,
+        );
+        expect(dateEntry.status).toBe(200);
+        const dateDto = StatsDTOSchema.parse(JSON.parse(dateEntry.rawText));
         const historyDuration = findSource(dateDto, 'mean_load_duration_ms');
         if (historyDuration.loadDurationSamples === 0) {
           expect(historyDuration.value).toBeNull();
@@ -495,53 +703,55 @@ test.describe('M6-T4 core stats dashboard page', () => {
         }
 
         // 恢复站点今日，验证 ADMIN「仅系统运维」范围切换与手动「刷新」控件
-        const backTodayPromise = adminPage.waitForResponse(
-          (res) =>
-            res.request().method() === 'GET' &&
-            new URL(res.url()).pathname === '/api/admin/stats' &&
-            new URL(res.url()).searchParams.get('from') === siteToday &&
-            new URL(res.url()).searchParams.get('to') === siteToday,
-        );
+        const beforeTodaySeq = adminObserver.latestSeq();
         await adminPage.getByTestId('stats-filter-from').fill(siteToday);
         await adminPage.getByTestId('stats-filter-to').fill(siteToday);
-        expect((await backTodayPromise).status()).toBe(200);
-
-        const opsOnlyPromise = adminPage.waitForResponse(
-          (res) =>
-            res.request().method() === 'GET' &&
-            new URL(res.url()).pathname === '/api/admin/stats' &&
-            new URL(res.url()).searchParams.get('sources') === 'api_requests,api_errors,mail,storage,backup',
+        const backTodayEntry = await adminObserver.nextAfter(
+          beforeTodaySeq,
+          (entry) =>
+            new URL(entry.url).searchParams.get('from') === siteToday &&
+            new URL(entry.url).searchParams.get('to') === siteToday,
         );
+        expect(backTodayEntry.status).toBe(200);
+
+        const beforeOpsSeq = adminObserver.latestSeq();
         await adminPage.getByTestId('stats-scope-ops').click();
-        expect((await opsOnlyPromise).status()).toBe(200);
+        const opsOnlyEntry = await adminObserver.nextAfter(
+          beforeOpsSeq,
+          (entry) => new URL(entry.url).searchParams.get('sources') === 'api_requests,api_errors,mail,storage,backup',
+        );
+        expect(opsOnlyEntry.status).toBe(200);
         await expect(adminPage.getByTestId('stats-section-ops')).toBeVisible();
         await expect(adminPage.getByTestId('stats-section-core')).toHaveCount(0);
         await expect(adminPage.locator('[data-testid="stats-table"] tbody tr')).toHaveCount(5);
 
-        const allScopePromise = adminPage.waitForResponse(
-          (res) =>
-            res.request().method() === 'GET' &&
-            new URL(res.url()).pathname === '/api/admin/stats' &&
-            !new URL(res.url()).searchParams.has('sources'),
-        );
+        const beforeAllSeq = adminObserver.latestSeq();
         await adminPage.getByTestId('stats-scope-all').click();
-        expect((await allScopePromise).status()).toBe(200);
-
-        const refreshPromise = adminPage.waitForResponse(
-          (res) => res.request().method() === 'GET' && new URL(res.url()).pathname === '/api/admin/stats',
+        const allScopeEntry = await adminObserver.nextAfter(
+          beforeAllSeq,
+          (entry) => !new URL(entry.url).searchParams.has('sources'),
         );
+        expect(allScopeEntry.status).toBe(200);
+
+        const beforeRefreshSeq = adminObserver.latestSeq();
         await adminPage.getByTestId('stats-refresh').click();
-        expect((await refreshPromise).status()).toBe(200);
+        expect((await adminObserver.nextAfter(beforeRefreshSeq)).status).toBe(200);
         expect(forbiddenMutations, '手动刷新与筛选绝不触发 cron 或 ops-report').toBe(0);
       } finally {
         await adminSession.context.close();
       }
 
-      // 6. SALES 页面仅呈现核心+业务授权来源（12 项），无运维分区，直接越权请求 403 且混合响应无隐藏计数（E-66）
+      // 6. SALES 页面仅呈现核心+业务授权来源（12 项），无运维分区，直接越权请求 403 且混合响应无隐藏计数（E-66 / R5）
       const salesSession = await openRoleContext(browser, states.SALES, { viewport: { width: 1440, height: 900 } });
       try {
         const salesPage = salesSession.page;
-        const { dto: salesDto } = await navigateViaStatsLink(salesPage, '/admin/inquiries', false);
+        const { url: salesStatsUrl, dto: salesDto } = await navigateViaStatsLink(
+          salesPage,
+          salesSession.observer!,
+          '/admin/inquiries',
+          false,
+        );
+        expect(new URL(salesStatsUrl).pathname).toBe('/api/admin/stats');
         expect(salesDto.sources).toHaveLength(12);
         const salesNames = new Set(salesDto.sources.map((s) => s.source));
         for (const forbidden of SALES_FORBIDDEN_SOURCES) {
@@ -573,7 +783,12 @@ test.describe('M6-T4 core stats dashboard page', () => {
       const editorSession = await openRoleContext(browser, states.EDITOR, { viewport: { width: 1440, height: 900 } });
       try {
         const editorPage = editorSession.page;
-        const { dto: editorDto } = await navigateViaStatsLink(editorPage, '/admin/specs', false);
+        const { dto: editorDto } = await navigateViaStatsLink(
+          editorPage,
+          editorSession.observer!,
+          '/admin/specs',
+          false,
+        );
         expect(editorDto.sources.map((s) => s.source)).toEqual([...EDITOR_ALLOWED_SOURCES]);
         for (const forbidden of EDITOR_FORBIDDEN_SOURCES) {
           await expect(editorPage.getByTestId(`stats-source-${forbidden}`)).toHaveCount(0);
@@ -599,6 +814,396 @@ test.describe('M6-T4 core stats dashboard page', () => {
       } finally {
         await editorSession.context.close();
       }
+
+      // 8. R1 / R2 / R3 / R4 真实挂载 DOM 回归测试（受控响应与延迟验证）
+      const regSession = await openRoleContext(browser, states.ADMIN, {
+        viewport: { width: 1440, height: 900 },
+        observeStats: false,
+      });
+      try {
+        const regPage = regSession.page;
+        type MockReply =
+          | { kind: 'dto'; dto: StatsDTO; hold?: Promise<void> }
+          | { kind: 'error'; status: 403 | 503; code: 'forbidden' | 'service_unavailable'; message: string }
+          | { kind: 'network_error' };
+
+        const makeMockDto = (opts: {
+          timezone?: string;
+          rev?: number;
+          queriedAt?: string;
+          dataThrough?: string | null;
+          visitors?: { state: StatsSourceDTO['state']; value: number | null };
+          starts?: { state: StatsSourceDTO['state']; value: number | null; coverage?: StatsSourceDTO['coverage'] };
+          successes?: { state: StatsSourceDTO['state']; value: number | null; coverage?: StatsSourceDTO['coverage'] };
+          duration?: {
+            state: StatsSourceDTO['state'];
+            value: number | null;
+            samples: number;
+            coverage?: StatsSourceDTO['coverage'];
+          };
+          rate?: StatsDTO['modelSuccessRate'];
+          apiRequests?: { state: StatsSourceDTO['state']; value: number | null };
+        }): StatsDTO => {
+          const tz = opts.timezone ?? 'UTC';
+          const rev = opts.rev ?? 1;
+          const queriedAt = opts.queriedAt ?? '2026-11-20T12:00:00.000Z';
+          const through = opts.dataThrough === undefined ? '2026-11-20T11:55:00.000Z' : opts.dataThrough;
+          const v = opts.visitors ?? { state: 'ok', value: 11 };
+          const st = opts.starts ?? { state: 'ok', value: 4, coverage: 'full' };
+          const sc = opts.successes ?? { state: 'ok', value: 3, coverage: 'full' };
+          const dur = opts.duration ?? { state: 'ok', value: 420, samples: 9, coverage: 'full' };
+          const sources: StatsSourceDTO[] = [
+            {
+              source: 'visitors',
+              state: v.state,
+              value: v.value,
+              timezone: tz,
+              timezoneRevision: rev,
+              dataThrough: v.value !== null ? through : null,
+              queriedAt,
+              lastSucceededAt: v.value !== null ? through : null,
+              coverage: v.value !== null ? 'full' : 'unavailable',
+            },
+            {
+              source: 'model_starts',
+              state: st.state,
+              value: st.value,
+              timezone: tz,
+              timezoneRevision: rev,
+              dataThrough: st.value !== null ? through : null,
+              queriedAt,
+              lastSucceededAt: st.value !== null ? through : null,
+              coverage: st.coverage ?? (st.value !== null ? 'full' : 'unavailable'),
+            },
+            {
+              source: 'model_successes',
+              state: sc.state,
+              value: sc.value,
+              timezone: tz,
+              timezoneRevision: rev,
+              dataThrough: sc.value !== null ? through : null,
+              queriedAt,
+              lastSucceededAt: sc.value !== null ? through : null,
+              coverage: sc.coverage ?? (sc.value !== null ? 'full' : 'unavailable'),
+            },
+            {
+              source: 'mean_load_duration_ms',
+              state: dur.state,
+              value: dur.value,
+              timezone: tz,
+              timezoneRevision: rev,
+              dataThrough: dur.value !== null ? through : null,
+              queriedAt,
+              lastSucceededAt: dur.value !== null ? through : null,
+              coverage: dur.coverage ?? (dur.value !== null ? 'full' : 'unavailable'),
+              loadDurationSamples: dur.samples,
+            },
+          ];
+          if (opts.apiRequests) {
+            sources.push({
+              source: 'api_requests',
+              state: opts.apiRequests.state,
+              value: opts.apiRequests.value,
+              timezone: tz,
+              timezoneRevision: rev,
+              dataThrough: opts.apiRequests.value !== null ? through : null,
+              queriedAt,
+              lastSucceededAt: opts.apiRequests.value !== null ? through : null,
+              coverage: opts.apiRequests.value !== null ? 'full' : 'unavailable',
+            });
+          }
+          const computedRate =
+            opts.rate !== undefined
+              ? opts.rate
+              : st.value !== null && sc.value !== null && st.value > 0
+                ? { value: sc.value / st.value, coverage: 'full' as const }
+                : { value: null, coverage: st.value === 0 ? ('full' as const) : ('unavailable' as const) };
+          return StatsDTOSchema.parse({
+            sources,
+            modelSuccessRate: computedRate,
+            recomputableFrom: null,
+          });
+        };
+
+        const seenStatsUrls: string[] = [];
+        let replyHandler: (url: URL) => MockReply = () => ({ kind: 'dto', dto: makeMockDto({}) });
+
+        await regPage.route(
+          (url) => url.pathname === '/api/admin/stats',
+          async (route) => {
+            const reqUrl = new URL(route.request().url());
+            seenStatsUrls.push(reqUrl.pathname + reqUrl.search);
+            const plan = replyHandler(reqUrl);
+            if (plan.kind === 'dto') {
+              if (plan.hold) await plan.hold;
+              await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                headers: { 'cache-control': 'private, no-store' },
+                body: JSON.stringify(plan.dto),
+              });
+              return;
+            }
+            if (plan.kind === 'network_error') {
+              await route.abort('failed');
+              return;
+            }
+            await route.fulfill({
+              status: plan.status,
+              contentType: 'application/json',
+              headers: { 'cache-control': 'private, no-store' },
+              body: JSON.stringify({ error: plan.code, message: plan.message }),
+            });
+          },
+        );
+
+        // 8.1 R2：A (visitors=11) -> B (visitors=88) -> 切回 A 并延迟最后一个响应，A 筛选标签下绝不出现 B 的 88
+        let releaseDelayedA!: () => void;
+        const delayedAPromise = new Promise<void>((resolve) => {
+          releaseDelayedA = resolve;
+        });
+        let aRequestCount = 0;
+        replyHandler = (url) => {
+          if (url.searchParams.get('productSlug') === observedSlug) {
+            return { kind: 'dto', dto: makeMockDto({ visitors: { state: 'ok', value: 88 } }) };
+          }
+          aRequestCount += 1;
+          if (aRequestCount === 1) {
+            return { kind: 'dto', dto: makeMockDto({ visitors: { state: 'ok', value: 11 } }) };
+          }
+          return {
+            kind: 'dto',
+            dto: makeMockDto({ visitors: { state: 'ok', value: 15 } }),
+            hold: delayedAPromise,
+          };
+        };
+
+        await regPage.goto('/admin/stats');
+        await expect(regPage.getByTestId('stats-value-visitors')).toHaveText('11');
+        await expect(regPage.getByTestId('stats-date-range')).toContainText('2026-11-20 → 2026-11-20');
+
+        await regPage.getByTestId('stats-filter-product').selectOption(observedSlug!);
+        await expect(regPage.getByTestId('stats-value-visitors')).toHaveText('88');
+        await expect(regPage.getByTestId('stats-svg-chart')).toContainText('88');
+
+        await regPage.getByTestId('stats-filter-product').selectOption('');
+        await expect.poll(() => aRequestCount).toBe(2);
+        // 最后一个 A 响应仍在延迟中：筛选器已是全部产品（A），只显示 A 自身的快照 11，绝不出现 B 的 88
+        await expect(regPage.getByTestId('stats-filter-product')).toHaveValue('');
+        await expect(regPage.getByTestId('stats-value-visitors')).toHaveText('11');
+        await expect(regPage.getByTestId('stats-svg-chart')).not.toContainText('88');
+        await expect(regPage.getByTestId('stats-row-visitors')).not.toContainText('88');
+
+        releaseDelayedA();
+        await expect(regPage.getByTestId('stats-value-visitors')).toHaveText('15');
+
+        // R2 补充：切向未缓存查询 B 时挂起 B，等待期间显示加载态而非旧计数；切回 A 后迟到的 B 响应绝不覆盖当前查询 A
+        let releaseLateB!: () => void;
+        const lateBPromise = new Promise<void>((resolve) => {
+          releaseLateB = resolve;
+        });
+        let lateBSeen = 0;
+        replyHandler = (url) => {
+          if (url.searchParams.get('from') === '2026-11-18') {
+            lateBSeen += 1;
+            return {
+              kind: 'dto',
+              dto: makeMockDto({ visitors: { state: 'ok', value: 99 } }),
+              hold: lateBPromise,
+            };
+          }
+          return { kind: 'dto', dto: makeMockDto({ visitors: { state: 'ok', value: 16 } }) };
+        };
+        await regPage.getByTestId('stats-filter-from').fill('2026-11-18');
+        await regPage.getByTestId('stats-filter-to').fill('2026-11-18');
+        await expect.poll(() => lateBSeen).toBeGreaterThanOrEqual(1);
+        await expect(regPage.getByTestId('stats-loading')).toBeVisible();
+        await expect(regPage.getByTestId('stats-source-visitors')).toHaveCount(0);
+
+        await regPage.getByTestId('stats-filter-from').fill('2026-11-20');
+        await regPage.getByTestId('stats-filter-to').fill('2026-11-20');
+        await expect(regPage.getByTestId('stats-value-visitors')).toHaveText('16');
+        releaseLateB();
+        await regPage.waitForTimeout(150);
+        await expect(regPage.getByTestId('stats-value-visitors')).toHaveText('16');
+        await expect(regPage.getByTestId('stats-page')).not.toContainText('99');
+
+        // 8.2 R3：切换服务端 timezoneRevision (rev 1 -> rev 2) 且单源失败，新版本标签下绝不出现旧版本数值、样本数或时间
+        replyHandler = () => ({
+          kind: 'dto',
+          dto: makeMockDto({
+            timezone: 'Asia/Tokyo',
+            rev: 2,
+            queriedAt: '2026-11-20T13:00:00.000Z',
+            dataThrough: '2026-11-20T12:55:00.000Z',
+            visitors: { state: 'query_failed', value: null },
+            duration: { state: 'query_failed', value: null, samples: 0, coverage: 'unavailable' },
+          }),
+        });
+        await regPage.getByTestId('stats-refresh').click();
+        await expect(regPage.getByTestId('stats-timezone')).toContainText('Asia/Tokyo (rev 2)');
+        await expect(regPage.getByTestId('stats-value-visitors')).toHaveText('查询失败（无快照）');
+        await expect(regPage.getByTestId('stats-value-mean_load_duration_ms')).toHaveText('查询失败（无快照）');
+        await expect(regPage.getByTestId('stats-duration-samples')).toContainText('—');
+        await expect(regPage.getByTestId('stats-duration-samples')).not.toContainText('9');
+        await expect(regPage.getByTestId('stats-page')).not.toContainText('420 ms');
+        await expect(regPage.getByTestId('stats-page')).not.toContainText('2026-11-20T11:55:00.000Z');
+        await expect(regPage.getByTestId('stats-row-visitors')).not.toContainText('2026-11-20T12:55:00.000Z');
+        await expect(regPage.getByTestId('stats-row-mean_load_duration_ms')).not.toContainText('2026-11-20T12:55:00.000Z');
+
+        // 8.3 R4：DOM 验证 3D 读数五种状态（查询失败[含同键保留与无快照]、旧值、确实未接入、真实无样本、有分母的 0%）
+        replyHandler = () => ({
+          kind: 'dto',
+          dto: makeMockDto({
+            rev: 2,
+            timezone: 'Asia/Tokyo',
+            starts: { state: 'query_failed', value: null, coverage: 'unavailable' },
+            successes: { state: 'query_failed', value: null, coverage: 'unavailable' },
+            duration: { state: 'query_failed', value: null, samples: 0, coverage: 'unavailable' },
+            rate: { value: null, coverage: 'unavailable' },
+          }),
+        });
+        // 同键刷新保留 8.2 同 rev 2 的配对读数，但状态必须标为 query_failed 而非 ok
+        await regPage.getByTestId('stats-refresh').click();
+        await expect(regPage.getByTestId('stats-model-success-rate')).toHaveAttribute('data-source-state', 'query_failed');
+        await expect(regPage.getByTestId('stats-value-model_success_rate')).toHaveText('75%');
+
+        // 切至无缓存新日期验证无快照 query_failed：绝不断言无样本或 0 starts
+        await regPage.getByTestId('stats-filter-from').fill('2026-11-19');
+        await regPage.getByTestId('stats-filter-to').fill('2026-11-19');
+        await expect(regPage.getByTestId('stats-model-success-rate')).toHaveAttribute('data-source-state', 'query_failed');
+        await expect(regPage.getByTestId('stats-value-model_success_rate')).toHaveText('查询失败（无快照）');
+        await expect(regPage.getByTestId('stats-success-rate-pair')).not.toContainText('0 starts');
+        await expect(regPage.getByTestId('stats-row-mean_load_duration_ms')).toContainText('查询失败（无快照）');
+        await expect(regPage.getByTestId('stats-row-mean_load_duration_ms')).toContainText('samples=—');
+
+        replyHandler = () => ({
+          kind: 'dto',
+          dto: makeMockDto({
+            rev: 2,
+            timezone: 'Asia/Tokyo',
+            starts: { state: 'stale', value: 4, coverage: 'full' },
+            successes: { state: 'stale', value: 3, coverage: 'full' },
+            duration: { state: 'stale', value: 310, samples: 3, coverage: 'full' },
+            rate: { value: 0.75, coverage: 'full' },
+          }),
+        });
+        await regPage.getByTestId('stats-refresh').click();
+        await expect(regPage.getByTestId('stats-model-success-rate')).toHaveAttribute('data-source-state', 'stale');
+        await expect(regPage.getByTestId('stats-model-success-rate')).toHaveAttribute('data-alert', 'true');
+        await expect(regPage.getByTestId('stats-value-model_success_rate')).toHaveText('75%');
+        await expect(regPage.getByTestId('stats-success-rate-pair')).toContainText('3 / 4 starts');
+
+        replyHandler = () => ({
+          kind: 'dto',
+          dto: makeMockDto({
+            rev: 2,
+            timezone: 'Asia/Tokyo',
+            starts: { state: 'not_connected', value: null, coverage: 'unavailable' },
+            successes: { state: 'not_connected', value: null, coverage: 'unavailable' },
+            duration: { state: 'not_connected', value: null, samples: 0, coverage: 'unavailable' },
+            rate: { value: null, coverage: 'unavailable' },
+          }),
+        });
+        await regPage.getByTestId('stats-refresh').click();
+        await expect(regPage.getByTestId('stats-model-success-rate')).toHaveAttribute('data-source-state', 'not_connected');
+        await expect(regPage.getByTestId('stats-value-model_success_rate')).toHaveText('Not connected: model_success_rate');
+        await expect(regPage.getByTestId('stats-success-rate-pair')).not.toContainText('0 starts');
+
+        replyHandler = () => ({
+          kind: 'dto',
+          dto: makeMockDto({
+            rev: 2,
+            timezone: 'Asia/Tokyo',
+            starts: { state: 'zero', value: 0, coverage: 'full' },
+            successes: { state: 'zero', value: 0, coverage: 'full' },
+            duration: { state: 'no_data', value: null, samples: 0, coverage: 'full' },
+            rate: { value: null, coverage: 'full' },
+          }),
+        });
+        await regPage.getByTestId('stats-refresh').click();
+        await expect(regPage.getByTestId('stats-model-success-rate')).toHaveAttribute('data-source-state', 'no_data');
+        await expect(regPage.getByTestId('stats-value-model_success_rate')).toHaveText('—（无发起样本）');
+        await expect(regPage.getByTestId('stats-value-mean_load_duration_ms')).toHaveText('—（无样本）');
+
+        replyHandler = () => ({
+          kind: 'dto',
+          dto: makeMockDto({
+            rev: 2,
+            timezone: 'Asia/Tokyo',
+            starts: { state: 'ok', value: 5, coverage: 'full' },
+            successes: { state: 'zero', value: 0, coverage: 'full' },
+            duration: { state: 'ok', value: 500, samples: 5, coverage: 'full' },
+            rate: { value: 0, coverage: 'full' },
+          }),
+        });
+        await regPage.getByTestId('stats-refresh').click();
+        await expect(regPage.getByTestId('stats-model-success-rate')).toHaveAttribute('data-source-state', 'zero');
+        await expect(regPage.getByTestId('stats-value-model_success_rate')).toHaveText('0%');
+        await expect(regPage.getByTestId('stats-success-rate-pair')).toContainText('0 / 5 starts');
+
+        // 8.4 R1：先在全部范围与仅系统运维范围均缓存 api_requests=42 快照 -> 失权收到 403 清快照并停止该越权查询 -> 后续 503 与断网均不恢复运维计数
+        replyHandler = () => ({
+          kind: 'dto',
+          dto: makeMockDto({
+            rev: 2,
+            timezone: 'Asia/Tokyo',
+            apiRequests: { state: 'ok', value: 42 },
+          }),
+        });
+        await regPage.getByTestId('stats-refresh').click();
+        await expect(regPage.getByTestId('stats-source-api_requests')).toBeVisible();
+        await expect(regPage.getByTestId('stats-value-api_requests')).toHaveText('42');
+        await expect(regPage.getByTestId('stats-svg-chart')).toContainText('已接线 API 请求数');
+        await expect(regPage.getByTestId('stats-row-api_requests')).toContainText('42');
+
+        await regPage.getByTestId('stats-scope-ops').click();
+        await expect(regPage.getByTestId('stats-value-api_requests')).toHaveText('42');
+
+        replyHandler = () => ({
+          kind: 'error',
+          status: 403,
+          code: 'forbidden',
+          message: 'Forbidden',
+        });
+        const countBeforeForbidden = seenStatsUrls.length;
+        await regPage.getByTestId('stats-refresh').click();
+        await expect(regPage.getByTestId('stats-error-banner')).toBeVisible();
+        await expect(regPage.getByTestId('stats-scope-ops')).toHaveCount(0);
+        await expect(regPage.getByTestId('stats-source-api_requests')).toHaveCount(0);
+        await expect(regPage.getByTestId('stats-svg-chart')).toHaveCount(0);
+        await expect(regPage.getByTestId('stats-table')).toHaveCount(0);
+        expect(seenStatsUrls.length).toBe(countBeforeForbidden + 1);
+        expect(seenStatsUrls[seenStatsUrls.length - 1]).toContain('sources=api_requests');
+
+        // 后续请求失败（503 及网络异常）：越权 sources 查询已停止不再发出，且卡片、图表与表格均不会恢复已隐藏的运维计数 42
+        replyHandler = () => ({
+          kind: 'error',
+          status: 503,
+          code: 'service_unavailable',
+          message: 'Service temporarily unavailable',
+        });
+        const countBeforeSubsequentFail = seenStatsUrls.length;
+        await regPage.getByTestId('stats-refresh').click();
+        await expect.poll(() => seenStatsUrls.length).toBe(countBeforeSubsequentFail + 1);
+        expect(seenStatsUrls[seenStatsUrls.length - 1]).not.toContain('sources=');
+        await expect(regPage.getByTestId('stats-error-banner')).toBeVisible();
+        await expect(regPage.getByTestId('stats-source-api_requests')).toHaveCount(0);
+        await expect(regPage.getByTestId('stats-svg-chart')).toHaveCount(0);
+        await expect(regPage.getByTestId('stats-table')).toHaveCount(0);
+        await expect(regPage.getByTestId('stats-page')).not.toContainText('已接线 API 请求数');
+
+        replyHandler = () => ({ kind: 'network_error' });
+        const countBeforeNetErr = seenStatsUrls.length;
+        await regPage.getByTestId('stats-refresh').click();
+        await expect.poll(() => seenStatsUrls.length).toBe(countBeforeNetErr + 1);
+        expect(seenStatsUrls[seenStatsUrls.length - 1]).not.toContain('sources=');
+        await expect(regPage.getByTestId('stats-source-api_requests')).toHaveCount(0);
+        await expect(regPage.getByTestId('stats-svg-chart')).toHaveCount(0);
+        await expect(regPage.getByTestId('stats-table')).toHaveCount(0);
+      } finally {
+        await regSession.context.close();
+      }
     } finally {
       await anonReq.dispose();
       await adminReq.dispose();
@@ -622,8 +1227,9 @@ test.describe('M6-T4 core stats dashboard page', () => {
         isMobile: mobile,
       });
       try {
-        const { page } = session;
-        await navigateViaStatsLink(page, '/admin/inquiries', mobile);
+        const { page, observer } = session;
+        const { dto: vpDto } = await navigateViaStatsLink(page, observer!, '/admin/inquiries', mobile);
+        expect(vpDto.sources).toHaveLength(17);
         await expect(page.getByTestId('stats-source-visitors')).toBeVisible();
         await expect(page.getByTestId('stats-table')).toBeVisible();
 
