@@ -861,7 +861,7 @@ describe('M6-T5 reliability source adapters & pure contracts (no database)', () 
     }
   });
 
-  test('CI workflow registers m6t5_reliability_test dedicated DB, exact 14-test gate, and 263/232 E2E collection check', () => {
+  test('CI workflow registers m6t5_reliability_test dedicated DB, exact 14-test gate, and 265/234 E2E collection check', () => {
     const workflow = readFileSync(path.resolve(process.cwd(), '.github/workflows/ci.yml'), 'utf8');
     assert.ok(workflow.includes('CREATE DATABASE "m6t5_reliability_test"'), 'CI must provision dedicated m6t5_reliability_test DB');
     assert.match(workflow, /M6T5_TEST_DATABASE_URL:\s*postgresql:\/\/postgres:postgres@localhost:5432\/m6t5_reliability_test\s/);
@@ -871,7 +871,7 @@ describe('M6-T5 reliability source adapters & pure contracts (no database)', () 
       'CI must enforce exact pass=14 gate for tests/stats-reliability.test.ts',
     );
     assert.ok(workflow.includes('stats-reliability-api.spec.ts'), 'CI must verify stats-reliability-api.spec.ts in A3 main collection');
-    assert.ok(workflow.includes('{ all: 263, main: 232, model: 14, consent: 14, errors: 2, flow: 1 }'));
+    assert.ok(workflow.includes('{ all: 265, main: 234, model: 14, consent: 14, errors: 2, flow: 1 }'));
   });
 });
 

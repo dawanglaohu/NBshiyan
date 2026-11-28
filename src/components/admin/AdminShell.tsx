@@ -6,6 +6,7 @@ import { adminApi, usingMock } from '@/lib/admin/api';
 import AdminSessionActivity, { reportAdminActivity } from '@/components/admin/auth/AdminSessionActivity';
 import { getAccount } from '@/lib/client/account';
 import type { AccountDTO } from '@/lib/contracts/account';
+import { ADMIN_ROUTES } from '@/lib/navigation/routes';
 import { signOut } from 'next-auth/react';
 import UnassignedNav from './mail/UnassignedNav';
 import { UNASSIGNED_MAIL_LIVE } from '@/lib/admin/mail/features';
@@ -14,10 +15,11 @@ import { MailGateContext, useMailGateFetch } from './mail/MailGate';
 import { DRAWER_FOCUSABLE, DRAWER_MQ, drawerKeyAction } from '@/lib/admin/drawer';
 
 // adminOnly：只给 ADMIN 显示（#350 站点设置：SALES / EDITOR 侧栏看不到；直接打开由服务端拦截）
-const NAV: { href: string; label: string; ready?: boolean; adminOnly?: boolean }[] = [
+const NAV: { href: string; label: string; ready?: boolean; adminOnly?: boolean; testId?: string; prefetch?: boolean }[] = [
   { href: '/admin/inquiries', label: '询盘', ready: true },
   { href: '/admin/samples', label: '样品申请' }, { href: '/admin/models/new', label: '3D 模型', ready: true },
-  { href: '/admin/specs', label: '产品规格', ready: true }, { href: '/admin/content', label: '内容' }, { href: '/admin/stats', label: '数据看板' },
+  { href: '/admin/specs', label: '产品规格', ready: true }, { href: '/admin/content', label: '内容' },
+  { href: ADMIN_ROUTES.stats.path, label: '数据看板', ready: true, testId: ADMIN_ROUTES.stats.entryId, prefetch: false },
   { href: '/admin/settings', label: '站点设置', ready: true, adminOnly: true }, { href: '/admin/users', label: '账号权限', ready: true }
 ];
 
@@ -123,7 +125,7 @@ export default function AdminShell({ children, role }: { children: React.ReactNo
         <div className="brand">Pack<i>Joy</i>U<small>Admin</small></div>
         {mobile && <button type="button" className="adm-nav-close" aria-label="关闭导航菜单" onClick={() => close()}><span aria-hidden="true">✕</span></button>}
         {NAV.filter((n) => !n.adminOnly || role === 'ADMIN').map((n) => n.ready
-          ? <Link key={n.href} href={n.href} aria-current={path.startsWith(n.href) ? 'page' : undefined}>
+          ? <Link key={n.href} href={n.href} data-testid={n.testId} prefetch={n.prefetch} aria-current={path.startsWith(n.href) ? 'page' : undefined}>
               {n.label}{n.href === '/admin/inquiries' && newCount ? <span className="count" aria-label={`${newCount} 条新询盘`}>{newCount}</span> : null}
             </Link>
           : <a key={n.href} className="soon" role="link" aria-disabled="true" title="待开发">{n.label}</a>)}
