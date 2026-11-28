@@ -105,7 +105,7 @@ export const SOURCE_CATALOG: Readonly<Record<StatsSource, SourceMeta>> = {
     title: '分析咨询发起',
     enLabel: 'Chat starts',
     unit: 'count',
-    description: '获分析同意后记录的站内咨询打开事件去重汇总。',
+    description: '访客同意分析后，按首条消息保存成功的咨询去重计数。',
   },
   inquiries: {
     title: '已保存询盘',
@@ -126,10 +126,10 @@ export const SOURCE_CATALOG: Readonly<Record<StatsSource, SourceMeta>> = {
     description: '已持久化收件的消息标识计数（同 UUID 幂等重试不重复累加）。',
   },
   chat_notifications: {
-    title: '咨询通知状态',
-    enLabel: 'Chat notifications',
+    title: 'SMTP 已接受的咨询通知',
+    enLabel: 'SMTP-accepted chat notifications',
     unit: 'count',
-    description: '持久通知出箱真实尝试计数（未接入适配器时显示未接入）。',
+    description: '邮件服务器已接受的人工咨询通知数。',
   },
   api_requests: {
     title: '已接线 API 请求数',
@@ -144,10 +144,10 @@ export const SOURCE_CATALOG: Readonly<Record<StatsSource, SourceMeta>> = {
     description: '仅限本轮已接线路由的 5xx 响应计数，与同范围请求数配对阅读。',
   },
   mail: {
-    title: '邮件队列真实投递',
-    enLabel: 'Mail queue attempts',
+    title: 'SMTP 已接受的出站邮件',
+    enLabel: 'SMTP-accepted outbound mail',
     unit: 'count',
-    description: '按真实发送尝试记录，排队或收件不计作投递成功。',
+    description: '邮件服务器已接受的出站邮件数。',
   },
   storage: {
     title: '受控存储已用空间',
