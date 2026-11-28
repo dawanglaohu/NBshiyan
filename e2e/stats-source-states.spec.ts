@@ -22,13 +22,24 @@ function source(dto: StatsDTO, name: StatsSource): StatsSourceDTO {
   return item;
 }
 
-async function readStatsAfter(page: Page, action: () => Promise<void>): Promise<{ dto: StatsDTO; url: string }> {
-  const [response] = await Promise.all([
-    page.waitForResponse((event) => new URL(event.url()).pathname === statsPath && event.request().method() === 'GET'),
-    action(),
-  ]);
-  expect(response.status()).toBe(200);
-  return { dto: StatsDTOSchema.parse(await response.json()), url: response.url() };
+async function observeStatsReads(page: Page) {
+  const entries: { status: number; url: string; body: Buffer }[] = [];
+  // Retain the real response before Chromium can evict its response-body buffer.
+  await page.route((url) => url.pathname === statsPath, async (route) => {
+    if (route.request().method() !== 'GET') return route.continue();
+    const response = await route.fetch();
+    const body = await response.body();
+    await route.fulfill({ response, body });
+    entries.push({ status: response.status(), url: route.request().url(), body });
+  });
+  return async (action: () => Promise<void>): Promise<{ dto: StatsDTO; url: string }> => {
+    const next = entries.length;
+    await action();
+    await expect.poll(() => entries.length).toBe(next + 1);
+    const entry = entries[next]!;
+    expect(entry.status).toBe(200);
+    return { dto: StatsDTOSchema.parse(JSON.parse(entry.body.toString('utf8'))), url: entry.url };
+  };
 }
 
 function retry(page: Page, name: StatsSource): Locator {
@@ -126,6 +137,7 @@ if (process.env.M6T7_SOURCE_STATES_E2E === '1') {
     };
 
     await page.setViewportSize(viewports[1]!);
+    const readStatsAfter = await observeStatsReads(page);
     await page.goto('/admin-login');
     await page.getByLabel('邮箱').fill(email);
     await page.getByLabel('密码', { exact: true }).fill(password);
@@ -135,7 +147,7 @@ if (process.env.M6T7_SOURCE_STATES_E2E === '1') {
     await signIn.click();
 
     const statsLink = page.getByRole('navigation', { name: '后台导航' }).getByTestId('stats-link');
-    const { dto: initial } = await readStatsAfter(page, () => statsLink.click());
+    const { dto: initial } = await readStatsAfter(() => statsLink.click());
     await expect(page).toHaveURL(/\/admin\/stats$/);
     expect(source(initial, 'inquiries')).toMatchObject({ state: 'zero', value: 0 });
     expect(source(initial, 'visitors')).toMatchObject({ state: 'no_data', value: null });
@@ -153,7 +165,7 @@ if (process.env.M6T7_SOURCE_STATES_E2E === '1') {
     const attempt = (offset: number) => new Date(start + offset).toISOString();
     await report({ source: 'BACKUP', status: 'FAILED', measuredAt: attempt(0), safeErrorCode: 'service_unavailable' });
     await report({ source: 'STORAGE', status: 'OK', measuredAt: attempt(1), values: { bytesUsed: 0, bytesFree: 4096 } });
-    const { dto: before } = await readStatsAfter(page, () => statRefresh.click());
+    const { dto: before } = await readStatsAfter(() => statRefresh.click());
     const storageZero = source(before, 'storage');
     expect(storageZero).toMatchObject({ state: 'zero', value: 0 });
     expect(source(before, 'backup')).toMatchObject({ state: 'query_failed', value: null, lastSucceededAt: null });
@@ -173,7 +185,7 @@ if (process.env.M6T7_SOURCE_STATES_E2E === '1') {
       }
     };
     page.on('request', trackStatsActions);
-    const { dto: after, url } = await readStatsAfter(page, () => retry(page, 'backup').press('Enter'));
+    const { dto: after, url } = await readStatsAfter(() => retry(page, 'backup').press('Enter'));
     expect(requests).toEqual([`GET ${statsPath}`]);
     page.off('request', trackStatsActions);
     expect(new URL(url).searchParams.get('from')).toBe(await page.getByTestId('stats-filter-from').inputValue());
@@ -195,7 +207,7 @@ if (process.env.M6T7_SOURCE_STATES_E2E === '1') {
     await page.setViewportSize(viewports[1]!);
 
     await report({ source: 'STORAGE', status: 'OK', measuredAt: attempt(3), values: { bytesUsed: 2048, bytesFree: 4096 } });
-    const { dto: restored } = await readStatsAfter(page, () => retry(page, 'storage').press('Enter'));
+    const { dto: restored } = await readStatsAfter(() => retry(page, 'storage').press('Enter'));
     expect(source(restored, 'storage')).toMatchObject({ state: 'ok', value: 2048, lastSucceededAt: attempt(3) });
     await assertReading(page, source(restored, 'storage'));
     await expect(page.getByTestId('stats-state-storage')).toContainText('查询成功');
@@ -212,7 +224,7 @@ if (process.env.M6T7_SOURCE_STATES_E2E === '1') {
     expect(changed.ok()).toBe(true);
     const change = AnalyticsSettingsUpdateDTOSchema.parse(await changed.json());
     expect(change.recomputableFrom).not.toBeNull();
-    const { dto: pending } = await readStatsAfter(page, () => statRefresh.click());
+    const { dto: pending } = await readStatsAfter(() => statRefresh.click());
     expect(pending.recomputableFrom).toBe(change.recomputableFrom);
     await expect(page.getByTestId('stats-recomputable')).toContainText(change.recomputableFrom!);
 
@@ -222,13 +234,13 @@ if (process.env.M6T7_SOURCE_STATES_E2E === '1') {
     });
     expect(job.ok()).toBe(true);
     expect(await job.json()).toMatchObject({ status: 'SUCCEEDED' });
-    const { dto: aggregated } = await readStatsAfter(page, () => statRefresh.click());
+    const { dto: aggregated } = await readStatsAfter(() => statRefresh.click());
     const aggregateVisitors = source(aggregated, 'visitors');
     expect(aggregateVisitors).toMatchObject({ coverage: 'full', state: 'zero', value: 0 });
     await expect(page.getByTestId('stats-value-visitors')).toHaveText('0');
     await expect(page.getByTestId('stats-ingestion-status')).toContainText('最近接收时间未知');
     const siteToday = siteLocalDate(new Date(aggregateVisitors.queriedAt), aggregateVisitors.timezone);
-    const { dto: partial } = await readStatsAfter(page, () =>
+    const { dto: partial } = await readStatsAfter(() =>
       page.getByTestId('stats-filter-to').fill(shiftLocalDate(siteToday, 1)));
     expect(source(partial, 'visitors')).toMatchObject({ coverage: 'partial', state: 'no_data', value: null });
     await expect(page.getByTestId('stats-source-visitors')).toContainText('部分覆盖');
