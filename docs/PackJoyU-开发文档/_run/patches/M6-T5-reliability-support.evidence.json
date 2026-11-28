@@ -1,0 +1,44 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M6-T5": {
+      "contractHash": "f71208e6f8991e6353506751477014356eda20b83f1f1e5797d5578e9c0f5697",
+      "evidence": [
+        "第19节 M6-T5 从 M6-T6 复用已鉴权 GET /api/admin/stats，M4-T4 提供 chat-notifications。第13节 E-51/52/53/64/67 与第17节真实 HTTP/通知作业验收相符。composition.ts:134 组合可靠性读取器，db.ts:3 与 auth.ts:116 复用现有生产入口。",
+        "第10节统计 DTO 与服务、PG17 专库及 A3 分区计数需要四个支持文件。补丁仅增补 src/lib/contracts/ops.ts、src/lib/server/ops/stats-service.ts、tests/stats-route.test.ts、.github/workflows/ci.yml。PR #563 同改 CI，合并时核实各自门禁。下游未落地任务只有上游契约哈希传播，无新增已落地待复验任务。",
+        "此记录确认契约可执行。实现验收为 rework。PR #578 的 PG17 和本地 PG12 在 tests/stats-reliability.test.ts:1154 有同一 ReferenceError；HTTP 成对查询、接通探针、邮件归属日期和同键快照的实现仍有缺口。"
+      ],
+      "verdict": "pass"
+    },
+    "M6-T7": {
+      "contractHash": "26d311ce8f8e5a78bb9dccc9308312743308d262f47dae99db211244a222f892",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T10": {
+      "contractHash": "76a0e458b7d3d6e627b3aaae61c3e5f38a91afcba023b80549ff39a4297e2542",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T3": {
+      "contractHash": "615e0d68aa5b1b554f655eb08b83cc8cab09eb4bed5ae1a55e52c128049dbebf",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T7": {
+      "contractHash": "a628d749a4c86709cd3423810367d87d0c8eb0e6c0a83730df2d311268d79b03",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T8": {
+      "contractHash": "c083745ba7276c6346e749300fe2b16527f727102815d5148659afeaf396675a",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T9": {
+      "contractHash": "0814d2ee945b46babcb7180384219f74c4006ac44eabbb29e613a32bd1de96d7",
+      "evidence": [],
+      "verdict": "pending"
+    }
+  }
+}

@@ -118,16 +118,58 @@ export const StatsModelSuccessRateSchema = z.object({
 });
 export type StatsModelSuccessRateDTO = z.infer<typeof StatsModelSuccessRateSchema>;
 
+export const HttpCoverageScopeSchema = z.literal('instrumented_routes');
+export type HttpCoverageScope = z.infer<typeof HttpCoverageScopeSchema>;
+
+export const StatsApiErrorRateSchema = z.object({
+  value: z.number().finite().min(0).max(1).nullable(),
+  coverage: StatsCoverageSchema,
+  scope: HttpCoverageScopeSchema,
+}).strict().superRefine((value, context) => {
+  if (value.coverage === 'unavailable' && value.value !== null) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['value'],
+      message: 'An unavailable API error rate cannot supply a value.',
+    });
+  }
+  if (value.coverage === 'full') {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['coverage'],
+      message: 'API error rate covers instrumented routes only and cannot claim full site-wide coverage.',
+    });
+  }
+});
+export type StatsApiErrorRateDTO = z.infer<typeof StatsApiErrorRateSchema>;
+
+export const StatsNotificationBreakdownSchema = z.object({
+  queued: NonNegativeIntSchema,
+  sending: NonNegativeIntSchema,
+  sent: NonNegativeIntSchema,
+  failed: NonNegativeIntSchema,
+  unknown: NonNegativeIntSchema,
+}).strict();
+export type StatsNotificationBreakdownDTO = z.infer<typeof StatsNotificationBreakdownSchema>;
+
+export const StatsNotificationCountsSchema = z.object({
+  chat_notifications: StatsNotificationBreakdownSchema.nullable().optional(),
+  mail: StatsNotificationBreakdownSchema.nullable().optional(),
+}).strict();
+export type StatsNotificationCountsDTO = z.infer<typeof StatsNotificationCountsSchema>;
+
 export const StatsDTOSchema = z.object({
   sources: z.array(StatsSourceDTOSchema).min(1).max(17),
   modelSuccessRate: StatsModelSuccessRateSchema.nullable().optional(),
+  apiErrorRate: StatsApiErrorRateSchema.nullable().optional(),
+  notificationCounts: StatsNotificationCountsSchema.nullable().optional(),
   recomputableFrom: UtcDateTimeSchema.nullable().optional(),
 }).strict().superRefine((value, context) => {
   if (new Set(value.sources.map((source) => source.source)).size !== value.sources.length) {
     context.addIssue({ code: z.ZodIssueCode.custom, path: ['sources'], message: 'Sources must be unique.' });
   }
+  const names = new Set(value.sources.map((source) => source.source));
   if (value.modelSuccessRate !== undefined) {
-    const names = new Set(value.sources.map((source) => source.source));
     const hasPairedModelSources = names.has('model_starts') && names.has('model_successes');
     if (hasPairedModelSources && value.modelSuccessRate === null) {
       context.addIssue({
@@ -140,6 +182,38 @@ export const StatsDTOSchema = z.object({
         code: z.ZodIssueCode.custom,
         path: ['modelSuccessRate'],
         message: 'modelSuccessRate must be null unless both model_starts and model_successes are included.',
+      });
+    }
+  }
+  if (value.apiErrorRate !== undefined) {
+    const hasPairedApiSources = names.has('api_requests') && names.has('api_errors');
+    if (hasPairedApiSources && value.apiErrorRate === null) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['apiErrorRate'],
+        message: 'Paired API sources require an apiErrorRate reading.',
+      });
+    } else if (!hasPairedApiSources && value.apiErrorRate !== null) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['apiErrorRate'],
+        message: 'apiErrorRate must be null unless both api_requests and api_errors are included.',
+      });
+    }
+  }
+  if (value.notificationCounts !== undefined && value.notificationCounts !== null) {
+    if (!names.has('chat_notifications') && value.notificationCounts.chat_notifications !== undefined) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['notificationCounts', 'chat_notifications'],
+        message: 'chat_notifications breakdown requires chat_notifications in sources.',
+      });
+    }
+    if (!names.has('mail') && value.notificationCounts.mail !== undefined) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['notificationCounts', 'mail'],
+        message: 'mail breakdown requires mail in sources.',
       });
     }
   }

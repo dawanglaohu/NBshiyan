@@ -34,15 +34,17 @@ import {
   type OpsReportService,
 } from './ops/ops-report';
 import { createOpsSampleJob, type OpsSampleDeps } from './ops/ops-sample';
+import { createReliabilitySourceBundle } from './ops/reliability-source';
 import { createStatsService, type StatsService } from './ops/stats-service';
 import { createAnalyticsRetentionJob } from './analytics/retention';
 import { retentionCleanupMode } from './analytics/retention-plan';
-import { createMailQueueJob } from './mail/queue-job';
+import { createMailQueueJob, MAIL_QUEUE_KEY } from './mail/queue-job';
 import { createChatNotificationJob } from './chat/notification-job';
 import { createChatRetentionJob } from './chat/retention-candidates';
-import type { NotificationMailer } from './chat/notification-mailer';
-import type { NotificationEnv } from './chat/notification-policy';
+import { notificationMailConfig, type NotificationMailer } from './chat/notification-mailer';
+import { CHAT_NOTIFICATION_JOB_KEY, type NotificationEnv } from './chat/notification-policy';
 import { defaultAdapter } from './mail/http';
+import { sendingEnabled } from './mail/config';
 import { sendAdminAlert } from './mail';
 import { audit, auditInTx } from './admin/audit';
 import type { AlertFn, AuditFn, AuditInTxFn } from './mail/send';
@@ -94,11 +96,14 @@ export function createAdminServices(deps: {
   clock?: () => Date;
   log?: (event: CounterLog) => void;
   jobs?: JobRegistry;
+  apiCounter?: ApiCounter | null;
 } = {}): AdminServices {
   const db = deps.db ?? (prisma as PrismaClient);
   const config = deps.config ?? getServerConfig();
   const clock = deps.clock ?? (() => new Date());
   const jobs = deps.jobs ?? createJobServices({ db, clock }).jobs;
+  const httpServices = createHttpServices({ db, config, clock, log: deps.log });
+  const wiredApiCounter = deps.apiCounter === undefined ? httpServices.apiCounter : deps.apiCounter;
   const actionGrants = createActionGrantService({
     db,
     clock,
@@ -106,7 +111,12 @@ export function createAdminServices(deps: {
     sessionPolicy: config.session,
   });
   return {
-    ...createHttpServices({ db, config, clock, log: deps.log }),
+    ...httpServices,
+    apiCounter: wiredApiCounter ?? {
+      async recordFinalResponse(response) {
+        return { status: response.status, body: response.body, recorded: false };
+      },
+    },
     devices: deviceServiceFor(db, clock, config.session),
     actionGrants,
     recoveryAuthorizations: createRecoveryAuthorizationService({
@@ -128,14 +138,28 @@ export function createAdminServices(deps: {
     accountSecurity: createAccountSecurityService({ db, clock, actionGrants }),
     deviceManagement: createDeviceManagementService({ db, clock, actionGrants, policy: config.session }),
     analyticsSettings: createAnalyticsSettingsService({ db, clock }),
-    stats: createStatsService({
-      db,
-      clock,
-      analyticsConfigured: () => Boolean(analyticsConsentSecret()),
-      aggregateJobRegistered: () => jobs.has(ANALYTICS_AGGREGATE_KEY),
-      // 询盘与聊天只读计数（M6-T2）+ 存储/备份运维快照（M6-T3）；M6-T5 可靠性来源在此继续合并。
-      nonCoreReaders: { ...createBusinessSourceReaders(db), ...createOpsSourceReaders(db) },
-    }),
+    stats: (() => {
+      const reliability = createReliabilitySourceBundle({
+        db,
+        apiCounter: wiredApiCounter,
+        chatNotificationConfigured: () => notificationMailConfig() !== null,
+        chatNotificationJobRegistered: () => jobs.has(CHAT_NOTIFICATION_JOB_KEY),
+        mailConfigured: () => sendingEnabled(),
+        mailQueueJobRegistered: () => jobs.has(MAIL_QUEUE_KEY),
+      });
+      return createStatsService({
+        db,
+        clock,
+        analyticsConfigured: () => Boolean(analyticsConsentSecret()),
+        aggregateJobRegistered: () => jobs.has(ANALYTICS_AGGREGATE_KEY),
+        nonCoreReaders: {
+          ...createBusinessSourceReaders(db),
+          ...createOpsSourceReaders(db),
+          ...reliability.readers,
+        },
+        detailedNonCoreReaders: reliability.detailedReaders,
+      });
+    })(),
     selfRebind: createSelfRebindService({
       db,
       clock,
