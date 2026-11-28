@@ -1,0 +1,15 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M6-T5": {
+      "contractHash": "f71208e6f8991e6353506751477014356eda20b83f1f1e5797d5578e9c0f5697",
+      "evidence": [
+        "契约 f71208e6 引用 M6-T6 的 stats-core 与 M4-T4 的 chat-notification-job；与第10节分源 DTO、第13节 E-51/52/53/64/67、第17节真实 HTTP 与通知作业、第19节 M6-T5 接线要求一致。本轮沿用已核验的四个支持路径，未改契约。",
+        "PR #578 返工提交 aedd8492：R1 隔离 STARTTLS SMTP、持久化行、授权 GET 三方对照见 tests/stats-reliability.test.ts:1585 和 :1764。R2 同请求单快照见 src/lib/server/ops/reliability-source.ts:270 及并发写入测试 :1511；R3 生产装配及三态断言见 src/lib/server/composition.ts:142、tests/stats-reliability.test.ts:1350。",
+        "R4 已通过 anonymizeInquiriesTx 跨日回归（tests/stats-reliability.test.ts:1970）。R5 服务按日期、产品及有效时区修订校验旧查询，缺键或异键返回失败空值，同键保留明细和成功时间（src/lib/server/ops/stats-service.ts:351，tests/stats-reliability.test.ts:2148、:2166）。",
+        "审查复跑本地 PostgreSQL 12 的 14 项可靠性用例，14 通过、0 跳过；tsc --noEmit、next lint 和 lint-ru-yo 通过。GitHub Actions 46106996100 的 PG17 三个文件分别 14、9、14 项通过且无跳过，A3 的 stats-reliability-api.spec.ts:27 在真实 standalone 上具名通过。返工提交四项 CI 全绿，bot 对同一 SHA 的复核无新发现。"
+      ],
+      "verdict": "pass"
+    }
+  }
+}

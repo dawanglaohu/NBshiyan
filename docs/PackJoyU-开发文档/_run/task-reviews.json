@@ -1203,11 +1203,12 @@
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
     "contractHash": "f71208e6f8991e6353506751477014356eda20b83f1f1e5797d5578e9c0f5697",
     "evidence": [
-      "第19节 M6-T5 从 M6-T6 复用已鉴权 GET /api/admin/stats，M4-T4 提供 chat-notifications。第13节 E-51/52/53/64/67 与第17节真实 HTTP/通知作业验收相符。composition.ts:134 组合可靠性读取器，db.ts:3 与 auth.ts:116 复用现有生产入口。",
-      "第10节统计 DTO 与服务、PG17 专库及 A3 分区计数需要四个支持文件。补丁仅增补 src/lib/contracts/ops.ts、src/lib/server/ops/stats-service.ts、tests/stats-route.test.ts、.github/workflows/ci.yml。PR #563 同改 CI，合并时核实各自门禁。下游未落地任务只有上游契约哈希传播，无新增已落地待复验任务。",
-      "此记录确认契约可执行。实现验收为 rework。PR #578 的 PG17 和本地 PG12 在 tests/stats-reliability.test.ts:1154 有同一 ReferenceError；HTTP 成对查询、接通探针、邮件归属日期和同键快照的实现仍有缺口。"
+      "契约 f71208e6 引用 M6-T6 的 stats-core 与 M4-T4 的 chat-notification-job；与第10节分源 DTO、第13节 E-51/52/53/64/67、第17节真实 HTTP 与通知作业、第19节 M6-T5 接线要求一致。本轮沿用已核验的四个支持路径，未改契约。",
+      "PR #578 返工提交 aedd8492：R1 隔离 STARTTLS SMTP、持久化行、授权 GET 三方对照见 tests/stats-reliability.test.ts:1585 和 :1764。R2 同请求单快照见 src/lib/server/ops/reliability-source.ts:270 及并发写入测试 :1511；R3 生产装配及三态断言见 src/lib/server/composition.ts:142、tests/stats-reliability.test.ts:1350。",
+      "R4 已通过 anonymizeInquiriesTx 跨日回归（tests/stats-reliability.test.ts:1970）。R5 服务按日期、产品及有效时区修订校验旧查询，缺键或异键返回失败空值，同键保留明细和成功时间（src/lib/server/ops/stats-service.ts:351，tests/stats-reliability.test.ts:2148、:2166）。",
+      "审查复跑本地 PostgreSQL 12 的 14 项可靠性用例，14 通过、0 跳过；tsc --noEmit、next lint 和 lint-ru-yo 通过。GitHub Actions 46106996100 的 PG17 三个文件分别 14、9、14 项通过且无跳过，A3 的 stats-reliability-api.spec.ts:27 在真实 standalone 上具名通过。返工提交四项 CI 全绿，bot 对同一 SHA 的复核无新发现。"
     ],
-    "reviewed": "2026-11-28T01:44:28.789311+00:00",
+    "reviewed": "2026-11-28T06:13:39.959590+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
